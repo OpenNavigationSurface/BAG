@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<entity>
+	<user>
+		<name>
+			Name of the Entity that has signing priviledges
+		</name>
+		<organization>
+			Organization of the Entity
+		</organization>
+		<idnum>
+			Numerical Identification of the Entity (e.g., a serial number)
+		</idnum>
+		<keysource>
+			Authoritative URL for where to get the public part of the key
+		</keysource>
+	</user>
+</entity>
