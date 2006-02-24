@@ -1,0 +1,647 @@
+/*
+ * Copyright 2001,2004 The Apache Software Foundation.
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+/*
+ * $Log: DatatypeValidator.cpp,v $
+ * Revision 1.1.1.1  2005/07/29 01:44:55  openns
+ * Checkin of library and support after second ONSWG meeting
+ *
+ * Revision 1.26  2004/09/08 13:56:52  peiyongz
+ * Apache License Version 2.0
+ *
+ * Revision 1.25  2004/03/09 21:00:46  peiyongz
+ * recognize builtIn dv
+ *
+ * Revision 1.24  2004/03/03 23:08:28  peiyongz
+ * Move the logic to check for BuiltIn Dv to storeDV/loadDV therefore dv which
+ * refers to BuiltIn DV will NOT be actually saved/loaded, as opposed to previously
+ * it is only done for dv appears in fBaseValidator.
+ *
+ * Revision 1.23  2004/03/02 23:34:58  peiyongz
+ * fix typo
+ *
+ * Revision 1.22  2004/03/02 23:22:06  peiyongz
+ * save/load TypeUri/TypeLocalName more accurately
+ *
+ * Revision 1.21  2004/01/29 11:51:22  cargilld
+ * Code cleanup changes to get rid of various compiler diagnostic messages.
+ *
+ * Revision 1.20  2003/12/23 21:50:36  peiyongz
+ * Absorb exception thrown in getCanonicalRepresentation and return 0,
+ * only validate when required
+ *
+ * Revision 1.19  2003/12/17 00:18:38  cargilld
+ * Update to memory management so that the static memory manager (one used to call Initialize) is only for static data.
+ *
+ * Revision 1.18  2003/11/28 18:53:07  peiyongz
+ * Support for getCanonicalRepresentation
+ *
+ * Revision 1.17  2003/11/13 23:19:18  peiyongz
+ * initSize
+ *
+ * Revision 1.16  2003/11/07 22:39:41  peiyongz
+ * PSVI/schema component model implementation, thanks to David Cargill
+ *
+ * Revision 1.15  2003/11/06 15:30:07  neilg
+ * first part of PSVI/schema component model implementation, thanks to David Cargill.  This covers setting the PSVIHandler on parser objects, as well as implementing XSNotation, XSSimpleTypeDefinition, XSIDCDefinition, and most of XSWildcard, XSComplexTypeDefinition, XSElementDeclaration, XSAttributeDeclaration and XSAttributeUse.
+ *
+ * Revision 1.14  2003/11/05 16:37:18  peiyongz
+ * don't serialize built-in baseValidator, and don't serialize localName/uriName
+ *
+ * Revision 1.13  2003/10/17 21:13:44  peiyongz
+ * using XTemplateSerializer
+ *
+ * Revision 1.12  2003/10/07 19:39:37  peiyongz
+ * Use of Template_Class Object Serialization/Deserialization API
+ *
+ * Revision 1.11  2003/10/02 19:20:19  peiyongz
+ * fWhiteSpace added; more dv serialization support added
+ *
+ * Revision 1.10  2003/10/01 01:09:35  knoaman
+ * Refactoring of some code to improve performance.
+ *
+ * Revision 1.9  2003/09/30 21:32:23  peiyongz
+ * AnyURI, Base64, HexBin, NOTATION, List and QName
+ *
+ * Revision 1.8  2003/09/30 18:17:53  peiyongz
+ * Implementation of Serialization/Deserialization
+ *
+ * Revision 1.7  2003/09/29 21:47:35  peiyongz
+ * Implementation of Serialization/Deserialization
+ *
+ * Revision 1.6  2003/05/15 18:53:26  knoaman
+ * Partial implementation of the configurable memory manager.
+ *
+ * Revision 1.5  2003/01/29 19:52:32  gareth
+ * PSVI API additions.
+ *
+ * Revision 1.4  2002/12/19 14:03:10  gareth
+ * get/set methods to see if the represented type is anonymous. Patch by Peter Volchek.
+ *
+ * Revision 1.3  2002/11/04 14:53:28  tng
+ * C++ Namespace Support.
+ *
+ * Revision 1.2  2002/10/15 18:04:31  knoaman
+ * Bug [13485]: incorrect return from getWSstring
+ *
+ * Revision 1.1.1.1  2002/02/01 22:22:40  peiyongz
+ * sane_include
+ *
+ * Revision 1.7  2001/06/20 17:56:56  peiyongz
+ * support for "fixed" option on constrainning facets
+ *
+ * Revision 1.6  2001/05/11 21:51:09  knoaman
+ * Schema updates and fixes.
+ *
+ * Revision 1.5  2001/05/11 13:27:27  tng
+ * Copyright update.
+ *
+ * Revision 1.4  2001/05/09 18:43:38  tng
+ * Add StringDatatypeValidator and BooleanDatatypeValidator.  By Pei Yong Zhang.
+ *
+ * Revision 1.3  2001/05/03 21:09:52  tng
+ * Schema: DatatypeValidator Update.  By Pei Yong Zhang.
+ *
+ * Revision 1.2  2001/05/03 19:17:43  knoaman
+ * TraverseSchema Part II.
+ *
+ * Revision 1.1  2001/03/21 21:39:13  knoaman
+ * Schema symbols and Datatype validator part I
+ *
+ */
+
+
+// ---------------------------------------------------------------------------
+//  Includes
+// ---------------------------------------------------------------------------
+#include <xercesc/validators/datatype/DatatypeValidator.hpp>
+#include <xercesc/framework/MemoryManager.hpp>
+
+//since we need to dynamically created each and every derivatives 
+//during deserialization by XSerializeEngine>>Derivative, we got
+//to include all hpp
+
+#include <xercesc/validators/datatype/StringDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/AnyURIDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/QNameDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/NameDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/NCNameDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/BooleanDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/FloatDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/DoubleDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/DecimalDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/HexBinaryDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/Base64BinaryDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/DurationDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/DateTimeDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/DateDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/TimeDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/MonthDayDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/YearMonthDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/YearDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/MonthDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/DayDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/IDDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/IDREFDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/ENTITYDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/NOTATIONDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/ListDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/UnionDatatypeValidator.hpp>
+#include <xercesc/validators/datatype/AnySimpleTypeDatatypeValidator.hpp>
+
+#include <xercesc/internal/XTemplateSerializer.hpp>
+
+XERCES_CPP_NAMESPACE_BEGIN
+
+static const int DV_BUILTIN = -1;
+static const int DV_NORMAL  = -2;
+static const int DV_ZERO    = -3;
+
+static const int TYPENAME_ZERO    = -1;
+static const int TYPENAME_S4S     = -2;
+static const int TYPENAME_NORMAL  = -3;
+
+// ---------------------------------------------------------------------------
+//  DatatypeValidator: Constructors and Destructor
+// ---------------------------------------------------------------------------
+DatatypeValidator::DatatypeValidator(DatatypeValidator* const baseValidator,
+                                     RefHashTableOf<KVStringPair>* const facets,
+                                     const int finalSet,
+                                     const ValidatorType type,
+                                     MemoryManager* const manager)
+    : fMemoryManager(manager)
+    , fAnonymous(false)
+    , fWhiteSpace(COLLAPSE)
+    , fFinalSet(finalSet)
+    , fFacetsDefined(0)
+    , fFixed(0)
+    , fType(type)
+    , fBaseValidator(baseValidator)
+    , fFacets(facets)
+    , fPattern(0)
+    , fRegex(0)
+    , fTypeName(0)
+    , fTypeLocalName(XMLUni::fgZeroLenString)
+    , fTypeUri(XMLUni::fgZeroLenString)
+    , fOrdered(XSSimpleTypeDefinition::ORDERED_FALSE)
+    , fFinite(false)
+    , fBounded(false)
+    , fNumeric(false)
+{
+}
+
+DatatypeValidator::~DatatypeValidator()
+{
+	cleanUp();
+}
+
+const XMLCh* DatatypeValidator::getWSstring(const short theType) const
+{
+    switch (theType)
+    {
+    case PRESERVE:
+         return SchemaSymbols::fgWS_PRESERVE;
+    case REPLACE:
+         return SchemaSymbols::fgWS_REPLACE;
+    case COLLAPSE:
+         return SchemaSymbols::fgWS_COLLAPSE;
+    default:
+         return SchemaSymbols::fgWS_PRESERVE;
+    }
+
+}
+
+void DatatypeValidator::setTypeName(const XMLCh* const name, const XMLCh* const uri)
+{
+    if (fTypeName) {
+
+        fMemoryManager->deallocate(fTypeName);
+        fTypeName = 0;
+    }
+
+    if (name || uri) {
+
+        unsigned int nameLen = XMLString::stringLen(name);
+        unsigned int uriLen = XMLString::stringLen(uri);
+
+        fTypeName = (XMLCh*) fMemoryManager->allocate
+        (
+            (nameLen + uriLen + 2)*sizeof(XMLCh)
+        );
+        fTypeUri = fTypeName;
+        fTypeLocalName = &fTypeName[uriLen+1];
+
+        if (uri)
+			XMLString::moveChars(fTypeName, uri, uriLen+1);
+        else
+			fTypeName[0] = chNull;
+
+        if (name)
+            XMLString::moveChars(&fTypeName[uriLen+1], name, nameLen+1);
+        else
+            fTypeName[uriLen+1] = chNull;
+    }
+    else
+    {
+        fTypeUri = fTypeLocalName = XMLUni::fgZeroLenString;
+    }
+}
+
+void DatatypeValidator::setTypeName(const XMLCh* const typeName)
+{
+    if (fTypeName)
+    {
+        fMemoryManager->deallocate(fTypeName);
+        fTypeName = 0;
+    }
+
+    if (typeName)
+    {
+        unsigned int nameLen = XMLString::stringLen(typeName);
+        int commaOffset = XMLString::indexOf(typeName, chComma);
+
+        fTypeName = (XMLCh*) fMemoryManager->allocate
+        (
+            (nameLen + 1) * sizeof(XMLCh)
+        );
+	    XMLString::moveChars(fTypeName, typeName, nameLen+1);
+
+        if ( commaOffset == -1) {
+            fTypeUri = SchemaSymbols::fgURI_SCHEMAFORSCHEMA;
+            fTypeLocalName = fTypeName;
+        }
+        else {
+            fTypeUri = fTypeName;
+            fTypeLocalName = &fTypeName[commaOffset+1];
+            fTypeName[commaOffset] = chNull;
+        }
+    }
+    else
+    {
+        fTypeUri = fTypeLocalName = XMLUni::fgZeroLenString;
+    }
+}
+
+// ---------------------------------------------------------------------------
+//  DatatypeValidator: CleanUp methods
+// ---------------------------------------------------------------------------
+void DatatypeValidator::cleanUp() {
+
+	delete fFacets;
+    delete fRegex;
+    if (fPattern)
+        fMemoryManager->deallocate(fPattern);//delete [] fPattern;
+    if (fTypeName)
+        fMemoryManager->deallocate(fTypeName);
+}
+
+/***
+ * Support for Serialization/De-serialization
+ ***/
+
+IMPL_XSERIALIZABLE_NOCREATE(DatatypeValidator)
+
+void DatatypeValidator::serialize(XSerializeEngine& serEng)
+{
+
+    if (serEng.isStoring())
+    {
+        serEng<<fAnonymous;
+        serEng<<fWhiteSpace;
+        serEng<<fFinalSet;
+        serEng<<fFacetsDefined;
+        serEng<<fFixed;
+        serEng<<(int)fType;
+
+        serEng<<(int)fOrdered;
+        serEng<<fFinite;
+        serEng<<fBounded;
+        serEng<<fNumeric;
+
+        storeDV(serEng, fBaseValidator);
+
+        /***
+         *  Serialize RefHashTableOf<KVStringPair>
+         ***/
+        XTemplateSerializer::storeObject(fFacets, serEng);
+
+        serEng.writeString(fPattern);
+
+        if (fTypeUri==XMLUni::fgZeroLenString)
+        {
+            serEng<<TYPENAME_ZERO;
+        }
+        else if (fTypeUri == SchemaSymbols::fgURI_SCHEMAFORSCHEMA)
+        {
+            serEng<<TYPENAME_S4S;
+            serEng.writeString(fTypeLocalName);
+        }
+        else
+        {        
+            serEng<<TYPENAME_NORMAL;
+            serEng.writeString(fTypeLocalName);
+            serEng.writeString(fTypeUri);
+        }
+
+        /***
+         * don't serialize 
+         *       fRegex
+         ***/    
+    }
+    else
+    {
+        serEng>>fAnonymous;
+        serEng>>fWhiteSpace;
+        serEng>>fFinalSet;
+        serEng>>fFacetsDefined;
+        serEng>>fFixed;
+
+        int type;
+        serEng>>type;
+        fType=(ValidatorType)type;
+
+        serEng>>type;
+        fOrdered = (XSSimpleTypeDefinition::ORDERING)type;
+        serEng>>fFinite;
+        serEng>>fBounded;
+        serEng>>fNumeric;
+
+        fBaseValidator = loadDV(serEng);
+
+        /***
+         *
+         *  Deserialize RefHashTableOf<KVStringPair>
+         *
+         ***/
+        XTemplateSerializer::loadObject(&fFacets, 29, true, serEng);
+        serEng.readString(fPattern);
+
+        /***
+         *   Recreate through setTypeName()
+         *       fTypeName
+         ***/
+
+        int flag;
+        serEng>>flag;
+
+        if ( TYPENAME_ZERO == flag )
+        {
+            setTypeName(0);
+        }
+        else if ( TYPENAME_S4S == flag )
+        {
+            XMLCh* typeLocalName;
+            serEng.readString(typeLocalName);
+            ArrayJanitor<XMLCh> janName(typeLocalName, fMemoryManager);
+
+            setTypeName(typeLocalName);
+        }
+        else // TYPENAME_NORMAL
+        {
+            XMLCh* typeLocalName;
+            serEng.readString(typeLocalName);
+            ArrayJanitor<XMLCh> janName(typeLocalName, fMemoryManager);
+
+            XMLCh* typeUri;
+            serEng.readString(typeUri);
+            ArrayJanitor<XMLCh> janUri(typeUri, fMemoryManager);
+
+            setTypeName(typeLocalName, typeUri);
+        }
+
+        /***
+         * don't serialize fRegex
+         ***/
+        fRegex = 0;
+
+    }
+
+}
+
+/***
+ *
+ *  When deserialized, we need to know, exactly what
+ *  validator was serialized here.
+ *
+ *  Design Issue:
+ *    
+ *    This extra type information is only necessary when
+ *  we need to create and deserialize an DatatypeValidator 
+ *  derivative by operator >>, but not by object.serialize().
+ *  Therefore it is appropriate to save this type info by
+ *  hosting object rather than by derivative.serialize().
+ *
+ *
+ ***/
+void DatatypeValidator::storeDV(XSerializeEngine&        serEng
+                              , DatatypeValidator* const dv)
+{
+    if (dv)
+    {
+        //builtIndv
+        if (dv == DatatypeValidatorFactory::getBuiltInRegistry()->get(dv->getTypeLocalName()))
+        {
+            serEng<<DV_BUILTIN;
+            serEng.writeString(dv->getTypeLocalName());
+        }
+        else
+        {
+            serEng<<DV_NORMAL;
+            serEng<<(int) dv->getType();
+            serEng<<dv;
+        }
+    }
+    else
+    {
+        serEng<<DV_ZERO;
+    }
+
+}
+
+DatatypeValidator* DatatypeValidator::loadDV(XSerializeEngine& serEng)
+{
+
+    int flag;
+    serEng>>flag;
+
+    if (DV_BUILTIN == flag)
+    {
+        XMLCh* dvName;
+        serEng.readString(dvName);
+        ArrayJanitor<XMLCh> janName(dvName, serEng.getMemoryManager());
+
+        return DatatypeValidatorFactory::getBuiltInRegistry()->get(dvName);
+    }
+    else if (DV_ZERO == flag)
+    {
+        return 0;
+    }
+
+    int type;
+    serEng>>type;
+
+    switch((ValidatorType)type)
+    {
+    case String: 
+        StringDatatypeValidator* stringdv;
+        serEng>>stringdv;
+        return stringdv;        
+    case AnyURI:
+        AnyURIDatatypeValidator* anyuridv;
+        serEng>>anyuridv;
+        return anyuridv;        
+    case QName: 
+        QNameDatatypeValidator* qnamedv;
+        serEng>>qnamedv;
+        return qnamedv;        
+    case Name: 
+        NameDatatypeValidator* namedv;
+        serEng>>namedv;
+        return namedv;        
+    case NCName:  
+        NCNameDatatypeValidator* ncnamedv;
+        serEng>>ncnamedv;
+        return ncnamedv;        
+    case Boolean: 
+        BooleanDatatypeValidator* booleandv;
+        serEng>>booleandv;
+        return booleandv;        
+    case Float: 
+        FloatDatatypeValidator* floatdv;
+        serEng>>floatdv;
+        return floatdv;        
+    case Double: 
+        DoubleDatatypeValidator* doubledv;
+        serEng>>doubledv;
+        return doubledv;        
+    case Decimal: 
+        DecimalDatatypeValidator* decimaldv;
+        serEng>>decimaldv;
+        return decimaldv;        
+    case HexBinary:  
+        HexBinaryDatatypeValidator* hexbinarydv;
+        serEng>>hexbinarydv;
+        return hexbinarydv;       
+    case Base64Binary: 
+        Base64BinaryDatatypeValidator* base64binarydv;
+        serEng>>base64binarydv;
+        return base64binarydv;      
+    case Duration:     
+        DurationDatatypeValidator* durationdv;
+        serEng>>durationdv;
+        return durationdv;
+    case DateTime:       
+        DateTimeDatatypeValidator* datetimedv;
+        serEng>>datetimedv;
+        return datetimedv; 
+    case Date:          
+        DateDatatypeValidator* datedv;
+        serEng>>datedv;
+        return datedv;
+    case Time:         
+        TimeDatatypeValidator* timedv;
+        serEng>>timedv;
+        return timedv;
+    case MonthDay:      
+        MonthDayDatatypeValidator* monthdaydv;
+        serEng>>monthdaydv;
+        return monthdaydv;
+    case YearMonth:     
+        YearMonthDatatypeValidator* yearmonthdv;
+        serEng>>yearmonthdv;
+        return yearmonthdv;
+    case Year:          
+        YearDatatypeValidator* yeardv;
+        serEng>>yeardv;
+        return yeardv;
+    case Month:        
+        MonthDatatypeValidator* monthdv;
+        serEng>>monthdv;
+        return monthdv;
+    case Day:           
+        DayDatatypeValidator* daydv;
+        serEng>>daydv;
+        return daydv;
+    case ID:           
+        IDDatatypeValidator* iddv;
+        serEng>>iddv;
+        return iddv;
+    case IDREF:         
+        IDREFDatatypeValidator* idrefdv;
+        serEng>>idrefdv;
+        return idrefdv;
+    case ENTITY:       
+        ENTITYDatatypeValidator* entitydv;
+        serEng>>entitydv;
+        return entitydv;
+    case NOTATION:     
+        NOTATIONDatatypeValidator* notationdv;
+        serEng>>notationdv;
+        return notationdv;
+    case List:          
+        ListDatatypeValidator* listdv;
+        serEng>>listdv;
+        return listdv;
+    case Union:         
+        UnionDatatypeValidator* uniondv;
+        serEng>>uniondv;
+        return uniondv;
+    case AnySimpleType:  
+        AnySimpleTypeDatatypeValidator* anysimpletypedv;
+        serEng>>anysimpletypedv;
+        return anysimpletypedv;
+    case UnKnown:
+        return 0;
+    default: //we treat this same as UnKnown
+        return 0;
+    }
+
+}
+
+/**
+ * Canonical Representation
+ *
+ */
+const XMLCh* DatatypeValidator::getCanonicalRepresentation(const XMLCh*         const rawData
+                                                          ,      MemoryManager* const memMgr
+                                                          ,      bool                 toValidate) const
+{
+    MemoryManager* toUse = memMgr? memMgr : fMemoryManager;
+
+    if (toValidate)
+    {
+        DatatypeValidator *temp = (DatatypeValidator*) this;
+
+        try
+        {
+            temp->validate(rawData, 0, toUse);    
+        }
+        catch (...)
+        {
+            return 0;
+        }
+    }
+
+    return XMLString::replicate(rawData, toUse);
+}
+
+
+XERCES_CPP_NAMESPACE_END
+
+/**
+  * End of file DatatypeValidator.cpp
+  */
+
