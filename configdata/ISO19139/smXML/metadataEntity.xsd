@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://metadata.dgiwg.org/smXML" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:smXML="http://metadata.dgiwg.org/smXML" xmlns:gml="http://www.opengis.net/gml" xmlns:bagExstension="http://metadata.dgiwg.org/smXML" version="0.8">
+	<xs:annotation>
+		<xs:documentation> This schema was directly generated from the ISO 19139 UML model via Version 0.8 of the Rational Rose Script 'XMLout4XMLSchema.ebs' and via 'UMLSchema_to_XMLSchema.xslt' for the DGIWG contribution to the ISO 19139 Project Team at DateTime 10-03-2003 08:28:56</xs:documentation>
+	</xs:annotation>
+	<!-- ================== Includes ================== -->
+	<xs:include schemaLocation="citation.xsd"/>
+	<xs:include schemaLocation="identification.xsd"/>
+	<xs:include schemaLocation="maintenance.xsd"/>
+	<xs:include schemaLocation="applicationSchema.xsd"/>
+	<xs:include schemaLocation="portrayalCatalogue.xsd"/>
+	<xs:include schemaLocation="dataQuality.xsd"/>
+	<xs:include schemaLocation="spatialRepresentation.xsd"/>
+	<xs:include schemaLocation="content.xsd"/>
+	<xs:include schemaLocation="metadataExtension.xsd"/>
+	<xs:include schemaLocation="bagExtension.xsd"/>
+	<!-- ================== Classes  ================== -->
+	<xs:complexType name="MD_Metadata_Type">
+		<xs:sequence>
+			<xs:element name="identificationInfo" type="smXML:_MD_Identification_PropertyType" maxOccurs="unbounded"/>
+			<xs:element name="metadataConstraints" type="smXML:MD_Constraints_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="dataQualityInfo" type="smXML:DQ_DataQuality_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="metadataMaintenance" type="smXML:MD_MaintenanceInformation_PropertyType" minOccurs="0"/>
+			<xs:element name="spatialRepresentationInfo" type="smXML:_MD_SpatialRepresentation_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="referenceSystemInfo" type="smXML:MD_ReferenceSystem_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="contentInfo" type="smXML:MD_ContentInformation_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="portrayalCatalogueInfo" type="smXML:MD_PortrayalCatalogueReference_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="distributionInfo" type="smXML:MD_Distribution_PropertyType" minOccurs="0"/>
+			<xs:element name="metadataExtensionInfo" type="smXML:MD_MetadataExtensionInformation_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="applicationSchemaInfo" type="smXML:MD_ApplicationSchemaInformation_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="fileIdentifier" type="smXML:CharacterString_Type" minOccurs="0"/>
+			<xs:element name="language" type="xs:string" minOccurs="0"/>
+			<xs:element name="characterSet" type="smXML:MD_CharacterSetCode_Type" minOccurs="0"/>
+			<xs:element name="parentIdentifier" type="smXML:CharacterString_Type" minOccurs="0"/>
+			<xs:element name="hierarchyLevel" type="smXML:MD_ScopeCode_Type" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="hierarchyLevelName" type="smXML:CharacterString_Type" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="contact" type="smXML:CI_ResponsibleParty_PropertyType" maxOccurs="unbounded"/>
+			<xs:element name="dateStamp" type="smXML:Date_Type"/>
+			<xs:element name="metadataStandardName" type="smXML:CharacterString_Type" minOccurs="0"/>
+			<xs:element name="metadataStandardVersion" type="smXML:CharacterString_Type" minOccurs="0"/>
+			<xs:element name="dataSet" type="xs:anyURI" minOccurs="0"/>	
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<xs:element name="MD_Metadata" type="smXML:MD_Metadata_Type">
+		<xs:annotation>
+			<xs:documentation>
+   ***   Conditional statements:
+   ***   language: documented if not defined by the encoding standard
+   ***   characterSet: documented if ISO 10646-1 not used and not defined by the encoding standard
+</xs:documentation>
+		</xs:annotation>
+	</xs:element>
+	<xs:complexType name="MD_Metadata_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:MD_Metadata" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+</xs:schema>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:gml="http://www.opengis.net/gml" 
+    xmlns:smXML="http://metadata.dgiwg.org/smXML"
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    targetNamespace="http://metadata.dgiwg.org/smXML" version="0.8">
+	<xs:annotation>
+		<xs:documentation>
+	    			This schema was directly generated from the ISO 19139 UML model via
+	    			Version 0.8 of the Rational Rose Script 'XMLout4XMLSchema.ebs' and via
+	    			'UMLSchema_to_XMLSchema.xslt' for the DGIWG contribution to the ISO 19139 Project Team
+	    			 at DateTime 10-03-2003 08:28:32</xs:documentation>
+	</xs:annotation>
+		
+	<!-- ================== Includes ================== -->
+	<xs:include schemaLocation="citation.xsd"/>
+
+	<!-- ================== Classes  ================== -->
+	<xs:complexType name="MD_MaintenanceInformation_Type">
+		<xs:sequence>
+			<xs:element name="maintenanceAndUpdateFrequency" type="smXML:MD_MaintenanceFrequencyCode_Type" />
+			<xs:element name="dateOfNextUpdate" type="smXML:Date_Type" minOccurs="0" />
+			<xs:element name="userDefinedMaintenanceFrequency" type="xs:duration" minOccurs="0" />
+			<xs:element name="updateScope" type="smXML:MD_ScopeCode_Type" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="updateScopeDescription" type="smXML:CharacterString_Type" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="maintenanceNote" type="smXML:CharacterString_Type" minOccurs="0" maxOccurs="unbounded" />
+			<xs:element name="contact" type="smXML:CI_ResponsibleParty_PropertyType" minOccurs="0" maxOccurs="unbounded" />
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional" />
+	</xs:complexType>
+	<xs:element name="MD_MaintenanceInformation" type="smXML:MD_MaintenanceInformation_Type" />
+	<xs:complexType name="MD_MaintenanceInformation_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:MD_MaintenanceInformation" minOccurs="0" />
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink" />
+	</xs:complexType>
+	<xs:complexType name="MD_MaintenanceFrequencyCode_Type">
+		<xs:simpleContent>
+			<xs:extension base="smXML:CharacterString_Type">
+				<xs:attribute name="codeSpace" type="xs:anyURI" use="optional" />
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:element name="MD_MaintenanceFrequencyCode" type="smXML:MD_MaintenanceFrequencyCode_Type" />
+	<xs:complexType name="MD_ScopeCode_Type">
+		<xs:simpleContent>
+			<xs:extension base="smXML:CharacterString_Type">
+				<xs:attribute name="codeSpace" type="xs:anyURI" use="optional" />
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<xs:element name="MD_ScopeCode" type="smXML:MD_ScopeCode_Type" />
+</xs:schema>

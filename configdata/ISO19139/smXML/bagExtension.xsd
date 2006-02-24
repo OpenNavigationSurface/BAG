@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://metadata.dgiwg.org/smXML" xmlns:gml="http://www.opengis.net/gml" xmlns:smXML="http://metadata.dgiwg.org/smXML" xmlns:scXML="http://www.isotc211.org/scXML" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="0.8">
+<xs:complexType name="BAG_DataIdentification_Type">
+    <xs:complexContent>
+      <xs:extension base="smXML:MD_DataIdentification_Type">
+        <xs:sequence>
+          <xs:element name="verticalUncertaintyType" type="smXML:CharacterString_Type" minOccurs="1"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="BAG_DataIdentification" type="smXML:BAG_DataIdentification_Type" substitutionGroup="smXML:MD_DataIdentification"/>
+<xs:complexType name="BAG_DataIdentification_PropertyType">
+    <xs:choice>
+      <xs:element ref="smXML:BAG_DataIdentification"/>
+    </xs:choice>
+  </xs:complexType>
+<xs:complexType name="BAG_ProcessStep_Type">
+    <xs:complexContent>
+      <xs:extension base="smXML:LI_ProcessStep_Type">
+        <xs:sequence>
+          <xs:element name="trackingId" type="smXML:CharacterString_Type" minOccurs="1"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="BAG_ProcessStep" type="smXML:BAG_ProcessStep_Type" substitutionGroup="smXML:LI_ProcessStep"/>
+<xs:complexType name="BAG_ProcessStep_PropertyType">
+    <xs:choice>
+      <xs:element ref="smXML:BAG_ProcessStep"/>
+    </xs:choice>
+  </xs:complexType>
+</xs:schema>

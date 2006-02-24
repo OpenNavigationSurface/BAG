@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://www.isotc211.org/iso19118/" 
+xmlns:iso19103="http://www.isotc211.org/iso19103/" 
+xmlns:iso19115="http://www.isotc211.org/iso19115/" 
+xmlns:iso19118="http://www.isotc211.org/iso19118/" 
+xmlns:gml="http://www.opengis.net/gml" 
+xmlns:xs="http://www.w3.org/2001/XMLSchema" version="2.0" xml:lang="en">
+	<!-- ================== Imports ================== -->
+	<xs:import namespace="http://www.isotc211.org/iso19103/" schemaLocation="19103.xsd"/>
+	<xs:import namespace="http://www.isotc211.org/iso19115/" schemaLocation="iso19115.xsd"/>
+	<!-- ================== Includes ================== -->
+	<xs:include schemaLocation="19118.xsd"/>
+	<xs:include schemaLocation="Metadata_Object.xsd"/>
+</xs:schema>

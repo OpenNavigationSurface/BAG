@@ -1,0 +1,516 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema targetNamespace="http://www.isotc211.org/scXML" xmlns:scXML="http://www.isotc211.org/scXML" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="0.1">
+  <!-- ================================== Includes ================================== -->
+  <xs:include schemaLocation="scXMLbase.xsd"/>
+  <!-- ########################################################################### -->
+  <!-- ########################################################################### -->
+  <!-- ================================== Classes ================================= -->
+  <!-- =========================== Date & DateTime ================================= -->
+  <!--The basic types Date  and DateTime cannot be correctly generated as simple type. The simple types (xs:date and xs:dateTime) of the W3C XML schema  are not compatible with the ISO TC211 19103 diagram (problem of valid inheritance).-->
+  <xs:element name="DateTime" type="xs:dateTime"/>
+  <!--As the W3C simple type structure is in conflict with 19103, the inheritance between Date and DateTime has been removed (DateTime is no longer in the substitutionGroup of Date).-->
+  <!-- ........................................................................ -->
+  <xs:complexType name="DateTime_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:DateTime"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- =========================================================================== -->
+  <xs:simpleType name="Date_Type">
+    <xs:union memberTypes="xs:date xs:gYearMonth xs:gYear"/>
+  </xs:simpleType>
+  <!-- ........................................................................ -->
+  <xs:element name="Date" type="scXML:Date_Type" nillable="true"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Date_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Date"/>
+      <xs:element ref="scXML:DateTime"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- =========================== Binary basic type ================================ -->
+  <xs:element name="b64Binary" type="xs:base64Binary"/>
+  <xs:element name="hexBinary" type="xs:hexBinary"/>
+  <xs:complexType name="Binary_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:b64Binary"/>
+      <xs:element ref="scXML:hexBinary"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- =========================== Number basic type =============================== -->
+  <!--================= Type ==================-->
+  <!--In accordance with the 19103 inheritance tree, Number is declared as the union of xs:decimal (implementation type of Decimal - can be substitutated by xs:integer that is the implementation type of Integer) and xs:double (inplementation type of Real).-->
+  <xs:complexType name="_Number_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Real"/>
+      <xs:element ref="scXML:Decimal"/>
+      <xs:element ref="scXML:Integer"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= UnlimitedInteger ================================ -->
+  <xs:complexType name="UnlimitedInteger_Type">
+    <xs:simpleContent>
+      <xs:extension base="xs:nonNegativeInteger">
+        <xs:attribute name="isInfinite" type="xs:boolean" use="optional"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:element name="UnlimitedInteger" type="scXML:UnlimitedInteger_Type" nillable="true"/>
+  <xs:complexType name="UnlimitedInteger_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UnlimitedInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================= Record & RecordType ============================== -->
+  <!--================= Record ==================-->
+  <xs:element name="Record"/>
+  <xs:complexType name="Record_PropertyType">
+    <xs:sequence>
+      <xs:choice>
+        <xs:element ref="scXML:Record"/>
+        <xs:element ref="scXML:Reference"/>
+      </xs:choice>
+    </xs:sequence>
+    <xs:attributeGroup ref="scXML:ObjectReference"/>
+  </xs:complexType>
+  <!--================= RecordType ==================-->
+  <xs:complexType name="RecordType_Type">
+    <xs:simpleContent>
+      <xs:extension base="xs:string">
+        <xs:attributeGroup ref="xlink:simpleLink"/>
+      </xs:extension>
+    </xs:simpleContent>
+  </xs:complexType>
+  <xs:element name="RecordType" type="scXML:RecordType_Type"/>
+  <xs:complexType name="RecordType_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:RecordType"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= Measure ================================ -->
+  <xs:complexType name="Measure_Type">
+    <xs:annotation>
+      <xs:documentation>The result from performing the act or process of ascertaining the extent, dimensions, or quantity of some entity. - A measure is always associated to a unit of measure. Ratio measures where the two base measures are in the same units (often considered unit-less) should be associated to UnitOfMeasure (same meter/meter for map scale) so that conversions to non-unitless ratios can be accomplished (such as miles/inch).</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="scXML:_Object_Type">
+        <xs:sequence>
+          <xs:element name="value" type="scXML:_Number_PropertyType"/>
+          <xs:element name="uom" type="scXML:_UnitOfMeasure_PropertyType"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- ........................................................................ -->
+  <xs:element name="Measure" type="scXML:Measure_Type"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Measure_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Measure" minOccurs="0"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= Length ================================ -->
+  <xs:complexType name="Length_Type">
+    <xs:annotation>
+      <xs:documentation>The measure of distance as an integral, i.e. the limit of an infinite sum of distances between points on a curve.  For example the length of curve, the perimeter of a polygon as the length of the boundary.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="scXML:Measure_Type">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- ........................................................................ -->
+  <xs:element name="Length" type="scXML:Length_Type" substitutionGroup="scXML:Measure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Length_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Length"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= Angle ================================ -->
+  <xs:complexType name="Angle_Type">
+    <xs:annotation>
+      <xs:documentation>The amount of rotation needed to bring one line or plane into coincidence with another, generally measured in radians or degrees.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="scXML:Measure_Type">
+        <xs:sequence/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- ........................................................................ -->
+  <xs:element name="Angle" type="scXML:Angle_Type" substitutionGroup="scXML:Measure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Angle_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Angle"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= Scale ================================ -->
+  <xs:complexType name="Scale_Type">
+    <xs:annotation>
+      <xs:documentation>The ratio of one quantity to another, often unitless in the case where the two quantities use the same unit.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="scXML:Measure_Type">
+        <xs:sequence>
+          <xs:element name="sourceUnits" type="scXML:UomLength_PropertyType"/>
+          <xs:element name="targetUnits" type="scXML:UomLength_PropertyType"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- ........................................................................ -->
+  <xs:element name="Scale" type="scXML:Scale_Type" substitutionGroup="scXML:Measure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Scale_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Scale"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= Distance ================================ -->
+  <xs:complexType name="Distance_Type">
+    <xs:annotation>
+      <xs:documentation>Used as a type for returning distances and possibly lengths. Care must be taken when using distance where length is meant. The distance from start to end of a curve is not the length of the curve, but represents the length of the shortest curve between these two points. Since Distance is a length of some curve (albeit a hypothetical one), the unit of measure is the same.</xs:documentation>
+    </xs:annotation>
+    <xs:complexContent>
+      <xs:extension base="scXML:Length_Type"/>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- ........................................................................ -->
+  <xs:element name="Distance" type="scXML:Distance_Type" substitutionGroup="scXML:Length"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Distance_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Distance"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ========================Units of Measure =============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="_UnitOfMeasure" type="scXML:RegisterValue_Type" substitutionGroup="scXML:CharacterString"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="_UnitOfMeasure_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:_UnitOfMeasure"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================Units of Measure - Length=============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="UomLength" type="scXML:RegisterValue_Type" substitutionGroup="scXML:_UnitOfMeasure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="UomLength_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UomLength"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================Units of Measure - Area=============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="UomArea" type="scXML:RegisterValue_Type" substitutionGroup="scXML:_UnitOfMeasure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="UomArea_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UomArea"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================Units of Measure - Angle=============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="UomAngle" type="scXML:RegisterValue_Type" substitutionGroup="scXML:_UnitOfMeasure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="UomAngle_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UomAngle"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================Units of Measure - Scale=============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="UomScale" type="scXML:RegisterValue_Type" substitutionGroup="scXML:_UnitOfMeasure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="UomScale_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UomScale"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================Units of Measure - Time=============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="UomTime" type="scXML:RegisterValue_Type" substitutionGroup="scXML:_UnitOfMeasure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="UomTime_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UomTime"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================Units of Measure - Volume=============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="UomVolume" type="scXML:RegisterValue_Type" substitutionGroup="scXML:_UnitOfMeasure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="UomVolume_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UomVolume"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ========================Units of Measure - Velocity=============================== -->
+  <!-- ........................................................................ -->
+  <xs:element name="UomVelocity" type="scXML:RegisterValue_Type" substitutionGroup="scXML:_UnitOfMeasure"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="UomVelocity_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UomVelocity"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= TypeName ================================ -->
+  <xs:complexType name="TypeName_Type">
+    <xs:complexContent>
+      <xs:extension base="scXML:_Object_Type">
+        <xs:sequence>
+          <xs:element name="aName" type="scXML:CharacterString_PropertyType"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- ........................................................................ -->
+  <xs:element name="TypeName" type="scXML:TypeName_Type"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="TypeName_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:TypeName"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= MemberName ================================ -->
+  <xs:complexType name="MemberName_Type">
+    <xs:complexContent>
+      <xs:extension base="scXML:_Object_Type">
+        <xs:sequence>
+          <xs:element name="aName" type="scXML:CharacterString_PropertyType"/>
+          <xs:element name="attributeType" type="scXML:TypeName_PropertyType"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <!-- ........................................................................ -->
+  <xs:element name="MemberName" type="scXML:MemberName_Type"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="MemberName_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:MemberName"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= Multiplicty ================================ -->
+  <xs:complexType name="Multiplicity_Type">
+    <xs:complexContent>
+      <xs:extension base="scXML:_Object_Type">
+        <xs:sequence>
+          <xs:element name="range" type="scXML:MultiplicityRange_PropertyType" maxOccurs="unbounded"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="Multiplicity" type="scXML:Multiplicity_Type"/>
+  <xs:complexType name="Multiplicity_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:Multiplicity"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= MultiplicityRange ================================ -->
+  <xs:complexType name="MultiplicityRange_Type">
+    <xs:complexContent>
+      <xs:extension base="scXML:_Object_Type">
+        <xs:sequence>
+          <xs:element name="lower" type="scXML:nonNegativeInteger_PropertyType"/>
+          <xs:element name="upper" type="scXML:UnlimitedInteger_PropertyType"/>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+  <xs:element name="MultiplicityRange" type="scXML:MultiplicityRange_Type"/>
+  <xs:complexType name="MultiplicityRange_PropertyType">
+    <xs:choice>
+      <xs:element ref="scXML:MultiplicityRange"/>
+      <xs:element ref="scXML:Reference"/>
+    </xs:choice>
+  </xs:complexType>
+  <!-- ============================= GenericName ================================ -->
+  <xs:element name="_GenericName" type="xs:string" abstract="true"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="_GenericName_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:_GenericName"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= LocalName ================================ -->
+  <xs:element name="LocalName" type="xs:string" substitutionGroup="scXML:_GenericName"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="LocalName_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:LocalName"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= ScopedName ================================ -->
+  <xs:element name="ScopedName" type="xs:string" substitutionGroup="scXML:_GenericName"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="ScopedName_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:ScopedName"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= Decimal ================================ -->
+  <xs:element name="Decimal" type="xs:decimal"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Decimal_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:Decimal"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= Real ================================ -->
+  <xs:element name="Real" type="xs:double"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Real_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:Real"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= Integer ================================ -->
+  <xs:element name="Integer" type="xs:integer"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Integer_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:Integer"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= CharacterString ================================ -->
+  <xs:element name="CharacterString" type="xs:string"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="CharacterString_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:CharacterString"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= Boolean ================================ -->
+  <xs:element name="Boolean" type="xs:boolean"/>
+  <!-- ........................................................................ -->
+  <xs:complexType name="Boolean_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:Boolean"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- =========================================================================== -->
+  <!-- =========================================================================== -->
+  <!-- ===================== Types Associated with Domain Restrictions =================== -->
+  <xs:simpleType name="approximateLatitude_Type">
+    <xs:restriction base="xs:decimal">
+      <xs:minInclusive value="-90.0"/>
+      <xs:maxInclusive value="90.0"/>
+      <xs:fractionDigits value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="approximateLatitude" type="scXML:approximateLatitude_Type" substitutionGroup="scXML:Decimal"/>
+  <xs:complexType name="approximateLatitude_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:approximateLatitude"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:simpleType name="approximateLongitude_Type">
+    <xs:restriction base="xs:decimal">
+      <xs:minInclusive value="-180.0"/>
+      <xs:maxInclusive value="180.0"/>
+      <xs:fractionDigits value="2"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="approximateLongitude" type="scXML:approximateLongitude_Type" substitutionGroup="scXML:Decimal"/>
+  <xs:complexType name="approximateLongitude_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:approximateLongitude"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="realLatitude" type="scXML:realLatitude_Type" substitutionGroup="scXML:Real"/>
+  <xs:simpleType name="realLatitude_Type">
+    <xs:restriction base="xs:double">
+      <xs:minInclusive value="-90.0"/>
+      <xs:maxInclusive value="90.0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="realLatitude_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:realLatitude"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="realLongitude" type="scXML:realLongitude_Type" substitutionGroup="scXML:Real"/>
+  <xs:simpleType name="realLongitude_Type">
+    <xs:restriction base="xs:double">
+      <xs:minInclusive value="-180.0"/>
+      <xs:maxInclusive value="360.0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="realLongitude_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:realLongitude"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="nonNegativeReal" type="scXML:nonNegativeReal_Type" substitutionGroup="scXML:Real"/>
+  <xs:simpleType name="nonNegativeReal_Type">
+    <xs:restriction base="xs:double">
+      <xs:minInclusive value="0.0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="nonNegativeReal_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:nonNegativeReal"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="nonNegativeInteger" type="scXML:nonNegativeInteger_Type" substitutionGroup="scXML:Integer"/>
+  <xs:simpleType name="nonNegativeInteger_Type">
+    <xs:restriction base="xs:integer">
+      <xs:minInclusive value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="nonNegativeInteger_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:nonNegativeInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="positiveReal" type="scXML:positiveReal_Type" substitutionGroup="scXML:Real"/>
+  <xs:simpleType name="positiveReal_Type">
+    <xs:restriction base="xs:double">
+      <xs:minExclusive value="0.0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="positiveReal_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:positiveReal"/>
+    </xs:sequence>
+  </xs:complexType>
+  <xs:element name="positiveInteger" type="scXML:positiveInteger_Type" substitutionGroup="scXML:Integer"/>
+  <xs:simpleType name="positiveInteger_Type">
+    <xs:restriction base="xs:integer">
+      <xs:minExclusive value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:complexType name="positiveInteger_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:positiveInteger"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= StandardUnits ================================ -->
+  <xs:element name="StandardUnits" type="scXML:CodeListValue_Type" substitutionGroup="scXML:CharacterString"/>
+  <xs:complexType name="StandardUnits_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:StandardUnits"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- ============================= UnitsList ================================ -->
+  <xs:element name="UnitsList" type="scXML:CodeListValue_Type" substitutionGroup="scXML:StandardUnits"/>
+  <xs:complexType name="UnitsList_PropertyType">
+    <xs:sequence>
+      <xs:element ref="scXML:UnitsList"/>
+    </xs:sequence>
+  </xs:complexType>
+  <!-- =========================================================================== -->
+</xs:schema>

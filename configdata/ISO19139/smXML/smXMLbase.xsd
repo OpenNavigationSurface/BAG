@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XMLSPY v5 rel. 3 U (http://www.xmlspy.com) by Lara J. Bordick (Northrop Grumman) -->
+<xs:schema targetNamespace="http://metadata.dgiwg.org/smXML" 
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:smXML="http://metadata.dgiwg.org/smXML" version="0.8">
+	<!-- ================================== Imports ================================== -->
+	<xs:import namespace="http://www.w3.org/1999/xlink" schemaLocation="../gml3.0/xlink/xlinks.xsd"/>
+	<!-- ==========================================================
+	global attribute, attribute group and element declarations -Taken from GML3.0 definitions.
+	============================================================  -->
+	<xs:attributeGroup name="simpleLink">
+		<xs:annotation>
+			<xs:documentation>This definition is used as an intermediate solution.  This document imports a official xlinks version from the w3c site - cvs tree as of May 3, 2003.  However, still need to identify if the earlier proposed "simpleLink definition used here is available for use with the latest schemas.</xs:documentation>
+		</xs:annotation>
+		<xs:attribute ref="xlink:href" use="optional"/>
+		<xs:attribute ref="xlink:role" use="optional"/>
+		<xs:attribute ref="xlink:arcrole" use="optional"/>
+		<xs:attribute ref="xlink:title" use="optional"/>
+		<xs:attribute ref="xlink:show" use="optional"/>
+		<xs:attribute ref="xlink:actuate" use="optional"/>
+	</xs:attributeGroup>
+</xs:schema>

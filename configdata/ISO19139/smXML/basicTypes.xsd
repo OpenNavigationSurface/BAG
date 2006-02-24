@@ -1,0 +1,348 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- edited with XML Spy v4.4 U (http://www.xmlspy.com) by Jeff Smith (Naval Oceanographic Office) -->
+<xs:schema targetNamespace="http://metadata.dgiwg.org/smXML" 
+    xmlns:smXML="http://metadata.dgiwg.org/smXML" 
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" version="0.8">
+	<!-- ================================= Annotation ================================ -->
+	<xs:annotation>
+		<xs:documentation>
+		    			This file was generated from ISO TC/211 UML class diagrams 9-23-2003 		</xs:documentation>
+	</xs:annotation>
+	<!-- ================================== Includes ================================== -->
+	<xs:include schemaLocation="smXMLbase.xsd"/>
+	<!-- ================================== Classes ================================= -->
+	<xs:complexType name="UomLength_Type">
+		<xs:annotation>
+			<xs:documentation>Any of the measuring systems to measure the length, distance between two entities.  Example are the English System of feet and inches or the metric system of  millimeters, centimeters and meters, also the System International (SI) System of Units.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="smXML:_UnitOfMeasure_Type"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="UomLength" type="smXML:UomLength_Type" substitutionGroup="smXML:_UnitOfMeasure"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="UomLength_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:UomLength" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="UomCurrency_Type">
+		<xs:complexContent>
+			<xs:extension base="smXML:_UnitOfMeasure_Type"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="UomCurrency" type="smXML:UomCurrency_Type" substitutionGroup="smXML:_UnitOfMeasure"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="UomCurrency_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:UomCurrency" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="_UnitOfMeasure_Type" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Any of the systems devised to measure some physical quantity such distance or area or a system devised to measure such things as the passage of time. -  - The classes of UnitOfMeasure are determined by the member "measureType." Subclasses are not needed for implementation, but their use makes type constraints on measure valued attributes easier to specify.  -  - -- conversionToISOstandardUnit is not null only if the conversion is a simple scale</xs:documentation>
+		</xs:annotation>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="_UnitOfMeasure" type="smXML:_UnitOfMeasure_Type" abstract="true"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="_UnitOfMeasure_PropertyType">
+		<xs:sequence/>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="Measure_Type">
+		<xs:annotation>
+			<xs:documentation>The result from performing the act or process of ascertaining the extent, dimensions, or quantity of some entity. - A measure is always associated to a unit of measure. Ratio measures where the two base measures are in the same units (often considered unit-less) should be associated to UnitOfMeasure (same meter/meter for map scale) so that conversions to non-unitless ratios can be accomplished (such as miles/inch).</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="value" type="smXML:_Number_Type"/>
+			<xs:element name="uom_r" type="smXML:_UnitOfMeasure_PropertyType"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="Measure" type="smXML:Measure_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="Measure_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:Measure" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="Length_Type">
+		<xs:annotation>
+			<xs:documentation>The measure of distance as an integral, i.e. the limit of an infinite sum of distances between points on a curve.  For example the length of curve, the perimeter of a polygon as the length of the boundary.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="smXML:Measure_Type">
+				<xs:sequence>
+					<xs:element name="uom" type="smXML:UomLength_PropertyType"/>
+				</xs:sequence>
+			</xs:extension>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="Length" type="smXML:Length_Type" substitutionGroup="smXML:Measure"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="Length_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:Length" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<!-- =========================================================================== -->
+	<xs:complexType name="Distance_Type">
+		<xs:annotation>
+			<xs:documentation>Used as a type for returning distances and possibly lengths. Care must be taken when using distance where length is meant. The distance from start to end of a curve is not the length of the curve, but represents the length of the shortest curve between these two points. Since Distance is a length of some curve (albeit a hypothetical one), the unit of measure is the same.</xs:documentation>
+		</xs:annotation>
+		<xs:complexContent>
+			<xs:extension base="smXML:Length_Type"/>
+		</xs:complexContent>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="Distance" type="smXML:Distance_Type" substitutionGroup="smXML:Length"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="Distance_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:Distance" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="SubUnitsPerUnit_Type">
+		<xs:annotation>
+			<xs:documentation>An association attribute that links a master unit to a subunit of the same type, such as feet and inches.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="factor" type="smXML:_Number_Type"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="SubUnitsPerUnit" type="smXML:SubUnitsPerUnit_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="SubUnitsPerUnit_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:SubUnitsPerUnit" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="Record_Type">
+		<xs:annotation>
+			<xs:documentation>Record is a indexed set of objects. It can be associated to a RecordType in such a manner that the class of an indexed value object is of the class specified by the RecordType's correspondingly indexed TypeName.  - A Record  is a NameSpace for its included attributes. -  - {locate() = attributes.select()} -                                             -- Record acts as a dictionary on its attributes -  - {isTypeOf.attribute.select(C)(recordType.attributeTypes.select(C)) }        -                                              -- the type of each attribute is given in the associated RecordType</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="recordType" type="smXML:RecordType_Type" minOccurs="0"/>
+			<xs:element name="memberValue" type="smXML:Any_PropertyType"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="Record" type="smXML:Record_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="Record_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:Record" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="RecordType_Type">
+		<xs:simpleContent>
+			<xs:extension base="xs:string">
+				<xs:attributeGroup ref="smXML:simpleLink"/>
+			</xs:extension>
+		</xs:simpleContent>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="Any_Type">
+		<xs:annotation>
+			<xs:documentation>The root of all classes. Often not an actual class in the implementation, it essential is used where the target class of a member name is not known.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:any namespace="##any"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="Any" type="smXML:Any_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="Any_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:Any" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="Type_Type">
+		<xs:annotation>
+			<xs:documentation>Type is used here for as a generic concept for any metalanguage description of an object class.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="typeName" type="smXML:TypeName_PropertyType"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="Type" type="smXML:Type_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="Type_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:Type" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="NameSpace_Type">
+		<xs:annotation>
+			<xs:documentation>A Name Space is a domain in which "names" given by character strings (possibly under local constrains constraints enforced by the Name Space) can be mapped to objects via a getObejct operation. Examples include objects which form a Name Space for their attributes, operations and associations, or Schemas that form Name Spaces for their included data types or classes.  - Not all methods for NameSpaces need to be made publicly accessible.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="isGlobal" type="smXML:Boolean_Type"/>
+			<xs:element name="acceptableClassList" type="smXML:TypeName_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+			<xs:element name="name" type="smXML:_GenericName_PropertyType" minOccurs="0" maxOccurs="unbounded"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="NameSpace" type="smXML:NameSpace_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="NameSpace_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:NameSpace" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="_GenericName_Type" abstract="true">
+		<xs:annotation>
+			<xs:documentation>Generic Name is the abstract class for all names in a NameSpace. Each instance of a GenericName is either a LocalName or a ScopedName. A LocalName references a local object directly accessible from the NameSpace. A ScopedName is a composite of a LocalName for locating another NameSpace and a GenericName valid in that NameSpace.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="scope" type="smXML:NameSpace_PropertyType"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="_GenericName" type="smXML:_GenericName_Type" abstract="true"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="_GenericName_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:_GenericName" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:complexType name="TypeName_Type">
+		<xs:annotation>
+			<xs:documentation>A TypeName is a LocalName that references either a recordType or object type in some form of schema. The stored value "aName" is the returned value for the "aName()" operation. This is the types name.  - For parsing from types (or objects) the parsible name normally uses a "." navigation separator, so that it is of the form  [class].[member].[memberOfMember]. ...)</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="aName" type="smXML:CharacterString_Type"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="TypeName" type="smXML:TypeName_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="TypeName_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:TypeName" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<!-- =========================================================================== -->
+	<xs:complexType name="MemberName_Type">
+		<xs:annotation>
+			<xs:documentation>A MemberName is a LocalName that references either an attribute slot in a record or  recordType or an attribute, operation, or association role in an object instance or  type description in some form of schema. The stored value "aName" is the returned value for the "aName()" operation.</xs:documentation>
+		</xs:annotation>
+		<xs:sequence>
+			<xs:element name="aName" type="smXML:CharacterString_Type"/>
+			<xs:element name="attributeType" type="smXML:TypeName_PropertyType"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<!-- ........................................................................ -->
+	<xs:element name="MemberName" type="smXML:MemberName_Type"/>
+	<!-- ........................................................................ -->
+	<xs:complexType name="MemberName_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:MemberName" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="LocalName_Type">
+		<xs:annotation>
+			<xs:documentation>A LocalName references a local object directly accessible the NameSpace.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="DateTime_Type">
+		<xs:restriction base="xs:dateTime"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="Date_Type">
+		<xs:restriction base="xs:date"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="Decimal_Type">
+		<xs:annotation>
+			<xs:documentation>The usually finite representation of a decimal number. It differs from the common binary Real implementation in that it can represent 1/10 (one-tenth) without error, while binary real representation can only represent powers of 1/2 (one-half) exactly. Since many currencies are decimal, these representations are preferred in dealing with such moneys. This is also true for mile markers, which are often given in decimals. -  - Can be thought of as an integer part followed by a fractional part given in multiples of powers of 1/10 (tenths).</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:decimal"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="Real_Type">
+		<xs:annotation>
+			<xs:documentation>The common binary Real finite implementation using base 2. Since such reals can approximate any measure where absolute accuracy is not possible, this form of numeric is most often used for measures. In cases were absolute accuracy is needed, such as currencies, then a decimal representation may be preferred (assuming the currency is decimal, such as the US dollar, British pound, etc.). Where there are no subunits possible, Integer numbers may be preferred.   -  - Can be thought of as an integer part followed by a fractional part given in multiples of powers of 1/2 (halves).</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:decimal"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="_Number_Type">
+		<xs:annotation>
+			<xs:documentation>The base type for all number data, giving the basic algebraic operations. Since all concrete types have finite representations, some part of this algebra for most types exhibit some inaccuracy. For example, Integers cannot divide very well, and reals and decimals cannot avoid certain types of inaccuracies that depend on their representation semantics.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:decimal"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="Integer_Type">
+		<xs:annotation>
+			<xs:documentation>An exact integer value, with no fractional part.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:integer"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="CharacterString_Type">
+		<xs:restriction base="xs:string"/>
+	</xs:simpleType>
+	<!-- =========================================================================== -->
+	<xs:simpleType name="Boolean_Type">
+		<xs:annotation>
+			<xs:documentation>Most valuable in the predicate calculus, where items are either True or False, unless they are ill formed.</xs:documentation>
+		</xs:annotation>
+		<xs:restriction base="xs:boolean"/>
+	</xs:simpleType>
+	<!-- ==========================================================
+	global attribute, attribute group and element declarations -Adopted similarly from GML3.0 definitions.
+	============================================================  -->
+	<xs:attribute name="id" type="xs:ID">
+		<xs:annotation>
+			<xs:documentation>Database handle for the object.  It is of XML type “ID”, so is constrained to be unique in the XML document within which it occurs.  An external identifier for the object in the form of a URI may be constructed using standard XML and XPointer methods.  This is done by concatenating the URI for the document, a fragment separator “#”, and the value of the id attribute.  </xs:documentation>
+		</xs:annotation>
+	</xs:attribute>
+</xs:schema>

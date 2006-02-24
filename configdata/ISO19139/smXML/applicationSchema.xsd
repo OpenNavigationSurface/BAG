@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:gml="http://www.opengis.net/gml" 
+    xmlns:smXML="http://metadata.dgiwg.org/smXML" 
+    xmlns:xlink="http://www.w3.org/1999/xlink" 
+    xmlns:xs="http://www.w3.org/2001/XMLSchema" 
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+    targetNamespace="http://metadata.dgiwg.org/smXML" version="0.8">
+    <xs:annotation>
+		<xs:documentation>
+	    			This schema was directly generated from the ISO 19139 UML model via
+	    			Version 0.8 of the Rational Rose Script 'XMLout4XMLSchema.ebs' and via
+	    			'UMLSchema_to_XMLSchema.xslt' for the DGIWG contribution to the ISO 19139 Project Team
+	    			 at DateTime 10-03-2003 08:20:03
+          </xs:documentation>
+	</xs:annotation>
+	<!-- ===================Includes=================-->
+	<xs:include schemaLocation="citation.xsd"/>
+	<!-- ================== Classes  ================== -->
+	<xs:complexType name="MD_ApplicationSchemaInformation_Type">
+		<xs:sequence>
+			<xs:element name="name" type="smXML:CI_Citation_PropertyType"/>
+			<xs:element name="schemaLanguage" type="smXML:nonNullString_Type"/>
+			<xs:element name="constraintLanguage" type="smXML:nonNullString_Type"/>
+			<xs:element name="schemaAscii" type="smXML:CharacterString_Type" minOccurs="0"/> 
+			<xs:element name="softwareDevelopmentFileFormat" type="smXML:CharacterString_Type" minOccurs="0"/>
+			<xs:element name="graphicsFile" type="smXML:CI_Citation_PropertyType" minOccurs="0"/>
+			<xs:element name="softwareDevelopmentFile" type="smXML:CI_Citation_PropertyType" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attribute ref="smXML:id" use="optional"/>
+	</xs:complexType>
+	<xs:element name="MD_ApplicationSchemaInformation" type="smXML:MD_ApplicationSchemaInformation_Type"/>
+	<xs:complexType name="MD_ApplicationSchemaInformation_PropertyType">
+		<xs:sequence>
+			<xs:element ref="smXML:MD_ApplicationSchemaInformation" minOccurs="0"/>
+		</xs:sequence>
+		<xs:attributeGroup ref="smXML:simpleLink"/>
+	</xs:complexType>
+</xs:schema>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Project>
+	<Folder FolderName="XML Files" ExtStr="xml;cml;math;mtx;rdf;smil;svg;wml">
+		<File FilePath="C:\Documents and Settings\bordila\My Documents\Metadata\19139\v08\samples\vmaplv0_metadata_v08.xml" HomeFolder="Yes"/>
+	</Folder>
+	<Folder FolderName="XSL Files" ExtStr="xsl;xslt">
+		<File FilePath=".\UMLSchema_to_XMLSchema.xslt" HomeFolder="Yes"/>
+	</Folder>
+	<Folder FolderName="HTML Files" ExtStr="html;htm;xhtml;asp"/>
+	<Folder FolderName="DTD/Schemas" ExtStr="dtd;dcd;xdr;biz;xsd">
+		<File FilePath=".\applicationSchema.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\basicTypes.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\citation.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\constrainedTypes.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\constraint.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\content.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\dataQuality.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\distribution.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\extent.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\externalTypes.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\identification.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\maintenance.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\Metadata_AS.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\metadataEntity.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\metadataExtension.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\portrayalCatalogue.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\referenceSystem.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\smXML.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\smXMLbase.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\spatialRepresentation.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\umlSchema.xsd" HomeFolder="Yes"/>
+		<File FilePath=".\xlinks.xsd" HomeFolder="Yes"/>
+	</Folder>
+	<Folder FolderName="Entities" ExtStr="ent"/>
+</Project>
