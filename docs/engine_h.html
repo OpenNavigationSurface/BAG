@@ -1,0 +1,3103 @@
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<HTML>
+<HEAD>
+<TITLE>Enscript Output</TITLE>
+</HEAD>
+<BODY BGCOLOR="#FFFFFF" TEXT="#000000" LINK="#1F00FF" ALINK="#FF0000" VLINK="#9900DD">
+<A NAME="top">
+<H1>Contents</H1>
+<OL>
+  <LI><A HREF="#file1">engine.h</A>
+</OL>
+<HR>
+<A NAME="file1">
+<H1>engine.h</H1>
+
+<PRE>
+#<B><FONT COLOR="#5F9EA0">ifndef</FONT></B> <FONT COLOR="#B8860B">ENGINE_H</FONT>
+  #define ENGINE_H
+<I><FONT COLOR="#B22222">/***************************************************************************/</FONT></I>
+<I><FONT COLOR="#B22222">/* RSC IDENTIFIER: GEOTRANS ENGINE                 
+ *
+ * ABSTRACT
+ *
+ *    This component is the coordinate transformation engine for the GEOTRANS
+ *    application.  It provides an external input interface that supports the
+ *    GEOTRANS GUIs (Motif and Windows) and the GEOTRANS file processing
+ *    component.
+ *
+ *    This component depends on the DT&amp;CC modules:  DATUM, ELLIPSOID,
+ *    GEOCENTRIC, GEOREF, MERCATOR, TRANSVERSE MERCATOR, UTM, MGRS, POLAR
+ *    STEREOGRAPHIC, UPS, LAMBERT, ALBERS, AZIMUTHAL EQUIDISTANT, BONNE, 
+ *    BRITISH NATIONAL GRID,  CASSINI, CYLINDRICAL EQUAL AREA,ECKERT4, ECKERT6, 
+ *    EQUIDISTANT CYLINDRICAL, GNOMONIC, LOCAL CARTESIAN, MILLER, MOLLWEIDE, 
+ *    NEYS, NEW ZEALAND MAP GRID, OBLIQUE MERCATOR, ORTHOGRAPHIC, POLYCONIC, 
+ *    SINUSOIDAL, STEREOGRAPHIC, TRANSVERSE CYLINDRICAL EQUAL AREA, and VAN DER GRINTEN.
+ *
+ *
+ * ERROR HANDLING
+ *
+ *    This component checks for error codes returned by the DT&amp;CC modules.
+ *    If an error code is returned, it is combined with the current
+ *    error code using the bitwise or.  This combining allows multiple error
+ *    codes to be returned. The possible error codes are listed below.
+ *
+ *
+ * REUSE NOTES
+ *
+ *    GEOTRANS ENGINE is intended for reuse by other applications that require 
+ *    coordinate conversions between multiple coordinate systems and/or datum 
+ *    transformations between multiple datums.
+ *
+ *
+ * REFERENCES
+ *
+ *    Further information on GEOTRANS ENGINE can be found in the GEOTRANS ENGINE 
+ *    Reuse Manual.
+ *
+ *    GEOTRANS ENGINE originated from :  U.S. Army Topographic Engineering Center
+ *                                       Geospatial Information Division
+ *                                       7701 Telegraph Road
+ *                                       Alexandria, VA  22310-3864
+ *
+ * LICENSES
+ *
+ *    None apply to this component.
+ *
+ * RESTRICTIONS
+ *
+ *    GEOTRANS ENGINE has no restrictions.
+ *
+ * ENVIRONMENT
+ *
+ *    GEOTRANS ENGINE was tested and certified in the following environments:
+ *
+ *    1. Solaris 2.5 with GCC, version 2.8.1
+ *    2. Windows 95 with MS Visual C++, version 6
+ *
+ * MODIFICATIONS
+ *
+ *    Date              Description
+ *    ----              -----------
+ *    04-22-97          Original Code
+ *    09-30-99          Added support for 15 new projections
+ *    05-30-00          Added support for 2 new projections
+ *    06-30-00          Added support for 1 new projection
+ *    09-30-00          Added support for 4 new projections
+ */</FONT></I>
+
+
+<I><FONT COLOR="#B22222">/***************************************************************************/</FONT></I>
+<I><FONT COLOR="#B22222">/*
+ *                              DEFINES
+ */</FONT></I>
+<I><FONT COLOR="#B22222">/* Engine return status codes */</FONT></I>
+  #define ENGINE_INPUT_WARNING         0x00000001    <I><FONT COLOR="#B22222">/* Warning returned by 1st conversion */</FONT></I>
+  #define ENGINE_INPUT_ERROR           0x00000002    <I><FONT COLOR="#B22222">/* Error returned by 1st conversion */</FONT></I>
+  #define ENGINE_OUTPUT_WARNING        0x00000004    <I><FONT COLOR="#B22222">/* Warning returned by 2nd conversion */</FONT></I>
+  #define ENGINE_OUTPUT_ERROR          0x00000008    <I><FONT COLOR="#B22222">/* Error returned by 2nd conversion */</FONT></I>
+<I><FONT COLOR="#B22222">/* Initialization errors */</FONT></I>
+  #define ENGINE_NOT_INITIALIZED       0x00000010    <I><FONT COLOR="#B22222">/* Initialize_Engine has not been called */</FONT></I> 
+  #define ENGINE_ELLIPSOID_ERROR       0x00000020    <I><FONT COLOR="#B22222">/* Error returned by Ellipsoid module */</FONT></I>
+  #define ENGINE_DATUM_ERROR           0x00000040    <I><FONT COLOR="#B22222">/* Error returned by Datum module */</FONT></I>
+  #define ENGINE_GEOID_ERROR           0x00000080    <I><FONT COLOR="#B22222">/* Error returned by Geoid module*/</FONT></I>
+<I><FONT COLOR="#B22222">/* Interface parameter errors (should never occur) */</FONT></I>
+  #define ENGINE_INVALID_TYPE          0x00000100    <I><FONT COLOR="#B22222">/* Invalid coordinate system type */</FONT></I>
+  #define ENGINE_INVALID_DIRECTION     0x00000200    <I><FONT COLOR="#B22222">/* Invalid direction (input or output) */</FONT></I>
+  #define ENGINE_INVALID_STATE         0x00000400    <I><FONT COLOR="#B22222">/* Invalid state (interactive or file) */</FONT></I>
+<I><FONT COLOR="#B22222">/* Lookup table errors */</FONT></I>
+  #define ENGINE_INVALID_INDEX_ERROR   0x00001000    <I><FONT COLOR="#B22222">/* Index is an invalid value */</FONT></I>
+  #define ENGINE_INVALID_CODE_ERROR    0x00002000    <I><FONT COLOR="#B22222">/* Code was not found in table */</FONT></I>
+  #define ENGINE_ELLIPSOID_OVERFLOW    0x00004000    <I><FONT COLOR="#B22222">/* Ellipsoid table overflow */</FONT></I>
+  #define ENGINE_DATUM_OVERFLOW        0x00008000    <I><FONT COLOR="#B22222">/* 3-parameter datum table overflow */</FONT></I>
+<I><FONT COLOR="#B22222">/* Datum definition errors */</FONT></I>
+  #define ENGINE_DATUM_SIGMA_ERROR     0x00010000    <I><FONT COLOR="#B22222">/* Standard error values must be positive
+                                                        (or -1 if unknown) */</FONT></I>
+  #define ENGINE_DATUM_DOMAIN_ERROR    0x00020000    <I><FONT COLOR="#B22222">/* Invalid local datum domain of validity */</FONT></I>
+<I><FONT COLOR="#B22222">/* Ellipsoid errors */</FONT></I>
+  #define ENGINE_ELLIPSE_IN_USE_ERROR  0x00040000    <I><FONT COLOR="#B22222">/* Ellipsoid code is in use by a datum */</FONT></I>
+
+<I><FONT COLOR="#B22222">/* Datum, ellipsoid deletion error */</FONT></I>   
+  #define ENGINE_NOT_USERDEF_ERROR     0x00080000    <I><FONT COLOR="#B22222">/* Specified code is not user defined */</FONT></I>
+
+<I><FONT COLOR="#B22222">/* Input/Output conversion status codes */</FONT></I>
+  #define ENGINE_ORIGIN_LAT_ERROR      0x00000001    <I><FONT COLOR="#B22222">/* Invalid Origin Latitude */</FONT></I>
+  #define ENGINE_CENT_MER_ERROR        0x00000002    <I><FONT COLOR="#B22222">/* Invalid Central Meridian */</FONT></I>
+  #define ENGINE_EASTING_ERROR         0x00000004    <I><FONT COLOR="#B22222">/* Invalid Easting */</FONT></I>
+  #define ENGINE_NORTHING_ERROR        0x00000008    <I><FONT COLOR="#B22222">/* Invalid Northing */</FONT></I>
+  #define ENGINE_RADIUS_ERROR          0x00000010    <I><FONT COLOR="#B22222">/* Point too far from center of projection */</FONT></I>
+  #define ENGINE_HEMISPHERE_ERROR      0x00000020    <I><FONT COLOR="#B22222">/* Invalid Hemisphere */</FONT></I>                                           
+  #define ENGINE_SCALE_FACTOR_ERROR    0x00000040    <I><FONT COLOR="#B22222">/* Invalid Scale Factor */</FONT></I>
+  #define ENGINE_LON_WARNING           0x00000080    <I><FONT COLOR="#B22222">/* Longitude too far from Central Meridian */</FONT></I>
+  #define ENGINE_ORIGIN_LON_ERROR      0x00000100    <I><FONT COLOR="#B22222">/* Invalid Origin Longitude */</FONT></I>
+  #define ENGINE_DATUM_WARNING         0x00000200    <I><FONT COLOR="#B22222">/* Point outside datum validity rectangle */</FONT></I>
+<I><FONT COLOR="#B22222">/* Lambert/Albers error conditions */</FONT></I>
+  #define ENGINE_FIRST_STDP_ERROR      0x00000400    <I><FONT COLOR="#B22222">/* Invalid 1st Standard Parallel */</FONT></I>
+  #define ENGINE_SECOND_STDP_ERROR     0x00000800    <I><FONT COLOR="#B22222">/* Invalid 2nd Standard Parallel */</FONT></I>
+  #define ENGINE_FIRST_SECOND_ERROR    0x00001000    <I><FONT COLOR="#B22222">/* 1st &amp; 2nd Standard Parallel cannot be same */</FONT></I>
+<I><FONT COLOR="#B22222">/* UTM/UPS/MGRS specific error conditions */</FONT></I>
+  #define ENGINE_ZONE_ERROR            0x00002000    <I><FONT COLOR="#B22222">/* Invalid UTM Zone */</FONT></I>
+  #define ENGINE_ZONE_OVERRIDE_ERROR   0x00004000    <I><FONT COLOR="#B22222">/* Invalid UTM zone Override */</FONT></I>
+<I><FONT COLOR="#B22222">/* MGRS, GEOREF, British National Grid error condition */</FONT></I>
+  #define ENGINE_STRING_ERROR          0x00008000    <I><FONT COLOR="#B22222">/* Invalid MGRS, GEOREF or BNG String */</FONT></I>
+<I><FONT COLOR="#B22222">/* GEOREF specific error conditions */</FONT></I>
+  #define ENGINE_STR_LON_MIN_ERROR     0x00010000    <I><FONT COLOR="#B22222">/* GEOREF string long. min. error */</FONT></I>
+  #define ENGINE_STR_LAT_MIN_ERROR     0x00020000    <I><FONT COLOR="#B22222">/* GEOREF string lat. min. error */</FONT></I>
+<I><FONT COLOR="#B22222">/* Equidistant Cylindrical error condition */</FONT></I>   
+  #define ENGINE_STDP_ERROR            0x00040000    <I><FONT COLOR="#B22222">/* Standard parallel error */</FONT></I>
+<I><FONT COLOR="#B22222">/* Azimuthal Equidistant error condition */</FONT></I>
+  #define ENGINE_PROJECTION_ERROR      0x00080000    <I><FONT COLOR="#B22222">/* Point projects into a circle of radius PI*R */</FONT></I>
+<I><FONT COLOR="#B22222">/* Oblique Mercator error conditions */</FONT></I>
+  #define ENGINE_LAT1_ERROR            0x00100000    <I><FONT COLOR="#B22222">/* Invalid 1st Latitude */</FONT></I>
+  #define ENGINE_LON1_ERROR            0x00200000    <I><FONT COLOR="#B22222">/* Invalid 1st Longitude */</FONT></I>
+  #define ENGINE_LAT2_ERROR            0x00400000    <I><FONT COLOR="#B22222">/* Invalid 2nd Latitude */</FONT></I>
+  #define ENGINE_LON2_ERROR            0x00800000    <I><FONT COLOR="#B22222">/* Invalid 2nd Longitude */</FONT></I>
+  #define ENGINE_LAT1_LAT2_ERROR       0x01000000    <I><FONT COLOR="#B22222">/* 1st &amp; 2nd Latitudes cannot be equal */</FONT></I>
+<I><FONT COLOR="#B22222">/* British National Grid error condition */</FONT></I>
+  #define ENGINE_INVALID_AREA_ERROR    0x02000000    <I><FONT COLOR="#B22222">/* Coordinate outside BNG grid */</FONT></I>
+<I><FONT COLOR="#B22222">/* British National Grid, New Zealand Map Grid error condition */</FONT></I>
+  #define ENGINE_ELLIPSOID_CODE_ERROR  0x04000000    <I><FONT COLOR="#B22222">/* Invalid ellipsoid */</FONT></I>
+
+<I><FONT COLOR="#B22222">/* Common status codes */</FONT></I>
+  #define ENGINE_NO_ERROR              0x00000000    <I><FONT COLOR="#B22222">/* no error */</FONT></I> 
+  #define ENGINE_LAT_ERROR             0x10000000    <I><FONT COLOR="#B22222">/* Invalid Latitude */</FONT></I>
+  #define ENGINE_LON_ERROR             0x20000000    <I><FONT COLOR="#B22222">/* Invalid Longitude */</FONT></I>
+  #define ENGINE_A_ERROR               0x40000000    <I><FONT COLOR="#B22222">/* Invalid Ellipsoid Semi-Major Axis */</FONT></I>
+  #define ENGINE_INV_F_ERROR           0x80000000    <I><FONT COLOR="#B22222">/* Invalid Inverse Flattening */</FONT></I>
+
+<I><FONT COLOR="#B22222">/* Symbolic constants */</FONT></I>   
+  #define NUMBER_COORD_SYS             32  <I><FONT COLOR="#B22222">/* Number of coordinate systems        */</FONT></I>
+  #define COORD_SYS_CODE_LENGTH         3  <I><FONT COLOR="#B22222">/* Length of coordinate system codes (including null) */</FONT></I>
+  #define COORD_SYS_NAME_LENGTH        50  <I><FONT COLOR="#B22222">/* Max length of coordinate system names (including null) */</FONT></I>
+  #define DATUM_CODE_LENGTH             7  <I><FONT COLOR="#B22222">/* Length of datum codes (including null) */</FONT></I>
+  #define DATUM_NAME_LENGTH            33  <I><FONT COLOR="#B22222">/* Max length of datum names (including null) */</FONT></I>
+  #define ELLIPSOID_CODE_LENGTH         3  <I><FONT COLOR="#B22222">/* Length of ellipsoid codes (including null) */</FONT></I>
+  #define ELLIPSOID_NAME_LENGTH        30  <I><FONT COLOR="#B22222">/* Max length of ellipsoid names (including null) */</FONT></I>
+  #define CONVERT_MSG_LENGTH         2048  <I><FONT COLOR="#B22222">/* Max length of coordinate conversion status message */</FONT></I>
+  #define RETURN_MSG_LENGTH           256  <I><FONT COLOR="#B22222">/* Max length of return code status message */</FONT></I>
+
+
+
+<I><FONT COLOR="#B22222">/***************************************************************************/</FONT></I>
+<I><FONT COLOR="#B22222">/*
+ *                          GLOBAL DECLARATIONS
+ */</FONT></I>
+
+<I><FONT COLOR="#B22222">/* State Enumerations */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">enum</FONT></B> Input_Output
+{
+  Input = 0,
+  Output = 1
+} Input_or_Output;
+
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">enum</FONT></B> File_Interactive
+{
+  File = 0,
+  Interactive = 1
+} File_or_Interactive;
+
+<I><FONT COLOR="#B22222">/* Coordinate Type Enumeration */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">enum</FONT></B> Coordinate_Types
+{
+  Geodetic,
+  GEOREF,
+  Geocentric,
+  Local_Cartesian,    
+  MGRS,
+  UTM,
+  UPS,
+  Albers_Equal_Area_Conic,
+  Azimuthal_Equidistant,
+  BNG,
+  Bonne,
+  Cassini,
+  Cylindrical_Equal_Area,
+  Eckert4,
+  Eckert6,
+  Equidistant_Cylindrical,
+  Gnomonic,
+  Lambert_Conformal_Conic,
+  Mercator,
+  Miller_Cylindrical,
+  Mollweide,
+  Neys,
+  NZMG,
+  Oblique_Mercator,
+  Orthographic,
+  Polar_Stereo,
+  Polyconic,
+  Sinusoidal,
+  Stereographic,
+  Transverse_Cylindrical_Equal_Area,
+  Transverse_Mercator,
+  Van_der_Grinten
+} Coordinate_Type;
+
+<I><FONT COLOR="#B22222">/* Precision Enumeration */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">enum</FONT></B> Precisions
+{
+  Degree,                <I><FONT COLOR="#B22222">/* 100000m */</FONT></I>
+  Ten_Minutes,           <I><FONT COLOR="#B22222">/* 10000m */</FONT></I>
+  Minute,                <I><FONT COLOR="#B22222">/* 1000m */</FONT></I>
+  Ten_Seconds,           <I><FONT COLOR="#B22222">/* 100m */</FONT></I>
+  Second,                <I><FONT COLOR="#B22222">/* 10m */</FONT></I>
+  Tenth_of_Second,       <I><FONT COLOR="#B22222">/* 1m */</FONT></I>
+  Hundredth_of_Second,   <I><FONT COLOR="#B22222">/* 0.1m */</FONT></I>
+  Thousandth_of_Second,  <I><FONT COLOR="#B22222">/* 0.01 */</FONT></I>
+  Ten_Thousandth_of_Second  <I><FONT COLOR="#B22222">/* 0.001m */</FONT></I>
+} Precision;
+
+<I><FONT COLOR="#B22222">/* Heights */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">enum</FONT></B> Height_Types
+{
+  No_Height,
+  Ellipsoid_Height,
+  Geoid_or_MSL_Height
+} Height_Type;
+
+<I><FONT COLOR="#B22222">/* Datums */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">enum</FONT></B> Define_Datum_Types
+{
+  Three_Param_Datum_Type,
+  Seven_Param_Datum_Type,
+  WGS84_Datum_Type,
+  WGS72_Datum_Type
+} Define_Datum_Type; 
+
+<I><FONT COLOR="#B22222">/* Geocentric Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Geocentric_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  x;   <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  y;   <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  z;   <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Geocentric_Tuple;
+
+<I><FONT COLOR="#B22222">/* Geodetic Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Geodetic_Structure
+{
+  Height_Type  height_type;
+} Geodetic_Parameters;
+
+<I><FONT COLOR="#B22222">/* Geodetic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Geodetic_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  longitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  latitude;    <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  height;      <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Geodetic_Tuple;
+
+<I><FONT COLOR="#B22222">/* GEOREF Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> GEOREF_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">char</FONT></B>    string[21];
+} GEOREF_Tuple;
+
+<I><FONT COLOR="#B22222">/* Albers Equal Area Conic Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Albers_Equal_Area_Conic_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  std_parallel_1;    <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  std_parallel_2;    <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Albers_Equal_Area_Conic_Parameters;
+
+<I><FONT COLOR="#B22222">/* Albers Equal Area Conic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Albers_Equal_Area_Conic_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Albers_Equal_Area_Conic_Tuple;
+
+<I><FONT COLOR="#B22222">/* Azimuthal Equidistant Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Azimuthal_Equidistant_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Azimuthal_Equidistant_Parameters;
+
+<I><FONT COLOR="#B22222">/* Azimuthal Equidistant Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Azimuthal_Equidistant_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Azimuthal_Equidistant_Tuple;
+
+<I><FONT COLOR="#B22222">/* BNG Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> BNG_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">char</FONT></B> string[21];
+} BNG_Tuple;
+
+<I><FONT COLOR="#B22222">/* Bonne Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Bonne_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Bonne_Parameters;
+
+<I><FONT COLOR="#B22222">/* Bonne Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Bonne_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Bonne_Tuple;
+
+<I><FONT COLOR="#B22222">/* Cassini Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Cassini_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Cassini_Parameters;
+
+<I><FONT COLOR="#B22222">/* Cassini Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Cassini_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Cassini_Tuple;
+
+<I><FONT COLOR="#B22222">/* Cylindrical Equal Area Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Cylindrical_Equal_Area_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Cylindrical_Equal_Area_Parameters;
+
+<I><FONT COLOR="#B22222">/* Cylindrical Equal Area Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Cylindrical_Equal_Area_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Cylindrical_Equal_Area_Tuple;
+
+<I><FONT COLOR="#B22222">/* Eckert IV Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Eckert4_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Eckert4_Parameters;
+
+<I><FONT COLOR="#B22222">/* Eckert IV Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Eckert4_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Eckert4_Tuple;
+
+<I><FONT COLOR="#B22222">/* Eckert VI Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Eckert6_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Eckert6_Parameters;
+
+<I><FONT COLOR="#B22222">/* Eckert VI Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Eckert6_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Eckert6_Tuple;
+
+<I><FONT COLOR="#B22222">/* Equidistant Cylindrical Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Equidistant_Cylindrical_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  std_parallel;      <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Equidistant_Cylindrical_Parameters;
+
+<I><FONT COLOR="#B22222">/* Equidistant Cylindrical Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Equidistant_Cylindrical_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Equidistant_Cylindrical_Tuple;
+
+<I><FONT COLOR="#B22222">/* Gnomonic Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Gnomonic_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Gnomonic_Parameters;
+
+<I><FONT COLOR="#B22222">/* Gnomonic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Gnomonic_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Gnomonic_Tuple;
+
+<I><FONT COLOR="#B22222">/* Lambert Conformal Conic System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Lambert_Conformal_Conic_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  std_parallel_1;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  std_parallel_2;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Lambert_Conformal_Conic_Parameters;
+
+<I><FONT COLOR="#B22222">/* Lambert Conformal Conic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Lambert_Conformal_Conic_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Lambert_Conformal_Conic_Tuple;
+
+<I><FONT COLOR="#B22222">/* Local Cartesian Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Local_Cartesian_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_longitude; <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_height;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  orientation;      <I><FONT COLOR="#B22222">/* radians clockwise from north */</FONT></I>
+} Local_Cartesian_Parameters;
+
+<I><FONT COLOR="#B22222">/* Local Cartesian Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Local_Cartesian_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  x;  <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  y;  <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  z;  <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Local_Cartesian_Tuple;
+
+<I><FONT COLOR="#B22222">/* Mercator Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Mercator_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  scale_factor;      <I><FONT COLOR="#B22222">/* unitless */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Mercator_Parameters;
+
+<I><FONT COLOR="#B22222">/* Mercator Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Mercator_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Mercator_Tuple;
+
+<I><FONT COLOR="#B22222">/* MGRS Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> MGRS_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">char</FONT></B>    string[21];
+} MGRS_Tuple;
+
+<I><FONT COLOR="#B22222">/* Miller Cylindrical Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Miller_Cylindrical_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Miller_Cylindrical_Parameters;
+
+<I><FONT COLOR="#B22222">/* Miller Cylindrical Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Miller_Cylindrical_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Miller_Cylindrical_Tuple;
+
+<I><FONT COLOR="#B22222">/* Mollweide Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Mollweide_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Mollweide_Parameters;
+
+<I><FONT COLOR="#B22222">/* Mollweide Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Mollweide_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Mollweide_Tuple;
+
+<I><FONT COLOR="#B22222">/* Ney's (Modified Lambert Conformal Conic) System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Neys_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  std_parallel_1;    <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Neys_Parameters;
+
+<I><FONT COLOR="#B22222">/* Ney's (Modified Lambert Conformal Conic) Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Neys_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Neys_Tuple;
+
+<I><FONT COLOR="#B22222">/* New Zealand Map Grid Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> NZMG_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} NZMG_Tuple;
+
+<I><FONT COLOR="#B22222">/* Oblique Mercator Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Oblique_Mercator_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  latitude_1;        <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  longitude_1;       <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  latitude_2;        <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  longitude_2;       <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  scale_factor;      <I><FONT COLOR="#B22222">/* unitless */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Oblique_Mercator_Parameters;
+
+<I><FONT COLOR="#B22222">/* Oblique Mercator Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Oblique_Mercator_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Oblique_Mercator_Tuple;
+
+<I><FONT COLOR="#B22222">/* Orthographic Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Orthographic_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Orthographic_Parameters;
+
+<I><FONT COLOR="#B22222">/* Orthographic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Orthographic_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Orthographic_Tuple;
+
+<I><FONT COLOR="#B22222">/* Polar Stereographic Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Polar_Stereo_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  latitude_of_true_scale;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  longitude_down_from_pole; <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Polar_Stereo_Parameters;
+
+<I><FONT COLOR="#B22222">/* Polar Stereographic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Polar_Stereo_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Polar_Stereo_Tuple;
+
+<I><FONT COLOR="#B22222">/* Polyconic Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Polyconic_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Polyconic_Parameters;
+
+<I><FONT COLOR="#B22222">/* Polyconic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Polyconic_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Polyconic_Tuple;
+
+<I><FONT COLOR="#B22222">/* Sinusoidal Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Sinusoidal_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Sinusoidal_Parameters;
+
+<I><FONT COLOR="#B22222">/* Sinusoidal Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Sinusoidal_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Sinusoidal_Tuple;
+
+<I><FONT COLOR="#B22222">/* Stereographic Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Stereographic_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Stereographic_Parameters;
+
+<I><FONT COLOR="#B22222">/* Stereographic Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Stereographic_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Stereographic_Tuple;
+
+<I><FONT COLOR="#B22222">/* Transverse Cylindrical Equal Area Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Transverse_Cylindrical_Equal_Area_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  scale_factor;      <I><FONT COLOR="#B22222">/* unitless */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Transverse_Cylindrical_Equal_Area_Parameters;
+
+<I><FONT COLOR="#B22222">/* Transverse Cylindrical Equal Area Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Transverse_Cylindrical_Equal_Area_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Transverse_Cylindrical_Equal_Area_Tuple;
+
+<I><FONT COLOR="#B22222">/* Transverse Mercator Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Transverse_Mercator_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  origin_latitude;   <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  scale_factor;      <I><FONT COLOR="#B22222">/* unitless */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Transverse_Mercator_Parameters;
+
+<I><FONT COLOR="#B22222">/* Transverse Mercator Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Transverse_Mercator_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Transverse_Mercator_Tuple;
+
+<I><FONT COLOR="#B22222">/* UPS Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> UPS_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">char</FONT></B>    hemisphere;  <I><FONT COLOR="#B22222">/* &quot;N&quot; or &quot;S&quot; */</FONT></I>
+} UPS_Tuple;
+
+<I><FONT COLOR="#B22222">/* UTM Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> UTM_Structure
+{
+  <B><FONT COLOR="#228B22">long</FONT></B>     zone;     <I><FONT COLOR="#B22222">/* 1..60 */</FONT></I>
+  <B><FONT COLOR="#228B22">long</FONT></B>     override; <I><FONT COLOR="#B22222">/* 0 or 1 */</FONT></I>
+} UTM_Parameters;
+
+<I><FONT COLOR="#B22222">/* UTM Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> UTM_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">long</FONT></B>    zone;        <I><FONT COLOR="#B22222">/* 1..60 */</FONT></I>
+  <B><FONT COLOR="#228B22">char</FONT></B>    hemisphere;  <I><FONT COLOR="#B22222">/* &quot;N&quot; or &quot;S&quot; */</FONT></I>
+}  UTM_Tuple;
+
+<I><FONT COLOR="#B22222">/* Van Der Grinten Coordinate System Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Van_der_Grinten_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  central_meridian;  <I><FONT COLOR="#B22222">/* radians */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  false_northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Van_der_Grinten_Parameters;
+
+<I><FONT COLOR="#B22222">/* Van Der Grinten Coordinate Tuple Definition */</FONT></I>
+<B><FONT COLOR="#228B22">typedef</FONT></B> <B><FONT COLOR="#228B22">struct</FONT></B> Van_der_Grinten_Tuple_Structure
+{
+  <B><FONT COLOR="#228B22">double</FONT></B>  easting;     <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+  <B><FONT COLOR="#228B22">double</FONT></B>  northing;    <I><FONT COLOR="#B22222">/* meters */</FONT></I>
+} Van_der_Grinten_Tuple;
+
+
+<I><FONT COLOR="#B22222">/***************************************************************************/</FONT></I>
+<I><FONT COLOR="#B22222">/*
+ *                              FUNCTION PROTOTYPES
+ *                                for ENGINE.C
+ */</FONT></I>
+
+<I><FONT COLOR="#B22222">/* ensure proper linkage to c++ programs */</FONT></I>
+  #ifdef __cplusplus
+<B><FONT COLOR="#228B22">extern</FONT></B> <B><FONT COLOR="#BC8F8F">&quot;C&quot;</FONT></B> {
+  #endif
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Initialize_Engine</FONT></B>();
+<I><FONT COLOR="#B22222">/*
+ *  The function Initialize_Engine sets the initial state of the engine in
+ *  in preparation for coordinate conversion and/or datum transformation
+ *  operations.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Coordinate_System_Count</FONT></B> ( <B><FONT COLOR="#228B22">long</FONT></B> *Count );
+<I><FONT COLOR="#B22222">/*
+ *   Count    : The number of coordinate systems supported. (output) 
+ *
+ * The function Get_Coordinate_System_Count returns the number of coordinate
+ * systems (including projections and grids) that are supported.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Coordinate_System_Index</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B> *Code,
+                                   <B><FONT COLOR="#228B22">long</FONT></B> *Index );
+<I><FONT COLOR="#B22222">/*
+ *    Code     : 2-letter coordinate system code.              (input)
+ *    Index    : Index of the coordinate system with the specified code
+ *                                                             (output)
+ *
+ *  The function Get_Coordinate_System_Index returns the index of the coordinate
+ *  system with the specified code.  If the specified Code is found, 
+ *  ENGINE_NO_ERROR is returned, otherwise ENGINE_INVALID_CODE_ERROR is 
+ *  returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Coordinate_System_Type</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                  Coordinate_Type *System ); 
+<I><FONT COLOR="#B22222">/*
+ *    Index   : Index of a specific coordinate system            (input)
+ *    System  : Type of the coordinate system referencd by index (output)
+ *
+ *  The Function Get_Coordinate_System_Type returns the type of the coordinate 
+ *  system with the specified index.  If theh index is valid, ENGINE_NO_ERROR is 
+ *  returned, otherwise ENGINE_INVALID_INDEX_ERROR is returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Coordinate_System_Name</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index, 
+                                  <B><FONT COLOR="#228B22">char</FONT></B> *Name );
+<I><FONT COLOR="#B22222">/*
+ *    Index   : Index of a specific coordinate system            (input)
+ *    Name    : Name of the coordinate system referencd by index (output)
+ *
+ *  The Function Get_Coordinate_System_Name returns the name of the coordinate 
+ *  system with the specified index.  If the index is valid, ENGINE_NO_ERROR is 
+ *  returned, otherwise ENGINE_INVALID_INDEX_ERROR is returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Coordinate_System_Code</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                  <B><FONT COLOR="#228B22">char</FONT></B> *Code );
+<I><FONT COLOR="#B22222">/*
+ *    Index   : Index of a specific coordinate system            (input)
+ *    Code    : 2-letter coordinate system code.                 (output)
+ *
+ *  The Function Get_Coordinate_System_Code returns the 2-letter code for the 
+ *  coordinate system with the specified index.  If index is valid, ENGINE_NO_ERROR  
+ *  is returned, otherwise ENGINE_INVALID_INDEX_ERROR is returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Coordinate_System
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Coordinate_Type     System );
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Coordinate_System sets the coordinate system for the 
+ *  specified state to the specified coordinate system type.
+ *  State      : Indicates whether the coordinate system is to be used for 
+ *               interactive or file processing                        (input)
+ *  Direction  : Indicates whether the coordinate system is to be used for 
+ *               input or output                                       (input)
+ *  System     : Identifies the coordinate system to be used           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Coordinate_System
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Coordinate_Type           *System );
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Coordinate_System returns the current coordinate system  
+ *  type for the specified state.
+ *  State      : Indicates whether the coordinate system is to be used for 
+ *               interactive or file processing                        (input)
+ *  Direction  : Indicates whether the coordinate system is to be used for 
+ *               input or output                                       (input)
+ *  System     : Identifies current coordinate system type             (output)
+ */</FONT></I>
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Count</FONT></B> ( <B><FONT COLOR="#228B22">long</FONT></B> *Count );
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Datum_Count returns the number of Datums in the table
+ *  if the table was initialized without error.
+ *
+ *  Count   : number of datums in the datum table                   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Index</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B> *Code, 
+                       <B><FONT COLOR="#228B22">long</FONT></B> *Index );
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Datum_Index returns the index of the datum with the 
+ *  specified code.
+ *
+ *  Code    : The datum code being searched for                     (input)
+ *  Index   : The index of the datum in the table with the          (output)
+ *              specified code
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Name</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                      <B><FONT COLOR="#228B22">char</FONT></B> *Name );
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Datum_Name returns the name of the datum referenced by
+ *  index.
+ *
+ *  Index   : The index of a given datum in the datum table         (input)
+ *  Name    : The datum name of the datum referenced by index       (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Code</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                      <B><FONT COLOR="#228B22">char</FONT></B> *Code );
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Datum_Code returns the 5-letter code of the datum
+ *  referenced by index.
+ *
+ *  Index   : The index of a given datum in the datum table         (input)
+ *  Code    : The datum code of the datum referenced by index       (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Ellipsoid_Code</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                <B><FONT COLOR="#228B22">char</FONT></B> *Code );
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Datum_Ellipsoid_Code returns the 2-letter ellipsoid code 
+ *  for the ellipsoid associated with the datum referenced by index.
+ *
+ *  Index   : The index of a given datum in the datum table           (input)
+ *  Code    : The ellisoid code for the ellipsoid associated with the (output)
+ *               datum referenced by index 
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Type</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                     Define_Datum_Type *Type);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Datum_Type returns the type of the datum referenced by
+ *  index.
+ *
+ *  Index   : The index of a given datum in the datum table.        (input)
+ *  Type    : The type of datum referenced by index.                (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Seven_Parameters</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index, 
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Delta_X,                             
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Delta_Y,
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Delta_Z,
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Rx, 
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Ry, 
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Rz, 
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Scale_Factor);
+<I><FONT COLOR="#B22222">/*
+ *   The function Get_Datum_Seven_Parameters returns the seven parameters 
+ *   for the datum referenced by index.
+ *
+ *    Index      : The index of a given datum in the datum table.  (input)
+ *    Delta_X    : X translation in meters                         (output)
+ *    Delta_Y    : Y translation in meters                         (output)
+ *    Delta_Z    : Z translation in meters                         (output)
+ *    Rx         : X rotation in radians                           (output)
+ *    Rx         : Y rotation in radians                           (output)
+ *    Ry         : Z rotation in radians                           (output)
+ *    Scale_Factor : Scale factor                                  (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Three_Parameters</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index, 
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Delta_X,
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Delta_Y,
+                                 <B><FONT COLOR="#228B22">double</FONT></B> *Delta_Z);
+<I><FONT COLOR="#B22222">/*
+ *   The function Get_Datum_Three_Parameters returns the three parameters
+ *   for the datum referenced by index.
+ *
+ *    Index      : The index of a given datum in the datum table.  (input)
+ *    Delta_X    : X translation in meters                         (output)
+ *    Delta_Y    : Y translation in meters                         (output)
+ *    Delta_Z    : Z translation in meters                         (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Errors</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index, 
+                       <B><FONT COLOR="#228B22">double</FONT></B> *Sigma_X,
+                       <B><FONT COLOR="#228B22">double</FONT></B> *Sigma_Y,
+                       <B><FONT COLOR="#228B22">double</FONT></B> *Sigma_Z);
+<I><FONT COLOR="#B22222">/*
+ *   The function Get_Datum_Errors returns the standard errors in X,Y, &amp; Z 
+ *   for the datum referenced by index.
+ *
+ *    Index      : The index of a given datum in the datum table   (input)
+ *    Sigma_X    : Standard error in X in meters                   (output)
+ *    Sigma_Y    : Standard error in Y in meters                   (output)
+ *    Sigma_Z    : Standard error in Z in meters                   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Datum_Valid_Rectangle</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                <B><FONT COLOR="#228B22">double</FONT></B> *South_latitude,
+                                <B><FONT COLOR="#228B22">double</FONT></B> *North_latitude,
+                                <B><FONT COLOR="#228B22">double</FONT></B> *West_longitude,
+                                <B><FONT COLOR="#228B22">double</FONT></B> *East_longitude);
+<I><FONT COLOR="#B22222">/*
+ *   The function Get_Datum_Valid_Rectangle returns the edges of the validity 
+ *   rectangle for the datum referenced by index.
+ *
+ *   Index          : The index of a given datum in the datum table   (input)
+ *   South_latitude : Southern edge of validity rectangle in radians  (output)
+ *   North_latitude : Northern edge of validity rectangle in radians  (output)
+ *   West_longitude : Western edge of validity rectangle in radians   (output)
+ *   East_longitude : Eastern edge of validity rectangle in radians   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Check_Datum_User_Defined</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                <B><FONT COLOR="#228B22">long</FONT></B> *result );
+<I><FONT COLOR="#B22222">/*
+ *    Index    : Index of a given datum in the datum table (input)
+ *    result   : Indicates whether specified datum is user defined (1)
+ *               or not (0)                                (output)
+ *
+ *  The function Check_Datum_User_Defined checks whether or not the specified datum is 
+ *  user defined. It returns 1 if the datum is user defined, and returns
+ *  0 otherwise.  
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Check_Valid_Datum</FONT></B>(<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                       <B><FONT COLOR="#228B22">double</FONT></B> latitude,
+                       <B><FONT COLOR="#228B22">double</FONT></B> longitude,
+                       <B><FONT COLOR="#228B22">long</FONT></B> *result);
+<I><FONT COLOR="#B22222">/*
+ *  The function Check_Valid_Datum checks whether or not the specified location is within the 
+ *  validity rectangle for the specified datum.  It returns zero if the specified
+ *  location is NOT within the validity rectangle, and returns 1 otherwise.
+ *
+ *   Index     : The index of a given datum in the datum table      (input)
+ *   latitude  : Latitude of the location to be checked in radians  (input)
+ *   longitude : Longitude of the location to be checked in radians (input)
+ *   result    : Indicates whether location is inside (1) or outside (0)
+ *               of the validity rectangle of the specified datum   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Datum
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B>                Index );
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Datum sets the datum for the specified state to the 
+ *  datum corresponding to the specified index.
+ *  State      : Indicates whether the datum is to be used for interactive 
+ *               or file processing                                    (input)
+ *  Direction  : Indicates whether the datum is to be used for input or 
+ *               output                                                (input)
+ *  Index      : Identifies the index of the datum to be used          (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Datum
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">long</FONT></B>                      *Index );
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Datum returns the index of the current datum for the 
+ *  specified state. 
+ *  State      : Indicates whether the datum is to be used for interactive 
+ *               or file processing                                    (input)
+ *  Direction  : Indicates whether the datum is to be used for input or 
+ *               output                                                (input)
+ *  Index      : Identifies the index of the current datum             (input)
+ */</FONT></I>
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Define_Datum</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B> *Code,
+                    <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B> *Name,
+                    <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B> *Ellipsoid_Code,
+                    <B><FONT COLOR="#228B22">double</FONT></B> Delta_X,
+                    <B><FONT COLOR="#228B22">double</FONT></B> Delta_Y,
+                    <B><FONT COLOR="#228B22">double</FONT></B> Delta_Z,
+                    <B><FONT COLOR="#228B22">double</FONT></B> Sigma_X,
+                    <B><FONT COLOR="#228B22">double</FONT></B> Sigma_Y,
+                    <B><FONT COLOR="#228B22">double</FONT></B> Sigma_Z,
+                    <B><FONT COLOR="#228B22">double</FONT></B> South_latitude,
+                    <B><FONT COLOR="#228B22">double</FONT></B> North_latitude,
+                    <B><FONT COLOR="#228B22">double</FONT></B> West_longitude,
+                    <B><FONT COLOR="#228B22">double</FONT></B> East_longitude);
+<I><FONT COLOR="#B22222">/*
+ *   Code           : 5-letter new datum code.                      (input)
+ *   Name           : Name of the new datum                         (input)
+ *   Ellipsoid_Code : 2-letter code for the associated ellipsoid    (input)
+ *   Delta_X        : X translation to WGS84 in meters              (input)
+ *   Delta_Y        : Y translation to WGS84 in meters              (input)
+ *   Delta_Z        : Z translation to WGS84 in meters              (input)
+ *   Sigma_X        : Standard error in X in meters                 (input)
+ *   Sigma_Y        : Standard error in Y in meters                 (input)
+ *   Sigma_Z        : Standard error in Z in meters                 (input)
+ *   South_latitude : Southern edge of validity rectangle in radians(input)
+ *   North_latitude : Northern edge of validity rectangle in radians(input)
+ *   West_longitude : Western edge of validity rectangle in radians (input)
+ *   East_longitude : Eastern edge of validity rectangle in radians (input)
+ *
+ * The function Define_Datum creates a new local (3-parameter) datum with the 
+ * specified code, name, shift values, and standard error values.  If the 
+ * datum table has not been initialized, the specified code is already in use, 
+ * or a new version of the 3-param.dat file cannot be created, an error code 
+ * is returned, otherwise ENGINE_NO_ERROR is returned.  Note that the indexes 
+ * of all datums in the datum table may be changed by this function.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Remove_Datum</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B> *Code);
+<I><FONT COLOR="#B22222">/*
+ *   Code           : 5-letter new datum code.                      (input)
+ *
+ * The function Remove_Datum deletes a user defined local (3-parameter) datum  
+ * with the specified code.  If the datum table has not been initialized, or 
+ * a new version of the 3-param.dat file cannot be created, an error code is
+ * returned, otherwise ENGINE_NO_ERROR is returned.  Note that the indexes 
+ * of all datums in the datum table may be changed by this function.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Ellipsoid_Count</FONT></B> ( <B><FONT COLOR="#228B22">long</FONT></B> *Count );
+<I><FONT COLOR="#B22222">/*
+ *   Count    : The number of ellipsoids in the ellipsoid table. (output)
+ *
+ * The function Get_Ellipsoid_Count returns the number of ellipsoids in the
+ * ellipsoid table.  If the ellipsoid table has been initialized without error,
+ * ENGINE_NO_ERROR is returned, otherwise ENGINE_NOT_INITIALIZED_ERROR
+ * is returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Ellipsoid_Index</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B> *Code,
+                           <B><FONT COLOR="#228B22">long</FONT></B> *Index );
+<I><FONT COLOR="#B22222">/*
+ *    Code     : 2-letter ellipsoid code.                      (input)
+ *    Index    : Index of the ellipsoid in the ellipsoid table with the 
+ *                  specified code                             (output)
+ *
+ *  The function Get_Ellipsoid_Index returns the index of the ellipsoid in 
+ *  the ellipsoid table with the specified code.  If ellipsoid code is found, 
+ *  ENGINE_NO_ERROR is returned, otherwise ENGINE_INVALID_CODE_ERROR is 
+ *  returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Ellipsoid_Name</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index, 
+                          <B><FONT COLOR="#228B22">char</FONT></B> *Name );
+<I><FONT COLOR="#B22222">/*
+ *    Index   : Index of a given ellipsoid.in the ellipsoid table with the
+ *                 specified index                             (input)
+ *    Name    : Name of the ellipsoid referencd by index       (output)
+ *
+ *  The Function Get_Ellipsoid_Name returns the name of the ellipsoid in 
+ *  the ellipsoid table with the specified index.  If index is valid, 
+ *  ENGINE_NO_ERROR is returned, otherwise ENGINE_INVALID_INDEX_ERROR is
+ *  returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Ellipsoid_Parameters</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                <B><FONT COLOR="#228B22">double</FONT></B> *a,
+                                <B><FONT COLOR="#228B22">double</FONT></B> *f );
+<I><FONT COLOR="#B22222">/*
+ *    Index    : Index of a given ellipsoid in the ellipsoid table (input)
+ *    a        : Semi-major axis, in meters, of ellipsoid          (output)
+ *    f        : Flattening of ellipsoid.                          (output)
+ *
+ *  The function Get_Ellipsoid_Parameters returns the semi-major axis 
+ *  and flattening for the ellipsoid with the specified index.  
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Ellipsoid_Code</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                          <B><FONT COLOR="#228B22">char</FONT></B> *Code );
+<I><FONT COLOR="#B22222">/*
+ *    Index    : Index of a given ellipsoid in the ellipsoid table (input)
+ *    Code     : 2-letter ellipsoid code.                          (output)
+ *
+ *  The Function Get_Ellipsoid_Code returns the 2-letter code for the 
+ *  ellipsoid in the ellipsoid table with the specified index.  If index is 
+ *  valid, ENGINE_NO_ERROR is returned, otherwise ENGINE_INVALID_INDEX_ERROR 
+ *  is returned.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Get_Ellipsoid_Eccentricity2</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                   <B><FONT COLOR="#228B22">double</FONT></B> *e2 );
+<I><FONT COLOR="#B22222">/*
+ *    Index    : Index of a given ellipsoid in the ellipsoid table (input)
+ *    e2       : Square of eccentricity of ellipsoid               (output)
+ *
+ *  The function Get_Ellipsoid_Eccentricity2 returns the square of the 
+ *  eccentricity for the ellipsoid with the specified index.  
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Check_Ellipsoid_User_Defined</FONT></B> ( <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">long</FONT></B> Index,
+                                    <B><FONT COLOR="#228B22">long</FONT></B> *result );
+<I><FONT COLOR="#B22222">/*
+ *    Index    : Index of a given ellipsoid in the ellipsoid table (input)
+ *    result   : Indicates whether specified ellipsoid is user defined (1)
+ *               or not (0)                                        (output)
+ *
+ *  The function Check_Ellipsoid_User_Defined returns 1 if the ellipsoid is user 
+ *  defined.  Otherwise, 0 is returned. 
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Define_Ellipsoid</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B>* Code,
+                       <B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B>* Name,
+                       <B><FONT COLOR="#228B22">double</FONT></B> a,
+                       <B><FONT COLOR="#228B22">double</FONT></B> f);
+<I><FONT COLOR="#B22222">/*
+ *   Code     : 2-letter ellipsoid code.                      (input)
+ *   Name     : Name of the new ellipsoid                     (input)
+ *   a        : Semi-major axis, in meters, of new ellipsoid  (input)
+ *   f        : Flattening of new ellipsoid.                  (input)
+ *
+ * The function Define_Ellipsoid creates a new ellipsoid with the specified
+ * code, name, and parameters.  If the ellipsoid table has not been initialized,
+ * the specified code is already in use, or a new version of the ellips.dat 
+ * file cannot be created, an error code is returned, otherwise ENGINE_NO_ERROR 
+ * is returned.  Note that the indexes of all ellipsoids in the ellipsoid
+ * table may be changed by this function.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> <B><FONT COLOR="#0000FF">Remove_Ellipsoid</FONT></B> (<B><FONT COLOR="#228B22">const</FONT></B> <B><FONT COLOR="#228B22">char</FONT></B>* Code);
+<I><FONT COLOR="#B22222">/*
+ *   Code     : 2-letter ellipsoid code.                      (input)
+ *
+ * The function Remove_Ellipsoid deletes a user defined ellipsoid with 
+ * the specified Code.  If the ellipsoid table has not been created,
+ * the specified code is in use by a user defined datum, or a new version   
+ * of the ellips.dat file cannot be created, an error code is returned, 
+ * otherwise ENGINE_NO_ERROR is returned.  Note that the indexes of all  
+ * ellipsoids in the ellipsoid table may be changed by this function.
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">void</FONT></B> <B><FONT COLOR="#0000FF">Set_Precision</FONT></B>(Precision Precis);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Precision sets the output precision to the specified level. 
+ *  Precis     : Indicates the desired level of precision              (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">void</FONT></B> <B><FONT COLOR="#0000FF">Get_Precision</FONT></B>(Precision *Precis);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Precision returns the current level of precision. 
+ *  Precis     : Indicates the current level of precision              (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Geocentric_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Geocentric_Tuple    coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Geocentric_Coordinates sets the Geocentric coordinates
+ *  for the specified state.. 
+ *  State            : Indicates whether the coordinates are to be set for  
+ *                     interactive or file processing                  (input)
+ *  Direction        : Indicates whether the coordinates are to be set for  
+ *                     input or output                                 (input)
+ *  coordinates      : Geocentric coordinate values to be set          (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Geocentric_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Geocentric_Tuple          *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Geocentric_Coordinates returns the Geocentric coordinates
+ *  for the specified state.. 
+ *  State            : Indicates whether the coordinates are to be returned for 
+ *                     interactive or file processing                  (input)
+ *  Direction        : Indicates whether the coordinates are to be returned for  
+ *                     input or output                                 (input)
+ *  coordinates      : Geocentric coordinate values to be returned     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Geodetic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Geodetic_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Geodetic_Params sets the Geodetic coordinate system  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Geodetic parameters to be set                       (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Geodetic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Geodetic_Parameters       *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Geodetic_Params returns the Geodetic coordinate system
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Geodetic parameters to be returned                  (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Geodetic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Geodetic_Tuple      coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Geodetic_Coordinates sets the Geodetic coordinates
+ *  for the specified state.. 
+ *  State          : Indicates whether the parameters are to be set for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the parameters are to be set for  
+ *                   input or output                                   (input)
+ *  coordinates    : Geodetic coordinate values to be set              (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Geodetic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Geodetic_Tuple            *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Geodetic_Coordinates returns the Geodetic coordinates
+ *  for the specified state.. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Geodetic coordinate values to be returned         (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_GEOREF_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> GEOREF_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_GEOREF_Coordinates sets the GEOREF coordinates
+ *  for the specified state.. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : GEOREF coordinate string value to be set            (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_GEOREF_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  GEOREF_Tuple              *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_GEOREF_Coordinates returns the GEOREF coordinates
+ *  for the specified state. 
+ *  State        : Indicates whether the coordinates are to be returned for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be returned for 
+ *                 input or output                                     (input)
+ *  coordinates  : GEOREF coordinate string value to be returned       (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Albers_Equal_Area_Conic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Albers_Equal_Area_Conic_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Albers_Equal_Area_Conic_Params sets the Albers Equal
+ *  Area Conic projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Albers Equal Area Conic projection parameters to be set 
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Albers_Equal_Area_Conic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Albers_Equal_Area_Conic_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Albers_Equal_Area_Conic_Params returns the Albers Equal
+ *  Area Conic projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for
+ *                 input or output                                     (input)
+ *  parameters   : Albers Equal Area Conic projection parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Albers_Equal_Area_Conic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Albers_Equal_Area_Conic_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Albers_Equal_Area_Conic_Coordinates sets the Albers Equal
+ *  Area Conic projection coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Albers Equal Area Conic projection coordinates to be set 
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Albers_Equal_Area_Conic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Albers_Equal_Area_Conic_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Albers_Equal_Area_Conic_Coordinates returns the Albers Equal
+ *  Area Conic projection coordinates for the specified state.
+ *  State          : Indicates whether the coordinates are to be returned for
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for
+ *                   input or output                                   (input)
+ *  coordinates    : Albers Equal Area Conic projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Azimuthal_Equidistant_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Azimuthal_Equidistant_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Azimuthal_Equidistant_Params sets the Azimuthal Equidistant
+ *  projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Azimuthal Equidistant projection parameters to be set 
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Azimuthal_Equidistant_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Azimuthal_Equidistant_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Azimuthal_Equidistant_Params returns the Azimuthal Equidistant 
+ *  projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Azimuthal Equidistant projection parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Azimuthal_Equidistant_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Azimuthal_Equidistant_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Azimuthal_Equidistant_Coordinates sets the Azimuthal Equidistant 
+ *  projection coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Azimuthal Equidistant projection coordinates to be set 
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Azimuthal_Equidistant_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Azimuthal_Equidistant_Tuple               *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Azimuthal_Equidistant_Coordinates returns the Azimuthal Equidistant  
+ *  projection coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be returned for
+ *                 input or output                                     (input)
+ *  coordinates  : Azimuthal Equidistant projection coordinates to be returned 
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_BNG_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> BNG_Tuple           coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_BNG_Coordinates sets the BNG coordinates
+ *  for the specified state.. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : BNG coordinate string value to be set               (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_BNG_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  BNG_Tuple                 *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_BNG_Coordinates returns the BNG coordinates
+ *  for the specified state. 
+ *  State        : Indicates whether the coordinates are to be returned for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be returned for 
+ *                 input or output                                     (input)
+ *  coordinates  : BNG coordinate string value to be returned          (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Bonne_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Bonne_Parameters    parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Bonne_Params sets the Bonne projection parameters 
+ *  for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Bonne projection parameters to be set               (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Bonne_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Bonne_Parameters          *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Bonne_Params returns the Bonne projection parameters 
+ *  for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Bonne projection parameters to be returned          (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Bonne_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Bonne_Tuple         coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Bonne_Coordinates sets the Bonne projection 
+ *  coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Bonne projection coordinates to be set              (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Bonne_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Bonne_Tuple               *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Bonne_Coordinates returns the Bonne projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Bonne projection coordinates to be returned       (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Cassini_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Cassini_Parameters  parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Cassini_Params sets the Cassini projection
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Cassini projection parameters to be set             (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Cassini_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Cassini_Parameters        *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Cassini_Params returns the Cassini projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Cassini projection parameters to be returned        (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Cassini_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Cassini_Tuple       coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Cassini_Coordinates sets the Cassini projection
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Cassini projection coordinates to be set            (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Cassini_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Cassini_Tuple             *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Cassini_Coordinates returns the Cassini projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Cassini projection coordinates to be returned     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Cylindrical_Equal_Area_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Cylindrical_Equal_Area_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Cylindrical_Equal_Area_Params sets the Cylindrical 
+ *  Equal Area projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Cylindrical Equal Area projection parameters to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Cylindrical_Equal_Area_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+    Cylindrical_Equal_Area_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Cylindrical_Equal_Area_Params returns the Cylindrical  
+ *  Equal Area projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for
+ *                 input or output                                     (input)
+ *  parameters   : Cylindrical Equal Area projection parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Cylindrical_Equal_Area_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Cylindrical_Equal_Area_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Cylindrical_Equal_Area_Coordinates sets the Cylindrical 
+ *  Equal Area projection coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Cylindrical Equal Area projection coordinates to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Cylindrical_Equal_Area_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Cylindrical_Equal_Area_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Cylindrical_Equal_Area_Coordinates returns the Cylindrical 
+ *  Equal Area projection coordinates for the specified state.
+ *  State          : Indicates whether the coordinates are to be returned for
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for
+ *                   input or output                                   (input)
+ *  coordinates    : Cylindrical Equal Area projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Eckert4_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Eckert4_Parameters  parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Eckert4_Params sets the Eckert IV projection 
+ *  parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Eckert IV projection parameters to be set           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Eckert4_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Eckert4_Parameters        *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Eckert4_Params returns the Eckert IV projection 
+ *  parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for
+ *                 input or output                                     (input)
+ *  parameters   : Eckert IV projection parameters to be returned      (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Eckert4_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Eckert4_Tuple       coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Eckert4_Coordinates sets the Eckert IV projection 
+ *  coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Eckert IV projection coordinates to be set          (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Eckert4_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Eckert4_Tuple             *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Eckert4_Coordinates returns the Eckert IV projection 
+ *  coordinates for the specified state.
+ *  State          : Indicates whether the coordinates are to be returned for
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for
+ *                   input or output                                   (input)
+ *  coordinates    : Eckert IV projection coordinates to be returned   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Eckert6_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Eckert6_Parameters  parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Eckert6_Params sets the Eckert VI projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Eckert VI projection parameters to be set           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Eckert6_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Eckert6_Parameters        *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Eckert6_Params returns the Eckert VI projection 
+ *  parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for
+ *                 input or output                                     (input)
+ *  parameters   : Eckert VI projection parameters to be returned      (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Eckert6_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Eckert6_Tuple       coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Eckert6_Coordinates sets the Eckert VI projection 
+ *  coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Eckert VI projection coordinates to be set          (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Eckert6_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Eckert6_Tuple             *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Eckert6_Coordinates returns the Eckert VI projection 
+ *  coordinates for the
+ *  specified state.
+ *  State          : Indicates whether the coordinates are to be returned for
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for
+ *                   input or output                                   (input)
+ *  coordinates    : Eckert VI projection coordinates to be returned   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Equidistant_Cylindrical_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Equidistant_Cylindrical_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Equidistant_Cylindrical_Params sets the Equidistant 
+ *  Cylindrical projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Equidistant Cylindrical projection parameters to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Equidistant_Cylindrical_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Equidistant_Cylindrical_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Equidistant_Cylindrical_Params returns the Equidistant 
+ *  Cylindrical projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Equidistant Cylindrical projection parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Equidistant_Cylindrical_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Equidistant_Cylindrical_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Equidistant_Cylindrical_Coordinates sets the Equidistant 
+ *  Cylindrical projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Equidistant Cylindrical projection coordinates to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Equidistant_Cylindrical_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Equidistant_Cylindrical_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Equidistant_Cylindrical_Coordinates returns the Equidistant 
+ *  Cylindrical projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Equidistant Cylindrical projection coordinates to be returned 
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Gnomonic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Gnomonic_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Gnomonic_Params sets the Gnomonic
+ *  projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Gnomonic projection parameters to be set            (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Gnomonic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Gnomonic_Parameters       *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Gnomonic_Params returns the Gnomonic 
+ *  projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Gnomonic projection parameters to be returned       (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Gnomonic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+    <B><FONT COLOR="#228B22">const</FONT></B> Gnomonic_Tuple      coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Gnomonic_Coordinates sets the Gnomonic 
+ *  projection coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Gnomonic projection coordinates to be set           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Gnomonic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Gnomonic_Tuple            *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Gnomonic_Coordinates sets the Gnomonic  
+ *  projection coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Gnomonic projection coordinates to be set           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Lambert_Conformal_Conic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Lambert_Conformal_Conic_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Lambert_Conformal_Conic_Params sets the Lambert 
+ *  Conformal Conic projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Lambert Conformal Conic projection parameters to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Lambert_Conformal_Conic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Lambert_Conformal_Conic_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Lambert_Conformal_Conic_Params returns the Lambert  
+ *  Conformal Conic projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Lambert Conformal Conic projection parameters to be returned 
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Lambert_Conformal_Conic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Lambert_Conformal_Conic_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Lambert_Conformal_Conic_Coordinates sets the Lambert Conformal  
+ *  Conic projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Lambert Conformal Conic projection coordinates to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Lambert_Conformal_Conic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Lambert_Conformal_Conic_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Lambert_Conformal_Conic_Coordinates returns the Lambert
+ *  Conformal Conic projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Lambert Conformal Conic projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Local_Cartesian_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Local_Cartesian_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Local_Cartesian_Params sets the Local Cartesian 
+ *  coordinate system parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Local Cartesian coordinate system parameters to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Local_Cartesian_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+    Local_Cartesian_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Local_Cartesian_Params returns the Local Cartesian 
+ *  coordinate system parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for
+ *                 input or output                                     (input)
+ *  parameters   : Local Cartesian coordinate system parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Local_Cartesian_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+    <B><FONT COLOR="#228B22">const</FONT></B> Local_Cartesian_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Local_Cartesian_Coordinates sets the Local Cartesian 
+ *  coordinates for the specified state.
+ *  State        : Indicates whether the coordinates are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for
+ *                 input or output                                     (input)
+ *  coordinates  : Local Cartesian coordinates to be set               (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Local_Cartesian_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Local_Cartesian_Tuple     *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Local_Cartesian_Coordinates returns the Local Cartesian projection 
+ *  coordinates for the specified state.
+ *  State          : Indicates whether the coordinates are to be returned for
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for
+ *                   input or output                                   (input)
+ *  coordinates    : Local Cartesian coordinates to be returned        (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Mercator_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Mercator_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Mercator_Params sets the Mercator projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Mercator projection parameters to be set            (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Mercator_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Mercator_Parameters       *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Mercator_Params returns the Mercator projection
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Mercator projection parameters to be returned       (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Mercator_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Mercator_Tuple      coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Mercator_Coordinates sets the Mercator projection 
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Mercator projection coordinates to be set           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Mercator_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Mercator_Tuple            *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Mercator_Coordinates returns the Mercator projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Mercator projection coordinates to be returned    (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_MGRS_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> MGRS_Tuple          coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_MGRS_Coordinates sets the MGRS projection coordinates
+ *  for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : MGRS projection coordinates to be set               (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_MGRS_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  MGRS_Tuple                *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_MGRS_Coordinates returns the MGRS projection coordinates 
+ *  for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : MGRS projection coordinates to be returned        (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Miller_Cylindrical_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Miller_Cylindrical_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Miller_Cylindrical_Params sets the Miller Cylindrical   
+ *  projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Miller Cylindrical projection parameters to be set  (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Miller_Cylindrical_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Miller_Cylindrical_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Miller_Cylindrical_Params returns the Miller Cylindrical   
+ *  projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Miller Cylindrical projection parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Miller_Cylindrical_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Miller_Cylindrical_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Miller_Cylindrical_Coordinates sets the Miller Cylindrical  
+ *  projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Miller Cylindrical projection coordinates to be set (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Miller_Cylindrical_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Miller_Cylindrical_Tuple  *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Miller_Cylindrical_Coordinates returns the Miller Cylindrical 
+ *  projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Miller Cylindrical projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Mollweide_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Mollweide_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Mollweide_Params sets the Mollweide
+ *  projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Mollweide projection parameters to be set           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Mollweide_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Mollweide_Parameters      *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Mollweide_Params returns the Mollweide projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters    : Mollweide projection parameters to be returned     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Mollweide_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Mollweide_Tuple     coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Mollweide_Coordinates sets the Mollweide projection 
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Mollweide projection coordinates to be set          (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Mollweide_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Mollweide_Tuple           *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Mollweide_Coordinates returns the Mollweide 
+ *  projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Mollweide projection coordinates to be returned   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Neys_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Neys_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Neys_Params sets the Ney's (Modified Lambert 
+ *  Conformal Conic) projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Ney's projection parameters to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Neys_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Neys_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Neys_Params returns the Ney's (Modified Lambert  
+ *  Conformal Conic) projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Ney's projection parameters to be returned 
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Neys_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Neys_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Neys_Coordinates sets the Ney's (Modified Lambert Conformal  
+ *  Conic) projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Ney's projection coordinates to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Neys_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Neys_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Neys_Coordinates returns the Ney's (Modified Lambert
+ *  Conformal Conic) projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Ney's projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_NZMG_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> NZMG_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_NZMG_Coordinates sets the New Zealand Map Grid  
+ *  projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : New Zealand Map Grid projection coordinates to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_NZMG_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  NZMG_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_NZMG_Coordinates returns the New Zealand Map Grid
+ *  projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : New Zealand Map Grid projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Oblique_Mercator_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Oblique_Mercator_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Oblique_Mercator_Params sets the Oblique Mercator projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Oblique Mercator projection parameters to be set    (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Oblique_Mercator_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Oblique_Mercator_Parameters       *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Oblique_Mercator_Params returns the Oblique Mercator projection
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Oblique Mercator projection parameters to be returned 
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Oblique_Mercator_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Oblique_Mercator_Tuple      coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Mercator_Coordinates sets the Oblique Mercator projection 
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Oblique Mercator projection coordinates to be set   (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Oblique_Mercator_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Oblique_Mercator_Tuple            *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Oblique_Mercator_Coordinates returns the Oblique Mercator projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Oblique Mercator projection coordinates to be returned  
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Orthographic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Orthographic_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Orthographic_Params sets the Orthographic projection 
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Orthographic projection parameters to be set        (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Orthographic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Orthographic_Parameters   *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Orthographic_Params returns the Orthographic projection 
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Orthographic projection parameters to be returned   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Orthographic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Orthographic_Tuple  coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Orthographic_Coordinates sets the Orthographic projection
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Orthographic projection coordinates to be set       (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Orthographic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+    Orthographic_Tuple        *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Orthographic_Coordinates returns the Orthographic projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Orthographic projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Polar_Stereo_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Polar_Stereo_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Polar_Stereo_Params sets the Polar Stereographic
+ *  projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be set for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for
+ *                 input or output                                     (input)
+ *  parameters   : Polar Stereographic projection parameters to be set (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Polar_Stereo_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Polar_Stereo_Parameters   *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Polar_Stereo_Params returns the Polar Stereographic
+ *  projection parameters for the specified state.
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for
+ *                 input or output                                     (input)
+ *  parameters   : Polar Stereographic projection parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Polar_Stereo_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Polar_Stereo_Tuple  coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Polar_Stereo_Coordinates sets the Polar Stereographic
+ *  projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Polar Stereographic projection coordinates to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Polar_Stereo_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Polar_Stereo_Tuple        *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Polar_Stereo_Coordinates returns the Polar Stereographic 
+ *  projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Polar Stereographic projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Polyconic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Polyconic_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Polyconic_Params sets the Polyconic projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Polyconic projection parameters to be set           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Polyconic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Polyconic_Parameters      *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Polyconic_Params returns the Polyconic projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Polyconic projection parameters to be returned      (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Polyconic_Coordinates
+(<B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+ <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+ <B><FONT COLOR="#228B22">const</FONT></B> Polyconic_Tuple     coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Polyconic_Coordinates sets the Polyconic projection
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Polyconic projection coordinates to be set          (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Polyconic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Polyconic_Tuple           *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Polyconic_Coordinates returns the Polyconic projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Polyconic projection coordinates to be returned   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Sinusoidal_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Sinusoidal_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Sinusoidal_Params sets the Sinusoidal projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Sinusoidal projection parameters to be set          (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Sinusoidal_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Sinusoidal_Parameters     *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Sinusoidal_Params returns the Sinusoidal projection  
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Sinusoidal projection parameters to be returned     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Sinusoidal_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Sinusoidal_Tuple    coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Sinusoidal_Coordinates sets the Sinusoidal projection
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Sinusoidal projection coordinates to be set         (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Sinusoidal_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Sinusoidal_Tuple          *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Sinusoidal_Coordinates returns the Sinusoidal projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                       (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                      (input)
+ *  coordinates    : Sinusoidal projection coordinates to be returned     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Stereographic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Stereographic_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Stereographic_Params sets the Stereographic projection 
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Stereographic projection parameters to be set        (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Stereographic_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Stereographic_Parameters   *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Stereographic_Params returns the Stereographic projection 
+ *  parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Stereographic projection parameters to be returned   (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Stereographic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Stereographic_Tuple  coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Stereographic_Coordinates sets the Stereographic projection
+ *  coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Stereographic projection coordinates to be set       (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Stereographic_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+    Stereographic_Tuple        *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Stereographic_Coordinates returns the Stereographic projection
+ *  coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Stereographic projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Transverse_Cylindrical_Equal_Area_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Transverse_Cylindrical_Equal_Area_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Transverse_Cylindrical_Equal_Area_Params sets the 
+ *  Transverse Cylindrical Equal Area projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Transverse Cylindrical Equal Area projection parameters 
+ *                 to be set                                           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Transverse_Cylindrical_Equal_Area_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Transverse_Cylindrical_Equal_Area_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Transverse_Cylindrical_Equal_Area_Params returns the 
+ *  Transverse Cylindrical Equal Area projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Transverse Cylindrical Equal Area projection parameters 
+ *                 to be returned                                      (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Transverse_Cylindrical_Equal_Area_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Transverse_Cylindrical_Equal_Area_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Transverse_Cylindrical_Equal_Area_Coordinates sets the 
+ *  Transverse Cylindrical Equal Area projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Transverse Cylindrical Equal Area projection coordinates 
+ *                 to be set                                           (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Transverse_Cylindrical_Equal_Area_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Transverse_Cylindrical_Equal_Area_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Transverse_Cylindrical_Equal_Area_Coordinates returns the 
+ *  Transverse Cylindrical Equal Area projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Transverse Cylindrical Equal Area projection coordinates 
+ *                   to be returned                                    (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Transverse_Mercator_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Transverse_Mercator_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Transverse_Mercator_Params sets the Transverse   
+ *  Mercator projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Transverse Mercator projection parameters to be set (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Transverse_Mercator_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Transverse_Mercator_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Transverse_Mercator_Params returns the Transverse 
+ *  Mercator projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Transverse Mercator projection parameters to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Transverse_Mercator_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Transverse_Mercator_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Transverse_Mercator_Coordinates sets the Transverse  
+ *  Mercator projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Transverse Mercator projection coordinates to be set
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Transverse_Mercator_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Transverse_Mercator_Tuple *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Transverse_Mercator_Coordinates returns the Transverse
+ *  Mercator projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Transverse Mercator projection coordinates to be returned 
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_UPS_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> UPS_Tuple           coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_UPS_Coordinates sets the UPS projection coordinates
+ *  for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : UPS projection coordinates to be set                (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_UPS_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  UPS_Tuple                 *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_UPS_Coordinates returns the UPS projection coordinates 
+ *  for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : UPS projection coordinates to be returned         (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_UTM_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> UTM_Parameters      parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_UTM_Params sets the UTM projection parameters   
+ *  for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : UTM projection parameters to be set                 (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_UTM_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  UTM_Parameters            *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_UTM_Params returns the UTM projection parameters 
+ *  for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : UTM projection parameters to be returned            (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_UTM_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> UTM_Tuple           coordinates); 
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_UTM_Coordinates sets the UTM projection coordinates  
+ *  for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : UTM projection coordinates to be set                (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_UTM_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  UTM_Tuple                 *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_UTM_Coordinates returns the UTM projection coordinates
+ *  for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : UTM projection coordinates to be returned         (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Van_der_Grinten_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Van_der_Grinten_Parameters parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Van_der_Grinten_Params sets the Van der Grinten   
+ *  projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be set for  
+ *                 input or output                                     (input)
+ *  parameters   : Van der Grinten projection parameters to be set     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Van_der_Grinten_Params
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Van_der_Grinten_Parameters *parameters);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Van_der_Grinten_Params returns the Van der Grinten 
+ *  projection parameters for the specified state. 
+ *  State        : Indicates whether the parameters are to be returned for
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the parameters are to be returned for  
+ *                 input or output                                     (input)
+ *  parameters   : Van der Grinten projection parameters to be returned
+ *                                                                     (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Van_der_Grinten_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">const</FONT></B> Van_der_Grinten_Tuple coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Van_der_Grinten_Coordinates sets the Van der Grinten 
+ *  projection coordinates for the specified state. 
+ *  State        : Indicates whether the coordinates are to be set for  
+ *                 interactive or file processing                      (input)
+ *  Direction    : Indicates whether the coordinates are to be set for  
+ *                 input or output                                     (input)
+ *  coordinates  : Van der Grinten projection coordinates to be set    (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Van_der_Grinten_Coordinates
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  Van_der_Grinten_Tuple     *coordinates);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Van_der_Grinten_Coordinates returns the Van der Grinten 
+ *  projection coordinates for the specified state. 
+ *  State          : Indicates whether the coordinates are to be returned for  
+ *                   interactive or file processing                    (input)
+ *  Direction      : Indicates whether the coordinates are to be returned for  
+ *                   input or output                                   (input)
+ *  coordinates    : Van der Grinten projection coordinates to be returned
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Convert
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State);
+<I><FONT COLOR="#B22222">/*
+ *  The function Convert converts the current input coordinates in the coordinate
+ *  system defined by the current input coordinate system parameters and input datum,
+ *  into output coordinates in the coordinate system defined by the output coordinate
+ *  system parameters and output datum.
+ *  State      : Indicates whether the interactive or file processing state data
+ *               is to be used                                             (input)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Conversion_Errors
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">double</FONT></B> *CE90,
+  <B><FONT COLOR="#228B22">double</FONT></B> *LE90,
+  <B><FONT COLOR="#228B22">double</FONT></B> *SE90);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Conversion_Errors returns the estimated errors in the location
+ *  the most recently converted location
+ *  State  : Indicates whether the conversion error information is for interactive 
+ *           or file processing                                    (input)
+ *  CE90   : 90% circular (horizontal) error, in meters            (output)
+ *  LE90   : 90% linear (vertical) error, in meters                (output)
+ *  SE90   : 90% spherical error, in meters                        (output)
+ */</FONT></I>
+
+<B><FONT COLOR="#228B22">long</FONT></B> Set_Conversion_Errors
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">double</FONT></B> CE90,
+  <B><FONT COLOR="#228B22">double</FONT></B> LE90,
+  <B><FONT COLOR="#228B22">double</FONT></B> SE90);
+<I><FONT COLOR="#B22222">/*
+ *  The function Set_Conversion_Errors sets the estimated errors 
+ *  State  : Indicates whether the datum is to be used for interactive 
+ *           or file processing                                    (input)
+ *  CE90   : 90% circular (horizontal) error, in meters            (input)
+ *  LE90   : 90% linear (vertical) error, in meters                (input)
+ *  SE90   : 90% spherical error, in meters                        (input)
+ */</FONT></I>
+
+ 
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Conversion_Status
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">long</FONT></B>                      *Conversion_Status);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Conversion_Status returns the current status for the specified state.. 
+ *  State      : Indicates whether the status returned is for interactive 
+ *               or file processing                                    (input)
+ *  Direction  : Indicates whether the status returned is for input or output
+ *                                                                     (input)
+ *  Conversion_Status : The current status for the specified state     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">long</FONT></B> Get_Conversion_Status_String
+( <B><FONT COLOR="#228B22">const</FONT></B> File_or_Interactive State,
+  <B><FONT COLOR="#228B22">const</FONT></B> Input_or_Output     Direction,
+  <B><FONT COLOR="#228B22">char</FONT></B>                      *Separator,
+  <B><FONT COLOR="#228B22">char</FONT></B>                      *String);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Conversion_Status_String returns a string describing the 
+ *  current status for the specified state. 
+ *  State      : Indicates whether the status string returned is for interactive 
+ *               or file processing                                    (input)
+ *  Direction  : Indicates whether the status string returned is for input or 
+ *               output                                                (input)
+ *  Separator  : String to be used to separate individual status messages
+ *                                                                     (input)
+ *  String     : String describing the current status for the specified state     
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<B><FONT COLOR="#228B22">void</FONT></B> Get_Return_Code_String
+( <B><FONT COLOR="#228B22">long</FONT></B>  Error_Code,
+  <B><FONT COLOR="#228B22">char</FONT></B>  *Separator,
+  <B><FONT COLOR="#228B22">char</FONT></B>  *String);
+<I><FONT COLOR="#B22222">/*
+ *  The function Get_Return_Code_String returns a string describing the specified 
+ *  engine return code.
+ *  Error_Code : Status code returned by engine function               (input) 
+ *  Separator  : String to be used to separate individual status messages
+ *                                                                     (input)
+ *  String     : String describing the current status for the specified state     
+ *                                                                     (output)
+ */</FONT></I>
+
+
+<I><FONT COLOR="#B22222">/* ensure proper linkage to c++ programs */</FONT></I>
+  #ifdef __cplusplus
+}
+  #endif
+
+#<B><FONT COLOR="#5F9EA0">endif</FONT></B> <I><FONT COLOR="#B22222">/* ENGINE_H */</FONT></I>
+
+</PRE>
+<HR>
+<ADDRESS>Generated by <A HREF="http://www.iki.fi/~mtr/genscript/">GNU enscript 1.6.3</A>.</ADDRESS>
+</BODY>
+</HTML>
