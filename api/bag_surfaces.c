@@ -811,6 +811,16 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     {
         extend[0] = strlen(hnd->bag.metadata);
     }
+    
+    /* 
+       Adding an extra space for the null terminator to be guarenteed
+       on disk with the dataset. Webb McDonald -- Wed Mar  1 12:51:24 2006
+    */
+    if (read_or_write == WRITE_BAG)
+        extend[0]++;
+
+    if (extend[0] > XML_METADATA_MAX_LENGTH)
+        return BAG_METADTA_BUFFER_EXCEEDED;
 
     data = hnd->bag.metadata;
 
