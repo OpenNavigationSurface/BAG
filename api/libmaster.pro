@@ -27,7 +27,7 @@ DEFINES	+=
 LANGUAGE = C++
 #CONFIG	+= qt warn_off debug opengl
 #CONFIG	+= qt warn_off debug 
-CONFIG	+= warn_off staticlib debug
+CONFIG	+= warn_off debug
 CONFIG  -= qt
 
 win32 {
