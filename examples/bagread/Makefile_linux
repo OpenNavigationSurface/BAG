@@ -12,8 +12,8 @@ CC       = gcc
 CXX      = g++
 LEX      = flex
 YACC     = yacc
-CFLAGS   = -pipe ${IVSCOPTS} -w -O2 -g -pipe -m32 -march=i386 -mtune=pentium4  -DBEE_STATIC
-CXXFLAGS = -pipe ${IVSCCOPTS2} -w -O2 -g -pipe -m32 -march=i386 -mtune=pentium4  -DBEE_STATIC
+CFLAGS   = -pipe ${IVSCOPTS} -w -O2 -pipe -m32 -march=i386  -DBEE_STATIC
+CXXFLAGS = -pipe ${IVSCCOPTS2} -w -O2 -pipe -m32 -march=i386 -DBEE_STATIC
 LEXFLAGS = 
 YACCFLAGS= -d
 INCPATH  = -I../../extlibs/mkspecs/linux-g++ -I. -I../../api -I../../api/crypto -I../../extlibs/hdf5-linux/include -I../../extlibs/geotrans -I../../extlibs/beecrypt -I../../extlibs
