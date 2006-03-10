@@ -25,7 +25,7 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= 
 LANGUAGE = C++
-CONFIG	+= warn_off staticlib debug
+CONFIG	+= warn_off debug
 CONFIG  -= qt
 
 win32 {
