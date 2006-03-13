@@ -51,7 +51,7 @@ unix {
 
 
 
-INCLUDEPATH  += ../../extlibs ../../api ../../api/crypto
+INCLUDEPATH  += ../../extlibs ../../api
 
 DEFINES += 
 
