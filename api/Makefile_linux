@@ -19,8 +19,8 @@ CFLAGS   = -pipe ${IVSCOPTS} -w  -DBEE_STATIC
 CXXFLAGS = -pipe ${IVSCCOPTS2} -w  -DBEE_STATIC
 LEXFLAGS = 
 YACCFLAGS= -d
-INCPATH  = -I../extlibs/mkspecs/linux-g++ -I. -I../api -I../extlibs/hdf5-linux/include \
-           -I../extlibs/geotrans -I../extlibs/beecrypt -I../extlibs -I$(XERCESCROOT)/src
+INCPATH  = -I../extlibs/mkspecs/linux-g++ -I. -I../api -I../extlibs/hdf5-1.6.1/src \
+           -I../extlibs/geotrans -I../extlibs/beecrypt-4.1.2 -I../extlibs -I$(XERCESCROOT)/src
 AR       = ar cqs
 RANLIB   = 
 MOC      = $(QTDIR)/bin/moc
