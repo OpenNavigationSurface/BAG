@@ -16,7 +16,7 @@ CFLAGS   = -pipe ${IVSCOPTS} -w -O2 -pipe -m32 -march=i386  -DBEE_STATIC
 CXXFLAGS = -pipe ${IVSCCOPTS2} -w -O2 -pipe -m32 -march=i386 -DBEE_STATIC
 LEXFLAGS = 
 YACCFLAGS= -d
-INCPATH  = -I../../extlibs/mkspecs/linux-g++ -I. -I../../api -I../../api/crypto -I../../extlibs/hdf5-1.6.1/src -I../../extlibs/geotrans -I../../extlibs/beecrypt-4.1.2 -I../../extlibs
+INCPATH  = -I../../extlibs/mkspecs/linux-g++ -I. -I../../api -I../../extlibs/hdf5-1.6.1/src -I../../extlibs/geotrans -I../../extlibs/beecrypt-4.1.2 -I../../extlibs
 LINK     = g++
 LFLAGS   = 
 LIBS     = $(SUBLIBS) -L../../libsrc/lib/$(HOSTMACHINE) -L../../extlibs/lib/$(HOSTMACHINE) -L../../lib -lbag -lhdf5 -lxerces-c -lgeotrans -lbeecrypt -lszip -lzlib -lpthread ${IVSEXTRAUNIXLIBS}
