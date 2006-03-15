@@ -2,9 +2,16 @@
    =======
    
 This directory contains a number of external libraries which are used
-by the Open Navigation Surface project. While you can download and build
-them all separately they are included here with supporting build files in
-order to make it easier to get a quick start. It is possible to substitute
-other versions or completely different libraries as long as they maintain
-the same calling interface.
+by the Open Navigation Surface project. While you can download and
+build them all separately they are included here with supporting build
+files in order to make it easier to get a quick start. It is possible
+to substitute other versions or completely different libraries as long
+as they maintain the same calling interface.
 
+buildlibs.mak script assumes that the sources are present in
+compressed archives.  It will uncompress them and then try to
+build/make/configure the libraries for use with BAG.  Be aware that
+the xerces-c library requires an environment variable to be set.
+buildlibs.mak should set this for you:
+
+	XERCESCROOT=$PWD/xerces-c-src_2_6_0
