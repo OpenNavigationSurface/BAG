@@ -1,4 +1,3 @@
-
 This directory contains the necessary source files and examples required to build and
 work with data in the BAG format:
 
@@ -21,7 +20,7 @@ called HOSTMACHINE to the value of "linux".
      ie. export HOSTMACHINE=linux     (for a bash shell), or
          setenv HOSTMACHINE linux     (for a csh or tcsh shell)
 
-In order to run any of the examples, or to properly use the API, you must also define
+2) In order to run any of the examples, or to properly use the API, you must also define
 the environment variable, BAG_HOME, to point to the location of the configdata directory.
 For linux, that would be something like:
        export BAG_HOME=/usr/local/openns/configdata
@@ -29,3 +28,12 @@ On the Windows platform, environment variables are set via the "Advanced" tab in
 Properties control panel.
 
 
+3) Be aware that the xerces-c library requires an environment variable to
+be set. The API module needs the header files of xerces-c, which can
+be found where the xerces-c library was installed under extlibs. 
+
+(may only be required with Linux).
+Something like the following should be set:
+
+export	XERCESCROOT=$PWD/extlibs/xerces-c-src_2_6_0
+setenv  XERCESCROOT $PWD/extlibs/xerces-c-src_2_6_0
