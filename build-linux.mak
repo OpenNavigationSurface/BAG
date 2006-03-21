@@ -9,6 +9,11 @@ export UNTAR='tar -xvzf'
 export CP='cp -f'
 export CD='cd'
 
+if [ ! -n "$PWD" ] ; then
+	$ECHO "PWD env variable expected to be set, trying CWD instead."
+	export PWD=$CWD
+fi
+
 ##################################################################
 # if developing with libbag, you might want to add these permanently:
 ##################################################################
@@ -17,10 +22,6 @@ export LD_RUN_PATH=$LD_RUN_PATH:$PWD/lib:$PWD/extlibs/lib
 export BAG_HOME=$PWD/configdata
 ##################################################################
 
-if [ ! -n "$PWD" ] ; then
-	$ECHO "PWD env variable expected to be set, trying CWD instead."
-	export PWD=$CWD
-fi
 export XERCESCROOT=$PWD/extlibs/xerces-c-src_2_6_0
 
 
