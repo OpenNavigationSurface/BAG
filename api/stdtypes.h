@@ -1,3 +1,11 @@
+/*! \file stdtypes.h
+ * \brief Provide definitions of types for the project.
+ *
+ * This file provides a set of known types that avoid any weirdnesses in the
+ * particular compiler that's being used (or at least a way to corral them all
+ * in one place.
+ */
+
 /*
  * $Id: stdtypes.h,v 1.2 2005/10/26 17:35:55 openns Exp $
  * $Log: stdtypes.h,v $
@@ -22,18 +30,24 @@
 extern "C" {
 #endif
 
-typedef unsigned int u32;
-typedef unsigned short u16;
-typedef unsigned char u8;
-typedef int s32;
-typedef short s16;
-typedef signed char s8;
-typedef double f64;
-typedef float f32;
+typedef unsigned int u32;	/*!< Unsigned integers exactly 32-bits long */
+typedef unsigned short u16;	/*!< Unsigned integers exactly 16-bits long */
+typedef unsigned char u8;	/*!< Unsigned integers exactly 8-bits long (i.e., a byte) */
+typedef int s32;			/*!< Signed integers exactly 32-bits long */
+typedef short s16;			/*!< Signed integers exactly 16-bits long */
+typedef signed char s8;		/*!< Signed integers exactly 8-bits long (i.e., a signed byte) */ 
+typedef double f64;			/*!< Double precision floating point (IEEE754) numbers */
+typedef float f32;			/*!< Single precision floating point (IEEE754) numbers */
+
+/*! \brief Define a boolean logical enumerated type
+ *
+ * This defines a boolean type so that symbolic debuggers can show the names, rather than
+ * just numbers.
+ */
 
 typedef enum {
-	False = 0,
-	True
+	False = 0,	/*!< The False value definition */
+	True		/*!< The True value definition */
 } Bool;
 
 

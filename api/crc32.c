@@ -1,5 +1,10 @@
-/* 
- * Copyright Francesco Ferrara, 1998 <francesco@aerra.it> 
+/*! \file crc32.c
+ * \brief Implement CRC32 checksums for byte buffers.
+ *
+ * This code was sourced from the Samba project, V 3.0.0 on 2004-09-26.
+ */
+
+/* Copyright Francesco Ferrara, 1998 <francesco@aerra.it> 
  *
  * Used by kind permission, 14th October 1998. http://www.aerre.it/francesco
  *
@@ -8,6 +13,11 @@
  * 2004-09-26.
  */
 
+/*! \brief Fall-back definition of u32 to make this source file standalone
+ *
+ * Fall-back definition to make this source code stand-alone.  Ideally this should
+ * come from stdtypes.h, but this avoids cross-links.
+ */
 #ifndef u32
 typedef unsigned int u32;
 #endif
@@ -58,6 +68,16 @@ static const unsigned long CRCTable[256] =
         0x54DE5729,0x23D967BF,0xB3667A2E,0xC4614AB8,0x5D681B02,0x2A6F2B94,
         0xB40BBE37,0xC30C8EA1,0x5A05DF1B,0x2D02EF8D
 };
+
+/*! \brief Compute the CRC32 checksum for a byte buffer
+ *
+ * Compute the CRC32 checksum for a byte buffer.  You may have difficulties
+ * if your computer wants \a char to be signed.
+ *
+ * \param	*buffer		Byte buffer to compute the CRC32 over.
+ * \param	count		Number of bytes to expect in \a buffer
+ * \return				The CRC32 checksum.
+ */
 
 u32 crc32_calc_buffer( const char *buffer, u32 count)
 {

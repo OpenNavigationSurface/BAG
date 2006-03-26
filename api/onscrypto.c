@@ -1,3 +1,11 @@
+/*! \file onscrypto.c
+ * \brief Implement cryptographic service for the ONS Digital Signature Scheme.
+ *
+ * This file implements cryptographic services for the ONS Digital Signature Scheme,
+ * which uses the FIPS DSA, SHA and AES algorithms.  The actual computation primitives
+ * are implemented via the BeeCrypt library.
+ */
+
 /*
  * $Id: onscrypto.c,v 1.1 2006/02/02 13:11:21 openns Exp $
  * $Log: onscrypto.c,v $
@@ -45,15 +53,15 @@
 #include "mpnumber.h"
 #include "mpbarrett.h"
 
-#define DEFAULT_MD_BUFFER_LEN	40960
-#define DEFAULT_MD_ALGO		GCRY_MD_SHA256
-#define DEFAULT_PK_ALGO		GCRY_AC_DSA
-#define DEFAULT_KEY_LEN		1024
-#define DEFAULT_SYM_ALGO	GCRY_CIPHER_AES256
+#define DEFAULT_MD_BUFFER_LEN	40960			/*!< The default length of blocks to digest in the Message Digest */
+#define DEFAULT_MD_ALGO		GCRY_MD_SHA256		/*!< Default algorithm to use for Message Digests (in this case SHA-256) */
+#define DEFAULT_PK_ALGO		GCRY_AC_DSA			/*!< Default algorithm to use for Asymmetric Cryptography (here, FIPS DSA) */
+#define DEFAULT_KEY_LEN		1024				/*!< Maximum bit length allowed for asymmetric keys */
+#define DEFAULT_SYM_ALGO	GCRY_CIPHER_AES256	/*!< Default algorithm to use for Symmetric Cryptography (here, FIPS AES) */
 
-#define ONS_CRYPTO_BLOCK_MAGIC		0x4F4E5343	/* 'ONSC' */
-#define ONS_CRYPTO_BLOCK_CUR_VER	1			/* Version byte */
-#define ONS_CRYPTO_SIG_BLOCK_SIZE	1024		/* Maximum size, padded if required */
+#define ONS_CRYPTO_BLOCK_MAGIC		0x4F4E5343	/*!< Magic ID for ONSCrypto blocks, a.k.a., 'ONSC' */
+#define ONS_CRYPTO_BLOCK_CUR_VER	1			/*!< Current version byte for ONSCrypto blocks */
+#define ONS_CRYPTO_SIG_BLOCK_SIZE	1024		/*!< Maximum size of an ONSCrypto block, padded if required */
 
 #undef __DEBUG__
 
@@ -72,10 +80,10 @@
  *	11+R+S+5	(N-n)	Padding (zeros)
  */
 
-#define ONS_CRYPTO_SIG_MAGIC_OFF	0
-#define ONS_CRYPTO_SIG_VER_OFF		4
-#define ONS_CRYPTO_SIG_SIGID_OFF	5
-#define ONS_CRYPTO_SIG_SIG_OFF		9
+#define ONS_CRYPTO_SIG_MAGIC_OFF	0	/*!< Offset of magic number in a signature bytestream */
+#define ONS_CRYPTO_SIG_VER_OFF		4	/*!< Offset to version number in a signature bytestream */
+#define ONS_CRYPTO_SIG_SIGID_OFF	5	/*!< Offset to the sequential signature ID in a signature bytestream */
+#define ONS_CRYPTO_SIG_SIG_OFF		9	/*!< Offset to the binary signature data in a signature bytestream */
 
 /* Internally, a key is represented by a raw u8 sequence, pre-pended with a count of the number
  * of numbers to follow:
@@ -89,23 +97,22 @@
  *	N			4		CRC32 of everything from start to end of last key
  */
 
-#define ONS_CRYPTO_KEY_NKEYS_OFF	0
-#define ONS_CRYPTO_KEY_KEY1_OFF		1
+#define ONS_CRYPTO_KEY_NKEYS_OFF	0	/*!< Offset to the key integer count in a key bytestream */
+#define ONS_CRYPTO_KEY_KEY1_OFF		1	/*!< Offset to the start of key 1 binary data in a key bytestream */
 
 #include "onscrypto.h"
 
-/**
-	Check whether a Cryptographic block exists for the specified file.
-	
-*/
-
-/* Routine:	ons_check_cblock
- * Purpose:	Determine whether the given file has an ONSCryptoBlock at the end
- * Inputs:	*file	Name of the file to read
- * Outputs:	Returns True if file has a ONSCryptoBlock at the end, otherwise False
- * Comment:	Note that this only checks that the ONSCryptoBlock exists in the correct place,
- *			and says nothing about whether the block is valid --- use ons_read_file_sig() to
- *			read and validate.
+/*! \brief Determine whether a particular file has an ONSCrypto block present
+ *
+ * This checks for the presence of an ONSCrypto block in \a file.  The ONSCrypto block is a
+ * fixed size block of data at the end of a file, and therefore can always be checked by running
+ * backwards by this size from the end of the file and looking for the magic number above.  This
+ * only checks that the block exists, and doesn't say anything about whether the block is valid.
+ * Use ons_read_file_sig() to read and validate.
+ *
+ * \param	*file		Name of the file to check for a block.
+ * \return				\a True if the ONSCrypto block exists in \a file, or \a False if not.  Also
+ *						returns \a False if the file doesn't exist, or can't be opened as required, etc.
  */
 
 Bool ons_check_cblock(char *file)
@@ -116,7 +123,7 @@ Bool ons_check_cblock(char *file)
 	if ((f = fopen(file, "rb")) == NULL) {
 		fprintf(stderr, "error: failed to open \"%s\" for ONSCryptoBlock check.\n",
 			file);
-		return(ONS_CRYPTO_FILE_ERR);
+		return(False);
 	}
 	fseek(f, -ONS_CRYPTO_SIG_BLOCK_SIZE, SEEK_END);
 	fread(&file_magic, sizeof(u32), 1, f);
@@ -124,17 +131,20 @@ Bool ons_check_cblock(char *file)
 	return(file_magic == ONS_CRYPTO_BLOCK_MAGIC);
 }
 
-/* Routine:	ons_gen_digest
- * Purpose:	Generate a message digest from the named file, less the crypto block, if it exists
- * Inputs:	*file			Filename of the file to read and hash
- *			*user_data		User-supplied data to add to the digest (see comment)
- *			user_data_len	Length of the user-supplied data
- * Outputs:	*nbytes	Number of bytes in the digest
- *			Returns pointer to message digest on success, otherwise False
- * Comment:	The message digest protocol may change from time to time, so users should not assume
- *			that the nbytes value won't change.  The user-supplied data is added to the digest after
- *			all of the file information has been added.  If user_data == NULL, no information
- *			is added to the digest.
+/*! \brief Compute a Message Digest from a file, including arbitrary user data.
+ *
+ * This computes a Message Digest from \a file (minus the ONSCrypto block, if it exists), including
+ * \a user_data[] if non-NULL, of length \a user_data_len.  For the ONS DSS, this should be a U32
+ * containing a sequential signature ID to tie the signature event to the meta-data in the file.  The
+ * length of the MD depends on the algorithm being used, and the returned buffer has no sentinals; use
+ * \a *nBytes as a length count.  The memory returned should be free()d by the caller after use.
+ *
+ * \param	*file			Name of the file to digest.
+ * \param	*user_data		Pointer to some user data to digest along with \a file.
+ * \param	user_data_len	Number of bytes of user data to digest.
+ * \param	*nbytes			Number of bytes returned to the user on success.
+ * \return					Returns a pointer to a bytestream of Message Digest on success, or NULL
+ *							on failure.
  */
 
 u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
@@ -242,11 +252,16 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 	return(rtn);
 }
 
-/* Routine:	ons_compute_int_len
- * Purpose:	Compute the size, in bytes, of the internal element passed
- * Inputs:	*data	Internal format data string
- * Ouputs:	Returns number of bytes in internal string
- * Comment:	-
+/*! \brief Compute the length in bytes of an internal ONS format bytestream
+ *
+ * This computes the length in bytes of an internal ONS format bytestream (i.e., either a key
+ * or a signature).  The internal format is a byte containing the number of elements (basically
+ * long-format integers) in the stream, and then for each object a single byte containing the
+ * length in bytes of the object, then the object.  This code just runs the list and counts
+ * the declared lengths.
+ *
+ * \param	*data		Pointer to the ONS format bytestream to count.
+ * \return				Length of the bytestream in bytes.
  */
 
 static u32 ons_compute_int_len(u8 *data)
@@ -262,15 +277,17 @@ static u32 ons_compute_int_len(u8 *data)
 	return(tot_len);
 }	
 
-/* Routine:	ons_read_file_sig
- * Purpose:	Verify a crypto signature block, and return signature if it exists
- * Inputs:	*file	Name of the file to read
- *			*sig	Buffer space for signature to be returned
- *			*sigid	Signature block reference ID
- *			nbuf	Number of spaces in the signature buffer
- * Outputs:	Returns ONS_CRYPTO_SIG_OK on success, otherwise ONS_CRYPTO_ERR
- * Comment:	This checks the end of the specified file for a crypto signature block, and returns the
- *			signature and block ID if it exists.
+/*! \brief Read an ONSCrypto signature block from a file, verify contents, and return signature.
+ *
+ * This checks for the presence of an ONSCrypto signature block on the end of \a file, and if it
+ * exists, checks that the format is valid.  If so, the signature bytestream is read and converted
+ * into internal ONS format, and the sequential signature ID is read and converted.
+ *
+ * \param	*file		Name of the file to check for an ONSCrypto block.
+ * \param	*sig		Pointer to some user-allocated buffer space for the signature to be returned.
+ * \param	*sigid		Pointer to some user-allocated space to store the sequential signature ID to be returned.
+ * \param	nbuf		Space available in \a *sig for the signature to be returned.
+ * \return				An appropriate error code, or \a ONS_CRYPTO_SIG_OK on success.
  */
 
 OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf)
@@ -342,14 +359,15 @@ OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf)
 	return(ONS_CRYPTO_SIG_OK);
 }
 
-/* Routine:	ons_write_file_sig
- * Purpose:	Write a signature into the specified file, appending if it doesn't have one yet
- * Inputs:	*file	Name of file to write/append
- *			*sig	Signature to add to the file
- *			sigid	Reference ID to add to the signature block
- * Outputs:	Writes block to file, or appends if there isn't one already.
- *			Returns ONS_CRYPTO_OK if success, otherwise error code
- * Comment:	-
+/*! \brief Write a signature and sequential signature ID into a file.
+ *
+ * This takes the internal ONS format bytestream from \a *sig, and the sequential signature ID in
+ * \a sigid, and write them into \a file, appending a new ONSCrypto signature block if required.
+ *
+ * \param	*file		Name of the file to write information into.
+ * \param	*sig		Internal ONS bytestream containing the signture to write.
+ * \param	sigid		Sequential signature ID number used to link this event to the meta-data.
+ * \return				A suitable error code, or \a ONS_CRYPTO_OK on success.
  */
 
 OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
@@ -414,14 +432,16 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 	return(ONS_CRYPTO_OK);
 }
 
-/* Routine:	ons_bin_to_ascii
- * Purpose:	Convert binary sequence into ASCII
- * Inputs:	*data	Data to convert
- *			n_bytes	Number of bytes of input data
- * Outputs:	*n_out_bytes	Number of output bytes generated
- *			Returns pointer to buffer with zero terminated string of ASCII characters, suitable
- *			for fprintf().
- * Comment:	A simple hex printer, no more.  Caller is responsible for releasing memory.
+/*! \brief Simple converter from binary data to ASCII hexstring for output.
+ *
+ * Convert from binary data into an ASCII 7-bit clean printable hexstring
+ * for output to text files.  Output is zero terminated.  No interpretation of
+ * the binary data is done.
+ *
+ * \param	*data		Pointer to data buffer to transcribe.
+ * \param	n_bytes		Number of bytes of data in the buffer to transcribe.
+ * \return				Pointer to memory buffer containing the ASCII string for the
+ *						binary data, or NULL on failure.
  */
 
 char *ons_bin_to_ascii(u8 *data, u32 n_bytes)
@@ -439,14 +459,19 @@ char *ons_bin_to_ascii(u8 *data, u32 n_bytes)
 	return(rtn);
 }
 
-/* Routine:	ons_int_to_ascii
- * Purpose:	Convert internal format data into ASCII for external representation
- * Inputs:	*intdat	Internal format data, followed by CRC32
- *			len		Number of bytes in internal data, excluding CRC32 on end
- * Outputs:	Pointer to zero terminated ASCII string, with CRC of ASCII data appended, or
- *			NULL on failure.
- * Comment:	This assumes that a CRC32 follows the data to be sent, and that the length specified
- *			on input does not include this four-byte value.
+/*! \brief Convert from ONS internal format bytestream to ASCII hexstring for output.
+ *
+ * This converts an ONS internal format bytestream into an ASCII hexstring for output.  The
+ * code also checks the internal CRC32 used to protect the bytestream in order to ensure that
+ * the data is still valid.  This assumes that a CRC32 follows the basic data, and that the \a len
+ * value does not include this extra four bytes.  The output stream has an ASCII CRC32 appended,
+ * in order to protect the data in transit, and is zero terminated.  The caller should free() this
+ * memory when it's been used.
+ *
+ * \param	*intdat		Pointer to the ONS internal format bytestream.
+ * \param	len			Length of the bytestream in bytes (not including the CRC32 at the end).
+ * \return				Pointer to the ASCII hexstring representation of the bytestream, or NULL
+ *						on failure.
  */
 
 char *ons_int_to_ascii(u8 *intdat, u32 len)
@@ -472,14 +497,16 @@ char *ons_int_to_ascii(u8 *intdat, u32 len)
 	return(rtn);
 }
 
-/* Routine:	ons_sig_to_ascii
- * Purpose:	Convert a binary signature into ASCII for output, with CRC
- * Inputs:	*sig	Signature to convert for writing
- * Outputs:	Returns pointer to ASCII signature (zero terminated) with CRC appended,
- *			or NULL on failure.
- * Comment:	The code appends a CRC for the ASCII signature, also in ASCII so that the
- *			output can be fprintf()ed to output directly; on input, the CRC is used as a check
- *			for correctness of the transmission, not of signature.
+/*! \brief Convenience function to convert from a signature bytestream to ASCII.
+ *
+ * This is a convenience call-through to ons_int_to_ascii() which also computes the
+ * length of the signature bytestream.  User should free() the returned memory once
+ * it has been used.  Note that the ASCII string has an ASCII CRC32 appended to the
+ * data so that the bytestream is protected in transit, and is zero terminated so
+ * that it can be fprintf()d directly if required.
+ *
+ * \param	*sig		Pointer to the ONS internal format signature bytestream.
+ * \return				Pointer to the ASCII buffer on success, or NULL on failure.
  */
 
 char *ons_sig_to_ascii(u8 *sig)
@@ -487,14 +514,16 @@ char *ons_sig_to_ascii(u8 *sig)
 	return(ons_int_to_ascii(sig, ons_compute_int_len(sig)));
 }
 
-/* Routine:	ons_key_to_ascii
- * Purpose:	Convert a binary key into ASCII for output, with CRC
- * Inputs:	*key	Key element to convert for writing
- * Outputs:	Returns pointer to ASCII signature (zero terminated) with CRC appended, or
- *			NULL on failure.
- * Comment:	The code appends a CRC for the ASCII key, also in ASCII so that the
- *			output can be fprintf()ed to output directly; on input, the CRC is used as a check
- *			for correctness of the transmission, not of key.
+/*! \brief Convenience function to convert from a key bytestream to ASCII.
+ *
+ * This is a convenience call-through to ons_int_to_ascii() which also computes the
+ * length of the key bytestream.  User should free() the returned memory once
+ * it has been used.  Note that the ASCII string has an ASCII CRC32 appended to the
+ * data so that the bytestream is protected in transit, and is zero terminated so
+ * that it can be fprintf()d directly if required.
+ *
+ * \param	*key		Pointer to the ONS internal format key bytestream.
+ * \return				Pointer to the ASCII buffer on success, or NULL on failure.
  */
 
 char *ons_key_to_ascii(u8 *key)
@@ -502,12 +531,16 @@ char *ons_key_to_ascii(u8 *key)
 	return(ons_int_to_ascii(key, ons_compute_int_len(key)));
 }
 
-/* Routine:	ons_ascii_to_int
- * Purpose:	Convert from an ASCII string to internal binary format, checking for validity
- * Inputs:	*ascii	Input ASCII string with CRC appended
- * Outputs:	Returns pointer to internal format binary data on success, else NULL
- *			*errcd	Error code for conversion, ONS_CRYPTO_OK on success
- * Comment:	-
+/*! \brief Convert from ASCII hexstring representations of objects into internal ONS bytestream format.
+ *
+ * This converts from ASCII hexstring format into ONS internal bytestream format.  The ASCII
+ * string is assumed to have been generated by ons_int_to_ascii() so that it has an ASCII format
+ * CRC32 on the end to check for validity.  This code checks for the CRC's validity but does not
+ * make any other interpretations of the data.
+ *
+ * \param	*ascii		Pointer to the ASCII input string.
+ * \param	*errcd		On output, error code for the conversion, or \a ONS_CRYPTO_OK on success.
+ * \return				Pointer to internal format bytestream.
  */
 
 static u8 *ons_ascii_to_int(char *ascii, OnsCryptErr *errcd)
@@ -534,16 +567,21 @@ static u8 *ons_ascii_to_int(char *ascii, OnsCryptErr *errcd)
 		sscanf(ascii + i*2, "%02X", &digit);
 		rtn[i] = (u8)(digit & 0xFF);
 	}
+	*errcd = ONS_CRYPTO_OK;
 	return(rtn);
 }
 
-/* Routine:	ons_ascii_to_sig
- * Purpose:	Converts an ASCII signature to binary internal format, checking for validity
- * Inputs:	*sig	Input ASCII signature with CRC appended
- * Outputs:	Returns pointer to internal format signature on success, else NULL.
- *			*errcd	Error code for conversion, ONS_CRYPTO_OK on success.
- * Comment:	Converts signature to internal format, checking the CRC as it does so.  Errors
- *			are reported with return of NULL and appropriate setting of errcd.
+/*! \brief Convert from an ASCII hexstring into internal ONS bytestream format.
+ *
+ * This is a convenience function call-through to ons_ascii_to_int(), used to convert from
+ * an ASCII hexstring into an internal format bytestream.  The ASCII hexstring is assumed to
+ * have been generated by ons_int_to_ascii() so that it has a trailing ASCII CRC32 element
+ * that can be used to check for validity of the ASCII representation.
+ *
+ * \param	*sig		Pointer to the signature ASCII hexstring to convert
+ * \param	*errcd		Pointer to space for error code, which is set to \a ONS_CRYPTO_OK on
+ *						success, or appropriately on failure.
+ * \return				Pointer to internal format ONS bytestream, or NULL on failure.
  */
 
 u8 *ons_ascii_to_sig(char *sig, OnsCryptErr *errcd)
@@ -551,13 +589,17 @@ u8 *ons_ascii_to_sig(char *sig, OnsCryptErr *errcd)
 	return(ons_ascii_to_int(sig, errcd));
 }
 
-/* Routine:	ons_ascii_to_key
- * Purpose:	Convert an ASCII key to binary internal format, checking for validity
- * Inputs:	*key	Input ASCII key with CRC appended
- * Outputs:	Returns pointer to internal format key on success, else NULL
- *			*errcd	Error code for conversion, ONS_CRYPTO_OK on success
- * Comment:	Converts key to internal format, checking the CRC as it does so.  Errors are reported
- *			with return of NULL and appropriate setting of errcd.
+/*! \brief Convert from an ASCII hexstring into internal ONS bytestream format.
+ *
+ * This is a convenience function call-through to ons_ascii_to_int(), used to convert from
+ * an ASCII hexstring into an internal format bytestream.  The ASCII hexstring is assumed to
+ * have been generated by ons_int_to_ascii() so that it has a trailing ASCII CRC32 element
+ * that can be used to check for validity of the ASCII representation.
+ *
+ * \param	*key		Pointer to the key ASCII hexstring to convert
+ * \param	*errcd		Pointer to space for error code, which is set to \a ONS_CRYPTO_OK on
+ *						success, or appropriately on failure.
+ * \return				Pointer to internal format ONS bytestream, or NULL on failure.
  */
 
 u8 *ons_ascii_to_key(char *key, OnsCryptErr *errcd)
@@ -565,12 +607,15 @@ u8 *ons_ascii_to_key(char *key, OnsCryptErr *errcd)
 	return(ons_ascii_to_int(key, errcd));
 }
 
-/* Routine:	ons_mpn_to_int
- * Purpose:	Convert an MPI to internal format
- * Inputs:	mpi	The MPI to convert to internal format
- * Outputs:	Pointer to buffer with internal representation, or NULL on failure
- * Comment:	This converts data into internal formats ready for output/storage.  The data
- *			format used only works for unsigned objects, and hence will not work for all MPIs
+/*! \brief Convert from BeeCrypt Multi-precision Integer to ONS bytestream format.
+ *
+ * This converts from the format used for Multi-precision Integers in the support cryptographic
+ * library to the format used for ONS output and formatting.  The external format has a pre-pended
+ * length byte, and then the data as generated by i2osp().  This only works for unsigned numbers,
+ * and therefore won't work for all MPIs.
+ *
+ * \param *mpi	Pointer to the MPI number for BeeCrypt
+ * \return		Pointer to the ONS internal format number, or NULL on failure.
  */
 
 static u8 *ons_mpn_to_int(mpnumber *mpi)
@@ -590,12 +635,13 @@ static u8 *ons_mpn_to_int(mpnumber *mpi)
 	return(buffer);
 }
 
-/* Routine:	ons_mpb_to_int
- * Purpose:	Convert an MPB to internal format
- * Inputs:	*mpb	The input number to convert
- * Outputs:	Pointer to buffer with internal representation, or NULL on failure
- *			*errcd	Error code on failure
- * Comment:	-
+/*! \brief Convert from BeeCrypt MPB ormat to ONS internal format
+ *
+ * This converts from BeeCrypt's internal MPB format into ONS internal format.  The format has
+ * a pre-pended length byte, and then the data from i2osp().
+ *
+ * \param	*mpb	Pointer to the Barrett format to convert
+ * \return			Pointer to the ONS internal format bytestream, or NULL on failure.
  */
 
 static u8 *ons_mpb_to_int(mpbarrett *mpb)
@@ -615,12 +661,14 @@ static u8 *ons_mpb_to_int(mpbarrett *mpb)
 	return(buffer);
 }
 
-/* Routine:	ons_int_to_mpn
- * Purpose:	Convert internal format to MPI
- * Inputs:	*num	Number in internal format to be converted into MPI
- * Outputs:	Returns MPI formated large integer
- * Comment:	This assumes that the external format is in GCRYMPI_FMT_USG, and hence only works if it
- *			is an unsigned large format integer.
+/*! \brief Convert from ONS internal format to BeeCrypt MPN format
+ *
+ * This converts from ONS internal format to BeeCrypt MPN format for further
+ * computation.  This assumes that the number is an unsigned form so that it can be converted
+ * into an MPN at all.
+ *
+ * \param	*num	Pointer to ONS internal format number to convert.
+ * \return			Pointer to the BeeCrypt MPN, or NULL on failure.
  */
 
 static mpnumber *ons_int_to_mpn(u8 *num)
@@ -640,11 +688,13 @@ static mpnumber *ons_int_to_mpn(u8 *num)
 	return(mpi);
 }
 
-/* Routine:	ons_int_to_mpb
- * Purpose:	Convert internal format data into an MPB
- * Inputs:	*num	Number to convert
- * Outputs:	Pointer to the MPB required
- * Comment:	-
+/*! \brief Convert from ONS internal format number to BeeCrypt MPB number.
+ *
+ * Convert from ONS internal format number to BeeCrypt MPB number format.  This works
+ * for general numbers.
+ *
+ * \param	*num	Pointer to the ONS internal format number.
+ * \return			Pointer to the BeeCrypt MPB number, or NULL on failure.
  */
 
 static mpbarrett *ons_int_to_mpb(u8 *num)
@@ -663,15 +713,17 @@ static mpbarrett *ons_int_to_mpb(u8 *num)
 	return(mpb);
 }
 
-/* Routine:	ons_key_to_int
- * Purpose:	Convert a key into internal format
- * Inputs:	param	Pointer to the DSA domain parameters structures
- *			key		Public or private key number as required for output
- * Outputs:	Pointer to internal buffer with data, or NULL on failure
- * Comment:	The code generates an output string consisting of the (p,q,g) components of the
- *			DSA domain, and then appends the key component, either public or private, to complete
- *			the output number.  In each case, the output has four integers.  The code adds
- *			a CRC32 at the end of the stream to add some protection.
+/*! \brief Convert from an BeeCrypt format into ONS internal key bytestreamm.
+ *
+ * This converts from the FIPS Digital Signature Algorithm format parameter structure and
+ * public/private number for the key into an ONS internal bytestream format.  The output
+ * code consists of the (p,q,g) components of the DSA domain, and then the key.  The output
+ * bytestream therefore has four integers, with a pre-pended integer count of one byte, and
+ * a post-fix CRC32 number of four bytes to protect the contents of the bytestream in transit.
+ *
+ * \param	*param	Pointer to the DSA domain parameters for the signature stream.
+ * \param	*key	Pointer to either public or private key MPN for the signature stream.
+ * \return			Pointer to the ONS internal format bytestream, or NULL on failure.
  */
 
 static u8 *ons_key_to_int(dsaparam *param, mpnumber *key)
@@ -702,14 +754,18 @@ static u8 *ons_key_to_int(dsaparam *param, mpnumber *key)
 	return(rtn);
 }
 
-/* Routine:	ons_int_to_key
- * Purpose:	Convert internal format to key parameters
- * Inputs:	*in		Input structured number sequence in internal format
- * Outputs:	**p, **q, **g	DSA Parameter structure components
- *			**key			Private/Public key component (depends on input which this is)
- *			Returns True on success, else False.
- * Comment:	This assumes that the key is one associated with DSA, and that it was stored in the
- *			internal format by ons_key_to_int().
+/*! \brief Convert from ONS internal bytestream key to BeeCrypt key parameters.
+ *
+ * This converts from the ONS internal format bytestream to separate BeeCrypt compatible
+ * individual numbers ready to do DSA verification.  This assumes that the \a in[] bytestream
+ * was converted fromm ons_key_to_int().
+ *
+ * \param	*in		Pointer to the input ONS internal format bytestream.
+ * \param	**p		Anchor for output DSA component (i.e., *p is set to point to the converted item).
+ * \param	**q		Anchor for output DSA component (i.e., *q is set to point to the converted item).
+ * \param	**g		Anchor for output DSA component (i.e., *g is set to point to the converted item).
+ * \param	**key	Anchor for output key component (i.e., *key is set to point to the converted item).
+ * \return			True on success, otherwise False.
  */
 
 static Bool ons_int_to_key(u8 *in, mpbarrett **p, mpbarrett **q, mpnumber **g, mpnumber **key)
@@ -747,14 +803,19 @@ static Bool ons_int_to_key(u8 *in, mpbarrett **p, mpbarrett **q, mpnumber **g, m
 	return(True);
 }
 
-/* Routine:	ons_generate_keys
- * Purpose:	Generate keys for signature
- * Inputs:	-
- * Outputs:	*pkey	Pointer to the public key string in internal format
- *			*skey	Pointer to the secret key string in internal format
- *			Returns error information, or ONS_CRYPTO_OK on success.
- * Comment:	Generates internal format keys for signature operations.  The secret component should, of
- *			course, be treated with a degree of respect.
+/*! \brief Generate an asymmetric key-pair for DSA usage.
+ *
+ * This generates an asymmetric cryptography key-pair suitable for use with the Digital Signature
+ * Algorithm.  The strength of the key-pair depends on the strength of the cryptographically
+ * secure PRNG system, which may vary according to the amount of entropy that the system has
+ * gathered (this depends on the system being used, but is generally data from the audio inputs
+ * on the computer).  The keys are split and converted into internal format before being returned.
+ * The secret component of the key-pair should, of course, be treated with an appropriate degree
+ * of respect.
+ *
+ * \param	**pkey	Anchor for the public key of the pair (i.e., *pkey is set to point to the key)
+ * \param	**skey	Anchor for the secret key of the pair (i.e., *skey is set to point to the key)
+ * \return			Suitable error code on failure, or \a ONS_CRYPTO_OK on success.
  */
 
 OnsCryptErr ons_generate_keys(u8 **pkey, u8 **skey)
@@ -790,11 +851,17 @@ OnsCryptErr ons_generate_keys(u8 **pkey, u8 **skey)
 	return(ONS_CRYPTO_OK);
 }
 
-/* Routine:	ons_sig_to_int
- * Purpose:	Convert a signature to internal format
- * Inputs:	*r, *s	Components of the DSA signature
- * Ouputs:	Returns pointer to the internal signature data, or NULL on failure
- * Comment:	-
+/*! \brief Convert from a BeeCypt signature into an ONS internal format bytestream.
+ *
+ * This converts from the components (r,s) of a DSA style signature into an ONS internal
+ * format bytestream.  This consists of a byte containing the number of components in
+ * the signature (always 2) and then the components numbers (r, then s).  A CRC32 is
+ * appended to the end of the sequence to provide some protection in transit.
+ *
+ * \param	*r	Pointer to the first signature component.
+ * \param	*s	Pointer to the second signature component.
+ * \return		Pointer to the ONS internal format bytestream for the signature, or NUL
+ *				on failure.
  */
 
 static u8 *ons_sig_to_int(mpnumber *r, mpnumber *s)
@@ -820,12 +887,15 @@ static u8 *ons_sig_to_int(mpnumber *r, mpnumber *s)
 	return(rtn);
 }
 
-/* Routine:	ons_int_to_sig
- * Purpose:	Convert an internal format item into a signature
- * Inputs:	*sig	Internal format signature
- * Outputs:	*r, *s	Components of the DSA signature for verification
- *			Returns a suitable error code.
- * Comment:	-
+/*! \brief Convert from ONS internal bytestream format to BeeCrypt compatible numbers.
+ *
+ * This converts from ONS internal bytestream format to broken-out numbers compatible
+ * with BeeCrypt for signature verification purposes.
+ *
+ * \param	*sig	Pointer to the ONS internal format bytestream.
+ * \param	**r		Anchor for BeeCrypt output component (i.e., *r is set to the output value).
+ * \param	**s		Anchor for BeeCrypt output component (i.e., *s is set to the output value).
+ * \return			Suitable error code, or ONS_CRYPTO_OK on success.
  */
 
 static OnsCryptErr ons_int_to_sig(u8 *sig, mpnumber **r, mpnumber **s)
@@ -858,14 +928,19 @@ static OnsCryptErr ons_int_to_sig(u8 *sig, mpnumber **r, mpnumber **s)
 	return(ONS_CRYPTO_OK);
 }
 
-/* Routine:	ons_sign_digest
- * Purpose:	Use secret key to sign the digest passed in
- * Inputs:	*md		Digest to sign (can send arbitrary data if required)
- *			nbytes	Size of the digest in bytes
- *			*skey	Secret key to use for signing (in internal format)
- * Outputs:	Returns pointer to signature in internal format, or NULL on error
- *			*errcd	Error code, or ONS_CRYPTO_OK on success.
- * Comment:	-
+/*! \brief Sign a digest (or other data) using the Digital Signature Algorithm.
+ *
+ * This computes the signature for the data in \a md[] using the Digital Signature
+ * Algorithm and secret key in \a skey[] (in internal ONS format).  In general,
+ * the data in \a md[] should be the message digest for the file to be signed,
+ * but there is no real restriction on this.
+ *
+ * \param	*md		Pointer to the message digest to sign.
+ * \param	nbytes	Length of the message digest to sign.
+ * \param	*skey	Pointer to the secret key to use, in ONS internal bytestream format.
+ * \param	*errcd	Set to an appropriate error code, or ONS_CRYPTO_OK on success.
+ * \return			Pointer to signature stream in ONS internal bytestream format, or
+ *					NULL on failure.
  */
 
 u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd)
@@ -897,7 +972,6 @@ u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd)
 		return(NULL);
 	}
 
-
 	randomGeneratorContextFree(&rgc);
 	mpnfree(x); free(x); mpnfree(&digest);
 	mpbfree(p); free(p); mpbfree(q); free(q); mpnfree(g); free(g);
@@ -910,16 +984,19 @@ u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd)
 	return(rtn);
 }
 
-/* Routine:	ons_compute_signature
- * Purpose:	Compute the signature for a file
- * Inputs:	*name			Name of the file to read & compute signature
- *			*skey			Secret key to use in signature
- *			*user_data		User-supplied data to add to the message digest (see comment)
- *			user_data_len	Length of the user-supplied data to add
- * Outputs:	Returns pointer to the signature to use for the file, or NULL on error
- *			*errcd	Error code for the signature process
- * Comment:	This computes the signature, CRC32 etc.  The user-supplied data is passed on
- *			to the message digest computation code; set NULL if none is required.
+/*! \brief Compute the signature for a file, avoiding the ONSCrypto block if reqquired.
+ *
+ * This digests a file, adds the \a user_data[] element, and then computes the signature
+ * for the block using the key in \a skey[].  The signature is returned in internal ONS
+ * bytestream format, including the trailing CRC32 to protect the contents in transit.  For
+ * the ONS signature structure, the user data should be an unsigned integer reference that
+ * ties this signature event into the meta-data for the file.
+ *
+ * \param	*name			Name of the file to read and digest.
+ * \param	*user_data		Pointer to the user-data to add to the digest.
+ * \param	user_data_len	Length of the user-data to add to the digest.
+ * \param	*skey			Pointer to the secret key to sign with (in ONS bytestream format).
+ * \return					Pointer to signature in ONS bytestream format, or NULL on failure.
  */
 
 u8 *ons_compute_signature(char *name, u8 *user_data, u32 user_data_len, u8 *skey)
@@ -941,13 +1018,16 @@ u8 *ons_compute_signature(char *name, u8 *user_data, u32 user_data_len, u8 *skey
 	return(sig);
 }
 
-/* Routine:	ons_sign_file
- * Purpose:	Read file, compute digest, and sign a file
- * Inputs:	*name	Name of the file to read & write signature into
- *			*skey	Secret key with which to sign the file
- *			sigid	Signature ID to add to output in order to link identity to the rest of the file
- * Outputs:	True on success, else False.
- * Comment:	A convenience function to sequence all of the elements to add a signature to a file.
+/*! \brief Sign the named file with \a skey[] and Signature Sequential ID \a sigid.
+ *
+ * This carries out all of the operations required to sign the file in \a name using the
+ * secret key in \a skey[] and the Sequential Signature ID in \a sigid.  This is essentially
+ * a light wrapper on ons_compute_signature() and ons_write_file_signature().
+ *
+ * \param	*name	Pointer to the name of the file to sign.
+ * \param	*skey	Pointer to the signatory secret key.
+ * \param	sigid	Sequential Signature ID to combine with the message digest.
+ * \return			True on success, otherwise False.
  */
 
 Bool ons_sign_file(char *name, u8 *skey, u32 sigid)
@@ -968,14 +1048,18 @@ Bool ons_sign_file(char *name, u8 *skey, u32 sigid)
 	return(True);
 }
 
-/* Routine:	ons_verify_signature
- * Purpose:	Determine whether the signature provided matches the digest and public key
- * Inputs:	*sig	Signature to test
- *			*pkey	Public key to use for test
- *			*digest	Message digest to check
- *			dig_len	Digest length
- * Outputs:	Returns True if the signature and digest match, given the key, else False
- * Comment:	-
+/*! \brief Verify the signature in \a sig[] given public key \a pkey[] and digest \a digest[].
+ *
+ * This runs the DSA verification process on the given signature, public key and digest.  The
+ * code returns True if all three components match, and otherwis False.  There is no direct
+ * way, using this method, to determine whether the problem is with the signature, the
+ * digest or the public key.
+ *
+ * \param	*sig	ONS bytestream signature to test.
+ * \param	*pkey	ONS bytestream public key to test.
+ * \param	*digest	Pointer to message digest to test.
+ * \param	dig_len	Length of the message digest in bytes.
+ * \return			True if all three components match, otherwise False.
  */
 
 Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len)
@@ -1005,16 +1089,19 @@ Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len)
 	return(rc);
 }
 
-/* Routine:	ons_verify_file
- * Purpose:	Verify that a file is intact
- * Inputs:	*name	Name of the file to read and check
- *			*pkey	Public key of the person reputed to have signed the file
- *			sig_id	Signature ID for the information block being verified
- * Outputs:	True if the file is valid and matches the public key passed
- * Comment:	The file is assumed to be valid if:
- *				(a) It has a valid ONSCryptoBlock at the end of the file
- *				(b) The signature block extracted verifies against the public key passed.
- *				(c) The signature ID extracted matches that passed in.
+/*! \brief Verify the signature in a file using the public key and Sequentual Signature ID.
+ *
+ * This sequences all of the components required to verify the signature directly from
+ * the file at \a name[].  This re-computes the message digest for the file, reads the signature
+ * from the file, and then runs the DSA verification algorithm.  The routine returns True iff
+ * (a) the file has an ONSCrypto block at the end of the file, (b) the signature extracted
+ * from the block matches the public key and digest, and (c) the Sequential Signature ID
+ * extracted matches the \a sig_id passed in.
+ *
+ * \param	*name	Pointer to the file to be verified.
+ * \param	*pkey	Pointer to the public key of the signatory (in ONS internal bytestream format).
+ * \param	sig_id	Sequential Signature ID for the signature event in the meta-data being verified.
+ * \return			True if siganture in the file, the public key and the SSID all match, otherwise False.
  */
 
 Bool ons_verify_file(char *name, u8 *pkey, u32 sig_id)
@@ -1047,14 +1134,18 @@ Bool ons_verify_file(char *name, u8 *pkey, u32 sig_id)
 	return(match);
 }
 
-/* Routine:	ons_phrase_to_key
- * Purpose:	Construct a 256-bit symmetric crypto. key from a pass phrase
- * Inputs:	*phrase	Pointer to zero-terminated string to use as the pass phrase
- * Outputs:	Returns pointer to key stream of 256-bits (32 bytes), or NULL on error.
- * Comment:	This hashes the pass-phrase to generate a 256-bit key for use in symmetric crypto.
- *			For this key to really make sense, the pass phrase should be fairly long --- Schneier
- *			recommends that there should be one character per bit in the key.  The code does not,
- *			however, check that this is the case, nor does it enforce any particular standard.
+/*! \brief Convert a pass-phrase to a symmetric key suitable for use in protecting an asymmetric secret key.
+ *
+ * This converts the user pass-phrase in \a phrase[] into a key suitable for use in a symmetrical
+ * cryptography scheme, generally used to protect an asymmetric cryptography secret key in transit to
+ * external form.  This is currently implemented using SHA-256 so that the code generates a key
+ * suitable for AES-256.  Note that the performance of this key will depend strongly on the length and
+ * random nature of the pass-phrase.  To make sense, the pass-phrase has to be fairly long --- Schneier
+ * recommends one character per bit of the key that's being generated.  The code does not check that this
+ * is the case, however, nor does it enforce any particular standard.
+ *
+ * \param	*phrase		Pointer to the pass-phrase to convert.
+ * \return				Pointer to 32-byte chunk of memory with the converted pass-phrase, or NULL on failure.
  */
 
 u8 *ons_phrase_to_key(char *phrase)
@@ -1072,19 +1163,19 @@ u8 *ons_phrase_to_key(char *phrase)
 	return(rtn);
 }
 
-/* Routine:	ons_encrypt_key
- * Purpose:	Encrypt a private key with AES to protect it in external representations
- * Inputs:	*seckey	Secret key to encrypt in internal format
- *			*aeskey	Symmetric key to use for AES encryption (must be 256-bits)
- * Outputs:	Pointer to encrypted secret key, or NULL on failure.
- *			*out_len	Set to the length of the output in bytes
- * Comment:	This encrypts the key (or any other internal format integer vector, but it really makes most
- *			sense for private keys, so that they can be written out to some file or device, and still
- *			remain secure) using AES256 (hence the requirement of the AES key).  This should be mostly
- *			secure enough for the intended use, which is to ensure that, should a secret key be
- *			compromised (e.g., a hardware token is stolen), the key cannot be recovered without the pass-
- *			phrase for at least as long as it takes for the compromise to be notices and the asymmetric
- *			key pair to be repudiated by the key-signing authority.
+/*! \brief Encrypts the secret key passed with a suitable symmetric crypotgraphy scheme.
+ *
+ * Encrypt an asymmetric secret key with a symmetric scheme so that it can be passed around
+ * externally to the program without compromising the security of the signatures.  The algorithm used
+ * is AES-256, and therefore the \a aeskey[] must be 32-bytes long.  This should be secure enough for
+ * the intended use, which is to ensure that, should a secret key be compromised (e.g., a hardware token
+ * is stolen), the key cannot be recovered without the pass-phrase for at least as long as it takes for
+ * the compromise to be noticed, and the asymmetric key pair to be repudiated by the key-signing authority.
+ *
+ * \param	*seckey		Pointer to the secret key to encrypt, in ONS internal bytestream format.
+ * \param	*aeskey		Pointer to 32-bytes of key to encrypt with using AES-256.
+ * \param	*out_len	Set on output to the length of the encrypted key generated.
+ * \return				Pointer to encrypted secret key, or NULL on failure.
  */
 
 u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
@@ -1158,17 +1249,19 @@ u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
 	return(rtn);
 }
 
-/* Routine:	ons_decrypt_key
- * Purpose:	Decrypt a private key encrypted with AES256 for use in DSA
- * Inputs:	*ctext	Ciphertext of key, with CRC32 appended
- *			nin		Length of ciphertext, including CRC32
- *			*aeskey	AES256 key (must be 32 bytes = 256 bits) to use for decryption.
- * Outputs:	Returns pointer to the decrypted private key, or NULL on failure
- *			*errc	Error code on failure.
- * Comment:	This assumes that the encrypted key was generated by ons_encrypt_key() and includes
- *			a CRC32 on the end to verify that the key hasn't been modified during transmission or
- *			storage.  The key in decrypted, and the output is rebuilt as a valid internal format
- *			key, with appended CRC32 of the decrypted key.
+/*! \brief Decrypt an asymmetric secret key with an AES-256 symmetric key.
+ *
+ * This decrypts an asymmetric cryptography secret key that was previously encrypted with
+ * the AES-256 key in \a aeskey[] (which must therefore be 32-bytes long).  This assumes that
+ * the key was generated with ons_encrypt_key() and includes a CRC32 on the end to verify that the
+ * key hasn't been modified during transmission or storage.  The key id decrypted, and the output
+ * is rebuilt as a valid internal format key, with appended CRC32 of the decrypted key.
+ *
+ * \param	*ctext		Pointer to ciphertext of key, including CRC32.
+ * \param	nin			Length of ciphertext in bytes, including CRC32.
+ * \param	*aeskey		Pointer to 32-bytes of AES-256 symmetric crypographic key.
+ * \param	*errc		Appropriate error code on failure, or ONS_CRYPTO_OK on success.
+ * \return				Pointer to the decrypted asymmetric key, or NULL on failure.
  */
 
 u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)

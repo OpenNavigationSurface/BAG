@@ -1,3 +1,10 @@
+/*! \file onscrypto.h
+ * \brief Declarations of Open Navigation Surface cryptographic primitives.
+ *
+ * This file provides some enumerated types and definitons for the asymmetric cryptographic
+ * primitives used to implement the Open Navigation Surface Digital Signature Scheme.
+ */
+
 /*
  * $Id: onscrypto.h,v 1.1 2006/02/02 13:11:21 openns Exp $
  * $Log: onscrypto.h,v $
@@ -38,21 +45,27 @@ extern "C" {
 
 #include "stdtypes.h"
 
+/*! \brief An enum to describe the errors codes that can be returned by this code module.
+ *
+ * Describe the error codes that can be returned from this module.  Note that since this module
+ * is only used internal and is wrapped by bag_crypto.c, these are not exported to the user level
+ * of the API.
+ */
 typedef enum _ons_cryp_err {
-	ONS_CRYPTO_SIG_OK = 0,
-	ONS_CRYPTO_NO_SIG_FOUND,
-	ONS_CRYPTO_BAD_SIG_BLOCK,
-	ONS_CRYPTO_BAD_KEY,
-	ONS_CRYPTO_WRONG_KEY,
-	ONS_CRYPTO_FILE_ERR,
-	ONS_CRYPTO_OK,
-	ONS_CRYPTO_ERR
+	ONS_CRYPTO_SIG_OK = 0,		/*!< The signature was found and is valid */
+	ONS_CRYPTO_NO_SIG_FOUND,	/*!< No signature was found in a file */
+	ONS_CRYPTO_BAD_SIG_BLOCK,	/*!< The \a ONSCrypto block in a file was not in the correct format */
+	ONS_CRYPTO_BAD_KEY,			/*!< The key passed is not a valid ONS internal format */
+	ONS_CRYPTO_WRONG_KEY,		/*!< The key passed is not correct for the operation */
+	ONS_CRYPTO_FILE_ERR,		/*!< A general file error occured during access */
+	ONS_CRYPTO_OK,				/*!< All's well */
+	ONS_CRYPTO_ERR				/*!< An unknown error has occurred */
 } OnsCryptErr;
 
-/* Maximum length of a signature element that can be returned */
+/*! Define the maximum length (bytes) that an internal ONS format bytestream signature can have */
 #define ONS_CRYPTO_MAX_SIG_LEN	518
 
-/* Maximum length of a key element that can be returned */
+/*! Define the maximum length (bytes) that an internal ONS format bytestream key can have */
 #define ONS_CRYPTO_MAX_KEY_LEN 1286
 
 /* Routine:	ons_gen_digest

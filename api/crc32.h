@@ -1,3 +1,9 @@
+/*! \file crc32.h
+ * \brief Declaration of CRC32 checksums for byte buffers.
+ *
+ * This code was sourced from the Samba project V3.0.0 on 2004-09-26.
+ */
+
 /* 
  * Copyright Francesco Ferrara, 1998 <francesco@aerra.it> 
  *

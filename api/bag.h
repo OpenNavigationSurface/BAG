@@ -97,7 +97,7 @@ extern          "C"
 /* Definitions for error conditions */
 #define BAG_GENERAL_ERROR_BASE                    0
 #define BAG_CRYPTO_ERROR_BASE                   200
-#define BAG_METADTA_ERROR_BASE                  400
+#define BAG_METDATA_ERROR_BASE                  400
 #define BAG_HDFV_ERROR_BASE                     600
 #define BAG_GEOTRANS_ERROR_BASE                 800
 
@@ -113,7 +113,15 @@ enum BAG_ERRORS {
     BAG_INVALID_BAG_HANDLE                     =   5, /* Used ? */
     BAG_INVALID_FUNCTION_ARGUMENT              =   6, /* Inconsistency or illegal value contained in function arguments */
     BAG_INVALID_ERROR_CODE                     =   7, /* An undefined bagError code was encountered */
-    
+	
+	BAG_CRYPTO_SIGNATURE_OK                    = 200,	/*!< Signature found, and valid */
+	BAG_CRYPTO_NO_SIGNATURE_FOUND              = 201,	/*!< No signature found in file */
+	BAG_CRYPTO_BAD_SIGNATURE_BLOCK             = 202,	/*!< Signature found, but invalid */
+	BAG_CRYPTO_BAD_KEY                         = 203,	/*!< Internal key format is invalid */
+	BAG_CRYPTO_WRONG_KEY                       = 204,	/*!< Wrong key type passed */
+	BAG_CRYPTO_GENERAL_ERROR                   = 205,	/*!< Something else went wrong */
+	BAG_CRYPTO_INTERNAL_ERROR                  = 206,	/*!< Something went wrong that the library didn't expect */
+  
     BAG_METADTA_NO_HOME                        = 400, /* BAG_HOME directory not set. */
     BAG_METADTA_SCHEMA_FILE_MISSING            = 401, /* Unable to locate schema file. */
     BAG_METADTA_PARSE_MEM_EXCEPTION            = 402, /* Unhandled exception while parsing.  Out of memory. */
@@ -168,13 +176,6 @@ enum BAG_ERRORS {
 
 
 /* Error conditions from the cryptographic library */
-#define BAG_CRYPTO_SIGNATURE_OK                  200
-#define BAG_CRYPTO_NO_SIGNATURE_FOUND            201
-#define BAG_CRYPTO_BAD_SIGNATURE_BLOCK           202
-#define BAG_CRYPTO_BAD_KEY                       203
-#define BAG_CRYPTO_WRONG_KEY                     204
-#define BAG_CRYPTO_GENERAL_ERROR                 205
-#define BAG_CRYPTO_INTERNAL_ERROR                206
 
 /* Definitions for NULL values */
 #define NULL_ELEVATION      1e6
