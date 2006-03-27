@@ -17,8 +17,8 @@ fi
 ##################################################################
 # if developing with libbag, you might want to add these permanently:
 ##################################################################
-export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib:$PWD/extlibs/lib
-export LD_RUN_PATH=$LD_RUN_PATH:$PWD/lib:$PWD/extlibs/lib
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib/$HOSTMACHINE:$PWD/extlibs/lib/$HOSTMACHINE
+export LD_RUN_PATH=$LD_RUN_PATH:$PWD/lib/$HOSTMACHINE:$PWD/extlibs/lib/$HOSTMACHINE
 export BAG_HOME=$PWD/configdata
 ##################################################################
 
@@ -31,9 +31,9 @@ $ECHO "Begin building of the external libraries if necessary..."
 $CD extlibs; buildlibs.mak
 
 $ECHO "External libs complete.\n Compiling libbag.so from the api/ sources..."
-$CD ../api;  make -f Makefile_linux
+$CD ../api;  make
 
-if [ -e ../lib/libbag.so ] ; then
+if [ -e ../lib/$HOSTMACHINE/libbag.so ] ; then
 	$ECHO "libbag.so exists"
 else
 	$ECHO "FAILED to build libbag.so"
@@ -41,9 +41,9 @@ else
 fi
 
 $ECHO "Building the examples programs..."
-$CD ../examples/bagcreate; make -f Makefile_linux
-$CD ../bagread; make -f Makefile_linux
-$CD ../bin
+$CD ../examples/bagcreate; make
+$CD ../bagread; make
+$CD ../bin/$HOSTMACHINE
 
 if [ -e bagread ] && [ -e bagcreate ] ; then
 	$ECHO "Bag example programs exist"
