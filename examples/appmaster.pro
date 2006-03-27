@@ -12,7 +12,10 @@
 # Setup the OpenNS software development includes. Normally application projects 
 # will just need to include INC_OPENNSALL.
 
+# one way or the another...!
+# Webb McDonald -- Mon Mar 27 14:36:23 2006
 include (libincludes.pro)
+include (../libincludes.pro)
 
 # Define the basic template for the application
 win32 {
