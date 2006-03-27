@@ -1,6 +1,6 @@
-/********************************************************************
- *
- * Module Name : bag_attr.c
+/*! \file bag_attr.c
+ * \brief Attribute functions create, write, read 
+ ****************************************************************************************
  *
  * Author/Date : ONSWG, July 2005
  *
@@ -32,6 +32,20 @@
  * Attribute functions create, write, read
  *
  ****************************************************************************************/
+/*! \brief bagCreateAttribute
+ * 
+ *         This function will try to create a new attribute.
+ *         If the \a type is a character string, then a maximum string length argument
+ *         must be specified as \a max_len.
+ * 
+ * \param bag        \li external reference to the Bag file descriptor
+ * \param loc_id     \li location ID for the HDF object possessing this attribute
+ * \param *attr_name  \li string name describing this attribute
+ * \param max_len    \li a maximum length for string \a type attribtues
+ * \param type       \li datatype, defined in \a bagAttrTypes
+ * \return           \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *                   \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ */
 bagError bagCreateAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, u32 max_len, u32 type)
 {
     herr_t   status;
@@ -72,9 +86,8 @@ bagError bagCreateAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, u32 max
         return BAG_HDF_TYPE_COPY_FAILURE;
     }
 
-    /* 
-     * take note of this constraint!: resizing of the attribute datatype is 
-     * only supported for u8's
+    /*! \brief resizing of the attribute datatype is only supported for u8's
+     * Take note of this constraint!
      *                   Webb McDonald -- Fri Jul 22 17:56:06 2005
      */
     if (type == BAG_ATTR_CS1)
@@ -83,7 +96,7 @@ bagError bagCreateAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, u32 max
         check_hdf_status();
     }
 
-    /** Writing out the object metadata */
+    /*! Writing out the object metadata */
     attribute_id= H5Acreate(loc_id, attr_name, 
                             datatype_id, dataspace_id, H5P_DEFAULT);
     if (attribute_id < 0)
@@ -103,21 +116,53 @@ bagError bagCreateAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, u32 max
     return BAG_SUCCESS;
 }
 
+/*! \brief bagWriteAttribute
+ * 
+ *         This function writes the attribute.
+ * 
+ * \param bag        \li external reference to the Bag file descriptor
+ * \param loc_id     \li location ID for the HDF object possessing this attribute
+ * \param *attr_name  \li string name describing this attribute
+ * \param *value      \li User-supplied pointer to some data that is expected to be the same 
+ *                        \a type as specified upon the creation of this attribute.
+ * \return           \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *                   \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ */
 bagError bagWriteAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, void *value)
 {
     return bagAlignAttribute (bag, loc_id, attr_name, value, WRITE_BAG);
 }
 
+/*! \brief bagReadAttribute
+ * 
+ *         This function reads the attribute.
+ * 
+ * \param bag        \li external reference to the Bag file descriptor
+ * \param loc_id     \li location ID for the HDF object possessing this attribute
+ * \param *attr_name  \li string name describing this attribute
+ * \param *value      \li User-supplied pointer to some data that is expected to be the same 
+ *                        \a type as specified upon the creation of this attribute.
+ * \return           \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *                   \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ */
 bagError bagReadAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, void *value)
 {
     return bagAlignAttribute (bag, loc_id, attr_name, value, READ_BAG);
 }
 
-/****************************************************************************************
- *
- * memory for *data must be allocated and maintained by caller
- *
- ****************************************************************************************/
+/****************************************************************************************/
+/*! \brief bagAlignAttribute - memory for \a *data must be allocated and maintained by caller
+ * 
+ * \param bag        \li external reference to the Bag file descriptor
+ * \param loc_id     \li location ID for the HDF object possessing this attribute
+ * \param *attr_name  \li string name describing this attribute
+ * \param *data      \li User-supplied pointer to some data that is expected to be the same 
+ *                        \a type as specified upon the creation of this attribute.
+ * \param read_or_write \li boolean value used to switch between reading or writing of the bag,
+ *                         \a READ_WRITE_BAG enum
+ * \return           \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *                   \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ */
 bagError bagAlignAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, 
                             void *data, u32 read_or_write)
 {    

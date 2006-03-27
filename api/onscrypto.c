@@ -191,10 +191,6 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 		return(NULL);
 	}
 
-    /* fprintf(stderr, "sha1reset succeeded - bufferlen = %d - spoffset: %d\n",  */
-/*             buffer_len, mdparam.offset); */
-/*     fflush(stderr); */
-
 	tot_read = 0;
 	while (!done && !feof(f)) {
 		n_read = fread((void *)buffer, 1, buffer_len, f);
@@ -213,8 +209,6 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 #endif
 			done = True;
 		}
-        /* fprintf(stderr, "china is not the issuer: %d - offset: %d\n", n_read, mdparam.offset); */
-/*         fflush(stderr); */
 
         elsize = (size_t)(n_read * sizeof(u8));
 
@@ -223,7 +217,7 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 			fprintf(stderr, "error: failed to add block to MD for \"%s\".\n", file);
 			return(NULL);
 		}
-		/* ungetc(getc(f), f); /\* WTF!? *\/ */
+		/* ungetc(getc(f), f); */
 	}
 
     
