@@ -1,14 +1,14 @@
-/********************************************************************
+/*! \file bag_tracking_list.c
+ * \brief This module defines the Tracking List dataset API
+ *******************************************************************
  *
  * Module Name : bag_tracking_list.c
  *
  * Author/Date : Webb McDonald -- Thu Jan 26 16:41:03 2006
  *
  * Description : 
- *               This module defines the Tracking List dataset API.
  *               Reading and writing of tracking list items is
  *               supported.  
- *
  *               Creation of the dataset is performed in bag_hdf,
  *               along with creation of the BAG file itself.
  *
@@ -28,18 +28,20 @@
 #include "bag_private.h"
 
 
-/****************************************************************************************
- * Routine:     bagReadTrackingListIndex
+/****************************************************************************************/
+/*! \brief :     bagReadTrackingListIndex
  * Purpose:     Read the one list item at the index provided. 
  *              This is mostly to allow application to read out of the entire list
  *              one element at a time.
- * Inputs:      bagHandle    Handle for the Bag file
- *              index        tracking list index
- *              *items       This pointer must point to memory already allocated
- *                           by the caller for a bagTrackingItem.
- * Outputs:     bagError     Will be set if there is an error accessing the 
- *                           bagHandle or its tracking_list dataset
- * Comment:    
+ *
+ *  \param       bagHandle    Handle for the Bag file
+ *  \param       index        tracking list index
+ *  \param      *item         This pointer must point to memory already allocated
+ *                             by the caller for a bagTrackingItem.
+ *
+ *  \return  \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ *
  ****************************************************************************************/
 bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingItem *item)
 {
@@ -60,7 +62,7 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
 
     dataset_name = TRACKING_LIST_PATH;
  
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -68,7 +70,7 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
     if ((datatype_id = H5Dget_type(dataset_id)) < 0)
         return BAG_HDF_TYPE_NOT_FOUND;
 
-    /* Open the filespace */
+    /*! Open the filespace */
     filespace_id = H5Dget_space(dataset_id);
     if (filespace_id < 0)
     {
@@ -85,7 +87,7 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
         return (status);
     }
     
-    /* beware~ */
+    /*! beware~ error conditions if \a index exceeds \a list_len extents or supplied \a *item is NULL */
     if (item == NULL || list_len <= index)
     {
         H5Sclose (filespace_id);
@@ -94,10 +96,10 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
         return BAG_INVALID_FUNCTION_ARGUMENT;
     }
 
-    count[0]     = 1;      /* chunk size */
-    offset[0]    = index;  /* simply seek to index */
+    count[0]     = 1;      /*! chunk size */
+    offset[0]    = index;  /*! simply seek to index */
 
-    /* define the memspace */
+    /*! define the memspace */
     if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
     {
         H5Sclose (filespace_id);
@@ -111,7 +113,7 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
                       H5P_DEFAULT, item);
     check_hdf_status();
 
-    /* did what we came to do, now close up */
+    /*! did what we came to do, now close up HDF objects*/
     status = H5Dclose (dataset_id);
     check_hdf_status();
     status = H5Sclose (memspace_id);
@@ -124,78 +126,91 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
     return BAG_SUCCESS;
 }
 
-
-/****************************************************************************************
- * Routine:     bagReadTrackingListCode
+/****************************************************************************************/
+/*! \brief :     bagReadTrackingListCode
+ *
  * Purpose:     Read all tracking list items from a particular node.
- * Inputs:      bagHandle    Handle for the Bag file
- *              code         bagTrackCode for accessing all instances of a
- *                           reason code of bagTrackingItem  
- *              *items       Pointer will be set to an allocated array of 
- *                           bagTrackingItems, or will be left NULL if there
- *                           are none at the node give by row/col. Pointer 
- *                           MUST be set to NULL before calling this function!
- *              *length      The length of the list will be set to the number
- *                           of elements allocated in *items
- * Outputs:     bagError     Will be set if there is an error accessing the 
- *                           bagHandle or its tracking_list dataset
- * Comment:     Caller must free the memory at items if length is greater than 0.
- *              Caller must assign items a NULL value before using this function!
+ * Comment:     Caller must free the memory at \a *items if length is greater than 0.
+ *              Caller must assign \a *items a NULL value before using this function!
+ *
+ *  \param       bagHandle       Handle for the Bag file
+ *  \param       code         \a bagTrackCode for accessing all instances of a
+ *                               reason code of \a bagTrackingItem  
+ *  \param     **items           Pointer will be set to an allocated array of 
+ *                            \a bagTrackingItems, or will be left \a NULL if there
+ *                               are none at the node give by row/col. Pointer 
+ *                               MUST be set to NULL before calling this function!
+ *  \param       *length         The length of the list will be set to the number
+ *                               of elements allocated in *items
+ *
+ *  \return   \li On success, \a bagError is set to \a BAG_SUCCESS
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ *
  ****************************************************************************************/
 bagError bagReadTrackingListCode(bagHandle bagHandle, u8 code, bagTrackingItem **items, u32 *length)
 {
     return bagReadTrackingList( bagHandle, READ_TRACK_CODE, code, code, items, length);
 }
 
-/****************************************************************************************
- * Routine:     bagReadTrackingListSeries
+/****************************************************************************************/
+/*! \brief :     bagReadTrackingListSeries
+ *
  * Purpose:     Read all tracking list items from a specific list series index.
  *              In case the index is not ever changing, then this function can
  *              actually be used to read all tracking list items.
- * Inputs:      bagHandle    Handle for the Bag file
- *              index        tracking list series index
- *              *items       pointer will be set to an allocated array of 
- *                           bagTrackingItems, or will left NULL if there
- *                           are none at the node give by row/col. Pointer 
- *                           MUST be set to NULL before calling this function!
- *              *length      the length of the list will be set to the number
- *                           of elements allocated in *items
- * Outputs:     bagError     Will be set if there is an error accessing the 
- *                           bagHandle or its tracking_list dataset
- * Comment:     Caller must free the memory at items if length is greater than 0.
- *              The index corresponds to a batch of tracking list updates whose
+ *
+ * Comment:     Caller must free the memory at \a *items if length is greater than 0.
+ *              The \a index corresponds to a batch of tracking list updates whose
  *                   lineage will be maintained in the Bag's metadata.
- *              Caller must assign items a NULL value before using this function!
+ *              Caller must assign \a *items a \a NULL value before using this function!
+ *
+ * \param      bagHandle  Handle for the \a Bag file
+ * \param      index      tracking list series index
+ * \param    **items      pointer will be set to an allocated array of 
+ *                        \a bagTrackingItems, or will be left NULL if there
+ *                        are none at the node by given \a list_series index. Pointer 
+ *                        MUST be set to \a NULL before calling this function!
+ * \param       *length   The length of the list will be set to the number
+ *                        of elements allocated in \a *items
+ *
+ * \return   \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ *
  ****************************************************************************************/
 bagError bagReadTrackingListSeries(bagHandle bagHandle, u16 index, bagTrackingItem **items, u32 *length)
 {
     return bagReadTrackingList( bagHandle, READ_TRACK_SERIES, index, index, items, length);
 }
 
-/****************************************************************************************
- * Routine:     bagReadTrackingListNode
+/***************************************************************************************/
+/*! \brief :     bagReadTrackingListNode
+ *
  * Purpose:     Read all tracking list items from a particular node.
- * Inputs:      bagHandle    Handle for the Bag file
- *              row          Coordinate  
- *              col          Coordinate  
- *              *items       Pointer will be set to an allocated array of 
- *                           bagTrackingItems, or will be left NULL if there
- *                           are none at the node give by row/col. Pointer 
- *                           MUST be set to NULL before calling this function!
- *              *length      The length of the list will be set to the number
- *                           of elements allocated in *items
- * Outputs:     bagError     Will be set if there is an error accessing the 
- *                           bagHandle or its tracking_list dataset
+ *
  * Comment:     Caller must free the memory at items if length is greater than 0.
- *              Caller must assign items a NULL value before using this function!
+ *              Caller must assign items a \a NULL value before using this function!
+ *
+ * \param      bagHandle    Handle for the Bag file
+ * \param      row          Coordinate
+ * \param      col          Coordinate
+ * \param    **items        Pointer will be set to an allocated array of 
+ *                          \a bagTrackingItems, or will be left \a NULL if there
+ *                          are none at the node given by row/col. Pointer 
+ *                          MUST be set to NULL before calling this function!
+ *            *length       The length of the list will be set to the number
+ *                          of elements allocated in \a *items
+ *
+ * \return   \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ *
  ****************************************************************************************/
 bagError bagReadTrackingListNode(bagHandle bagHandle, u32 row, u32 col, bagTrackingItem **items, u32 *length)
 {
     return bagReadTrackingList( bagHandle, READ_TRACK_RC, row, col, items, length);
 }
 
-/****************************************************************************************
- * 
+/***************************************************************************************/
+/*! 
  * This one is the single private function that the read by node and the read by index
  * functions go thru to access the tracking list dataset.
  *
@@ -218,20 +233,20 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
                 filespace_id;
     u8         *dataset_name;
 
-    /* tracking item buffers and allocation structs */
+    /*! tracking item buffers and allocation structs */
     bagTrackingItem readbuf[TRACKING_LIST_BLOCK_SIZE];
     
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    /* beware - this must be NULL first~ */
+    /*! beware - \a *items must be \a NULL first~ */
     if ((*items) != NULL)
         return BAG_INVALID_FUNCTION_ARGUMENT;
     (*items) = NULL;
 
     dataset_name = TRACKING_LIST_PATH;
  
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -239,7 +254,7 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
     if ((datatype_id = H5Dget_type(dataset_id)) < 0)
         return BAG_HDF_TYPE_NOT_FOUND;
 
-    /* Open the filespace */
+    /*! Open the filespace */
     filespace_id = H5Dget_space(dataset_id);
     if (filespace_id < 0)
     {
@@ -256,11 +271,11 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
         return (status);
     }
 
-    *rtn_len  = 0;                         /* nothing to read yet */
+    *rtn_len  = 0;                         /*! nothing to read yet */
     count[0]  = TRACKING_LIST_BLOCK_SIZE;  /* chunk size */
-    offset[0] = 0;                         /* start at head of list */
+    offset[0] = 0;                         /*! start at head of list */
 
-    /* define the hyperslab parameters */
+    /*! define the hyperslab parameters */
     if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
     {
         H5Sclose (filespace_id);
@@ -273,7 +288,7 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
     {
         int i;
 
-        /* shrink the memspace if we have less than a chunk left to read from
+        /*! shrink the memspace if we have less than a chunk left to read from
          * the tracking list */
         if (list_len - offset[0] < TRACKING_LIST_BLOCK_SIZE) 
         {
@@ -298,7 +313,7 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
                           H5P_DEFAULT, readbuf);
         check_hdf_status();
 
-        /* loop thru what we just read into *readBuf */
+        /*! loop thru what we just read into *readBuf */
         for (i=0; i < count[0]; i++)
         {
             /* found a match? */
@@ -306,7 +321,7 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
                 (mode == READ_TRACK_CODE && readbuf[i].track_code == code) ||
                 (mode == READ_TRACK_RC   && readbuf[i].col == col && readbuf[i].row == row))
             {
-                /* alloc for new list or expand plus 1 item */
+                /*! alloc for new list or expand plus 1 item */
                 if ((*items) == NULL)
                 {
                     (*items) = calloc (1, sizeof(bagTrackingItem));
@@ -332,10 +347,10 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
                         free ((*items));
                         return BAG_MEMORY_ALLOCATION_FAILED;
                     }
-                    (*items) = tmp; /* make sure (*items) is set to the newly alloc'd mem */
+                    (*items) = tmp; /*! make sure (*items) is set to the newly alloc'd mem */
                 }
 
-                /* copy into next location */
+                /*! copy into next location */
                 memcpy (&((*items)[(*rtn_len)]), &readbuf[i], sizeof(bagTrackingItem));
  
                 (*rtn_len)++;
@@ -344,7 +359,7 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
         offset[0] += TRACKING_LIST_BLOCK_SIZE;
     }
 
-    /* did what we came to do, now close up */
+    /*! did what we came to do, now close up HDF objects */
     status = H5Dclose (dataset_id);
     check_hdf_status();
     status = H5Sclose (memspace_id);
@@ -357,14 +372,15 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
     return BAG_SUCCESS;
 }
 
-/****************************************************************************************
- * Routine:     bagWriteTrackingListItem
- * Purpose:     Write a single bagTrackingItem into the tracking_list dataset.
- * Inputs:      bagHandle    Handle for the Bag file
- *              *item        pointer to tracking list item
- * Outputs:     bagError     Will be set if there is an error accessing the 
- *                           bagHandle, or if item is NULL
- * Comment:     BAG_SUCCESS 
+/***************************************************************************************/
+/*! \brief :     bagWriteTrackingListItem
+ *
+ * Purpose:     Write a single \a bagTrackingItem into the tracking_list dataset.
+ *
+ * \param       bagHandle    Handle for the \a Bag file
+ * \param      *item         pointer to tracking list item
+ * \return      bagError     Will be set if there is an error accessing the 
+ *                           bagHandle, or if item is \a NULL
  *
  ****************************************************************************************/
 bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
@@ -387,7 +403,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
 
     dataset_name = TRACKING_LIST_PATH;
  
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
     {
@@ -401,7 +417,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
         return BAG_HDF_TYPE_NOT_FOUND;
     }
 
-    /* Open the filespace */
+    /*! Open the filespace */
     filespace_id = H5Dget_space(dataset_id);
     if (filespace_id < 0)
     {
@@ -417,19 +433,19 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
         return (status);
     }
 
-    count[0]  = 1;          /* adding 1 item */
-    offset[0] = list_len;   /* add it to end of list */
-    extend[0] = ++list_len; /* increase extents by 1 */
+    count[0]  = 1;          /*! adding 1 item */
+    offset[0] = list_len;   /*! add it to end of list */
+    extend[0] = ++list_len; /*! increase extents by 1 */
 
-    /* let the tracking_list grow */
+    /*! let the tracking_list grow */
     status = H5Dextend (dataset_id, extend);
     check_hdf_status();
 
-    /* Close and reopen below  */
+    /*! Close and reopen below  */
     status = H5Sclose (filespace_id);
     check_hdf_status();
 
-    /* Prepare the dataspaces */
+    /*! Prepare the dataspaces */
     if ((filespace_id = H5Dget_space(dataset_id)) < 0)
     {
         H5Tclose (datatype_id);
@@ -437,7 +453,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    /* define the hyperslab parameters */
+    /*! define the hyperslab parameters */
     if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
     {
         H5Sclose (filespace_id);
@@ -453,7 +469,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
                        H5P_DEFAULT, item);
     check_hdf_status();
 
-    /* definitely should update the list length attribute of the dataset */
+    /*! definitely should update the list length attribute of the dataset */
     if ((status = bagWriteAttribute (bagHandle, dataset_id, TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
     {        
         H5Sclose (memspace_id);
@@ -463,7 +479,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
         return (status);
     }
 
-    /* did what we came to do, now close up */
+    /*! did what we came to do, now close up */
     status = H5Dclose (dataset_id);
     check_hdf_status();
     status = H5Sclose (memspace_id);
@@ -476,16 +492,17 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
     return BAG_SUCCESS;
 }
 
-/****************************************************************************************
- * Routine:     bagTrackingListLength
+/***************************************************************************************/
+/*! \brief      bagTrackingListLength
+ *
  * Purpose:     Read the tracking list length attribute. This is the total 
  *              length for the entire list, comprising all series of edits
  *              for this bag's surfaces.
- * Inputs:      bagHandle    Handle for the Bag file
- *              *len         Will be assigned the length of the list.
- * Outputs:     bagError     Will be set if there is an error accessing the 
- *                           bagHandle
- * Comment:     BAG_SUCCESS 
+ *
+ * \param     bagHandle    Handle for the Bag file
+ * \param    *len          Will be assigned the length of the list.
+ * \return   \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  *
  ****************************************************************************************/
 bagError bagTrackingListLength (bagHandle bagHandle, u32 *len)
@@ -501,7 +518,7 @@ bagError bagTrackingListLength (bagHandle bagHandle, u32 *len)
     
     dataset_name = TRACKING_LIST_PATH;
  
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -518,21 +535,24 @@ bagError bagTrackingListLength (bagHandle bagHandle, u32 *len)
 }
 
 
-/****************************************************************************************
- * Routine:     bagSortTrackingList
- * Purpose:     Read the entire tracking list into memory. This is the total 
+/***************************************************************************************/
+/*! \brief :     bagSortTrackingList
+ * Purpose:     Reads the entire tracking list into memory. This is the total 
  *              length for the entire list, comprising all series of edits
- *              for this bag's surfaces. Sort either according to row/col 
+ *              for this bag's surfaces. Sorts either according to row/col 
  *              combination (for spatial locality) or list_series index.
- * Inputs:      bagHandle    Handle for the Bag file
- *              mode         Used to decide btwn list_series or R/C sorting.
- * Outputs:     bagError     Will be set if there is an error accessing the 
- *                           bagHandle
- * Comment:     BAG_SUCCESS    Edits to BAG, resulting in tracking list items,
+ *
+ * Comment:     Edits to BAG, resulting in tracking list items,
  *              could be appended somewhat in a chaotic fashion.  
  *              The user will later want them accessed usually in
  *              a logical ordering though, so these sorting routines are 
  *              offered for assistance and speed of future access.
+ *
+ * \param       bagHandle    Handle for the Bag file
+ * \param       mode         Used to decide btwn \a list_series or R/C sorting.
+ *
+ * \return   \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  *
  ****************************************************************************************/
 bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
@@ -540,7 +560,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
     herr_t      status;
     u32         list_len;
 
-    /* hyperslab selection parameters */
+    /*! hyperslab selection parameters */
     hsize_t	    count[1];
     hssize_t	offset[1];
     hid_t       memspace_id, 
@@ -549,7 +569,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
                 filespace_id;
     u8         *dataset_name;
 
-    /* tracking item buffers and allocation structs */
+    /*! tracking item buffers and allocation structs */
     bagTrackingItem *readbuf;
     
     if (bagHandle == NULL)
@@ -557,7 +577,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
 
     dataset_name = TRACKING_LIST_PATH;
  
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -565,7 +585,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
     if ((datatype_id = H5Dget_type(dataset_id)) < 0)
         return BAG_HDF_TYPE_NOT_FOUND;
 
-    /* Open the filespace */
+    /*! Open the filespace */
     filespace_id = H5Dget_space(dataset_id);
     if (filespace_id < 0)
     {
@@ -582,7 +602,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
         return (status);
     }
 
-    /*
+    /*!
      * We're going to try and just read the entire list into memory here.
      * Tested with over 40000 items and performance was... inspirational.
      *   Right now I don't see a need to break this down any further.
@@ -597,10 +617,10 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
         return BAG_MEMORY_ALLOCATION_FAILED;
     }
 
-    count[0]  = list_len;  /* chunk size */
-    offset[0] = 0;         /* start at head of list */
+    count[0]  = list_len;  /*! chunk size */
+    offset[0] = 0;         /*! start at head of list */
 
-    /* define the hyperslab parameters */
+    /*! define the hyperslab parameters */
     if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
     {
         H5Sclose (filespace_id);
@@ -620,7 +640,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
 
     fprintf(stdout, "Starting sort of %d items of the tracking list...\n", list_len);
     fflush(stdout);
-    /* mode indicates the type of sort */
+    /*! \a READ_TRACK_MODE, mode indicates the type of sort */
     switch (mode)
     {
     case READ_TRACK_SERIES:
@@ -641,7 +661,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
                        H5P_DEFAULT, readbuf);
     check_hdf_status();
     
-    /* did what we came to do, now close up */
+    /*! did what we came to do, now close up */
     status = H5Dclose (dataset_id);
     check_hdf_status();
     status = H5Sclose (memspace_id);

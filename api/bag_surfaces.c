@@ -1,13 +1,17 @@
-/********************************************************************
+/*! \file bag_surfaces.c
+ * \brief This module contains functions for accessing the surface datasets and the XML metadata.
+ ********************************************************************
  *
  * Module Name : bag_surfaces.c
  *
  * Author/Date : ONSWG, July 2005
  *
  * Description : 
- *               Surfaces are datasets.  So is the XML Metadata.
+ *               Surfaces are datasets.
  *               There is a restriction here which requires all the
  *               proper surfaces to have the exact same extents/dimensions.
+ *               The XML Metdata and the tracking_list are not 
+ *               surfaces, but they are stored in a similar HDF dataset structure.
  *
  * Restrictions/Limitations :
  *
@@ -37,23 +41,69 @@
  * Read and write indiviidual nodes of a surface
  *
  ****************************************************************************************/
+/*! \brief : bagWriteNode
+ *
+ * Description : 
+ *        Write indiviidual nodes of a surface
+ * 
+ * \param  bag   External reference to the private \a bagHandle object
+ * \param  row   row offset within \a bag to access
+ * \param  col   col offset within \a bag to access
+ * \param  type  Indicates which data surface type to access, defined by enum \a BAG_SURFACE_PARAMS
+ * \param *data  Pointer to memory for reading from or writing to the \a bag.
+ *               Cannot be NULL!
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
+
 bagError bagWriteNode (bagHandle bag, u32 row, u32 col, s32 type, void *data)
 {
     return bagAlignNode (bag, row, col, type, data, WRITE_BAG);
 }
 
+/*! \brief : bagReadNode
+ *
+ * Description : 
+ *        Read indiviidual nodes of a surface
+ * 
+ * \param  bag   External reference to the private \a bagHandle object
+ * \param  row   row offset within \a bag to access
+ * \param  col   col offset within \a bag to access
+ * \param  type  Indicates which data surface type to access, defined by enum \a BAG_SURFACE_PARAMS
+ * \param *data  Pointer to memory for reading from or writing to the \a bag.
+ *               Cannot be NULL!
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadNode (bagHandle bag, u32 row, u32 col, s32 type, void *data)
 {
     return bagAlignNode (bag, row, col, type, data, READ_BAG);
 }
 
-/* 
- *  Function : bagReadNodePos
+/****************************************************************************************/
+/*! \brief : bagReadNodePos
  *
  *  Description :
- *    Same as bagreadNode, but also populates x and y with the position of the node,
- *    based on the coordinate system of the bag.
- */
+ *    Same as bagreadNode, but also populates x and y with the geodetic or projected 
+ *    position of the node, based on the coordinate system of the bag.
+ *
+ * \param  bag   External reference to the private \a bagHandle object
+ * \param  row   row offset within \a bag to access
+ * \param  col   col offset within \a bag to access
+ * \param  type  Indicates which data surface type to access, defined by enum \a BAG_SURFACE_PARAMS
+ * \param *data  Pointer to memory for reading from or writing to the \a bag.
+ *               Cannot be NULL!
+ * \param **x    Address of a pointer to an f64. \a *x must be freed when no longer needed.
+ * \param **y    Address of a pointer to an f64. \a *y must be freed when no longer needed.
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void *data, f64 **x, f64 **y)
 {
     bagError status;
@@ -65,7 +115,7 @@ bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void *data, 
 
 /****************************************************************************************
  *
- * This is only slightly different from bagAlignRegion. 
+ * \brief This is only slightly different from bagAlignRegion. 
  *  -The out of range conditions are based on a point, not a region
  *  -The dataspaces are just 1dimension
  *  -Uses element select, instead of hyperslab
@@ -86,7 +136,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    /* some error checking on surfaces extents */
+    /*! some error checking on surfaces extents */
     if (row < 0 || row >= bagHandle->bag.def.nrows || col >= bagHandle->bag.def.ncols || col < 0)
     {
         fprintf(stderr, "Fail to access out of bounds row/col = %d/%d out of possible size: %d/%d. Aborting\n",
@@ -95,7 +145,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
 
-    /*
+    /*!
      * Depending on the type:
      *    1) set the datatype_id to the correct unit for 
      *       this kind of surface.
@@ -128,12 +178,12 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
     if (datatype_id < 0)
         return BAG_HDF_TYPE_COPY_FAILURE;
 
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
-    /* Obtain file space  */
+    /*! Obtain file space  */
     filespace_id = H5Dget_space(dataset_id);
     if (filespace_id < 0)
     {
@@ -142,7 +192,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    /* Create space in memory */
+    /*! Create space in memory */
     memspace_id = H5Screate_simple( 1, snode, NULL);
     if (memspace_id < 0)
     {
@@ -152,15 +202,15 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
     
-    /* Set coordinates to read  */
+    /*! Set coordinates for access  */
     offset[0][0] = row;  
     offset[0][1] = col;
 
-    /* Select grid cell within dataset file space. */
+    /*! Select grid cell within dataset file space. */
     status = H5Sselect_elements (filespace_id, H5S_SELECT_SET, 1, (const hssize_t **)offset);
     check_hdf_status();
 
-    /*  perform read_or_write on element */
+    /*!  perform read_or_write on element */
     if (read_or_write == READ_BAG)
         status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
                           H5P_DEFAULT, data);
@@ -171,7 +221,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         ; /*  error? */
     check_hdf_status();
 
-    /* close these things */
+    /*! close the HDF entities */
     status = H5Sclose (memspace_id);
     check_hdf_status();
     status = H5Sclose (filespace_id);
@@ -187,24 +237,81 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         return BAG_SUCCESS;
 }
 
+/*! \brief : bagWriteRow
+ *
+ * Description : 
+ *     This function writes the \a row of data values for the surface parameter 
+ *     specified by \a type to the specified \a row for the BAG specified by \a bagHandle.
+ *     The intended usage of this function is for initial load of data into a BAG.
+ *     \a *data must have sufficient space allocated externally to fulfill the request.
+ * 
+ * \param  bagHandle   External reference to the private \a bagHandle object
+ * \param  k           Row offset within \a bag to access
+ * \param  start_col   Starting col offset within \a bag row, 
+ *                     cannot be less than zero or greater than \a end_col
+ * \param  end_col     Ending col offset within \a bag row,
+ *                     cannot be less than \a start_col or greater than the extent of the row.
+ * \param  type        Indicates which data surface type to access, defined by enum \a BAG_SURFACE_PARAMS
+ * \param *data        Pointer to memory for reading from or writing to the \a bag. Cannot be NULL!
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagWriteRow (bagHandle bagHandle, u32 k, u32 start_col, u32 end_col, s32 type, void *data)
 {
     return bagAlignRow (bagHandle, k, start_col, end_col, type, WRITE_BAG, data);
 }
 
+/*! \brief : bagReadRow
+ *
+ * Description : 
+ *     This function reads the \a row of data values for the surface parameter 
+ *     specified by \a type to the specified \a row for the BAG specified by \a bagHandle.
+ *     The calling application is required to manage the memory for the data array.
+ *     \a *data must have sufficient space allocated externally to fulfill the request.
+ * 
+ * \param  bagHandle   External reference to the private \a bagHandle object
+ * \param  k           Row offset within \a bag to access
+ * \param  start_col   Starting col offset within \a bag row, 
+ *                     cannot be less than zero or greater than \a end_col
+ * \param  end_col     Ending col offset within \a bag row,
+ *                     cannot be less than \a start_col 
+ *                     or greater than the \a ncols extent of the \a bagDef
+ * \param  type        Indicates which data surface type to access, defined by enum \a BAG_SURFACE_PARAMS
+ * \param *data        Pointer to memory for reading from or writing to the \a bag. Cannot be NULL!
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadRow (bagHandle bagHandle, u32 k, u32 start_col, u32 end_col, s32 type, void *data)
 {
     return bagAlignRow (bagHandle, k, start_col, end_col, type, READ_BAG, data);
 }
 
-
-/* 
- *  Function : bagReadRowPos
+/****************************************************************************************/
+/*! \brief : bagReadRowPos
  *
  *  Description :
- *    Same as bagReadRow, but also populates x and y with the positions,
- *    based on the coordinate system of the bag. Y will just have one value of course.
- */
+ *    Same as bagReadRow, but also populates \a **x and \a **y with the positions,
+ *    based on the coordinate system of the \a bag. Y will just have one trivial value, of course.
+ *
+ * \param  bag         External reference to the private \a bagHandle object
+ * \param  row         Row offset within \a bag to access
+ * \param  start_col   Starting col offset within \a bag row, 
+ *                     cannot be less than zero or greater than \a end_col
+ * \param  end_col     Ending col offset within \a bag row,
+ *                     cannot be less than \a start_col or greater than the extent of the row.
+ * \param  type        Indicates which data surface type to access, defined by enum \a BAG_SURFACE_PARAMS
+ * \param *data        Pointer to memory for reading from or writing to the \a bag. Cannot be NULL!
+ * \param **x          Address of a pointer to a space of f64s. \a *x must be freed when no longer needed.
+ * \param **y          Address of a pointer to an f64. \a *y must be freed when no longer needed.
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 type, 
                         void *data, f64 **x, f64 **y)
 {
@@ -215,11 +322,7 @@ bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 
     return bagAlignRow (bag, row, start_col, end_col, type, READ_BAG, data);
 }
 
-/****************************************************************************************
- *
- * 
- *
- ****************************************************************************************/
+/****************************************************************************************/
 bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col, 
                       u32 end_col, s32 type, s32 read_or_write, void *data)
 {
@@ -249,7 +352,7 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
 
-    /*
+    /*!
      * Depending on the type:
      *    1) set the datatype_id to the correct unit for 
      *       this kind of surface.
@@ -282,18 +385,18 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         return  BAG_INVALID_FUNCTION_ARGUMENT;
 
 
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
-    /* define the hyperslab parameters */
+    /*! define the hyperslab parameters */
     count[0] = 1;
     count[1] = (end_col - start_col) + 1;
     offset[0] = row;
     offset[1] = start_col;
     
-    /* Prepare the dataspaces */
+    /*! Prepare the dataspaces */
     memspace_id = H5Screate_simple(RANK, count, NULL);
     filespace_id = H5Dget_space(dataset_id);
     if (memspace_id < 0 || filespace_id < 0)
@@ -306,7 +409,7 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
     H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
 
     
-    /* perform read_or_write on hyperslab */
+    /*! perform read_or_write on hyperslab */
     if (read_or_write == READ_BAG)
         status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
                           H5P_DEFAULT, data);
@@ -317,7 +420,7 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         ; /* error? */
     check_hdf_status();
 
-    /* did what we came to do, now close up */
+    /*! did what we came to do, now close up */
     status = H5Dclose (dataset_id);
     check_hdf_status();
     status = H5Sclose (memspace_id);
@@ -333,24 +436,50 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         return BAG_SUCCESS;
 }
 
+/*! \brief bagWriteDataset writes an entire buffer of data to a bag surface
+ *
+ *  \param bagHandle  External reference to the private \a bagHandle object
+ *  \param type       Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagWriteDataset (bagHandle bagHandle, s32 type)
 {
     return bagAlignRegion (bagHandle, 0, 0, bagHandle->bag.def.nrows - 1, 
                            bagHandle->bag.def.ncols - 1, type, WRITE_BAG, DISABLE_STRIP_MINING);
 }
 
+/*! \brief bagReadDataset reads an entire buffer of data from a bag surface
+ *
+ *  \param bagHandle  External reference to the private \a bagHandle object
+ *  \param type       Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadDataset (bagHandle bagHandle, s32 type)
 {
     return bagAlignRegion (bagHandle, 0, 0, bagHandle->bag.def.nrows - 1, 
                            bagHandle->bag.def.ncols - 1, type, READ_BAG, DISABLE_STRIP_MINING);
 }
 
-/* 
- *  Function : bagReadDatasetPos
+/*! \brief : bagReadDatasetPos
  *
  *  Description :
- *    Same as bagReadDataset, but also populates x and y with the positions.
- */
+ *    Same as \a bagReadDataset, but also populates \a **x and \a **y with the positions.
+ *
+ *  \param bagHandle  External reference to the private \a bagHandle object
+ *  \param type       Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *  \param **x          Address of a pointer to a space of f64s. \a *x must be freed when no longer needed.
+ *  \param **y          Address of a pointer to a space of f64s. \a *y must be freed when no longer needed.
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadDatasetPos (bagHandle bagHandle, s32 type, f64 **x, f64 **y)
 {
     bagError status;
@@ -362,22 +491,80 @@ bagError bagReadDatasetPos (bagHandle bagHandle, s32 type, f64 **x, f64 **y)
                            bagHandle->bag.def.ncols - 1, type, READ_BAG, DISABLE_STRIP_MINING);
 }
 
+/*! \brief bagReadRegion reads an entire buffer of data, 
+ *                       defined by starting and ending coordinates, from a bag surface
+ *
+ *  \param bagHandle   External reference to the private \a bagHandle object
+ *  \param  start_row  Starting Row offset within \a bag to access
+ *                     start_row must be less than end_row and greater than or equal to zero.
+ *  \param  start_col  Starting Col offset within \a bag to access
+                       start_col must be less than end_col and greater than or equal to zero.
+ *  \param  end_row    Ending row offset within \a bag to access
+ *                     end_row must be greater than start_row and 
+ *                     within the \a nrows extent of the \a bagDef
+ *  \param  end_col    Ending col offset within \a bag to access
+ *                     end_col must be greater than start_col and
+ *                     within the \a ncols extent of the \a bagDef
+ *  \param type        Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadRegion (bagHandle bagHandle, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type)
 {
     return bagAlignRegion (bagHandle, start_row, start_col,  end_row,  end_col, type, READ_BAG, H5P_DEFAULT);
 }
 
+/*! \brief bagWriteRegion writes an entire buffer of data, 
+ *                       defined by starting and ending coordinates, from a bag surface
+ *
+ *  \param  bagHandle  External reference to the private \a bagHandle object
+ *  \param  start_row  Starting Row offset within \a bag to access
+ *                     start_row must be less than end_row and greater than or equal to zero.
+ *  \param  start_col  Starting Col offset within \a bag to access
+                       start_col must be less than end_col and greater than or equal to zero.
+ *  \param  end_row    Ending row offset within \a bag to access
+ *                     end_row must be greater than start_row and 
+ *                     within the \a nrows extent of the \a bagDef
+ *  \param  end_col    Ending col offset within \a bag to access
+ *                     end_col must be greater than start_col and
+ *                     within the \a ncols extent of the \a bagDef
+ *  \param  type       Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagWriteRegion (bagHandle bagHandle, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type)
 {
     return bagAlignRegion (bagHandle, start_row, start_col, end_row, end_col, type, WRITE_BAG, H5P_DEFAULT);
 }
 
-/* 
- *  Function : bagReadRegionPos
+/*! \brief : bagReadRegionPos
  *
  *  Description :
- *    Same as bagReadRegion, but also populates x and y with the positions.
- */
+ *    Same as bagReadRegion, but also populates \a **x and \a **y with the positions.
+ *
+ *  \param  bag        External reference to the private \a bagHandle object
+ *  \param  start_row  Starting Row offset within \a bag to access
+ *                     start_row must be less than end_row and greater than or equal to zero.
+ *  \param  start_col  Starting Col offset within \a bag to access
+                       start_col must be less than end_col and greater than or equal to zero.
+ *  \param  end_row    Ending row offset within \a bag to access
+ *                     end_row must be greater than start_row and 
+ *                     within the \a nrows extent of the \a bagDef
+ *  \param  end_col    Ending col offset within \a bag to access
+ *                     end_col must be greater than start_col and
+ *                     within the \a ncols extent of the \a bagDef
+ *  \param  type       Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *  \param **x         Address of a pointer to a space of f64s. \a *x must be freed when no longer needed.
+ *  \param **y         Address of a pointer to a space of f64s. \a *y must be freed when no longer needed.
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col, 
                            u32 end_row, u32 end_col, s32 type, f64 **x, f64 **y)
 {
@@ -388,11 +575,11 @@ bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col,
     return bagAlignRegion (bag, start_row, start_col, end_row, end_col, type, WRITE_BAG, H5P_DEFAULT);
 }
 
-/****************************************************************************************
- *
- * I made a choice so far in this function - notice that void *data is just a temporary
- * memory is either already allocated to the arrays in bagHandle bagHandle,
- * or gets allocated here for a read.  It is up to the caller to free this memory later!
+/****************************************************************************************/
+/*! I made a choice so far in this function - notice that void \a *data is just a temporary
+ *  memory is either already allocated to the arrays in \a bagHandle bagHandle,
+ *  or gets allocated here for a read.  It is up to the caller to free this memory later!
+ *  This is achieved through the \a bagFreeArray function!
  *
  ****************************************************************************************/
 bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
@@ -433,7 +620,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
     }
 
 
-    /*
+    /*!
      * Depending on the type:
      *    1) set the datatype_id to the correct unit for 
      *       this kind of surface.
@@ -482,18 +669,18 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
     if (data == NULL)
         return BAG_MEMORY_ALLOCATION_FAILED;
 
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
-    /* define the hyperslab parameters */
+    /*! define the hyperslab parameters */
     count[0] = (end_row - start_row) + 1;
     count[1] = (end_col - start_col) + 1;
     offset[0] = start_row;
     offset[1] = start_col;
     
-    /* Prepare the dataspaces */
+    /*! Prepare the dataspaces */
     memspace_id = H5Screate_simple(RANK, count, NULL);
     filespace_id = H5Dget_space(dataset_id);
     if (memspace_id < 0 || filespace_id < 0)
@@ -506,7 +693,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
 
     H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
 
-    /* xfer params */
+    /*! xfer params */
     if (xfer == DISABLE_STRIP_MINING)
     {
         type_size = H5Tget_size(datatype_id);
@@ -516,7 +703,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         xfer = xfer_plist;
     }
 
-    /* perform read_or_write on hyperslab */
+    /*! perform read_or_write on hyperslab */
     if (read_or_write == READ_BAG)
         status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
                           xfer, data);
@@ -527,7 +714,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         ; /*  error? */
     check_hdf_status();
 
-    /* did what we came to do, now close up */
+    /*! did what we came to do, now close up */
     status = H5Dclose (dataset_id);
     check_hdf_status();
     status = H5Sclose (memspace_id);
@@ -543,14 +730,42 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         return BAG_SUCCESS;
 }
 
-
-/*
- *       set up the pointers for the 2d array in bagData
+/*! \brief  bagAllocArray, for 2dimensional access to the surface, this function simplifies allocation of memory structures for the user
+ ****************************************************************************************
+ *
+ * The array functions manage private memory within the \a bagHandle
+ * which is used to buffer data from the surface datasets.
+ * The user is able to access this data from the \a bagData's
+ * 2D \a **elevation and \a **uncertainty pointers.
+ * 
+ *   Description :
+ *       Set up the pointers for the 2d array in \a bagData
  *       to point to the correct offset within the actual
- *       1d array being used in bagHandle for contiguous HDF I/O
- */
+ *       1d array being used in \a bagHandle for contiguous HDF I/O.
+ *
+ *      Note: \a bagAllocArray is only suitable for Region and complete Dataset access,
+ *            whereas Node and Row access functions demand the user to supply their own
+ *            allocated external memory for access to the \a hnd bagHandle.
+ *
+ *  \param  hnd        External reference to the private \a bagHandle object
+ *  \param  start_row  Starting Row offset within \a bag to access
+ *                     start_row must be less than end_row and greater than or equal to zero.
+ *  \param  start_col  Starting Col offset within \a bag to access
+                       start_col must be less than end_col and greater than or equal to zero.
+ *  \param  end_row    Ending row offset within \a bag to access
+ *                     end_row must be greater than start_row and 
+ *                     within the \a nrows extent of the \a bagDef
+ *  \param  end_col    Ending col offset within \a bag to access
+ *                     end_col must be greater than start_col and
+ *                     within the \a ncols extent of the \a bagDef
+ *  \param  type       Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, 
-                         u32 end_row, u32 end_col, s32 type)
+                        u32 end_row, u32 end_col, s32 type)
 {
     s32 i;
     bagError status;
@@ -558,7 +773,19 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    /* free previously allocated buffer if present */
+    if (start_col < 0 || end_col < 0 || end_col >= hnd->bag.def.ncols ||
+        start_row < 0 || end_row < 0 || end_row >= hnd->bag.def.nrows ||
+        start_row > end_row || 
+        start_col > end_col)
+    {
+        fprintf(stderr, "Internal error, bad parameters given to access surface extents! Aborting...\n");
+        fprintf(stderr, "\tCannot access region, %d-%d / %d-%d, with surface extents 0-%d / 0-%d\n",
+                start_row, start_col, end_row, end_col, hnd->bag.def.nrows, hnd->bag.def.ncols);
+        fflush(stderr);
+        return BAG_HDF_ACCESS_EXTENTS_ERROR;
+    }
+
+    /*! free previously allocated buffer if present */
     status = bagFreeArray (hnd, type);
     if (status != BAG_SUCCESS)
         return status;
@@ -567,52 +794,52 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
     {
     case Uncertainty:
         
-        /* alloc the contiguous 1d array */
+        /!* alloc the contiguous 1d array */
         hnd->uncertaintyArray = (f32 *)calloc ((end_col-start_col+1)*(end_row-start_row+1), sizeof(f32));
         if (hnd->uncertaintyArray == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
-        /* alloc the array of pointers to floats */
+        /*! alloc the array of pointers to floats */
         hnd->bag.uncertainty = (f32 **)calloc ((end_row-start_row+1), sizeof (f32 *));
         if (hnd->bag.uncertainty == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
-        /* now the 2d is tied to the contiguous 1d */
+        /*! now the 2d is tied to the contiguous 1d */
         hnd->bag.uncertainty[0] = hnd->uncertaintyArray;
 
-        /* set the rest of the pointers */
+        /*! set the rest of the pointers */
         for (i=1; i < (end_row-start_row+1); i++)
         {
             hnd->bag.uncertainty[i] = hnd->bag.uncertainty[i-1] + (end_col-start_col+1);
         }
 
-        /* init data to NULL values */
+        /*! init data to NULL values */
         for (i=0; i < ((end_col-start_col+1)*(end_row-start_row+1)); i++)
             hnd->uncertaintyArray [i] = NULL_UNCERTAINTY;
         break;
 
     case Elevation:
         
-        /* alloc the contiguous 1d array */
+        /*! alloc the contiguous 1d array */
         hnd->elevationArray = (f32 *)calloc ((end_col-start_col+1)*(end_row-start_row+1), sizeof(f32));
         if (hnd->elevationArray == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
-        /* alloc the array of pointers to floats */
+        /*! alloc the array of pointers to floats */
         hnd->bag.elevation = (f32 **)calloc ((end_row-start_row+1), sizeof (f32 *));
         if (hnd->bag.elevation == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
-        /* now the 2d is tied to the contiguous 1d */
+        /*! now the 2d is tied to the contiguous 1d */
         hnd->bag.elevation[0] = hnd->elevationArray;
 
-        /* set the rest of the pointers */
+        /*! set the rest of the pointers */
         for (i=1; i < (end_row-start_row+1); i++)
         {
             hnd->bag.elevation[i] = hnd->bag.elevation[i-1] + (end_col-start_col+1);
         }
 
-        /* init data to NULL values */
+        /*! init data to NULL values */
         for (i=0; i < ((end_col-start_col+1)*(end_row-start_row+1)); i++)
             hnd->elevationArray [i] = NULL_ELEVATION;
         break;
@@ -625,6 +852,15 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
     return BAG_SUCCESS;
 }
 
+/*! \brief  bagFreeArray frees the memory that may have been allocated by \a bagAllocArray
+ *
+ *  \param hnd   External reference to the private \a bagHandle object
+ *  \param type  Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *
+ *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
+ *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
+ * 
+ ********************************************************************/
 bagError bagFreeArray (bagHandle hnd, s32 type)
 {
     if (hnd == NULL)
@@ -661,8 +897,8 @@ bagError bagFreeArray (bagHandle hnd, s32 type)
     return BAG_SUCCESS;
 }
 
-/****************************************************************************************
- *
+/****************************************************************************************/
+/*!
  * Function : bagFillPos
  * 
  * Description :      This function allocates memory for two arrays of doubles.
@@ -697,13 +933,13 @@ bagError bagFillPos (bagHandle bagHandle, u32 r1, u32 c1 , u32 r2, u32 c2, f64 *
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
 
-    /* ensures corner coord and nodespacing are available */
+    /*! ensures corner coord and nodespacing are available */
     if ((stat = bagInitDefinitionFromBag (bagHandle)) != BAG_SUCCESS)
     {
         return stat;
     }
 
-    /* first step is to figure out how much memory to alloc for the arrays */
+    /*! first step is to figure out how much memory to alloc for the arrays */
     ylen  = (r2 -r1) + 1;
     xlen  = (c2 -c1) + 1;
     xorig = bagHandle->bag.def.swCornerX;
@@ -711,7 +947,7 @@ bagError bagFillPos (bagHandle bagHandle, u32 r1, u32 c1 , u32 r2, u32 c2, f64 *
     xoff  = bagHandle->bag.def.nodeSpacingX;
     yoff  = bagHandle->bag.def.nodeSpacingY;
 
-    /* alloc */
+    /*! alloc */
     (*x) = calloc (xlen, sizeof(f64));
     (*y) = calloc (ylen, sizeof(f64));
     if ((*x) == NULL || (*y) == NULL)
@@ -726,23 +962,31 @@ bagError bagFillPos (bagHandle bagHandle, u32 r1, u32 c1 , u32 r2, u32 c2, f64 *
 }
 
 
-/****************************************************************************************
+/****************************************************************************************/
+/*! \brief bagReadXMLStream populates the \a bagDef metadata field with a string derived from the Metadata dataset
  *
- * 
- *
- ****************************************************************************************/
-
+ * \param bagHandle  External reference to the private \a bagHandle object
+ * \return \li On success, \a bagError is set to \a BAG_SUCCESS
+ *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ */
 bagError bagReadXMLStream (bagHandle bagHandle)
 {
     return bagAlignXMLStream (bagHandle, READ_BAG);
 }
 
+/*! \brief bagWriteXMLStream stores the string at \a bagDef's metadata field into the Metadata dataset
+ *
+ * \param bagHandle  External reference to the private \a bagHandle object
+ * \return \li On success, \a bagError is set to \a BAG_SUCCESS
+ *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ */
 bagError bagWriteXMLStream (bagHandle bagHandle)
 {
     return bagAlignXMLStream (bagHandle, WRITE_BAG);
 }
 
-/****************************************************************************************
+/****************************************************************************************/
+/*! \brief bagAlignXMLStream
  *
  *  Special case had to be made so that metadata is a single dimension - 
  *  and also it has no max size and can be extended as much as we'd like.
@@ -753,7 +997,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     herr_t      status;
     s32         rank;
 
-    /* hyperslab selection parameters */
+    /*! hyperslab selection parameters */
     hsize_t	    count[1];
     hssize_t	offset[1];
     hid_t       memspace_id, 
@@ -764,7 +1008,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     void       *data;
     u8         *dataset_name;
 
-    /* chunking data block */
+    /*! chunking data block */
     hsize_t     chunk_dimsr[1];
     s32         rank_chunk;
     hid_t       cparms;
@@ -775,7 +1019,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
 
     dataset_name = METADATA_PATH;
 
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(hnd->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -783,7 +1027,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     if ((datatype_id = H5Dget_type(dataset_id)) < 0)
         return BAG_HDF_TYPE_NOT_FOUND;
 
-    /* Open the filespace for the case where we're reading into a NULL metadata */
+    /*! Open the filespace for the case where we're reading into a NULL metadata */
     filespace_id = H5Dget_space(dataset_id);
     if (filespace_id < 0)
     {
@@ -812,8 +1056,8 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
         extend[0] = strlen(hnd->bag.metadata);
     }
     
-    /* 
-       Adding an extra space for the null terminator to be guarenteed
+    /*! 
+       Adding an extra space for the null terminator to be guaranteed
        on disk with the dataset. Webb McDonald -- Wed Mar  1 12:51:24 2006
     */
     if (read_or_write == WRITE_BAG)
@@ -824,15 +1068,15 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
 
     data = hnd->bag.metadata;
 
-    /* let the metadata grow if it needs to */
+    /*! let the metadata grow if it needs to */
     status = H5Dextend (dataset_id, extend);
     check_hdf_status();
 
-    /* Close and reopen below in case we extend the metadata XML string */
+    /*! Close and reopen below in case we extend the metadata XML string */
     status = H5Sclose (filespace_id);
     check_hdf_status();
 
-    /* Prepare the dataspaces */
+    /*! Prepare the dataspaces */
     if ((filespace_id = H5Dget_space(dataset_id)) < 0)
     {
         H5Tclose (datatype_id);
@@ -842,7 +1086,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
 
     rank = H5Sget_simple_extent_dims (filespace_id, count, NULL);
 
-    /* define the hyperslab parameters */
+    /*! define the hyperslab parameters */
     if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
         return BAG_HDF_CREATE_DATASPACE_FAILURE;
 
@@ -859,7 +1103,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
     check_hdf_status();
 
-    /* perform read_or_write on hyperslab */
+    /*! perform read_or_write on hyperslab */
     if (read_or_write == READ_BAG)
         status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
                           H5P_DEFAULT, data);
@@ -872,7 +1116,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
 
 
     
-    /* did what we came to do, now close up */
+    /*! did what we came to do, now close up the HDF objects */
     status = H5Dclose (dataset_id);
     check_hdf_status();
     status = H5Pclose (cparms);
@@ -888,11 +1132,19 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
 }
 
 
-/****************************************************************************************
+/*! \brief  bagReadSurfaceDims
+ * Description:
+ *     This function retrieves the surface dimensions from the dataspace HDF object,
+ *     which is defined when the surface dataset is created. \a bagDef should have the
+ *     same dimensions in \a nrows and \a ncols if the bagInitDefinition function 
+ *     successfully parses the XML Metadata.  The \a *max_dims should equal the values
+ *     passed from a call to \a bagGetGridDimensions.
  * 
- *  Actually seems to work...
+ *  \param    hnd      pointer to the structure which ultimately contains the bag
+ *  \param   *max_dims pointer to an array of HDF structures that should have the same rank as the datasets.
  *
- ****************************************************************************************/
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
 bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims)
 {
     herr_t   status;
@@ -903,6 +1155,7 @@ bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims)
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
+    /*! default to access the \a Elevation surface */
     dataset_id = H5Dopen(hnd->file_id, ELEVATION_PATH);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -913,7 +1166,7 @@ bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims)
         rank = H5Sget_simple_extent_ndims(dataspace_id);
         rank = H5Sget_simple_extent_dims(dataspace_id, max_dims, NULL);
 
-        /* seems like a reasonable requirement for BAG compatibility now? */
+        /*! seems like a reasonable requirement for BAG compatibility now? */
         if (rank != RANK)
         {
             fprintf(stderr, "Error - The BAG is corrupted.  The rank of this dataset is said to be = %d, when it should be = %d. \n",
@@ -936,6 +1189,16 @@ bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims)
     return BAG_SUCCESS;
 }
 
+/*! \brief  bagGetGridDimensions
+ * Description:
+ *     This function simply stores grid dims into slot at *rows and *cols.
+ * 
+ *  \param    hnd    - pointer to the structure which ultimately contains the bag
+ *  \param   *rows   - pointer where number of rows of the surfaces will be assigned
+ *  \param   *cols   - pointer where number of cols of the surfaces will be assigned
+ *
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
 bagError bagGetGridDimensions(bagHandle hnd, u32 *rows, u32 *cols) 
 {
     if (hnd == NULL)
@@ -948,6 +1211,15 @@ bagError bagGetGridDimensions(bagHandle hnd, u32 *rows, u32 *cols)
 }
 
 
+/*! \brief  bagUpdateSurface
+ * Description:
+ *     So far this function just calls bagUpdateMinMax on the surface indicated by \a type
+ * 
+ *  \param    hnd    - pointer to the structure which ultimately contains the bag
+ *  \param    type   - Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
+ *
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
 bagError bagUpdateSurface (bagHandle hnd, u32 type)
 {
     herr_t   status;
@@ -961,10 +1233,19 @@ bagError bagUpdateSurface (bagHandle hnd, u32 type)
     return BAG_SUCCESS;
 }
 
-/****************************************************************************************
+/****************************************************************************************/
+/*! \brief  bagUpdateMinMax
  *
+ * Description:
+ *     Examines all the data in the particular surface and updates the min and max value
+ *     attributes with the minimum and maximum values found in the dataset, excluding any
+ *     NULL elements.
+ * 
+ *  \param    hnd    - pointer to the structure which ultimately contains the bag
+ *  \param    type   - Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
  *
- ****************************************************************************************/
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
 bagError bagUpdateMinMax (bagHandle hnd, u32 type)
 {
     herr_t status;
@@ -1010,7 +1291,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
     }
     
 
-    /* Open an existing dataset. */
+    /*! Open an existing dataset. */
     dataset_id = H5Dopen(hnd->file_id, dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -1037,7 +1318,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
         }
     }
 
-    /* update the original bagData values */
+    /*! update the original bagData values */
     *omin = *min_tmp;
     *omax = *max_tmp;
 

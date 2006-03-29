@@ -4,6 +4,7 @@
 Be aware that the xerces-c library requires an environment variable to
 be set. The API module needs the header files of xerces-c, which can
 be found where the xerces-c library was installed under extlibs.
+You will also need header files for beecrypt, geotrans, and hdf5 libraries.
 
 Something like the following should be set:
 

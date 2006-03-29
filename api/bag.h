@@ -351,7 +351,7 @@ extern bagError bagFileOpen(bagHandle *bagHandle, s32 accessMode, const u8 *file
  * Arguments:
  * 
  * Return value:
- *     On success the function returns zero.  On failure, a value of -1 is returned.
+ *     
  */
 
 /* bag_hdf.c */                             
@@ -361,12 +361,11 @@ extern bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag
  *     access for up to 32 separate BAG files at a time.
  *
  * Arguments:  wxm - additional argument to specify whether to create the optional
- *                   BAG datasets? 
+ *                   BAG datasets (optional extensions in later version).
  * 
  * Return value:
- *     On success the function returns zero.  On failure, a value of -1 is returned.
- *
- *     wxm - Fail if the file already exists? 
+ *     On success, \a bagError is set to \a BAG_SUCCESS.                  
+ *     On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
  */                          
 
 /* bag_hdf.c */  
@@ -377,7 +376,8 @@ extern bagError bagFileClose(bagHandle bagHandle);
  * Arguments:
  *
  * Return value:
- *     On success the function returns zero. On failure, a value of -1 is returned.
+ *    On success, \a bagError is set to \a BAG_SUCCESS.                  
+ *    On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
  */       
 
 
@@ -394,9 +394,6 @@ extern bagError bagReadNode(bagHandle bagHandle, u32 row, u32 col, s32 type, voi
  * Return value:
  *     On success, the data value for the specified type from the specified row 
  *     and column is returned.  On failure a value of FLOAT_MAX is returned.
- * 
- *     wxm - also set error code in case the "type" is not in this BAG?
- *           propose: BAG_TYPE_NOT_FOUND
  */
 
 extern bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void *data, f64 **x, f64 **y);
@@ -416,7 +413,6 @@ extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, vo
 /* Description:
  *     This function writes a value to the specified node in the specified BAG.  
  *     The "type" argument defines which surface parameter is updated.  
- *     *** NOTE *** This operation may result in an update to the tracking list.
  *
  * Arguments:
  * 
@@ -474,7 +470,7 @@ extern bagError bagWriteDataset (bagHandle bagHandle, s32 type);
 
 extern bagError bagReadDataset  (bagHandle bag, s32 type);
 /* Description:
- *     This function read an entire buffer of data from a bag surface.
+ *     This function reads an entire buffer of data from a bag surface.
  * 
  * Arguments:
  *           bagHandle - pointer to the structure which ultimately contains the bag
@@ -505,9 +501,22 @@ extern bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col,
  *    Same as bagReadRegion, but also populates x and y with the positions.
  */
 
-
+/****************************************************************************************/
 extern bagError bagWriteXMLStream (bagHandle bagHandle);
+/*! \brief bagWriteXMLStream stores the string at \a bagDef's metadata field into the Metadata dataset
+ *
+ * \param bagHandle  External reference to the private \a bagHandle object
+ * \return \li On success, \a bagError is set to \a BAG_SUCCESS
+ *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ */
 extern bagError bagReadXMLStream  (bagHandle bagHandle);
+
+/*! \brief bagReadXMLStream populates the \a bagDef metadata field with a string derived from the Metadata dataset
+ *
+ * \param bagHandle  External reference to the private \a bagHandle object
+ * \return \li On success, \a bagError is set to \a BAG_SUCCESS
+ *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ */
 
 extern bagError bagGetGridDimensions(bagHandle hnd, u32 *rows, u32 *cols);
 /* Description:
@@ -860,7 +869,6 @@ extern bagError bagSortTrackingListByNode (bagHandle bagHandle);
 extern bagError bagSortTrackingListBySeries (bagHandle bagHandle);
 extern bagError bagSortTrackingListByCode (bagHandle bagHandle);
 
-
 /* Description:
  *     This function provides a short text description for the last error that 
  *     occurred on the BAG specified by bagHandle. Memory for the text string 
@@ -878,6 +886,22 @@ extern bagError bagSortTrackingListByCode (bagHandle bagHandle);
  */
 
 extern bagError bagGetErrorString(bagError code, char **error);
+
+/*! \brief  bagReadSurfaceDims
+ * Description:
+ *     This function retrieves the surface dimensions from the dataspace HDF object,
+ *     which is defined when the surface dataset is created. \a bagDef should have the
+ *     same dimensions in \a nrows and \a ncols if the bagInitDefinition function 
+ *     successfully parses the XML Metadata.  The \a *max_dims should equal the values
+ *     passed from a call to \a bagGetGridDimensions.
+ * 
+ *  \param    hnd      pointer to the structure which ultimately contains the bag
+ *  \param   *max_dims pointer to an array of HDF structures that should have the same rank as the datasets.
+ *
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
+bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims)
+
 
 /* APIs to be defined...
 

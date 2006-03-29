@@ -38,25 +38,26 @@
 /*! Macros definitions for this module */
 #define	META_DATA_BLOCK_SIZE           1024           /*! \brief The block size defines the allocation/allocation extension unit size */
 
-/********************************************************************
- *
- * Function Name : bagFileCreate
+/********************************************************************/
+/*! \brief bagFileCreate
  *
  * Description : 
  *
- * *** PER HDF5 Documentation, applications should avoid calling the ***
- * *** the create function with the name of an already opened file.  ***
+ * *** Per HDF5 Documentation, applications should avoid calling the ***
+ * *** create function with the name of an already opened file.      ***
  *   
  * On completion, the file remains open.
  * On completion, the BAG_root group remains open.
  * On completion, all datasets and all attributes are closed.
  *
- * Inputs :
+ * \param *file_name   A string provides the filesystem name of the BAG
+ * \param *data        A pointer to properly initialized bagData struct
+ * \param *bag_handle  bag_handle will be set to the allocated \a bagHandle
+ *                     used by the caller for subsequent external reference 
+ *                     to the actual private object used within the library.
  *
- * Returns :
- *  This function returns zero if successful, or nonzero if an error occurs.
- *
- * Error Conditions :
+ * \return \li On success, \a bagError is set to \a BAG_SUCCESS
+ *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  *
  ********************************************************************/
 bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle) 
@@ -85,7 +86,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_MEMORY_ALLOCATION_FAILED);
     }
 
-    /* Make sure has been properly loaded by the caller */
+    /*! Make sure \a *data has been properly loaded by the caller */
     if ((data == (bagData *) NULL)         || 
         (data->metadata == (u8 *) NULL)  ||
         (data->def.nrows < 1)              ||
@@ -106,9 +107,9 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_MEMORY_ALLOCATION_FAILED);
     }
 
-    /* Copy bagData from the passed argument into the abstracted bag_handle area.
+    /*! Copy bagData from the passed argument into the abstracted \a *bag_handle area.
      *  We expect that the calling application has loaded these fields of the 
-     *  passed bagData argument.
+     *  passed \a *data argument.
      */
     memcpy (&((*bag_handle)->bag.def), &data->def, sizeof (bagDef));
     memcpy ((*bag_handle)->bag.metadata, data->metadata, length);
@@ -120,7 +121,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     (*bag_handle)->bag.elevation    = NULL;
     (*bag_handle)->bag.uncertainty  = NULL;
 
-    /* Create the file with default HDF5 properties, but only if the file does not already exist */
+    /*! Create the file with default HDF5 properties, but only if the file does not already exist */
     if ((file_id = H5Fcreate(file_name, H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT)) < 0)
     {    
         return (BAG_HDF_CREATE_FILE_FAILURE);
@@ -128,7 +129,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
 
     (*bag_handle)->file_id = file_id;
 
-    /* Create the BAG root path */
+    /*! Create the BAG_root path */
     if ((bagGroupID = H5Gcreate(file_id, ROOT_PATH, 0)) < 0)
     {    
         status = H5Fclose (file_id);
@@ -137,7 +138,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
 
     (*bag_handle)->bagGroupID = bagGroupID;
 
-    /* Create the mandatory attributes for this level */
+    /*! Create the mandatory attributes for this level */
     if ((status = bagCreateAttribute (*bag_handle, bagGroupID, BAG_VERSION_NAME, BAG_VERSION_LENGTH, BAG_ATTR_CS1)) < 0)
     {
         status = H5Fclose (file_id);
@@ -149,7 +150,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
 
-    /* Create the dataset for the XML metadata */
+    /*! Create the dataset for the XML metadata */
     dim_init[0] = length;
     dim_max[0]  = H5S_UNLIMITED;
 
@@ -190,7 +191,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_HDF_DATASET_EXTEND_FAILURE);
     }
 
-    /* Write the XML metadata string into the file */
+    /*! Write the XML metadata string into its dataset */
     if ((status = bagWriteXMLStream (*bag_handle)) < 0)
     {
         status = H5Fclose (file_id);
@@ -203,7 +204,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     status = H5Tclose(datatype_id);
     check_hdf_status();
 
-    /* Create the dataset for the tracking list */
+    /*! Create the dataset for the tracking list */
     dim_init[0] = 0;
     dim_max[0]  = H5S_UNLIMITED;
 
@@ -236,7 +237,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_HDF_CREATE_PROPERTY_CLASS_FAILURE);        
     }
     
-    /* tracking_list will access chunks of items at a time for faster performance (hopefully) */
+    /*! tracking_list will access chunks of items at a time for faster performance (hopefully) */
     chunk_dims[0] = TRACKING_LIST_BLOCK_SIZE;
     if ((status = H5Pset_chunk (cparms, 1, chunk_dims)) < 0)
     {
@@ -256,7 +257,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_HDF_DATASET_EXTEND_FAILURE);
     }
 
-    /* Add the attributes to the tracking list dataset */
+    /*! Add the attributes to the \a tracking list dataset */
     if ((status = bagCreateAttribute (*bag_handle, dataset_id, TRACKING_LIST_LENGTH_NAME, sizeof(u32), BAG_ATTR_U32)) < 0)
     {
         status = H5Fclose (file_id);
@@ -274,7 +275,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     status = H5Sclose(dataspace_id);
     status = H5Tclose(datatype_id);
 
-    /* Create the mandatory elevation dataset */
+    /*! Create the mandatory \a elevation dataset */
     dims[0] = data->def.nrows;
     dims[1] = data->def.ncols;
     if ((dataspace_id = H5Screate_simple(RANK, dims, NULL)) < 0)
@@ -311,7 +312,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_HDF_CREATE_GROUP_FAILURE);
     }
 
-    /* Add the attributes to the elevation dataset */
+    /*! Add the attributes to the \a elevation dataset */
     if ((status = bagCreateAttribute (*bag_handle, dataset_id, MIN_ELEVATION_NAME, sizeof(f32), BAG_ATTR_F32)) < 0)
     {
         status = H5Fclose (file_id);
@@ -337,7 +338,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     status = H5Sclose (dataspace_id);
     status = H5Tclose (datatype_id);  
    
-    /* Create the mandatory uncertainty dataset */
+    /*! Create the mandatory \a uncertainty dataset */
     dims[0] = data->def.nrows;
     dims[1] = data->def.ncols;
     if ((dataspace_id = H5Screate_simple(RANK, dims, NULL)) < 0)
@@ -374,7 +375,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_HDF_CREATE_GROUP_FAILURE);
     }
 
-    /* Add the attributes to the elevation dataset */
+    /*! Add the attributes to the \a elevation dataset */
     if ((status = bagCreateAttribute (*bag_handle, dataset_id, MIN_UNCERTAINTY_NAME, sizeof(f32), BAG_ATTR_F32)) < 0)
     {
         status = H5Fclose (file_id);
@@ -404,21 +405,23 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     return (status >= 0) ? BAG_SUCCESS : BAG_HDF_INTERNAL_ERROR;
 }
 
-/********************************************************************
- *
- * Function Name : bagFileOpen
+/********************************************************************/
+/*! \brief bagFileOpen
  *
  * Description : 
+ *     This function opens a BAG file stored in HDF5.  The library supports 
+ *     access for up to 32 separate BAG files at a time.
  *
- * Inputs :
+ * \param *bag_handle   bag_handle will be set to the allocated \a bagHandle
+ *                      private object for subsequent external reference
+ *                      by the caller.
+ * \param  access_mode  Entity \a BAG_OPEN_MODE
+ * \param *file_name    A string provides the filesystem name of the BAG
  *
- * Returns :
- *  This function returns zero if successful, or nonzero if an error occurs.
- *
- * Error Conditions :
+ * \return \li On success, \a bagError is set to \a BAG_SUCCESS
+ *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  *
  ********************************************************************/
-
 bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name)
 {
     bagError     status;
@@ -436,11 +439,11 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     (* bag_handle)->cryptoBlock = NULL;
     strncpy ((* bag_handle)->filename, file_name, MAX_STR-1);
 
-    /* open the BAG */
+    /*! \brief open the BAG */
     if (BAG_OPEN_READ_WRITE == access_mode)
     {
-        /* 
-         * Before opening for RW, store the ONSCryptoBlock, which apparently gets
+        /*! 
+         * Before opening for RW, store the \a ONSCryptoBlock, which apparently gets
          * destroyed whenever you open the BAG for writing.  There are many cases 
          * when we want it preserved.
          */
@@ -453,8 +456,8 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         if (status != BAG_CRYPTO_SIGNATURE_OK)
         {
             /* 
-               nothing to do here because there is not guarentee of there being
-               a cryptoBlock anyway, right?
+               nothing to do here because there is not guarantee of there being
+               a \a cryptoBlock anyway, right?
             */
             free ((* bag_handle)->cryptoBlock);
             (* bag_handle)->cryptoBlock = NULL;
@@ -495,7 +498,7 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         return (BAG_HDF_GROUP_OPEN_FAILURE);
     }
     
-    /* Read out the attributes */ 
+    /*! Read out the \a attributes */ 
     memset (version, 0, sizeof(version));
     if ((status = bagReadAttribute ((* bag_handle), (* bag_handle)->bagGroupID, BAG_VERSION_NAME, version)) < 0)
     {
@@ -544,18 +547,17 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     return (BAG_SUCCESS);
 }
 
-/********************************************************************
- *
- * Function Name : bagFileClose
+/********************************************************************/
+/*! \brief : bagFileClose
  *
  * Description : 
+ *   This function closes a BAG file previously opened via bagFileOpen.
  *
- * Inputs :
+ * \param bag_handle  External reference to the private object 
+ *                      used within the library.
  *
- * Returns :
- *  This function returns zero if successful, or nonzero if an error occurs.
- *
- * Error Conditions :
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  *
  ********************************************************************/
 
@@ -578,7 +580,7 @@ bagError bagFileClose (bagHandle bag_handle)
         return(BAG_HDF_FILE_CLOSE_FAILURE);
     }
      
-    /* must have opened BAG for a READ_WRITE, restore the ONSCryptoBlock */
+    /*! if BAG was opened for a \a READ_WRITE, restore the \a ONSCryptoBlock */
     if (bag_handle->cryptoBlock != NULL)
     {
         status  = bagWriteCertification (bag_handle->filename,
@@ -594,19 +596,18 @@ bagError bagFileClose (bagHandle bag_handle)
     return (BAG_SUCCESS);   
 }
 
-/********************************************************************
- *
- * Function Name : bagGetDataPointer
+/********************************************************************/
+/*! \brief : bagGetDataPointer
  *
  * Description : 
+ *        This function is used to access the \a bagData structure from
+ *        within the private object referenced by \a *bag_handle.
+ * 
+ * \param  bag_handle   External reference to the private \a bagHandle object
  *
- * Inputs :
- *
- * Returns :
- *  This function returns zero if successful, or nonzero if an error occurs.
- *
- * Error Conditions :
- *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ * 
  ********************************************************************/
 bagData *bagGetDataPointer(bagHandle bag_handle)
 {
@@ -617,27 +618,27 @@ bagData *bagGetDataPointer(bagHandle bag_handle)
 }
 
 
-/****************************************************************************************
+/****************************************************************************************/
+/*! \brief bagGetErrorString
+ *
  * Description:
  *     This function provides a short text description for the last error that 
  *     occurred on the BAG specified by bagHandle. Memory for the text string 
  *     is maintained within the library and calling applications do not free this memory.
  *
- * Arguments:
- *     code      - error string will be assigned based on the bagError argument.
- *     error     - The address of a pointer to a char which will be updated 
- *                 to point to short text string describing error condition.
+ * \param    code     Error string will be assigned based on the \a bagError argument.
+ * \param  **error    The address of a string pointer which will be updated 
+ *                    to point to a short text string describing the error condition.
  *
- * Return value:
- *     On success the function returns BAG_SUCCESS. You can always call this
- *     function again to see what the error was from the results of the
- *     original call to bagGetErrorString.
+ * \return            On success the function returns \a BAG_SUCCESS You can always 
+ *           call this function again to see what the error was from the results of the
+ *           original call to \a bagGetErrorString.
  *
  ****************************************************************************************/
 
-bagError bagGetErrorString(bagError code, char **error)
+bagError bagGetErrorString(bagError code, u8 **error)
 {
-    static char str[MAX_STR];
+    static u8 str[MAX_STR];
 
     str[0] = '\0';
 
