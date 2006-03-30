@@ -885,7 +885,7 @@ extern bagError bagSortTrackingListByCode (bagHandle bagHandle);
  *     original call to bagGetErrorString.
  */
 
-extern bagError bagGetErrorString(bagError code, char **error);
+extern bagError bagGetErrorString(bagError code, u8 **error);
 
 /*! \brief  bagReadSurfaceDims
  * Description:
