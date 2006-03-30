@@ -900,7 +900,7 @@ extern bagError bagGetErrorString(bagError code, char **error);
  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
-bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims)
+extern bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims);
 
 
 /* APIs to be defined...
