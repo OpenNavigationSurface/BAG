@@ -37,3 +37,13 @@ Something like the following should be set:
 
 export	XERCESCROOT=$PWD/extlibs/xerces-c-src_2_6_0
 setenv  XERCESCROOT $PWD/extlibs/xerces-c-src_2_6_0
+
+Note that for building on the linux platform a toplevel build script called:
+build-linux.mak is provided. You can run it with the command:
+     sh build-linux.mak
+It is important when running this script that you have qmake in the current 
+path and also dot (.) in the current path. You might need to add it with a 
+command similar to:
+     export PATH=$PATH:.
+
+
