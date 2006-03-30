@@ -794,7 +794,7 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
     {
     case Uncertainty:
         
-        /!* alloc the contiguous 1d array */
+        /* alloc the contiguous 1d array */
         hnd->uncertaintyArray = (f32 *)calloc ((end_col-start_col+1)*(end_row-start_row+1), sizeof(f32));
         if (hnd->uncertaintyArray == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
