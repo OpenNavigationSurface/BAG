@@ -46,10 +46,14 @@ static char *modrev = "$Revision: 1.2 $";
 #undef __DEBUG_HASH__
 #undef __DEBUG__
 
+#define __WITH_HASP__	/*! < Define if HASP interface should be compiled in */
+
+#ifdef __WITH_HASP__
 #define HASP_MEMORY_SIZE	248
 #define HASP_SEED			100		/* Essentially random value for interface */
 #define HASP_PASS1			15417	/* Standard value for DemoMA M4 HASP */
 #define HASP_PASS2			9632	/* Standard value for DemoMA M4 HASP */
+#endif
 
 #define STRING_BREAK_LENGTH	60	/* Number of bytes to output before doing a newline */
 
@@ -102,6 +106,7 @@ static void excert_write_hex_xml(FILE *op, char *hexstring, u32 base_tab)
 	fprintf(op, "\n");
 }
 
+#ifdef __WITH_HASP__
 /* Routine:	excert_check_hasp
  * Purpose:	Check that the correct M4 HASP key is attached to the computer
  * Inputs:	seed	Seed value to use for the HASP protocol
@@ -164,7 +169,9 @@ static ExcertErr excert_check_hasp(u32 seed, u32 *port, u32 *id)
 
 	return(EXCERT_OK);
 }
+#endif
 
+#ifdef __WITH_HASP__
 /* Routine:	excert_get_hasp_key
  * Purpose:	Extract the secret key from an attached hasp USB and decode
  * Inputs:	*phrase		Passphrase to hash for AES key
@@ -216,6 +223,16 @@ u8 *excert_get_hasp_key(u8 *phrase, ExcertErr *rc)
 	printf("\n");
 #endif
 
+#ifdef __BAG_BIG_ENDIAN__
+	{
+		u32	w;
+		
+		for (w = 0; w < HASP_MEMORY_SIZE; ++w) {
+			swap_2((void*)(sec_key_ctext + w*sizeof(u16)));
+		}
+	}
+#endif
+
 	sec_key_clen = ((u16*)sec_key_ctext)[0];
 
 	if ((aes_key = ons_phrase_to_key(phrase)) == NULL) {
@@ -235,6 +252,7 @@ u8 *excert_get_hasp_key(u8 *phrase, ExcertErr *rc)
 	free(aes_key);
 	return(sec_key_ptext);
 }
+#endif
 
 /* Routine:	excert_read_xml_seckey
  * Purpose:	Read the encrypted secret key from an XML file and decrypt
@@ -250,7 +268,7 @@ u8 *excert_read_xml_seckey(char *filename, u8 *phrase, ExcertErr *errcode)
 {
 	xcrtCertificate *cert;
 	u8	*aes_key, *sec_key_ptext, *sec_key_ctext;
-	u32	sec_key_clen, digit;
+	u32	sec_key_clen, digit, hex;
 	OnsCryptErr		cryprc;
 
 	if ((cert = excert_read_xml_certificate(filename, errcode)) == NULL) {
@@ -278,13 +296,14 @@ u8 *excert_read_xml_seckey(char *filename, u8 *phrase, ExcertErr *errcode)
 		return(NULL);
 	}
 	for (digit = 0; digit < sec_key_clen; ++digit) {
-		if (sscanf(cert->key.key + digit*2, "%02X", sec_key_ctext + digit) != 1) {
+		if (sscanf(cert->key.key + digit*2, "%02X", &hex) != 1) {
 			fprintf(stderr, "%s: error: failed to convert digit %d of encrypted secret key.\n", modname, digit);
 			excert_release_xml_certificate(cert);
 			free(sec_key_ctext);
 			*errcode = EXCERT_BAD_SECKEY;
 			return(NULL);
 		}
+		sec_key_ctext[digit] = (u8)(hex & 0xFFU);
 	}
 	if ((aes_key = ons_phrase_to_key(phrase)) == NULL) {
 		fprintf(stderr, "%s: error: failed to convert pass-phrase to AES256 key.\n", modname);
@@ -295,7 +314,8 @@ u8 *excert_read_xml_seckey(char *filename, u8 *phrase, ExcertErr *errcode)
 	}
 	if ((sec_key_ptext = ons_decrypt_key(sec_key_ctext, sec_key_clen, aes_key, &cryprc)) == NULL) {
 		fprintf(stderr, "%s: error: failed to decrypt secret key with pass-phrase (code %d).\n", modname, (u32)cryprc);
-		free(sec_key_ctext); free(aes_key);
+		free(sec_key_ctext);
+		free(aes_key);
 		*errcode = EXCERT_CRYPTO_FAILED;
 		excert_release_xml_certificate(cert);
 		return(NULL);
@@ -305,6 +325,7 @@ u8 *excert_read_xml_seckey(char *filename, u8 *phrase, ExcertErr *errcode)
 	return(sec_key_ptext);
 }
 
+#ifdef __WITH_HASP__
 /* Routine:	excert_put_hasp_key
  * Purpose:	Write a secret key to HASP memory using the pass-phrase as a source of AES encryption key
  * Inputs:	*sec_key_ptext	Plaintext for the secret key
@@ -354,6 +375,16 @@ ExcertErr excert_put_hasp_key(u8 *sec_key_ptext, u8 *phrase)
 	((u16*)membuf)[0] = (u16)sec_key_clen;
 	memcpy(membuf+2, sec_key_ctext, sec_key_clen);
 
+#ifdef __BAG_BIG_ENDIAN__
+	{
+		u32	w;
+		
+		for (w = 0; w < HASP_MEMORY_SIZE; ++w) {
+			swap_2((void*)(membuf + w*sizeof(u16)));
+		}
+	}
+#endif
+
 #ifdef __DEBUG_HASP__
 	printf("HASP memory contents (on write):\n");
 	for (hasp1 = 0; hasp1 < HASP_MEMORY_SIZE*sizeof(u16); ++hasp1)
@@ -375,6 +406,7 @@ ExcertErr excert_put_hasp_key(u8 *sec_key_ptext, u8 *phrase)
 	free(sec_key_ctext);
 	return(EXCERT_OK);
 }
+#endif
 
 /* Routine:	excert_write_xml_seckey
  * Purpose:	Write the secret key, encrypted with AES-256, to an output XML filename
@@ -726,7 +758,7 @@ static u8 *excert_hash_xml_certificate_file(char *name, u32 *digest_len)
 		remove(tmp_file);
 		return(NULL);
 	}
-//	remove(tmp_file);
+	remove(tmp_file);
 	return(digest);	
 }
 
@@ -948,11 +980,18 @@ ExcertErr excert_sign_xml_certificate(xcrtCertificate *user, xcrtCertificate *cs
 		return(EXCERT_HASH_FAILED);
 	}
 	if (seckey_from_hasp) {
+#ifdef __WITH_HASP__
 		if ((csa_seckey = excert_get_hasp_key(csa_passphrase, &rc)) == NULL) {
 			fprintf(stderr, "%s: error: failed to get secret key from HASP.\n", modname);
 			free(digest);
 			return(rc);
 		}
+#else
+		fprintf(stderr, "%s: error: HASP support is not present (and you need it for this).\n",
+			modname);
+		free(digest);
+		return(EXCERT_INTERNAL_ERROR);
+#endif
 	} else {
 		if ((csa_seckey = excert_read_xml_seckey(csa_seckey_file, csa_passphrase, &rc)) == NULL) {
 			fprintf(stderr, "%s: error: failed to get secret key from file \"%s\".\n", modname, csa_seckey_file);
@@ -1069,9 +1108,9 @@ Bool excert_verify_certificate(char *cert, char *auth)
 
 Bool excert_verify_xml_certificate(xcrtCertificate *cert, char *cert_file, xcrtCertificate *auth)
 {
-	u8			*digest = NULL;
-	u32			digest_len;
-	OnsCryptErr	rc;
+	u8		*digest = NULL;
+	u32		digest_len;
+	Bool	rc;
 
 	if ((digest = excert_hash_xml_certificate_file(cert_file, &digest_len)) == NULL) {
 		fprintf(stderr, "%s: error: failed to compute digest from \"%s\".\n", modname, cert_file);
@@ -1152,9 +1191,16 @@ ExcertErr excert_generate_keys(char *phrase, u8 **pkey, Bool output_to_hasp, cha
 		free(seckey);
 		return(EXCERT_CRYPTO_FAILED);
 	}
-	if (output_to_hasp)
+	if (output_to_hasp) {
+#ifdef __WITH_HASP__
 		rc = excert_put_hasp_key(seckey, phrase);
-	else
+#else
+		fprintf(stderr, "%s: error: HASP support is not present (and you need it for this).\n",
+			modname);
+		free(seckey);
+		return(EXCERT_INTERNAL_ERROR);
+#endif
+	} else
 		rc = excert_write_xml_seckey(seckey, phrase, filename);
 	free(seckey);
 	return(EXCERT_OK);
@@ -1236,10 +1282,16 @@ ExcertErr excert_sign_ons(char *ons, char *phrase, u32 num, Bool seckey_from_has
 	ExcertErr	rc;
 
 	if (seckey_from_hasp) {
+#ifdef __WITH_HASP__
 		if ((seckey = excert_get_hasp_key(phrase, &rc)) == NULL) {
 			fprintf(stderr, "%s: error: failed to get secret key from HASP.\n", modname);
 			return(rc);
 		}
+#else
+		fprintf(stderr, "%s: error: HASP support not present (and you need it for this).\n",
+			modname);
+		return(EXCERT_INTERNAL_ERROR);
+#endif
 	} else {
 		if ((seckey = excert_read_xml_seckey(seckey_filename, phrase, &rc)) == NULL) {
 			fprintf(stderr, "%s: error: failed to get secret key from file \"%s\".\n", modname, seckey_filename);
