@@ -54,10 +54,7 @@
 #include "mpbarrett.h"
 
 #define DEFAULT_MD_BUFFER_LEN	40960			/*!< The default length of blocks to digest in the Message Digest */
-#define DEFAULT_MD_ALGO		GCRY_MD_SHA256		/*!< Default algorithm to use for Message Digests (in this case SHA-256) */
-#define DEFAULT_PK_ALGO		GCRY_AC_DSA			/*!< Default algorithm to use for Asymmetric Cryptography (here, FIPS DSA) */
 #define DEFAULT_KEY_LEN		1024				/*!< Maximum bit length allowed for asymmetric keys */
-#define DEFAULT_SYM_ALGO	GCRY_CIPHER_AES256	/*!< Default algorithm to use for Symmetric Cryptography (here, FIPS AES) */
 
 #define ONS_CRYPTO_BLOCK_MAGIC		0x4F4E5343	/*!< Magic ID for ONSCrypto blocks, a.k.a., 'ONSC' */
 #define ONS_CRYPTO_BLOCK_CUR_VER	1			/*!< Current version byte for ONSCrypto blocks */
@@ -102,6 +99,26 @@
 
 #include "onscrypto.h"
 
+#ifdef __BAG_BIG_ENDIAN__
+/*! \brief Swap four-byte entities end for end.
+ *
+ * This swaps 32-bit numbers endian-ness (LSB <-> MSB) if required.  The swap is done in-place.
+ * The internal code of all ONS crypto entities are LSB by default, so this code only gets
+ * compiled in if the code is being compiled for MSB systems).
+ *
+ * \param	*elem	Pointer to the data structure to swap.
+ * \return			None.
+ */
+ 
+static void swap_4(void *elem)
+{
+	u8	swap, *buffer = (u8*)elem;
+	
+	swap = buffer[0]; buffer[0] = buffer[3]; buffer[3] = swap;
+	swap = buffer[1]; buffer[1] = buffer[2]; buffer[2] = swap;
+}
+#endif
+
 /*! \brief Determine whether a particular file has an ONSCrypto block present
  *
  * This checks for the presence of an ONSCrypto block in \a file.  The ONSCrypto block is a
@@ -127,6 +144,9 @@ Bool ons_check_cblock(char *file)
 	}
 	fseek(f, -ONS_CRYPTO_SIG_BLOCK_SIZE, SEEK_END);
 	fread(&file_magic, sizeof(u32), 1, f);
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&file_magic);
+#endif
 	fclose(f);
 	return(file_magic == ONS_CRYPTO_BLOCK_MAGIC);
 }
@@ -135,7 +155,7 @@ Bool ons_check_cblock(char *file)
  *
  * This computes a Message Digest from \a file (minus the ONSCrypto block, if it exists), including
  * \a user_data[] if non-NULL, of length \a user_data_len.  For the ONS DSS, this should be a U32
- * containing a sequential signature ID to tie the signature event to the meta-data in the file.  The
+ * containing a sequential signature ID (in LSB format) to tie the signature event to the meta-data in the file.  The
  * length of the MD depends on the algorithm being used, and the returned buffer has no sentinals; use
  * \a *nBytes as a length count.  The memory returned should be free()d by the caller after use.
  *
@@ -308,6 +328,9 @@ OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf)
 	fclose(f);
 	
 	file_magic = *((u32*)(buffer + ONS_CRYPTO_SIG_MAGIC_OFF));
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&file_magic);
+#endif
 	if (file_magic != ONS_CRYPTO_BLOCK_MAGIC) {
 
 #ifdef __DEBUG__
@@ -330,6 +353,9 @@ OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf)
 #endif
 
 	file_crc = *((u32*)(buffer + ONS_CRYPTO_SIG_SIG_OFF + sig_len));
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&file_crc);
+#endif
 	sig_crc = crc32_calc_buffer(buffer+ONS_CRYPTO_SIG_SIGID_OFF, sig_len+sizeof(u32));
 #ifdef __DEBUG__
 	fprintf(stderr, "debug: signature ID is: 0x%08x\n", *((u32*)(buffer+ONS_CRYPTO_SIG_SIGID_OFF)));
@@ -348,7 +374,17 @@ OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf)
 		return(ONS_CRYPTO_BAD_SIG_BLOCK);
 	}
 	*sigid = *((u32*)(buffer + ONS_CRYPTO_SIG_SIGID_OFF));
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)sigid);
+#endif
+
 	*((u32*)(buffer+ONS_CRYPTO_SIG_SIG_OFF+sig_len)) = crc32_calc_buffer(buffer + ONS_CRYPTO_SIG_SIG_OFF, sig_len);
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)(buffer+ONS_CRYPTO_SIG_SIG_OFF+sig_len));
+#endif
+
 	memcpy(sig, buffer + ONS_CRYPTO_SIG_SIG_OFF, sig_len + 4 /* CRC */);
 	return(ONS_CRYPTO_SIG_OK);
 }
@@ -382,6 +418,11 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 	fprintf(stderr, "debug: signature CRC32 = 0x%x\n", crc);
 #endif
 	sig_crc = *((u32*)(sig + sig_len));
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&sig_crc);
+#endif
+
 	if (sig_crc != crc) {
 		fprintf(stderr, "error: CRC passed in for signature doesn't match (IN(%08X) != %08X).\n",
 			sig_crc, crc);
@@ -389,8 +430,18 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 	}
 	memset(buffer, 0, ONS_CRYPTO_SIG_BLOCK_SIZE);
 	*((u32*)(buffer + ONS_CRYPTO_SIG_MAGIC_OFF)) = ONS_CRYPTO_BLOCK_MAGIC;
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)(buffer + ONS_CRYPTO_SIG_MAGIC_OFF));
+#endif
+
 	buffer[ONS_CRYPTO_SIG_VER_OFF] = ONS_CRYPTO_BLOCK_CUR_VER;
 	*((u32*)(buffer + ONS_CRYPTO_SIG_SIGID_OFF)) = sigid;
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)(buffer + ONS_CRYPTO_SIG_SIGID_OFF));
+#endif
+
 	memcpy(buffer + ONS_CRYPTO_SIG_SIG_OFF, sig, sig_len);
 
 #ifdef __DEBUG__
@@ -409,6 +460,11 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 	}
 	fseek(f, -ONS_CRYPTO_SIG_BLOCK_SIZE, SEEK_END);
 	fread(&file_magic, sizeof(u32), 1, f);
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&file_magic);
+#endif
+
 	if (file_magic != ONS_CRYPTO_BLOCK_MAGIC) {
 		/* No signature in file, wind to end and write magic number */
 		fseek(f, 0, SEEK_END);
@@ -418,6 +474,11 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 	/* Compute the file-based CRC32 to protect the SigID and signature */
 	*((u32*)(buffer + ONS_CRYPTO_SIG_SIG_OFF + sig_len)) =
 		crc32_calc_buffer(buffer + ONS_CRYPTO_SIG_SIGID_OFF, sig_len + sizeof(u32));
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)(buffer + ONS_CRYPTO_SIG_SIG_OFF + sig_len));
+#endif
+
 #ifdef __DEBUG__
 	fprintf(stderr, "debug: file CRC32 = 0x%x\n", *((u32*)(buffer+ONS_CRYPTO_SIG_SIG_OFF+sig_len)));
 #endif
@@ -744,6 +805,11 @@ static u8 *ons_key_to_int(dsaparam *param, mpnumber *key)
 	memcpy(rtn + offset, ing, ing[0] + 1); offset += ing[0] + 1;
 	memcpy(rtn + offset, ink, ink[0] + 1); offset += ink[0] + 1;
 	*((u32*)(rtn + offset)) = crc32_calc_buffer(rtn, nbytes);
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)(rtn + offset));
+#endif
+
 	free(inp); free(inq); free(ing); free(ink);	
 	return(rtn);
 }
@@ -878,6 +944,9 @@ static u8 *ons_sig_to_int(mpnumber *r, mpnumber *s)
 	memcpy(rtn + offset, inr, inr[0] + 1); offset += inr[0] + 1;
 	memcpy(rtn + offset, ins, ins[0] + 1); offset += ins[0] + 1;
 	*((u32*)(rtn + offset)) = crc32_calc_buffer(rtn, nbytes);
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)(rtn + offset));
+#endif
 	return(rtn);
 }
 
@@ -898,6 +967,11 @@ static OnsCryptErr ons_int_to_sig(u8 *sig, mpnumber **r, mpnumber **s)
 	
 	sig_len = ons_compute_int_len(sig);
 	sig_crc = *((u32*)(sig + sig_len));
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&sig_crc);
+#endif
+
 	in_crc = crc32_calc_buffer(sig, sig_len);
 	if (sig_crc != in_crc) {
 		fprintf(stderr, "error: failed CRC32 check on signature on input.\n");
@@ -983,8 +1057,8 @@ u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd)
  * This digests a file, adds the \a user_data[] element, and then computes the signature
  * for the block using the key in \a skey[].  The signature is returned in internal ONS
  * bytestream format, including the trailing CRC32 to protect the contents in transit.  For
- * the ONS signature structure, the user data should be an unsigned integer reference that
- * ties this signature event into the meta-data for the file.
+ * the ONS signature structure, the user data should be an unsigned integer reference in LSB format
+ * that ties this signature event into the meta-data for the file.
  *
  * \param	*name			Name of the file to read and digest.
  * \param	*user_data		Pointer to the user-data to add to the digest.
@@ -1058,11 +1132,11 @@ Bool ons_sign_file(char *name, u8 *skey, u32 sigid)
 
 Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len)
 {
-	mpnumber	*r, *s, *g, *y, md;
-	mpbarrett	*p, *q;
+	mpnumber	*r = NULL, *s = NULL, *g = NULL, *y = NULL, md;
+	mpbarrett	*p = NULL, *q = NULL;
 	Bool		rc;
 	
-	if (!ons_int_to_sig(sig, &r, &s)) {
+	if (ons_int_to_sig(sig, &r, &s) != ONS_CRYPTO_OK) {
 		fprintf(stderr, "error: failed to convert signature to check format.\n");
 		return(False);
 	}
@@ -1078,8 +1152,12 @@ Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len)
 		fprintf(stderr, "error: verification failed.\n");
 	} else
 		rc = True;
-	mpnfree(r); free(r); mpnfree(s); free(s); mpnfree(y); free(y);
-	mpbfree(p); free(p); mpbfree(q); free(q); mpnfree(g); free(g);
+	if (r != NULL) { mpnfree(r); free(r); }
+	if (s != NULL) { mpnfree(s); free(s); }
+	if (y != NULL) { mpnfree(y); free(y); }
+	if (p != NULL) { mpbfree(p); free(p); }
+	if (q != NULL) { mpbfree(q); free(q); }
+	if (g != NULL) { mpnfree(g); free(g); }
 	return(rc);
 }
 
@@ -1183,6 +1261,11 @@ u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
 	/* Check that the input seckey is a valid internal format (CRC32) */
 	crc = crc32_calc_buffer(seckey, seckey_len);
 	in_crc = *((u32*)(seckey + seckey_len));
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&in_crc);
+#endif
+
 	if (crc != in_crc) {
 		fprintf(stderr, "error: CRC32 check failed on input secret key for AES encryption.\n");
 		return(NULL);
@@ -1239,6 +1322,10 @@ u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
 	
 	/* Tag end of sequence with CRC32 to provide some transmission protection */
 	*((u32*)dst) = crc32_calc_buffer(rtn, nbytes-4);
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)dst);
+#endif
 	
 	return(rtn);
 }
@@ -1266,6 +1353,11 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 	
 	crc = crc32_calc_buffer(ctext, nin-4);
 	in_crc = *((u32*)(ctext + nin - 4));
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&in_crc);
+#endif
+
 	if (crc != in_crc) {
 		fprintf(stderr, "error: AES256 ciphertext CRC32 failed check on input --- corrupt key?\n");
 		*errc = ONS_CRYPTO_BAD_KEY;
@@ -1289,6 +1381,7 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 	if (aesSetup(&param, aeskey, 256, DECRYPT) != 0) {
 		fprintf(stderr, "error: failed to initialise AES for decryption of secret key.\n");
 		free(buffer);
+		*errc = ONS_CRYPTO_ERR;
 		return(NULL);
 	}
 	
@@ -1297,6 +1390,7 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 		if (aesDecrypt(&param, (u32*)dst, (u32*)src) != 0) {
 			fprintf(stderr, "error: failed to decrypt block %d of secret key.\n", block);
 			free(buffer);
+			*errc = ONS_CRYPTO_ERR;
 			return(NULL);
 		}
 		for (b = 0; b < 16; ++b)
@@ -1305,16 +1399,29 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 	}	
 	
 	/* Size output, allocate final return space and compute CRC */
+	if ((u32)buffer[0] != 4) {
+		fprintf(stderr, "error: decrypted secret key is not a valid secret key.\n");
+		free(buffer);
+		*errc = ONS_CRYPTO_BAD_KEY;
+		return(NULL);
+	}
 	seckey_len = ons_compute_int_len(buffer);
 	nbytes = seckey_len + 4 /* CRC */;
 	if ((rtn = (u8*)malloc(nbytes)) == NULL) {
 		fprintf(stderr, "error: failed to get memory for output secret key.\n");
 		free(buffer);
+		*errc = ONS_CRYPTO_ERR;
 		return(NULL);
 	}
 	memcpy(rtn, buffer, seckey_len);
 	*((u32*)(rtn + seckey_len)) = crc32_calc_buffer(buffer, seckey_len);
+
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)(rtn + seckey_len));
+#endif
+
 	free(buffer);
-	
+	*errc = ONS_CRYPTO_OK;
+
 	return(rtn);
 }
