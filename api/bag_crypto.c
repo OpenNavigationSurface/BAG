@@ -82,6 +82,25 @@ static bagError bagTranslateCryptoError(OnsCryptErr errcode)
 	return(rc);
 }
 
+#ifdef __BAG_BIG_ENDIAN__
+/*! \brief Swap four-byte entities end for end.
+ *
+ * This swaps 32-bit numbers endian-ness (LSB <-> MSB) if required.  The swap is done in-place.
+ * The internal code of all ONS crypto entities are LSB by default, so this code only gets
+ * compiled in if the code is being compiled for MSB systems).
+ *
+ * \param	*elem	Pointer to the data structure to swap.
+ * \return			None.
+ */
+ 
+static void swap_4(void *elem)
+{
+	u8	swap, *buffer = (u8*)elem;
+	
+	swap = buffer[0]; buffer[0] = buffer[3]; buffer[3] = swap;
+	swap = buffer[1]; buffer[1] = buffer[2]; buffer[2] = swap;
+}
+#endif
 
 /*! \brief Compute the cryptographic Message Digest for a named file.
  *
@@ -98,6 +117,9 @@ static bagError bagTranslateCryptoError(OnsCryptErr errcode)
 
 u8 *bagComputeMessageDigest(char *file, u32 signatureID, u32 *nBytes)
 {
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&signatureID);
+#endif
 	return(ons_gen_digest(file, (u8*)&signatureID, sizeof(u32), nBytes));
 }
 
@@ -205,6 +227,9 @@ Bool bagVerifyCertification(u8 *sig, u8 *pubKey, u8 *md, u32 mdLen)
  
 u8 *bagComputeFileSignature(char *name, u32 sigID, u8 *secKey)
 {
+#ifdef __BAG_BIG_ENDIAN__
+	swap_4((void*)&sigID);
+#endif
  	return(ons_compute_signature(name, (u8*)sigID, sizeof(u32), secKey));
 }
 
