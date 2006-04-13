@@ -539,9 +539,13 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         return (BAG_MEMORY_ALLOCATION_FAILED);
     }
 
-    if ((status = bagReadXMLStream  ((* bag_handle))) < 0)
+    /* MP - Removed a simple direct read of the XML data and called the full XML parsing function.
+            Previously this wasn't being called so parts of the bag definition structure we not 
+            being properly filled. 
+    */
+    if( (status = bagInitDefinitionFromBag( *bag_handle )) < 0 )
     {
-        return (status);
+        return status;
     }
 
     return (BAG_SUCCESS);
