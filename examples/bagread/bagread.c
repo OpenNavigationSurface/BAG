@@ -2,7 +2,10 @@
 	purpose:  sample programs to read and dump to stdout a bag.
 	authors:  dave fabre, onswg, 7/05  
                   webb mcdonald, 08/05
-                  Mark Paton, 11/05     - Some simple cleanup and build support
+                  Mark Paton, 11/05   - Some simple cleanup and build support
+                  Mark Paton, 04/06   - Significant enhancements, ability to export to
+                                        ArcGis Ascii files, and export the XML component of
+                                        the bag file.
 */
 
 #include <stdio.h>
@@ -10,46 +13,82 @@
 #include "bag.h" 
 
 /******************************************************************************/
+
+int ProcessCommandInput( int argc, char **argv, char *gisFile, char *xmlFile, char *bagFile, int *summaryOnly );
+
+
 int main( int argc, char **argv )
 {
     bagHandle hnd;
     u32 i, j;
     bagError stat;
     f32 *data = NULL;
-    
+    char gisExportFileName[512], xmlFileName[512], bagFileName[512];
+    int summaryOnly;
+    FILE *oFile;
+
+    gisExportFileName[0] = '\0';
+    xmlFileName[0]       = '\0';
+    bagFileName[0]       = '\0';
+    summaryOnly = 0;    // By default verbosly output information to standard out
+
     if ( argc < 2 )
     {
-        printf("usage:  %s <bagFilename>\n", argv[0]);
+        printf("usage:  %s [-e arcgisAsciiFileName ] [-xml xmlFileName ] <bagFilename>\n", argv[0]);
         return EXIT_FAILURE;
     }
+    ProcessCommandInput( argc, argv, gisExportFileName, xmlFileName, bagFileName, &summaryOnly );
 
-    fprintf( stdout, "trying to open: {%s}...\n", argv[1] );
+    if( bagFileName[0] == '\0' )
+    {
+        printf( "Error: No bag input file specified. Exiting.\n" );
+        exit(-1);
+    }
+    else
+    {
+        printf( "Input BAG file: %s\n", bagFileName );
+    }
+
+    fprintf( stdout, "trying to open: {%s}...\n", bagFileName );
     fflush( stdout );
-    stat = bagFileOpen (&hnd, BAG_OPEN_READ_WRITE, argv[1]);
-    
+
+    stat = bagFileOpen (&hnd, BAG_OPEN_READ_WRITE, bagFileName);
     if (stat != BAG_SUCCESS)
     {
         fprintf(stderr, "bag file unavailable ! %d\n", stat);
         fflush(stderr);
         return EXIT_FAILURE;
     }
-
-
     printf("bagFileOpen status = %d\n", stat);
     
-    printf("BAG extents: %dx%d\n", bagGetDataPointer(hnd)->def.nrows, bagGetDataPointer(hnd)->def.ncols);
+    printf("BAG row/column extents: %dx%d\n", bagGetDataPointer(hnd)->def.nrows, bagGetDataPointer(hnd)->def.ncols);
     
-    stat = bagReadXMLStream( hnd );
-
-    /*
+    /* Read the XML Metadata from the BAG file:
        Note that the metadata is not null terminated so the printf will probably
        print a bunch of junk at the end of the XML file.
     */
-    printf("stat for bagReadDataset(Metadata) = %d\n", stat);
-    printf("metadata = {%s}\n\n", bagGetDataPointer(hnd)->metadata);
+/*
+    stat = bagReadXMLStream( hnd );
+    printf("status for bagReadDataset(Metadata) = %d\n", stat);
+*/
+    if( !summaryOnly )    /* Don't display if just the summary is requested */
+    {
+        printf("metadata = {%s}\n\n", bagGetDataPointer(hnd)->metadata);
+    }
 
-    /* uses ReadRow */
-    if (1)
+    if( xmlFileName[0] != '\0' )   /* Check request to export the XML Metadata to a file */
+    {
+        if( (oFile = fopen( xmlFileName, "wb" )) == NULL )
+        {
+            fprintf( stderr, "ERROR: Opening file %s for XML export\n", xmlFileName );
+            exit(-1);
+        }
+        fprintf( oFile, "%s", bagGetDataPointer(hnd)->metadata );
+        fclose( oFile );
+    }
+
+    /* Read data using the ReadRow method */
+    if( !summaryOnly )      // Display heights and uncertainties 
     {
         fprintf(stdout, "Elevation:=  {\n\t");
         fflush(stdout);
@@ -87,7 +126,63 @@ int main( int argc, char **argv )
         fprintf(stdout, "\n\t}\n");
         fflush(stdout);
     } 
+    
+    if( gisExportFileName[0] != '\0' )
+    {
+        /* This is similar to the code above but I choose to implement the export
+           separately to keep the code easier to read which is suible for a sample
+           demonstration application. 
+        *** */
+        char outName[512];
+        /* Export the height data to <file>_heights.asc */
+        sprintf( outName, "%s_heights.asc", gisExportFileName );
+        if( (oFile = fopen( outName, "wb" )) == NULL )
+        {
+            fprintf( stderr, "ERROR: Opening file %s for height data export\n", outName );
+            exit(-1);
+        }
+        fprintf( oFile, "ncols %d\n", bagGetDataPointer(hnd)->def.ncols );
+        fprintf( oFile, "nrows %d\n", bagGetDataPointer(hnd)->def.nrows );
+        fprintf( oFile, "xllcenter %lf\n", bagGetDataPointer(hnd)->def.swCornerX );
+        fprintf( oFile, "yllcenter %lf\n", bagGetDataPointer(hnd)->def.swCornerY);
+        fprintf( oFile, "cellsize %lf\n", bagGetDataPointer(hnd)->def.nodeSpacingX );
+        data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32));
+        for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++)
+        {
+            bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Elevation, data);
+            for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
+            {
+                fprintf(oFile, "%0.3f\t", data[j]);
+            }
+            fprintf(oFile, "\n");
+        }
+        free(data);
+        fclose( oFile );
 
+        /* Export the uncertainty data to <file>_heights.asc */
+        sprintf( outName, "%s_uncrt.asc", gisExportFileName );
+        if( (oFile = fopen( outName, "wb" )) == NULL )
+        {
+            fprintf( stderr, "ERROR: Opening file %s for height data export\n", outName );
+            exit(-1);
+        }
+        fprintf( oFile, "ncols %d\n", bagGetDataPointer(hnd)->def.ncols );
+        fprintf( oFile, "nrows %d\n", bagGetDataPointer(hnd)->def.nrows );
+        fprintf( oFile, "xllcenter %lf\n", bagGetDataPointer(hnd)->def.swCornerX );
+        fprintf( oFile, "yllcenter %lf\n", bagGetDataPointer(hnd)->def.swCornerY);
+        fprintf( oFile, "cellsize %lf\n", bagGetDataPointer(hnd)->def.nodeSpacingX );
+        data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32));
+        for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++)
+        {
+            bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Uncertainty, data);
+            for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
+            {
+                fprintf(oFile, "%0.3f\t", data[j]);
+            }
+            fprintf(oFile, "\n");
+        }
+        free(data);
+    }
 
     /* uses ReadDataset - reads the data arrays in one shot - an alternate method to read the data */
 /*
@@ -154,5 +249,65 @@ int main( int argc, char **argv )
     return EXIT_SUCCESS;
 
 } /* main */
+
+int ProcessCommandInput( int argc, char **argv, char *gisFile, char *xmlFile, char *bagFile, int *summaryOnly )
+{
+    int i;
+
+    i = 1;
+    while( i < argc )   // Process until done
+    {
+        if( strcmp( argv[i], "-e") == 0 )
+        {
+            if( i < (argc-1) )
+            {
+                strncpy( gisFile, argv[i+1], 511 );
+            }
+            else
+            {
+                fprintf( stderr, "ERROR: Missing filename for the -e option\n" );
+                exit(-1);
+            }
+            i += 2;
+        }
+        else if( strcmp( argv[i], "-xml" ) == 0 )
+        {
+            if( i < (argc-1) )
+            {
+                strncpy( xmlFile, argv[i+1], 511 );
+            }
+            else
+            {
+                fprintf( stderr, "ERROR: Missing filename for the -xml option\n" );
+                exit(-1);
+            }
+            i += 2;            
+        }
+        else if( strcmp( argv[i], "-summary" ) == 0 )
+        {
+            *summaryOnly = 1;    /* Set flag to indicate that only a summary of output is desired */
+            i++;
+        }
+        else if( strcmp( argv[i], "-h" ) == 0 )
+        {
+            printf("usage: bagread [-summary ] [-e arcgisAsciiBaseName ] [-xml xmlFileName ] <bagFilename>\n" );
+            printf("    If -summary is given the XML and data arrays will not be displayed on the screen. The\n" );
+            printf("-e option writes out two ArcGIS compatible ascii files for the height and uncertainty\n" );
+            printf(" data. The files use the supplied filename and add _height.asc and _uncrt.asc for the\n" );
+            printf("two exported.grids. The -xml option writes the XML metadata to the specified filename.\n\n" );
+            exit( 0 );
+        }
+        else
+        {
+            if( argv[i][0] == '-' )
+            {
+                fprintf( stderr, "ERROR: Unexpected command line parameter: %s\n", argv[i] );
+                exit( -1 );
+            }
+            strncpy( bagFile, argv[i], 511 );
+            i++;
+        }
+    }
+}
 
 
