@@ -51,7 +51,7 @@ unix {
 	DESTDIR = ../bin/$(HOSTMACHINE)/
 	QMAKE_CFLAGS += ${IVSCOPTS} 
 	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
-        EXTLIBDIR= ../../extlibs/lib/$(HOSTMACHINE) ../../lib
+        EXTLIBDIR= ../../extlibs/lib/$(HOSTMACHINE) ../../lib/$(HOSTMACHINE)
         SYSOBJFILES= 
 	QMAKE_LIBDIR += ../../libsrc/lib/$(HOSTMACHINE) $$EXTLIBDIR
     macx {
