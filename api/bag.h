@@ -258,8 +258,8 @@ typedef struct t_bagTrackingItem
 {
     u32 row;         /* location of the node of the BAG that was modified      */
     u32 col;
-    f64 depth;       /* original depth before this change                      */
-    f64 uncertainty; /* original uncertainty before this change                */
+    f32 depth;       /* original depth before this change                      */
+    f32 uncertainty; /* original uncertainty before this change                */
     u8  track_code;  /* reason code indicating why the modification was made   */
     u16 list_series; /* index number indicating the item in the metadata that */
                      /* describes the modifications                            */
