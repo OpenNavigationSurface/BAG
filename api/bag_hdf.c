@@ -221,16 +221,12 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     }
     status = H5Tinsert (datatype_id, "row", HOFFSET(bagTrackingItem, row), H5T_NATIVE_UINT);
     status = H5Tinsert (datatype_id, "col", HOFFSET(bagTrackingItem, col), H5T_NATIVE_UINT);
-    status = H5Tinsert (datatype_id, "depth", HOFFSET(bagTrackingItem, depth), H5T_NATIVE_DOUBLE);
-    status = H5Tinsert (datatype_id, "uncertainty", HOFFSET(bagTrackingItem, uncertainty), H5T_NATIVE_DOUBLE);
+    status = H5Tinsert (datatype_id, "depth", HOFFSET(bagTrackingItem, depth), H5T_NATIVE_FLOAT);
+    status = H5Tinsert (datatype_id, "uncertainty", HOFFSET(bagTrackingItem, uncertainty), H5T_NATIVE_FLOAT);
     status = H5Tinsert (datatype_id, "track_code", HOFFSET(bagTrackingItem, track_code), H5T_NATIVE_UCHAR);
     status = H5Tinsert (datatype_id, "list_series", HOFFSET(bagTrackingItem, list_series), H5T_NATIVE_SHORT);
     check_hdf_status();
 
-   /*  status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC); */
-/*     status = H5Pset_fill_value (plist_id, datatype_id, &null_elv); */
-/*     check_hdf_status(); */
-    
     if ((cparms = H5Pcreate (H5P_DATASET_CREATE)) < 0)
     {
         status = H5Fclose (file_id);
