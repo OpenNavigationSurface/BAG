@@ -767,7 +767,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
 bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, 
                         u32 end_row, u32 end_col, s32 type)
 {
-    s32 i;
+    u32 i;
     bagError status;
 
     if (hnd == NULL)

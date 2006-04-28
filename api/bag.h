@@ -203,7 +203,7 @@ enum BAG_COORD_UNITS {
         BAG_COORD_UNITS_METERS  =  2                  /* values in XY array are projected in meters      */
 };
     
-typedef u32 bagError;
+typedef s32 bagError;
 
 typedef enum 
 {
