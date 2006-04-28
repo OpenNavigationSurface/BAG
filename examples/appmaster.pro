@@ -28,7 +28,7 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= 
 LANGUAGE = C++
-CONFIG	+= warn_off 
+#CONFIG	+= warn_off 
 CONFIG  -= qt
 
 win32 {
@@ -49,7 +49,7 @@ unix {
 	message( In appmaster.pro for the general unix platform )
 	OBJECTS_DIR = .obj/$(HOSTMACHINE)
 	DESTDIR = ../bin/$(HOSTMACHINE)/
-	QMAKE_CFLAGS += ${IVSCOPTS} 
+	QMAKE_CFLAGS += ${IVSCOPTS} -Wall
 	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
         EXTLIBDIR= ../../extlibs/lib/$(HOSTMACHINE) ../../lib/$(HOSTMACHINE)
         SYSOBJFILES= 
