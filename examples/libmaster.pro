@@ -26,9 +26,9 @@ unix {
 DEFINES	+= 
 LANGUAGE = C++
 #UI_DIR   = .ui
-#CONFIG	+= qt warn_off debug opengl
-#CONFIG	+= qt warn_off debug 
-CONFIG	+= warn_off staticlib debug
+#CONFIG	+= qt debug opengl
+#CONFIG	+= qt debug 
+CONFIG	+= staticlib debug
 CONFIG  -= qt
 
 win32 {
@@ -49,8 +49,8 @@ unix {
 	message( In libmaster.pro for the general unix platform )
 #	MOC_DIR = .moc/$(HOSTMACHINE)
 	OBJECTS_DIR = .obj/$(HOSTMACHINE)
-	QMAKE_CFLAGS += ${IVSCOPTS} 
-	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
+	QMAKE_CFLAGS += ${IVSCOPTS} -Wall
+	QMAKE_CXXFLAGS += ${IVSCCOPTS2} -Wall
 	DESTDIR = ../lib/$(HOSTMACHINE)/
     macx {
 	    message( In libmaster.pro for the Macintosh platform )
