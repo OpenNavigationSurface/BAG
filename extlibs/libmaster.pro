@@ -25,7 +25,7 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= 
 LANGUAGE = C++
-CONFIG	+= warn_off debug
+CONFIG	+= debug
 CONFIG  -= qt
 
 win32 {
@@ -44,8 +44,8 @@ win32 {
 unix {
 	message( In libmaster.pro for the general unix platform )
 	OBJECTS_DIR = .obj/$(HOSTMACHINE)
-	QMAKE_CFLAGS += ${IVSCOPTS} 
-	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
+	QMAKE_CFLAGS += ${IVSCOPTS}  -Wall
+	QMAKE_CXXFLAGS += ${IVSCCOPTS2}  -Wall
 	DESTDIR = ../lib/$(HOSTMACHINE)/
     macx {
 	    message( In libmaster.pro for the Macintosh platform )
