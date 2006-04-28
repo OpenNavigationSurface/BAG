@@ -1,12 +1,12 @@
-/*************************************************************************/
-//      File:    ons_xml.h
-//
-//      Open Navigation Surface Working Group, 2005
-//
-//      - Initial implementation
-//        Bill Lamey, 7/20/2005
-//
-/************************************************************************/
+/*************************************************************************
+        File:    ons_xml.h
+  
+        Open Navigation Surface Working Group, 2005
+  
+        - Initial implementation
+          Bill Lamey, 7/20/2005
+  
+*************************************************************************/
 #ifndef ONS_BAG_XML_H
 #define ONS_BAG_XML_H
 

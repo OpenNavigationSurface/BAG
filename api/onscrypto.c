@@ -45,13 +45,13 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include "aes.h"
-#include "dsa.h"
-#include "sha1.h"
-#include "sha256.h"
+#include "beecrypt/aes.h"
+#include "beecrypt/dsa.h"
+#include "beecrypt/sha1.h"
+#include "beecrypt/sha256.h"
 #include "crc32.h"
-#include "mpnumber.h"
-#include "mpbarrett.h"
+#include "beecrypt/mpnumber.h"
+#include "beecrypt/mpbarrett.h"
 
 #define DEFAULT_MD_BUFFER_LEN	40960			/*!< The default length of blocks to digest in the Message Digest */
 #define DEFAULT_KEY_LEN		1024				/*!< Maximum bit length allowed for asymmetric keys */
@@ -356,7 +356,7 @@ OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf)
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)&file_crc);
 #endif
-	sig_crc = crc32_calc_buffer(buffer+ONS_CRYPTO_SIG_SIGID_OFF, sig_len+sizeof(u32));
+	sig_crc = crc32_calc_buffer((char *)buffer+ONS_CRYPTO_SIG_SIGID_OFF, sig_len+sizeof(u32));
 #ifdef __DEBUG__
 	fprintf(stderr, "debug: signature ID is: 0x%08x\n", *((u32*)(buffer+ONS_CRYPTO_SIG_SIGID_OFF)));
 	fprintf(stderr, "debug: signature is: ");
@@ -379,7 +379,7 @@ OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf)
 	swap_4((void*)sigid);
 #endif
 
-	*((u32*)(buffer+ONS_CRYPTO_SIG_SIG_OFF+sig_len)) = crc32_calc_buffer(buffer + ONS_CRYPTO_SIG_SIG_OFF, sig_len);
+	*((u32*)(buffer+ONS_CRYPTO_SIG_SIG_OFF+sig_len)) = crc32_calc_buffer((char *)buffer + ONS_CRYPTO_SIG_SIG_OFF, sig_len);
 
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)(buffer+ONS_CRYPTO_SIG_SIG_OFF+sig_len));
@@ -413,7 +413,7 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 #ifdef __DEBUG__
 	fprintf(stderr, "debug: signature length = %d bytes.\n", sig_len);
 #endif
-	crc = crc32_calc_buffer(sig, sig_len);
+	crc = crc32_calc_buffer((char *)sig, sig_len);
 #ifdef __DEBUG__
 	fprintf(stderr, "debug: signature CRC32 = 0x%x\n", crc);
 #endif
@@ -473,7 +473,7 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 	}
 	/* Compute the file-based CRC32 to protect the SigID and signature */
 	*((u32*)(buffer + ONS_CRYPTO_SIG_SIG_OFF + sig_len)) =
-		crc32_calc_buffer(buffer + ONS_CRYPTO_SIG_SIGID_OFF, sig_len + sizeof(u32));
+          crc32_calc_buffer((char *)buffer + ONS_CRYPTO_SIG_SIGID_OFF, sig_len + sizeof(u32));
 
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)(buffer + ONS_CRYPTO_SIG_SIG_OFF + sig_len));
@@ -804,7 +804,7 @@ static u8 *ons_key_to_int(dsaparam *param, mpnumber *key)
 	memcpy(rtn + offset, inq, inq[0] + 1); offset += inq[0] + 1;
 	memcpy(rtn + offset, ing, ing[0] + 1); offset += ing[0] + 1;
 	memcpy(rtn + offset, ink, ink[0] + 1); offset += ink[0] + 1;
-	*((u32*)(rtn + offset)) = crc32_calc_buffer(rtn, nbytes);
+	*((u32*)(rtn + offset)) = crc32_calc_buffer((char *)rtn, nbytes);
 
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)(rtn + offset));
@@ -943,7 +943,7 @@ static u8 *ons_sig_to_int(mpnumber *r, mpnumber *s)
 	rtn[0] = 2; offset = 1;
 	memcpy(rtn + offset, inr, inr[0] + 1); offset += inr[0] + 1;
 	memcpy(rtn + offset, ins, ins[0] + 1); offset += ins[0] + 1;
-	*((u32*)(rtn + offset)) = crc32_calc_buffer(rtn, nbytes);
+	*((u32*)(rtn + offset)) = crc32_calc_buffer((char *)rtn, nbytes);
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)(rtn + offset));
 #endif
@@ -972,7 +972,7 @@ static OnsCryptErr ons_int_to_sig(u8 *sig, mpnumber **r, mpnumber **s)
 	swap_4((void*)&sig_crc);
 #endif
 
-	in_crc = crc32_calc_buffer(sig, sig_len);
+	in_crc = crc32_calc_buffer((char *)sig, sig_len);
 	if (sig_crc != in_crc) {
 		fprintf(stderr, "error: failed CRC32 check on signature on input.\n");
 		return(ONS_CRYPTO_ERR);
@@ -1230,7 +1230,7 @@ u8 *ons_phrase_to_key(char *phrase)
 		return(NULL);
 	}
 	sha256Reset(&param);
-	sha256Update(&param, phrase, strlen(phrase));
+	sha256Update(&param, (unsigned char *) phrase, strlen(phrase));
 	sha256Digest(&param, rtn);
 	return(rtn);
 }
@@ -1259,7 +1259,7 @@ u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
 	
 	seckey_len = ons_compute_int_len(seckey);
 	/* Check that the input seckey is a valid internal format (CRC32) */
-	crc = crc32_calc_buffer(seckey, seckey_len);
+	crc = crc32_calc_buffer((char *)seckey, seckey_len);
 	in_crc = *((u32*)(seckey + seckey_len));
 
 #ifdef __BAG_BIG_ENDIAN__
@@ -1321,7 +1321,7 @@ u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
 	}
 	
 	/* Tag end of sequence with CRC32 to provide some transmission protection */
-	*((u32*)dst) = crc32_calc_buffer(rtn, nbytes-4);
+	*((u32*)dst) = crc32_calc_buffer((char *)rtn, nbytes-4);
 
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)dst);
@@ -1351,7 +1351,7 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 	u32			crc, in_crc, block, n_blocks, seckey_len, nbytes, b;
 	aesParam	param;
 	
-	crc = crc32_calc_buffer(ctext, nin-4);
+	crc = crc32_calc_buffer((char *)ctext, nin-4);
 	in_crc = *((u32*)(ctext + nin - 4));
 
 #ifdef __BAG_BIG_ENDIAN__
@@ -1414,7 +1414,7 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 		return(NULL);
 	}
 	memcpy(rtn, buffer, seckey_len);
-	*((u32*)(rtn + seckey_len)) = crc32_calc_buffer(buffer, seckey_len);
+	*((u32*)(rtn + seckey_len)) = crc32_calc_buffer((char *)buffer, seckey_len);
 
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)(rtn + seckey_len));

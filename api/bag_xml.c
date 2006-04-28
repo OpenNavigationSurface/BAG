@@ -119,7 +119,7 @@ bagError bagInitDefinition(
     if (error != BAG_SUCCESS)
     {
         char *errstr;
-        if (bagGetErrorString (error, &errstr) == BAG_SUCCESS)
+        if (bagGetErrorString (error, (u8 **)&errstr) == BAG_SUCCESS)
         {
             fprintf(stderr, "Error in metadata initialization: {%s}\n", errstr);
             fflush(stderr);
@@ -208,7 +208,7 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
     /* attach the XML stream to the structure */
     bufferLen = XML_METADATA_MAX_LENGTH;
     data->metadata = malloc(sizeof(char) * bufferLen);
-    error = bagGetXMLBuffer(metaData, data->metadata, &bufferLen);
+    error = bagGetXMLBuffer(metaData, (char *)data->metadata, &bufferLen);
 
     /* free the meta data */
     bagFreeMetadata(metaData);
@@ -241,8 +241,8 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     if (bufferSize >= XML_METADATA_MAX_LENGTH)
         return BAG_METADTA_BUFFER_EXCEEDED;
 
-    chng = (bufferMetaData == NULL || strlen(lastBuffer) == 0 ||
-            strncmp (lastBuffer, buffer, XML_METADATA_MAX_LENGTH) != 0);
+    chng = (bufferMetaData == NULL || strlen((char *)lastBuffer) == 0 ||
+            strncmp ((char *)lastBuffer, (char *)buffer, XML_METADATA_MAX_LENGTH) != 0);
 
     /* we will recycle lastBuffer and bufferMetaData if buffer has not changed */
     if (chng)
@@ -253,7 +253,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
             bufferMetaData = NULL;
         }
 
-        strncpy (lastBuffer, buffer, bufferSize);
+        strncpy (lastBuffer, (char *)buffer, bufferSize);
 
         /* need to make sure that the buffer is NULL terminated. */
         lastBuffer[bufferSize] = '\0';
@@ -290,8 +290,8 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
             data->metadata = tmp;
         else
             return BAG_MEMORY_ALLOCATION_FAILED;
-        strncpy(data->metadata, buffer, bufferLen);
-        //error = bagGetXMLBuffer(bufferMetaData, data->metadata, &bufferLen);
+        strncpy((char *)data->metadata, (char *)buffer, bufferLen);
+        /*error = bagGetXMLBuffer(bufferMetaData, data->metadata, &bufferLen);*/
     }
 
     return error;
@@ -312,6 +312,6 @@ bagError bagInitDefinitionFromBag(bagHandle hnd)
     else
     {
         pData = bagGetDataPointer(hnd);
-        return bagInitDefinitionFromBuffer(pData, pData->metadata, strlen(pData->metadata));
+        return bagInitDefinitionFromBuffer(pData, pData->metadata, strlen((char *)pData->metadata));
     }
 }

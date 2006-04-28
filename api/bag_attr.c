@@ -97,7 +97,7 @@ bagError bagCreateAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, u32 max
     }
 
     /*! Writing out the object metadata */
-    attribute_id= H5Acreate(loc_id, attr_name, 
+    attribute_id= H5Acreate(loc_id, (char *)attr_name, 
                             datatype_id, dataspace_id, H5P_DEFAULT);
     if (attribute_id < 0)
     {
@@ -166,13 +166,13 @@ bagError bagReadAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, void *val
 bagError bagAlignAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name, 
                             void *data, u32 read_or_write)
 {    
-    herr_t   status;
+    herr_t   status = 0;
     hid_t    attribute_id, datatype_id;
 
     if (data == NULL)
         return BAG_HDF_CANNOT_WRITE_NULL_DATA;
 
-    attribute_id = H5Aopen_name (loc_id, (const u8 *)attr_name);
+    attribute_id = H5Aopen_name (loc_id, (char *)attr_name);
     if (attribute_id < 0)
         return BAG_HDF_ATTRIBUTE_OPEN_FAILURE;
 

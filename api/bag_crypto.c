@@ -310,18 +310,18 @@ bagError bagConvertCryptoFormat(u8 *object, bagCryptoObject objType, bagConvDir 
 	
 	if (objType == bagCryptoKey) {
 		if (convDir == bagConvertASCIIToBin) {
-			*converted = ons_ascii_to_key(object, &onsErr);
+                  *converted = (u8 *) ons_ascii_to_key((char *)object, &onsErr);
 		} else if (convDir == bagConvertBinToASCII) {
-			*converted = ons_key_to_ascii(object);
+                  *converted = (u8 *) ons_key_to_ascii(object);
 		} else {
 			*converted = NULL;
 			rc = BAG_CRYPTO_INTERNAL_ERROR;
 		}
 	} else if (objType == bagCryptoSignature) {
 		if (convDir == bagConvertASCIIToBin) {
-			*converted = ons_ascii_to_sig(object, &onsErr);
+                  *converted = ons_ascii_to_sig((char *)object, &onsErr);
 		} else if (convDir == bagConvertBinToASCII) {
-			*converted = ons_sig_to_ascii(object);
+                  *converted = (u8 *) ons_sig_to_ascii(object);
 		} else {
 			*converted = NULL;
 			rc = BAG_CRYPTO_INTERNAL_ERROR;

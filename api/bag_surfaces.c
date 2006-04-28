@@ -159,13 +159,13 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         datatype_id = H5Tcopy(H5T_NATIVE_FLOAT);
         if (data == NULL && read_or_write == WRITE_BAG)
             return BAG_HDF_CANNOT_WRITE_NULL_DATA;
-        dataset_name = ELEVATION_PATH;
+        dataset_name = (u8 *)ELEVATION_PATH;
         break;
     case Uncertainty:
         datatype_id = H5Tcopy(H5T_NATIVE_FLOAT);
         if (data == NULL && read_or_write == WRITE_BAG)
             return BAG_HDF_CANNOT_WRITE_NULL_DATA;
-        dataset_name = UNCERTAINTY_PATH;
+        dataset_name = (u8 *)UNCERTAINTY_PATH;
         break;
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
@@ -179,7 +179,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         return BAG_HDF_TYPE_COPY_FAILURE;
 
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
@@ -207,7 +207,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
     offset[0][1] = col;
 
     /*! Select grid cell within dataset file space. */
-    status = H5Sselect_elements (filespace_id, H5S_SELECT_SET, 1, (const hssize_t **)offset);
+    status = H5Sselect_elements (filespace_id, H5S_SELECT_SET, 1, (const hsize_t **)offset);
     check_hdf_status();
 
     /*!  perform read_or_write on element */
@@ -326,7 +326,7 @@ bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 
 bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col, 
                       u32 end_col, s32 type, s32 read_or_write, void *data)
 {
-    herr_t      status;
+    herr_t      status = 0;
 
     /* hyperslab selection parameters */
     hsize_t	    count[10];
@@ -366,13 +366,13 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
     {
     case Elevation:
         datatype_id = H5Tcopy(H5T_NATIVE_FLOAT);
-        dataset_name = ELEVATION_PATH;
+        dataset_name = (u8 *)ELEVATION_PATH;
         if (data == NULL && read_or_write == WRITE_BAG)
             return BAG_HDF_CANNOT_WRITE_NULL_DATA;
         break;
     case Uncertainty:
         datatype_id = H5Tcopy(H5T_NATIVE_FLOAT);
-        dataset_name = UNCERTAINTY_PATH;
+        dataset_name = (u8 *)UNCERTAINTY_PATH;
         if (data == NULL && read_or_write == WRITE_BAG)
             return BAG_HDF_CANNOT_WRITE_NULL_DATA;
         break;
@@ -386,7 +386,7 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
 
 
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
@@ -406,7 +406,7 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *) offset, NULL, count, NULL);
 
     
     /*! perform read_or_write on hyperslab */
@@ -585,7 +585,7 @@ bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col,
 bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                     u32 end_row, u32 end_col, s32 type, s32 read_or_write, hid_t xfer)
 {
-    herr_t      status;
+    herr_t      status = 0;
 
     /* hyperslab selection parameters */
     hsize_t	    count[10];
@@ -634,7 +634,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
     {
     case Elevation:
         datatype_id = H5Tcopy(H5T_NATIVE_FLOAT);
-        dataset_name = ELEVATION_PATH;
+        dataset_name = (u8 *)ELEVATION_PATH;
         if (read_or_write == READ_BAG)
         {
             if (bagAllocArray ( bagHandle,  start_row,  start_col, 
@@ -648,7 +648,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         break;
     case Uncertainty:
         datatype_id = H5Tcopy(H5T_NATIVE_FLOAT);
-        dataset_name = UNCERTAINTY_PATH;
+        dataset_name = (u8 *)UNCERTAINTY_PATH;
         if (read_or_write == READ_BAG)
         {
             if (bagAllocArray ( bagHandle,  start_row,  start_col, 
@@ -670,7 +670,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         return BAG_MEMORY_ALLOCATION_FAILED;
 
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
@@ -691,7 +691,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *) offset, NULL, count, NULL);
 
     /*! xfer params */
     if (xfer == DISABLE_STRIP_MINING)
@@ -1017,10 +1017,10 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    dataset_name = METADATA_PATH;
+    dataset_name = (u8 *)METADATA_PATH;
 
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(hnd->file_id, dataset_name);
+    dataset_id = H5Dopen(hnd->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
@@ -1053,7 +1053,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     }
     else
     {
-        extend[0] = strlen(hnd->bag.metadata);
+      extend[0] = strlen((char *)hnd->bag.metadata);
     }
     
     /*! 
@@ -1100,7 +1100,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
         rank_chunk = H5Pget_chunk (cparms, 1, chunk_dimsr);
     }
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *) offset, NULL, count, NULL);
     check_hdf_status();
 
     /*! perform read_or_write on hyperslab */
@@ -1268,9 +1268,9 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
     case Elevation:
         omin          = &hnd->bag.min_elevation;
         omax          = &hnd->bag.max_elevation;
-        dataset_name  = ELEVATION_PATH;
-        max_name      = MAX_ELEVATION_NAME;
-        min_name      = MIN_ELEVATION_NAME;
+        dataset_name  = (u8 *)ELEVATION_PATH;
+        max_name      = (u8 *)MAX_ELEVATION_NAME;
+        min_name      = (u8 *)MIN_ELEVATION_NAME;
         null_val      = NULL_ELEVATION;
         surface_array = &hnd->elevationArray;
         break;
@@ -1278,9 +1278,9 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
     case Uncertainty:
         omin          = &hnd->bag.min_uncertainty;
         omax          = &hnd->bag.max_uncertainty;
-        dataset_name  = UNCERTAINTY_PATH;
-        max_name      = MAX_UNCERTAINTY_NAME;
-        min_name      = MIN_UNCERTAINTY_NAME;
+        dataset_name  = (u8 *)UNCERTAINTY_PATH;
+        max_name      = (u8 *)MAX_UNCERTAINTY_NAME;
+        min_name      = (u8 *)MIN_UNCERTAINTY_NAME;
         null_val      = NULL_UNCERTAINTY;
         surface_array = &hnd->uncertaintyArray;
         break;
@@ -1292,7 +1292,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
     
 
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(hnd->file_id, dataset_name);
+    dataset_id = H5Dopen(hnd->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 

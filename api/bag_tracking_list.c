@@ -60,10 +60,10 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    dataset_name = TRACKING_LIST_PATH;
+    dataset_name = (u8 *)TRACKING_LIST_PATH;
  
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *) dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
@@ -79,7 +79,7 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    if ((status = bagReadAttribute (bagHandle, dataset_id, TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
+    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
     {
         H5Sclose (filespace_id);
         H5Tclose (datatype_id);
@@ -108,7 +108,7 @@ bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingIt
         return BAG_HDF_CREATE_DATASPACE_FAILURE;
     }
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
     status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
                       H5P_DEFAULT, item);
     check_hdf_status();
@@ -244,10 +244,10 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
         return BAG_INVALID_FUNCTION_ARGUMENT;
     (*items) = NULL;
 
-    dataset_name = TRACKING_LIST_PATH;
+    dataset_name = (u8 *)TRACKING_LIST_PATH;
  
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
@@ -263,7 +263,7 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    if ((status = bagReadAttribute (bagHandle, dataset_id, TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
+    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
     {
         H5Sclose (filespace_id);
         H5Tclose (datatype_id);
@@ -306,7 +306,7 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
             }
         }
 
-        status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+        status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
         check_hdf_status();
         
         status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
@@ -401,10 +401,10 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    dataset_name = TRACKING_LIST_PATH;
+    dataset_name = (u8 *)TRACKING_LIST_PATH;
  
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
     if (dataset_id < 0)
     {
         H5Dclose (dataset_id);
@@ -426,7 +426,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    if ((status = bagReadAttribute (bagHandle, dataset_id, TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
+    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
     {
         H5Tclose (datatype_id);
         H5Dclose (dataset_id);
@@ -462,7 +462,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
         return BAG_HDF_CREATE_DATASPACE_FAILURE;
     }
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
     check_hdf_status();
   
     status = H5Dwrite (dataset_id, datatype_id, memspace_id, filespace_id, 
@@ -470,7 +470,7 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
     check_hdf_status();
 
     /*! definitely should update the list length attribute of the dataset */
-    if ((status = bagWriteAttribute (bagHandle, dataset_id, TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
+    if ((status = bagWriteAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
     {        
         H5Sclose (memspace_id);
         H5Sclose (filespace_id);
@@ -516,14 +516,14 @@ bagError bagTrackingListLength (bagHandle bagHandle, u32 *len)
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
     
-    dataset_name = TRACKING_LIST_PATH;
+    dataset_name = (u8 *)TRACKING_LIST_PATH;
  
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
-    if ((status = bagReadAttribute (bagHandle, dataset_id, TRACKING_LIST_LENGTH_NAME, len)) < 0)
+    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, len)) < 0)
     {
         H5Dclose (dataset_id);
         return (status);
@@ -575,10 +575,10 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    dataset_name = TRACKING_LIST_PATH;
+    dataset_name = (u8 *)TRACKING_LIST_PATH;
  
     /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, dataset_name);
+    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
 
@@ -594,7 +594,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
         return BAG_HDF_DATASPACE_CORRUPTED;
     }
 
-    if ((status = bagReadAttribute (bagHandle, dataset_id, TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
+    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
     {
         H5Sclose (filespace_id);
         H5Tclose (datatype_id);
@@ -629,7 +629,7 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
         return BAG_HDF_CREATE_DATASPACE_FAILURE;
     }
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
     check_hdf_status();
     
     fprintf(stdout, "Reading entire tracking list dataset into memory...\n");

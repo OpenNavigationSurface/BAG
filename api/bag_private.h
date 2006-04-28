@@ -104,27 +104,27 @@ typedef struct _t_bagHandle {
  *  Only the BAG_ATTR_CS1, string datatype can support a variable size dataspace.
  */
 enum bagAttrTypes {
-    BAG_ATTR_F32         = 1, //!< 32bit Floating point
-    BAG_ATTR_F64         = 2, //!< 64bit Floating point
-    BAG_ATTR_U8          = 3, //!< 8bit Unsigned char
-    BAG_ATTR_S32         = 4, //!< 32bit Signed integer
-    BAG_ATTR_U32         = 5, //!< 32bit Unsigned integer
-    BAG_ATTR_CS1         = 6  //!< Character string
+    BAG_ATTR_F32         = 1, /*!< 32bit Floating point */
+    BAG_ATTR_F64         = 2, /*!< 64bit Floating point */
+    BAG_ATTR_U8          = 3, /*!< 8bit Unsigned char */
+    BAG_ATTR_S32         = 4, /*!< 32bit Signed integer */
+    BAG_ATTR_U32         = 5, /*!< 32bit Unsigned integer */
+    BAG_ATTR_CS1         = 6  /*!< Character string */
 };
 
 
-//! \brief READ_WRITE_BAG define modes for accessing the dataset Bag surfaces
+/*! \brief READ_WRITE_BAG define modes for accessing the dataset Bag surfaces */
 enum READ_WRITE_BAG {
-    READ_BAG             = 0, //!< Read from the bag dataset
-    WRITE_BAG            = 1, //!< Write to the bag dataset
-    DISABLE_STRIP_MINING = 2  //!< Used to efficiently access the entire dataset by setting a transfer buffer
+    READ_BAG             = 0, /*!< Read from the bag dataset */
+    WRITE_BAG            = 1, /*!< Write to the bag dataset */
+    DISABLE_STRIP_MINING = 2  /*!< Used to efficiently access the entire dataset by setting a transfer buffer */
 };
 
-//! \brief READ_TRACK_MODE define modes for ordering tracking list items
+/*! \brief READ_TRACK_MODE define modes for ordering tracking list items */
 enum READ_TRACK_MODE {
-    READ_TRACK_RC     = 0, //!< Row-Column mode
-    READ_TRACK_SERIES = 1, //!< List-Series mode
-    READ_TRACK_CODE   = 2  //!< Track-Code mode
+    READ_TRACK_RC     = 0, /*!< Row-Column mode */
+    READ_TRACK_SERIES = 1, /*!< List-Series mode */
+    READ_TRACK_CODE   = 2  /*!< Track-Code mode */
 };
 
 
