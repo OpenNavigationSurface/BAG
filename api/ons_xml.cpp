@@ -1463,7 +1463,7 @@ bagError bagGetUncertantyType(
     )
 {
     bagError error = BAG_SUCCESS;
-    *uncrtType = Unknown;
+    *uncrtType = Unknown_Uncert;
 
     char * pUncrtType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/verticalUncertaintyType";
     DOMNode *pUncrtNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pUncrtType);
