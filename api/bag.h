@@ -313,12 +313,12 @@ typedef struct _t_bag_data
 /* The type of Uncertainty encoded in this BAG. */
 enum BAG_UNCERT_TYPES
 {
-    Unknown             = 0, /* "Unknown" - The uncertainty layer is an unknown type. */
+    Unknown_Uncert      = 0, /* "Unknown" - The uncertainty layer is an unknown type. */
     Raw_Std_Dev         = 1, /* "Raw Std Dev" - Raw standard deviation of soundings the contributed to the node */
     CUBE_Std_Dev        = 2, /* "CUBE Std Dev" - Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE’s standard output of uncertainty) */
     Product_Uncert      = 3, /* "Product Uncert" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures). */
     Historical_Std_Dev  = 4  /* "Historical Std Dev" - Estimated standard deviation based on historical/archive data. */
-} bagUncertType;
+};
 
 /* ELEVATION, UNCERTAINTY are mandatory BAG datasets, the rest are optional. */
 enum BAG_SURFACE_PARAMS {
