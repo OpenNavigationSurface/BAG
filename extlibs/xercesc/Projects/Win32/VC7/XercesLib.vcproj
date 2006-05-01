@@ -14,7 +14,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\lib\Release"
+			OutputDirectory=".\..\..\..\..\lib"
 			IntermediateDirectory=".\..\..\..\Build\Win32\VC7\Release\obj"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -64,7 +64,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\lib\Debug"
+			OutputDirectory=".\..\..\..\..\lib"
 			IntermediateDirectory=".\..\..\..\Build\Win32\VC7\Debug\obj"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -85,7 +85,8 @@
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
-				Name="VCLibrarianTool"/>
+				Name="VCLibrarianTool"
+				OutputFile="$(OUTDIR)\$(ProjectName)d.lib"/>
 			<Tool
 				Name="VCMIDLTool"
 				PreprocessorDefinitions="_DEBUG"
@@ -543,46 +544,12 @@
 				</File>
 				<File
 					RelativePath="..\..\..\util\Platforms\Win32\Win32PlatformUtils.cpp">
-					<FileConfiguration
-						Name="Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
-					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\..\util\XMLRegisterCleanup.cpp">
 				</File>
 				<File
 					RelativePath="..\..\..\util\XMLRegisterCleanup.hpp">
-				</File>
-			</Filter>
-			<Filter
-				Name="MsgLoaders"
-				Filter=".cpp,.hpp">
-				<File
-					RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.cpp">
-					<FileConfiguration
-						Name="Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.hpp">
 				</File>
 			</Filter>
 			<Filter
@@ -2372,6 +2339,12 @@
 					Name="VCResourceCompilerTool"
 					AdditionalIncludeDirectories="..\..\..\util\Platforms\Win32;$(NoInherit)"/>
 			</FileConfiguration>
+		</File>
+		<File
+			RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.cpp">
+		</File>
+		<File
+			RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.hpp">
 		</File>
 	</Files>
 	<Globals>
