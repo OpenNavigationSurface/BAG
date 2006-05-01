@@ -30,18 +30,6 @@
 #include <xercesc/util/XMLUni.hpp>
 #include <xercesc/util/PanicHandler.hpp>
 
-#include <windows.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-#ifdef _DEBUG
- #ifdef _MSC_VER
-    #include <crtdbg.h>
- #else
-    #include <assert.h>
- #endif
-#endif
-
 //
 //  These control which transcoding service is used by the Win32 version.
 //  They allow this to be controlled from the build process by just defining
