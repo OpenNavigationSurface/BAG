@@ -30,6 +30,12 @@
 #include <windows.h>
 #include "Win32MsgLoader.hpp"
 
+// ---------------------------------------------------------------------------
+//  Public Constructors and Destructor
+// ---------------------------------------------------------------------------
+HINSTANCE globalModuleHandle = NULL;
+
+#ifdef XMLDLL_EXPORT
 
 //	Function prototypes
 BOOL APIENTRY DllMain(HINSTANCE hModule,
@@ -37,10 +43,6 @@ BOOL APIENTRY DllMain(HINSTANCE hModule,
                              LPVOID lpReserved);
 
 
-// ---------------------------------------------------------------------------
-//  Public Constructors and Destructor
-// ---------------------------------------------------------------------------
-HINSTANCE globalModuleHandle;
 
 BOOL APIENTRY DllMain(HINSTANCE hModule,
                       DWORD  ul_reason_for_call,
@@ -59,7 +61,7 @@ BOOL APIENTRY DllMain(HINSTANCE hModule,
   }
   return TRUE;
 }
-
+#endif
 XERCES_CPP_NAMESPACE_BEGIN
 
 // ---------------------------------------------------------------------------
