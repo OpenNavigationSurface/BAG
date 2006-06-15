@@ -14,7 +14,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\..\..\..\..\lib"
+			OutputDirectory="..\..\..\..\..\lib"
 			IntermediateDirectory=".\..\..\..\Build\Win32\VC7\Release\obj"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -64,7 +64,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\..\..\..\..\lib"
+			OutputDirectory="..\..\..\..\..\lib"
 			IntermediateDirectory=".\..\..\..\Build\Win32\VC7\Debug\obj"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -73,12 +73,12 @@
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\"
-				PreprocessorDefinitions="_CRTDBG_MAP_ALLOC;PROJ_SAX2;_DEBUG;PROJ_XMLPARSER;PROJ_XMLUTIL;PROJ_PARSERS;PROJ_SAX4C;PROJ_DOM;PROJ_VALIDATORS;WIN32;_WINDOWS;XML_USE_WIN32_TRANSCODER;XML_USE_WIN32_MSGLOADER;XML_USE_NETACCESSOR_WINSOCK"
+				PreprocessorDefinitions="_DEBUG,_CRTDBG_MAP_ALLOC;PROJ_SAX2;_DEBUG;PROJ_XMLPARSER;PROJ_XMLUTIL;PROJ_PARSERS;PROJ_SAX4C;PROJ_DOM;PROJ_VALIDATORS;WIN32;_WINDOWS;XML_USE_WIN32_TRANSCODER;XML_USE_WIN32_MSGLOADER;XML_USE_NETACCESSOR_WINSOCK"
 				RuntimeLibrary="3"
 				PrecompiledHeaderFile=".\..\..\..\Build\Win32\VC7\Debug\obj/XercesLib.pch"
 				AssemblerListingLocation=".\..\..\..\Build\Win32\VC7\Debug\obj/"
 				ObjectFile=".\..\..\..\Build\Win32\VC7\Debug\obj/"
-				ProgramDataBaseFileName=".\..\..\..\Build\Win32\VC7\Debug\obj/"
+				ProgramDataBaseFileName="$(OutDir)\$(ProjectName).pdb"
 				WarningLevel="3"
 				DebugInformationFormat="3"
 				CompileAs="0"/>
