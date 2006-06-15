@@ -11,7 +11,7 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\lib"
 			IntermediateDirectory="Release\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -25,19 +25,19 @@
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="FALSE"
-				RuntimeLibrary="3"
+				RuntimeLibrary="2"
 				BufferSecurityCheck="FALSE"
 				AssemblerListingLocation="Release\"
 				ObjectFile="Release\"
 				ProgramDataBaseFileName=".\"
 				WarningLevel="0"
 				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="3"/>
+				DebugInformationFormat="0"/>
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\lib\release\beecrypt.lib"
+				OutputFile="$(OutDir)\beecrypt.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -64,7 +64,7 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
+			OutputDirectory="..\..\lib"
 			IntermediateDirectory="Debug\"
 			ConfigurationType="4"
 			UseOfMFC="0"
@@ -74,7 +74,7 @@
 				AdditionalOptions="-Zm200"
 				Optimization="4"
 				AdditionalIncludeDirectories="..\..\extlibs"
-				PreprocessorDefinitions="UNICODE,WIN32,WIN32,_WINDOWS,_MBCS,BEE_STATIC,QT_DLL"
+				PreprocessorDefinitions="_DEBUG,UNICODE,WIN32,WIN32,_WINDOWS,_MBCS,BEE_STATIC,QT_DLL"
 				GeneratePreprocessedFile="0"
 				MinimalRebuild="TRUE"
 				ExceptionHandling="FALSE"
@@ -82,7 +82,7 @@
 				BufferSecurityCheck="FALSE"
 				AssemblerListingLocation="Debug\"
 				ObjectFile="Debug\"
-				ProgramDataBaseFileName=".\"
+				ProgramDataBaseFileName="$(OutDir)\$(ProjectName).pdb"
 				WarningLevel="0"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="3"/>
@@ -90,7 +90,7 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLibrarianTool"
-				OutputFile="..\lib\debug\beecrypt.lib"
+				OutputFile="$(OUTDIR)\$(ProjectName)d.lib"
 				SuppressStartupBanner="TRUE"/>
 			<Tool
 				Name="VCMIDLTool"
