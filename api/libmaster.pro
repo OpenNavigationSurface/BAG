@@ -27,7 +27,7 @@ DEFINES	+=
 LANGUAGE = C++
 #CONFIG	+= qt warn_off debug opengl
 #CONFIG	+= qt warn_off debug 
-CONFIG	+= debug
+CONFIG	+= warn_off
 CONFIG  -= qt
 
 win32 {
@@ -49,9 +49,11 @@ unix {
 	message( In libmaster.pro for the general unix platform )
 #	MOC_DIR = .moc/$(HOSTMACHINE)
 	OBJECTS_DIR = .obj/$(HOSTMACHINE)
-	QMAKE_CFLAGS += ${IVSCOPTS} -Wall
-	QMAKE_CXXFLAGS += ${IVSCCOPTS2} -Wall
-	DESTDIR = ../lib/$(HOSTMACHINE)/
+	QMAKE_CFLAGS += ${IVSCOPTS} 
+	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
+	OPENNSLIBS += -lhdf5 -lxerces-c -lgeotrans -lbeecrypt -lszip -lzlib -lpthread
+	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS $$EXTRAUNIXLIBS
+        DESTDIR = ../lib/$(HOSTMACHINE)/
     macx {
 	    message( In libmaster.pro for the Macintosh platform )
     	DEFINES += _SYS_TIMESPEC_H
