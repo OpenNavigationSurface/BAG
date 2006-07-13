@@ -28,6 +28,9 @@ LANGUAGE = C++
 CONFIG	+= debug
 CONFIG  -= qt
 
+QMAKE_CFLAGS_DEBUG = 
+QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
+
 win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
 	# The defines should define and IVS OS, GUI, and Hardware platform among others
