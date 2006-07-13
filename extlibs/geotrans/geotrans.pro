@@ -15,6 +15,11 @@ INCLUDEPATH += $$INC_OPENNSALL
 ###                  LIBRARY SPECIFIC SECTION (Edit Here)                          
 #
 
+CONFIG += debug
+
+QMAKE_CFLAGS_DEBUG = 
+QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
+
 INCLUDEPATH += azeq bng gnomonic neys nzmg omerc stereogr
 INCLUDEPATH += geocent georef mercator datum ellipse tranmerc utm polarst
 INCLUDEPATH += ups mgrs lambert bonne cassini cyleqa eqdcyl eckert4 eckert6
