@@ -136,7 +136,6 @@ if [ ! -e lib/$HOSTMACHINE/libhdf5.so ] ; then
 	$CD $HDF5_LIB
 	configure
 	gmake
-	make install
 	$CP src/.libs/libhdf5.so* ../lib/$HOSTMACHINE
 	$CD ..
 	if [ ! -e lib/$HOSTMACHINE/libhdf5.so ] ; then
