@@ -17,6 +17,7 @@ fi
 ##################################################################
 # if developing with libbag, you might want to add these permanently:
 ##################################################################
+export LIBRARY_PATH=$LIBRARY_PATH:$PWD/lib/$HOSTMACHINE:$PWD/extlibs/lib/$HOSTMACHINE
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$PWD/lib/$HOSTMACHINE:$PWD/extlibs/lib/$HOSTMACHINE
 export LD_RUN_PATH=$LD_RUN_PATH:$PWD/lib/$HOSTMACHINE:$PWD/extlibs/lib/$HOSTMACHINE
 export BAG_HOME=$PWD/configdata
