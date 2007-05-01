@@ -70,7 +70,7 @@ extern          "C"
 #endif
 
 
-#define BAG_VERSION         "1.0.0"
+#define BAG_VERSION         "1.1.0"
 #define BAG_VERSION_LENGTH  32           /* 32 bytes of space reserved in BAG attribute for VERSION string */
 #define XML_METADATA_MIN_LENGTH 1024   /* Encoded XML string expected to be at least this long to be valid */
 #define XML_METADATA_MAX_LENGTH 1000000
