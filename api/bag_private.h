@@ -92,7 +92,23 @@ typedef struct _t_bagHandle {
     /*! HDF structs identifiers */
     hid_t   file_id;
     hid_t   bagGroupID; 
-
+    hid_t   unc_memspace_id,
+            trk_memspace_id,
+            mta_memspace_id,
+            elv_memspace_id,
+            unc_dataset_id,
+            trk_dataset_id,
+            mta_dataset_id,
+            elv_dataset_id,
+            unc_filespace_id,
+            trk_filespace_id,
+            mta_filespace_id,
+            elv_filespace_id,
+            unc_datatype_id,
+            trk_datatype_id,
+            mta_datatype_id,
+            elv_datatype_id,
+            mta_cparms_id;
 } BagHandle;
 
 

@@ -17,6 +17,12 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ *  Webb McDonald -- Fri Mar  2 14:23:51 2007
+ *   -each "surface" now has a bunch of HDF structs initialized at the
+ *    bag_hdf.c level now instead of temporarily being opened and
+ *    closed within every I/O call in this module
+ *   -dataset, datatype, filespace \a hid_t will be initialized in \a bagFileOpen,
+ *    but memspace varies and might be reopened within each call in here.
  *
  * Classification : Unclassified
  *
@@ -46,81 +52,47 @@
 bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingItem *item)
 {
     herr_t      status;
-    u32         list_len;
+    u32         list_len, nct=0;
 
     /* hyperslab selection parameters */
     hsize_t	    count[1];
     hssize_t	offset[1];
-    hid_t       memspace_id, 
-                datatype_id,
-                dataset_id,
-                filespace_id;
-    u8         *dataset_name;
+
 
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    dataset_name = (u8 *)TRACKING_LIST_PATH;
- 
-    /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, (char *) dataset_name);
-    if (dataset_id < 0)
-        return BAG_HDF_DATASET_OPEN_FAILURE; 
-
-    if ((datatype_id = H5Dget_type(dataset_id)) < 0)
-        return BAG_HDF_TYPE_NOT_FOUND;
-
-    /*! Open the filespace */
-    filespace_id = H5Dget_space(dataset_id);
-    if (filespace_id < 0)
+    if ((status = bagReadAttribute (bagHandle, bagHandle->trk_dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) != BAG_SUCCESS)
     {
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_DATASPACE_CORRUPTED;
-    }
-
-    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
-    {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
         return (status);
     }
     
     /*! beware~ error conditions if \a index exceeds \a list_len extents or supplied \a *item is NULL */
     if (item == NULL || list_len <= index)
-    {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
         return BAG_INVALID_FUNCTION_ARGUMENT;
-    }
 
     count[0]     = 1;      /*! chunk size */
     offset[0]    = index;  /*! simply seek to index */
 
-    /*! define the memspace */
-    if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+    if (bagHandle->trk_memspace_id >= 0)
+        nct = (u32)H5Sget_select_npoints (bagHandle->trk_memspace_id);
+     
+    if (bagHandle->trk_memspace_id < 0 || nct != count[0])
     {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_CREATE_DATASPACE_FAILURE;
+        if (bagHandle->trk_memspace_id >= 0)
+        {
+            status = H5Sclose (bagHandle->trk_memspace_id);
+            check_hdf_status();
+        }
+         
+        /*! define the memspace */
+        if ((bagHandle->trk_memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+            return BAG_HDF_CREATE_DATASPACE_FAILURE;
     }
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
-    status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
+    status = H5Sselect_hyperslab (bagHandle->trk_filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
+    status = H5Dread (bagHandle->trk_dataset_id, bagHandle->trk_datatype_id, bagHandle->trk_memspace_id, bagHandle->trk_filespace_id, 
                       H5P_DEFAULT, item);
-    check_hdf_status();
-
-    /*! did what we came to do, now close up HDF objects*/
-    status = H5Dclose (dataset_id);
-    check_hdf_status();
-    status = H5Sclose (memspace_id);
-    check_hdf_status();
-    status = H5Sclose (filespace_id);
-    check_hdf_status();
-    status = H5Tclose (datatype_id);
     check_hdf_status();
 
     return BAG_SUCCESS;
@@ -220,18 +192,14 @@ bagError bagReadTrackingListNode(bagHandle bagHandle, u32 row, u32 col, bagTrack
 bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, bagTrackingItem **items, u32 *rtn_len)
 {
     herr_t      status;
-    u32         list_len;
+    u32         list_len, nct=0;
     u32         row = inp1, col = inp2;
     u16         code = inp1, series = inp1;
 
     /* hyperslab selection parameters */
-    hsize_t	    count[1];
-    hssize_t	offset[1];
-    hid_t       memspace_id, 
-                datatype_id,
-                dataset_id,
-                filespace_id;
-    u8         *dataset_name;
+    hsize_t	  count[1];
+    hssize_t	  offset[1];
+
 
     /*! tracking item buffers and allocation structs */
     bagTrackingItem readbuf[TRACKING_LIST_BLOCK_SIZE];
@@ -244,72 +212,53 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
         return BAG_INVALID_FUNCTION_ARGUMENT;
     (*items) = NULL;
 
-    dataset_name = (u8 *)TRACKING_LIST_PATH;
- 
-    /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
-    if (dataset_id < 0)
-        return BAG_HDF_DATASET_OPEN_FAILURE; 
-
-    if ((datatype_id = H5Dget_type(dataset_id)) < 0)
-        return BAG_HDF_TYPE_NOT_FOUND;
-
-    /*! Open the filespace */
-    filespace_id = H5Dget_space(dataset_id);
-    if (filespace_id < 0)
-    {
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_DATASPACE_CORRUPTED;
-    }
-
-    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
-    {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
+    if ((status = bagReadAttribute (bagHandle, bagHandle->trk_dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) != BAG_SUCCESS)
         return (status);
-    }
 
     *rtn_len  = 0;                         /*! nothing to read yet */
     count[0]  = TRACKING_LIST_BLOCK_SIZE;  /* chunk size */
     offset[0] = 0;                         /*! start at head of list */
 
-    /*! define the hyperslab parameters */
-    if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+
+    if (bagHandle->trk_memspace_id >= 0)
+        nct = (u32)H5Sget_select_npoints (bagHandle->trk_memspace_id);
+     
+    if (bagHandle->trk_memspace_id < 0 || nct != count[0])
     {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_CREATE_DATASPACE_FAILURE;
+        if (bagHandle->trk_memspace_id >= 0)
+        {
+            status = H5Sclose (bagHandle->trk_memspace_id);
+            check_hdf_status();
+        }
+         
+        /*! define the memspace */
+        if ((bagHandle->trk_memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+            return BAG_HDF_CREATE_DATASPACE_FAILURE;
     }
+    
 
     while (offset[0] < list_len)
     {
-        int i;
+        u32 i;
 
         /*! shrink the memspace if we have less than a chunk left to read from
          * the tracking list */
         if (list_len - offset[0] < TRACKING_LIST_BLOCK_SIZE) 
         {
-            status = H5Sclose (memspace_id);
+            status = H5Sclose (bagHandle->trk_memspace_id);
             check_hdf_status();
             count[0] = (list_len % TRACKING_LIST_BLOCK_SIZE);
 
             /* define the hyperslab parameters */
-            if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
-            {
-                H5Sclose (filespace_id);
-                H5Tclose (datatype_id);
-                H5Dclose (dataset_id);
+            if ((bagHandle->trk_memspace_id = H5Screate_simple (1, count, NULL)) < 0)
                 return BAG_HDF_CREATE_DATASPACE_FAILURE;
-            }
         }
 
-        status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
+        status = H5Sselect_hyperslab (bagHandle->trk_filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
         check_hdf_status();
         
-        status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
+        status = H5Dread (bagHandle->trk_dataset_id, bagHandle->trk_datatype_id,
+                          bagHandle->trk_memspace_id, bagHandle->trk_filespace_id, 
                           H5P_DEFAULT, readbuf);
         check_hdf_status();
 
@@ -327,10 +276,6 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
                     (*items) = calloc (1, sizeof(bagTrackingItem));
                     if ((*items) == NULL)
                     {
-                        H5Sclose (memspace_id);
-                        H5Sclose (filespace_id);
-                        H5Tclose (datatype_id);
-                        H5Dclose (dataset_id);
                         return BAG_MEMORY_ALLOCATION_FAILED;
                     }
                 }
@@ -340,11 +285,6 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
                     tmp = realloc ((*items), sizeof(bagTrackingItem) * ((*rtn_len) + 1));
                     if (tmp == NULL)
                     {
-                        H5Sclose (memspace_id);
-                        H5Sclose (filespace_id);
-                        H5Tclose (datatype_id);
-                        H5Dclose (dataset_id);
-                        free ((*items));
                         return BAG_MEMORY_ALLOCATION_FAILED;
                     }
                     (*items) = tmp; /*! make sure (*items) is set to the newly alloc'd mem */
@@ -358,16 +298,6 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
         }
         offset[0] += TRACKING_LIST_BLOCK_SIZE;
     }
-
-    /*! did what we came to do, now close up HDF objects */
-    status = H5Dclose (dataset_id);
-    check_hdf_status();
-    status = H5Sclose (memspace_id);
-    check_hdf_status();
-    status = H5Sclose (filespace_id);
-    check_hdf_status();
-    status = H5Tclose (datatype_id);
-    check_hdf_status();
 
     return BAG_SUCCESS;
 }
@@ -386,50 +316,18 @@ bagError bagReadTrackingList(bagHandle bagHandle, u16 mode, u32 inp1, u32 inp2, 
 bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
 {
     herr_t      status;
-    u32         list_len;
+    u32         list_len, nct=0;
 
     /* hyperslab selection parameters */
-    hsize_t	    count[1];
-    hssize_t	offset[1];
-    hid_t       memspace_id, 
-                datatype_id,
-                dataset_id,
-                filespace_id;
-    u8         *dataset_name;
-    hsize_t	    extend[1];
+    hsize_t	  count[1];
+    hssize_t	  offset[1];
+    hsize_t	  extend[1];
     
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    dataset_name = (u8 *)TRACKING_LIST_PATH;
- 
-    /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
-    if (dataset_id < 0)
+    if ((status = bagReadAttribute (bagHandle, bagHandle->trk_dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) != BAG_SUCCESS)
     {
-        H5Dclose (dataset_id);
-        return BAG_HDF_DATASET_OPEN_FAILURE; 
-    }
-
-    if ((datatype_id = H5Dget_type(dataset_id)) < 0)
-    {
-        H5Dclose (dataset_id);
-        return BAG_HDF_TYPE_NOT_FOUND;
-    }
-
-    /*! Open the filespace */
-    filespace_id = H5Dget_space(dataset_id);
-    if (filespace_id < 0)
-    {
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_DATASPACE_CORRUPTED;
-    }
-
-    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
-    {
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
         return (status);
     }
 
@@ -438,56 +336,50 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
     extend[0] = ++list_len; /*! increase extents by 1 */
 
     /*! let the tracking_list grow */
-    status = H5Dextend (dataset_id, extend);
+    status = H5Dextend (bagHandle->trk_dataset_id, extend);
     check_hdf_status();
 
-    /*! Close and reopen below  */
-    status = H5Sclose (filespace_id);
-    check_hdf_status();
-
-    /*! Prepare the dataspaces */
-    if ((filespace_id = H5Dget_space(dataset_id)) < 0)
+    /*! must reopen the filespace after the extend */
+    if (bagHandle->trk_filespace_id >= 0)
     {
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_DATASPACE_CORRUPTED;
+        status = H5Sclose (bagHandle->trk_filespace_id);
+        check_hdf_status();
+
+        bagHandle->trk_filespace_id = H5Dget_space(bagHandle->trk_dataset_id);
+        if (bagHandle->trk_filespace_id < 0)
+            return BAG_HDF_DATASPACE_CORRUPTED;
+    }
+    
+    if (bagHandle->trk_memspace_id >= 0)
+        nct = (u32)H5Sget_select_npoints (bagHandle->trk_memspace_id);
+     
+    if (bagHandle->trk_memspace_id < 0 || nct != count[0])
+    {
+        if (bagHandle->trk_memspace_id >= 0)
+        {
+            status = H5Sclose (bagHandle->trk_memspace_id);
+            check_hdf_status();
+        }
+         
+        /*! define the memspace */
+        if ((bagHandle->trk_memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+            return BAG_HDF_CREATE_DATASPACE_FAILURE;
     }
 
     /*! define the hyperslab parameters */
-    if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
-    {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_CREATE_DATASPACE_FAILURE;
-    }
-
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
+    status = H5Sselect_hyperslab (bagHandle->trk_filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
     check_hdf_status();
   
-    status = H5Dwrite (dataset_id, datatype_id, memspace_id, filespace_id, 
+    status = H5Dwrite (bagHandle->trk_dataset_id, bagHandle->trk_datatype_id,
+                       bagHandle->trk_memspace_id, bagHandle->trk_filespace_id, 
                        H5P_DEFAULT, item);
     check_hdf_status();
 
     /*! definitely should update the list length attribute of the dataset */
-    if ((status = bagWriteAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
+    if ((status = bagWriteAttribute (bagHandle, bagHandle->trk_dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) != BAG_SUCCESS)
     {        
-        H5Sclose (memspace_id);
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
         return (status);
     }
-
-    /*! did what we came to do, now close up */
-    status = H5Dclose (dataset_id);
-    check_hdf_status();
-    status = H5Sclose (memspace_id);
-    check_hdf_status();
-    status = H5Sclose (filespace_id);
-    check_hdf_status();
-    status = H5Tclose (datatype_id);
-    check_hdf_status();
 
     return BAG_SUCCESS;
 }
@@ -507,31 +399,12 @@ bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item)
  ****************************************************************************************/
 bagError bagTrackingListLength (bagHandle bagHandle, u32 *len)
 {
-    bagError    status;
-    hid_t       dataset_id;
-    u8         *dataset_name;
-
     *len = 0;
 
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
     
-    dataset_name = (u8 *)TRACKING_LIST_PATH;
- 
-    /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
-    if (dataset_id < 0)
-        return BAG_HDF_DATASET_OPEN_FAILURE; 
-
-    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, len)) < 0)
-    {
-        H5Dclose (dataset_id);
-        return (status);
-    }
-    status = H5Dclose (dataset_id);
-    check_hdf_status();
-
-    return BAG_SUCCESS;
+    return bagReadAttribute (bagHandle, bagHandle->trk_dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, len);
 }
 
 
@@ -558,16 +431,11 @@ bagError bagTrackingListLength (bagHandle bagHandle, u32 *len)
 bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
 {
     herr_t      status;
-    u32         list_len;
+    u32         list_len, nct=0;
 
     /*! hyperslab selection parameters */
-    hsize_t	    count[1];
-    hssize_t	offset[1];
-    hid_t       memspace_id, 
-                datatype_id,
-                dataset_id,
-                filespace_id;
-    u8         *dataset_name;
+    hsize_t	  count[1];
+    hssize_t	  offset[1];
 
     /*! tracking item buffers and allocation structs */
     bagTrackingItem *readbuf;
@@ -575,30 +443,8 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    dataset_name = (u8 *)TRACKING_LIST_PATH;
- 
-    /*! Open an existing dataset. */
-    dataset_id = H5Dopen(bagHandle->file_id, (char *)dataset_name);
-    if (dataset_id < 0)
-        return BAG_HDF_DATASET_OPEN_FAILURE; 
-
-    if ((datatype_id = H5Dget_type(dataset_id)) < 0)
-        return BAG_HDF_TYPE_NOT_FOUND;
-
-    /*! Open the filespace */
-    filespace_id = H5Dget_space(dataset_id);
-    if (filespace_id < 0)
+    if ((status = bagReadAttribute (bagHandle, bagHandle->trk_dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) != BAG_SUCCESS)
     {
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_DATASPACE_CORRUPTED;
-    }
-
-    if ((status = bagReadAttribute (bagHandle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, &list_len)) < 0)
-    {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
         return (status);
     }
 
@@ -611,30 +457,37 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
     readbuf = calloc (list_len, sizeof(bagTrackingItem));
     if (readbuf == NULL)
     {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
         return BAG_MEMORY_ALLOCATION_FAILED;
     }
 
     count[0]  = list_len;  /*! chunk size */
     offset[0] = 0;         /*! start at head of list */
 
-    /*! define the hyperslab parameters */
-    if ((memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+
+    if (bagHandle->trk_memspace_id >= 0)
+        nct = (u32)H5Sget_select_npoints (bagHandle->trk_memspace_id);
+     
+    if (bagHandle->trk_memspace_id < 0 || nct != count[0])
     {
-        H5Sclose (filespace_id);
-        H5Tclose (datatype_id);
-        H5Dclose (dataset_id);
-        return BAG_HDF_CREATE_DATASPACE_FAILURE;
+        if (bagHandle->trk_memspace_id >= 0)
+        {
+            status = H5Sclose (bagHandle->trk_memspace_id);
+            check_hdf_status();
+        }
+         
+        /*! define the memspace */
+        if ((bagHandle->trk_memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+            return BAG_HDF_CREATE_DATASPACE_FAILURE;
     }
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
+    /*! define the hyperslab parameters */
+    status = H5Sselect_hyperslab (bagHandle->trk_filespace_id, H5S_SELECT_SET, (hsize_t *)offset, NULL, count, NULL);
     check_hdf_status();
     
     fprintf(stdout, "Reading entire tracking list dataset into memory...\n");
     fflush(stdout);
-    status = H5Dread (dataset_id, datatype_id, memspace_id, filespace_id, 
+    status = H5Dread (bagHandle->trk_dataset_id, bagHandle->trk_datatype_id,
+                      bagHandle->trk_memspace_id, bagHandle->trk_filespace_id, 
                       H5P_DEFAULT, readbuf);
     check_hdf_status();
 
@@ -657,20 +510,11 @@ bagError bagSortTrackingList(bagHandle bagHandle, u16 mode)
 
     fprintf(stdout, "Write entire tracking list dataset from memory back into the Bag...\n");
     fflush(stdout);
-    status = H5Dwrite (dataset_id, datatype_id, memspace_id, filespace_id,
+    status = H5Dwrite (bagHandle->trk_dataset_id, bagHandle->trk_datatype_id,
+                       bagHandle->trk_memspace_id, bagHandle->trk_filespace_id,
                        H5P_DEFAULT, readbuf);
     check_hdf_status();
     
-    /*! did what we came to do, now close up */
-    status = H5Dclose (dataset_id);
-    check_hdf_status();
-    status = H5Sclose (memspace_id);
-    check_hdf_status();
-    status = H5Sclose (filespace_id);
-    check_hdf_status();
-    status = H5Tclose (datatype_id);
-    check_hdf_status();
-
     fprintf(stdout, "Sorting process completed\n");
     fflush(stdout);
 

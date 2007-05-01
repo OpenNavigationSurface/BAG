@@ -46,19 +46,26 @@
 #include "bag.h"
 #include "ons_xml.h"
 
+#define MAX_GRIDS 20
 
-bagMetaData bufferMetaData = NULL;
-char lastBuffer[XML_METADATA_MAX_LENGTH] = "";
-
+bagMetaData **metadataCache = NULL;
+char cacheString [MAX_GRIDS] [XML_METADATA_MAX_LENGTH];
+int  cacheStringInit = 1;
 
 bagError bagFreeXMLMeta ()
 {
-    if (bufferMetaData != NULL)
+    u32 i;
+    for (i=0; i < MAX_GRIDS; i++)
     {
-        bagFreeMetadata(bufferMetaData);
-        bufferMetaData = NULL;
+        if (metadataCache[i] != NULL)
+            bagFreeMetadata(metadataCache[i]);
     }
 
+    if (metadataCache != NULL)
+    {
+        free (metadataCache);
+        metadataCache = NULL;
+    }
     /* terminate the support. */
     bagTermMetadata();
     
@@ -230,6 +237,7 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
  */
 bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
 {
+    u32 i=0;
     bagError error = BAG_SUCCESS;
     u32 bufferLen = 0;
     u32 chng      = 0;
@@ -241,22 +249,49 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     if (bufferSize >= XML_METADATA_MAX_LENGTH)
         return BAG_METADTA_BUFFER_EXCEEDED;
 
-    chng = (bufferMetaData == NULL || strlen((char *)lastBuffer) == 0 ||
-            strncmp ((char *)lastBuffer, (char *)buffer, XML_METADATA_MAX_LENGTH) != 0);
+    /* either grab a previously loaded metadata buffer, or create a new one */
+    if (cacheStringInit || metadataCache == NULL)
+    {
+        if (metadataCache == NULL)
+            metadataCache = (bagMetaData **) calloc (MAX_GRIDS, sizeof(bagMetaData *));
+        for (i=0; i < MAX_GRIDS; i++)
+        {
+            metadataCache[i] = NULL;
+            strcpy (cacheString[i], "");
+        }
+        chng = 1;
+        cacheStringInit = 0;
+        i=0;
+    } else {
+        for (i=0; i < MAX_GRIDS; i++)
+        {
+            chng = (metadataCache[i] == NULL || strlen((char *)cacheString[i]) == 0);
+            /* use empty slot, or we've matched */
+            /* terminate loop with i set to proper buffer */
+            if (chng || strncmp ((char *)cacheString[i], (char *)buffer, XML_METADATA_MAX_LENGTH) == 0)
+                break;
+        }
+        /* if too many grids are loaded, then bump off the 0th */
+        if (i >= MAX_GRIDS)
+        {
+            chng = 1;
+            i=0;
+        }
+    }
 
-    /* we will recycle lastBuffer and bufferMetaData if buffer has not changed */
+    /* we will recycle cacheString and metadataCache if buffer has not changed */
     if (chng)
     {
-        if (bufferMetaData != NULL)
+        if (metadataCache[i] != NULL)
         {
-            bagFreeMetadata(bufferMetaData); 
-            bufferMetaData = NULL;
+            bagFreeMetadata (metadataCache[i]);
+            metadataCache[i] = NULL;
         }
 
-        strncpy (lastBuffer, (char *)buffer, bufferSize);
+        strncpy (cacheString[i], (char *)buffer, bufferSize);
 
         /* need to make sure that the buffer is NULL terminated. */
-        lastBuffer[bufferSize] = '\0';
+        cacheString[i][bufferSize] = '\0';
         
     }
 
@@ -264,18 +299,20 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     bagInitMetadata();
 
     if (chng)
+    {
         /* open and validate the XML file. */
-        bufferMetaData = bagValidateMetadataBuffer(lastBuffer, bufferSize, &error);
+        metadataCache[i] = bagValidateMetadataBuffer(cacheString[i], bufferSize, &error);
+    }
+
 
     if (error)
         return error;
 
     /* retrieve the necessary parameters */
-    error = bagInitDefinition(&data->def, bufferMetaData);
+    error = bagInitDefinition(&data->def, metadataCache[i]);
     if (error)
     {
         /* free the meta data */
-        bagFreeMetadata(bufferMetaData);
         bagFreeXMLMeta();
         return error;
     }
@@ -291,7 +328,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
         else
             return BAG_MEMORY_ALLOCATION_FAILED;
         strncpy((char *)data->metadata, (char *)buffer, bufferLen);
-        /*error = bagGetXMLBuffer(bufferMetaData, data->metadata, &bufferLen);*/
+        /*error = bagGetXMLBuffer(metadataCache[i], data->metadata, &bufferLen);*/
     }
 
     return error;

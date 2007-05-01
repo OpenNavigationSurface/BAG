@@ -21,8 +21,6 @@ CONFIG += debug
 QMAKE_CFLAGS_DEBUG = 
 QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
 
-DEFINES += BEE_STATIC
-
 HEADERS += stdtypes.h \
         crc32.h \
         onscrypto.h \

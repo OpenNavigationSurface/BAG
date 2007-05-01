@@ -15,6 +15,17 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ * Webb McDonald -- Fri Mar  2 14:13:35 2007
+ *   -each "surface" now has a bunch of HDF structs initialized at the
+ *    this bag_hdf.c level now instead of temporarily being opened and
+ *    closed within every I/O call in bag_surfaces.c module
+ *   -dataset, datatype, filespace \a hid_t will be initialized here,
+ *    but memspace varies and might be reopened within each call in bag_surfaces.
+ *   -bagFileCreate had to be reorganized so that the \a bagWriteXMLStream
+ *    is performed at the end, after closing and reopening the entire BAG file
+ *   -bagFileClose of course was modified to handle the job of closing all
+ *    the HDF structs that were moved into the private \a BagHandle
+ *
  * Webb McDonald -- Fri Jan 27 14:35:10 2006
  *   -added hdf property argument for creation of depth and uncertainty datasets to
  *    automatically fill with proper NULL values
@@ -37,6 +48,7 @@
 
 /*! Macros definitions for this module */
 #define	META_DATA_BLOCK_SIZE           1024           /*! \brief The block size defines the allocation/allocation extension unit size */
+#define   BAG_OPEN_CREATE  3 /*! special mode for \a bagFileOpen \a access_mode */
 
 /********************************************************************/
 /*! \brief bagFileCreate
@@ -62,7 +74,7 @@
  ********************************************************************/
 bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle) 
 {
-    int          length;
+    u32          length;
     herr_t       status;
     hsize_t      dims[RANK];
     hsize_t      dim_init[1]; 
@@ -88,41 +100,49 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
 
     /*! Make sure \a *data has been properly loaded by the caller */
     if ((data == (bagData *) NULL)         || 
-        (data->metadata == (u8 *) NULL)  ||
+        (data->metadata == (u8 *) NULL)    ||
         (data->def.nrows < 1)              ||
         (data->def.ncols < 1))
     {
         return (BAG_INVALID_FUNCTION_ARGUMENT);
     }
 
-    length = strlen((char *)data->metadata);
-    if (length < XML_METADATA_MIN_LENGTH)
-    {
-        return (BAG_INVALID_FUNCTION_ARGUMENT);
-    }
-
-    (*bag_handle)->bag.metadata = (u8 *) calloc (length+16, sizeof (u8));
-    if ((*bag_handle)->bag.metadata == (u8 *) NULL)
-    {
-        return (BAG_MEMORY_ALLOCATION_FAILED);
-    }
 
     /*! Copy bagData from the passed argument into the abstracted \a *bag_handle area.
      *  We expect that the calling application has loaded these fields of the 
      *  passed \a *data argument.
      */
     memcpy (&((*bag_handle)->bag.def), &data->def, sizeof (bagDef));
-    memcpy ((*bag_handle)->bag.metadata, data->metadata, length);
-    strncpy ((char *)(* bag_handle)->filename, (char *)file_name, MAX_STR-1);
+    strncpy ((u8 *)(* bag_handle)->filename, (u8 *)file_name, MAX_STR-1);
 
-    (*bag_handle)->elevationArray   = NULL;
-    (*bag_handle)->uncertaintyArray = NULL;
-    (*bag_handle)->cryptoBlock      = NULL;
-    (*bag_handle)->bag.elevation    = NULL;
-    (*bag_handle)->bag.uncertainty  = NULL;
+    /*! init all the HDF structs to -1 */
+    (* bag_handle)->unc_memspace_id  = 
+    (* bag_handle)->trk_memspace_id  = 
+    (* bag_handle)->mta_memspace_id  = 
+    (* bag_handle)->elv_memspace_id  = 
+    (* bag_handle)->unc_dataset_id   =  
+    (* bag_handle)->trk_dataset_id   =  
+    (* bag_handle)->mta_dataset_id   =  
+    (* bag_handle)->elv_dataset_id   =  
+    (* bag_handle)->unc_filespace_id = 
+    (* bag_handle)->trk_filespace_id = 
+    (* bag_handle)->mta_filespace_id = 
+    (* bag_handle)->elv_filespace_id = 
+    (* bag_handle)->unc_datatype_id  = 
+    (* bag_handle)->trk_datatype_id  = 
+    (* bag_handle)->mta_datatype_id  = 
+    (* bag_handle)->mta_cparms_id    = 
+    (* bag_handle)->elv_datatype_id  = -1;
+
+    (*bag_handle)->elevationArray    = 
+    (*bag_handle)->uncertaintyArray  = 
+    (*bag_handle)->cryptoBlock       = 
+    (*bag_handle)->bag.elevation     = 
+    (*bag_handle)->bag.uncertainty   =
+    (*bag_handle)->bag.tracking_list = NULL;
 
     /*! Create the file with default HDF5 properties, but only if the file does not already exist */
-    if ((file_id = H5Fcreate((char *)file_name, H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT)) < 0)
+    if ((file_id = H5Fcreate((u8 *)file_name, H5F_ACC_EXCL, H5P_DEFAULT, H5P_DEFAULT)) < 0)
     {    
         return (BAG_HDF_CREATE_FILE_FAILURE);
     }
@@ -139,19 +159,19 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     (*bag_handle)->bagGroupID = bagGroupID;
 
     /*! Create the mandatory attributes for this level */
-    if ((status = bagCreateAttribute (*bag_handle, bagGroupID, (u8 *)BAG_VERSION_NAME, BAG_VERSION_LENGTH, BAG_ATTR_CS1)) < 0)
+    if ((status = bagCreateAttribute (*bag_handle, bagGroupID, (u8 *)BAG_VERSION_NAME, BAG_VERSION_LENGTH, BAG_ATTR_CS1)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     } 
-    if ((status = bagWriteAttribute (*bag_handle, bagGroupID, (u8 *)BAG_VERSION_NAME, (void *) BAG_VERSION)) < 0)
+    if ((status = bagWriteAttribute (*bag_handle, bagGroupID, (u8 *)BAG_VERSION_NAME, (void *) BAG_VERSION)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
 
     /*! Create the dataset for the XML metadata */
-    dim_init[0] = length;
+    dim_init[0] = strlen((u8 *)data->metadata);
     dim_max[0]  = H5S_UNLIMITED;
 
     if ((dataspace_id = H5Screate_simple (1, dim_init, dim_max)) < 0)
@@ -189,13 +209,6 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_DATASET_EXTEND_FAILURE);
-    }
-
-    /*! Write the XML metadata string into its dataset */
-    if ((status = bagWriteXMLStream (*bag_handle)) < 0)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_WRITE_FAILURE);        
     }
 
     status = H5Pclose(cparms);
@@ -258,13 +271,13 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     }
 
     /*! Add the attributes to the \a tracking list dataset */
-    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, sizeof(u32), BAG_ATTR_U32)) < 0)
+    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, sizeof(u32), BAG_ATTR_U32)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
     length = 0;
-    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, (void *) &length)) < 0)
+    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)TRACKING_LIST_LENGTH_NAME, (void *) &length)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
@@ -313,22 +326,22 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     }
 
     /*! Add the attributes to the \a elevation dataset */
-    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MIN_ELEVATION_NAME, sizeof(f32), BAG_ATTR_F32)) < 0)
+    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MIN_ELEVATION_NAME, sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
-    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MIN_ELEVATION_NAME, (void *) &(data->min_elevation) )) < 0)
+    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MIN_ELEVATION_NAME, (void *) &(data->min_elevation) )) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
-    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MAX_ELEVATION_NAME, sizeof(f32), BAG_ATTR_F32)) < 0)
+    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MAX_ELEVATION_NAME, sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
-    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MAX_ELEVATION_NAME, (void *) &(data->max_elevation) )) < 0)
+    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MAX_ELEVATION_NAME, (void *) &(data->max_elevation) )) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
@@ -376,22 +389,22 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     }
 
     /*! Add the attributes to the \a elevation dataset */
-    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MIN_UNCERTAINTY_NAME, sizeof(f32), BAG_ATTR_F32)) < 0)
+    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MIN_UNCERTAINTY_NAME, sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
-    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MIN_UNCERTAINTY_NAME, (void *) &(data->min_uncertainty) )) < 0)
+    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MIN_UNCERTAINTY_NAME, (void *) &(data->min_uncertainty) )) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
-    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MAX_UNCERTAINTY_NAME, sizeof(f32), BAG_ATTR_F32)) < 0)
+    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MAX_UNCERTAINTY_NAME, sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
     }
-    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MAX_UNCERTAINTY_NAME, (void *) &(data->max_uncertainty) )) < 0)
+    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MAX_UNCERTAINTY_NAME, (void *) &(data->max_uncertainty) )) != BAG_SUCCESS)
     {
         status = H5Fclose (file_id);
         return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
@@ -401,6 +414,38 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     status = H5Sclose (dataspace_id);
     status = H5Tclose (datatype_id);
     status = H5Pclose (plist_id);
+    check_hdf_status();
+
+    if ((status = bagFileClose (*bag_handle)) != BAG_SUCCESS)
+    {
+        return BAG_HDF_INTERNAL_ERROR;
+    }
+
+    /*! reopen the \a bag, but without trying to parse the non-existent \a metadata yet */
+    if ((status = bagFileOpen (bag_handle, BAG_OPEN_CREATE, file_name)) != BAG_SUCCESS)
+    {
+        return status;
+    }
+
+    length = strlen((u8 *)data->metadata);
+    if (length < XML_METADATA_MIN_LENGTH)
+    {
+        return (BAG_INVALID_FUNCTION_ARGUMENT);
+    }
+
+    (*bag_handle)->bag.metadata = (u8 *) calloc (length+16, sizeof (u8));
+    if ((*bag_handle)->bag.metadata == (u8 *) NULL)
+    {
+        return (BAG_MEMORY_ALLOCATION_FAILED);
+    }
+    memcpy ((*bag_handle)->bag.metadata, data->metadata, length);
+
+    /*! Write the XML metadata string into its dataset */
+    if ((status = bagWriteXMLStream (*bag_handle)) != BAG_SUCCESS)
+    {
+        H5Fclose (file_id);
+        return status;
+    }
 
     return (status >= 0) ? BAG_SUCCESS : BAG_HDF_INTERNAL_ERROR;
 }
@@ -429,6 +474,11 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     hid_t        dataset_id;
     hsize_t      max_dims[RANK];
 
+    /*! chunking data block */
+    hsize_t     chunk_dimsr[1];
+    hsize_t	  count[1];
+    s32         rank_chunk;
+
     
     *bag_handle = (bagHandle) calloc (1, sizeof (struct _t_bagHandle));
     if (*bag_handle == (bagHandle) NULL)
@@ -437,10 +487,11 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     }
 
     (* bag_handle)->cryptoBlock = NULL;
-    strncpy ((char *)(* bag_handle)->filename, (char *)file_name, MAX_STR-1);
+    strncpy ((u8 *)(* bag_handle)->filename, (u8 *)file_name, MAX_STR-1);
 
     /*! \brief open the BAG */
-    if (BAG_OPEN_READ_WRITE == access_mode)
+    if (BAG_OPEN_READ_WRITE == access_mode ||
+        BAG_OPEN_CREATE == access_mode)
     {
         /*! 
          * Before opening for RW, store the \a ONSCryptoBlock, which apparently gets
@@ -448,14 +499,14 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
          * when we want it preserved.
          */
         (* bag_handle)->cryptoBlock = calloc (DEFAULT_KEY_LEN, sizeof(u8));
-        status = bagReadCertification ((char *)file_name,
+        status = bagReadCertification ((u8 *)file_name,
                                        (* bag_handle)->cryptoBlock,
                                        DEFAULT_KEY_LEN,
                                        &((* bag_handle)->cryptoID));
 
         if (status != BAG_CRYPTO_SIGNATURE_OK)
         {
-            /* 
+            /*!
                nothing to do here because there is not guarantee of there being
                a \a cryptoBlock anyway, right?
             */
@@ -464,34 +515,45 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         }
 
 
-        if (((* bag_handle)->file_id = H5Fopen((char *)file_name, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
+        if (((* bag_handle)->file_id = H5Fopen((u8 *)file_name, H5F_ACC_RDWR, H5P_DEFAULT)) < 0)
         {
            return (BAG_HDF_FILE_OPEN_FAILURE);
         }
     }
     else
     {
-      if (((* bag_handle)->file_id = H5Fopen((char *)file_name, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
+      if (((* bag_handle)->file_id = H5Fopen((u8 *)file_name, H5F_ACC_RDONLY, H5P_DEFAULT)) < 0)
         {
            return (BAG_HDF_FILE_OPEN_FAILURE);
         }
     }
-
-    (* bag_handle)->elevationArray   = NULL;
-    (* bag_handle)->uncertaintyArray = NULL;
-    (* bag_handle)->bag.elevation    = NULL;
-    (* bag_handle)->bag.uncertainty  = NULL;
-    (* bag_handle)->bag.tracking_list= NULL;
     
-    if ((status = bagReadSurfaceDims ((* bag_handle), max_dims)) < 0)
-    {
-        H5Fclose ((* bag_handle)->file_id);
-        return status;
-    }
+    /*! init all the HDF structs to -1 */
+    (* bag_handle)->unc_memspace_id  = 
+    (* bag_handle)->trk_memspace_id  = 
+    (* bag_handle)->mta_memspace_id  = 
+    (* bag_handle)->elv_memspace_id  = 
+    (* bag_handle)->unc_dataset_id   =  
+    (* bag_handle)->trk_dataset_id   =  
+    (* bag_handle)->mta_dataset_id   =  
+    (* bag_handle)->elv_dataset_id   =  
+    (* bag_handle)->unc_filespace_id = 
+    (* bag_handle)->trk_filespace_id = 
+    (* bag_handle)->mta_filespace_id = 
+    (* bag_handle)->elv_filespace_id = 
+    (* bag_handle)->unc_datatype_id  = 
+    (* bag_handle)->trk_datatype_id  = 
+    (* bag_handle)->mta_datatype_id  = 
+    (* bag_handle)->mta_cparms_id    = 
+    (* bag_handle)->elv_datatype_id  = -1;
 
-    (* bag_handle)->bag.def.nrows = max_dims[0];
-    (* bag_handle)->bag.def.ncols = max_dims[1];
-
+    (*bag_handle)->elevationArray    = 
+    (*bag_handle)->uncertaintyArray  = 
+    (*bag_handle)->cryptoBlock       = 
+    (*bag_handle)->bag.elevation     = 
+    (*bag_handle)->bag.uncertainty   =
+    (*bag_handle)->bag.tracking_list = NULL;
+    
     if (((* bag_handle)->bagGroupID = H5Gopen ((* bag_handle)->file_id, ROOT_PATH)) < 0)
     {
         H5Fclose ((* bag_handle)->file_id);
@@ -500,37 +562,108 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     
     /*! Read out the \a attributes */ 
     memset (version, 0, sizeof(version));
-    if ((status = bagReadAttribute ((* bag_handle), (* bag_handle)->bagGroupID, (u8 *)BAG_VERSION_NAME, version)) < 0)
+    if ((status = bagReadAttribute ((* bag_handle), (* bag_handle)->bagGroupID, (u8 *)BAG_VERSION_NAME, version)) != BAG_SUCCESS)
     {
         return (status);
     }
 
     memset ((* bag_handle)->bag.version, 0, BAG_VERSION_LENGTH);
-    strncpy ((char *)(* bag_handle)->bag.version, (char *)version, sizeof((* bag_handle)->bag.version));
+    strncpy ((u8 *)(* bag_handle)->bag.version, (u8 *)version, sizeof((* bag_handle)->bag.version));
 
-    dataset_id = H5Dopen((* bag_handle)->file_id, ELEVATION_PATH);
-    if ((status = bagReadAttribute ((* bag_handle), dataset_id, (u8 *)MIN_ELEVATION_NAME, &(* bag_handle)->bag.min_elevation)) < 0)
-    {
-        return (status);
-    }
-    if ((status = bagReadAttribute ((* bag_handle), dataset_id, (u8 *)MAX_ELEVATION_NAME, &(* bag_handle)->bag.max_elevation)) < 0)
-    {
-        return (status);
-    }
-    status = H5Dclose (dataset_id);
+    /*!  Open the Elevation dataset and then the supporting HDF structures */
 
-    dataset_id = H5Dopen((* bag_handle)->file_id, UNCERTAINTY_PATH);
-    if ((status = bagReadAttribute ((* bag_handle), dataset_id, (u8 *)MIN_UNCERTAINTY_NAME, &(* bag_handle)->bag.min_uncertainty)) < 0)
+    (* bag_handle)->elv_dataset_id = H5Dopen((* bag_handle)->file_id, ELEVATION_PATH);
+    if ((* bag_handle)->elv_dataset_id < 0)
+            return BAG_HDF_DATASET_OPEN_FAILURE; 
+    if ((status = bagReadAttribute ((* bag_handle), (* bag_handle)->elv_dataset_id, (u8 *)MIN_ELEVATION_NAME, &(* bag_handle)->bag.min_elevation)) != BAG_SUCCESS)
     {
         return (status);
     }
-    if ((status = bagReadAttribute ((* bag_handle), dataset_id, (u8 *)MAX_UNCERTAINTY_NAME, &(* bag_handle)->bag.max_uncertainty)) < 0)
+    if ((status = bagReadAttribute ((* bag_handle), (* bag_handle)->elv_dataset_id, (u8 *)MAX_ELEVATION_NAME, &(* bag_handle)->bag.max_elevation)) != BAG_SUCCESS)
     {
         return (status);
     }
-    if ((status = H5Dclose (dataset_id)) < 0)
+
+    /*! Obtain Elevation datatype */
+    if (((* bag_handle)->elv_datatype_id = H5Dget_type((* bag_handle)->elv_dataset_id)) < 0)
+        return BAG_HDF_TYPE_NOT_FOUND;
+
+    /*! Obtain Elevation file space  */
+    (* bag_handle)->elv_filespace_id = H5Dget_space((* bag_handle)->elv_dataset_id);
+    if ((* bag_handle)->elv_filespace_id < 0)
     {
-        return (BAG_HDF_FILE_CLOSE_FAILURE);
+        return BAG_HDF_DATASPACE_CORRUPTED;
+    }
+
+
+    /*!  Open the Uncertainty dataset and then the supporting HDF structures */
+
+    (* bag_handle)->unc_dataset_id = H5Dopen((* bag_handle)->file_id, UNCERTAINTY_PATH);
+    if ((* bag_handle)->unc_dataset_id < 0)
+            return BAG_HDF_DATASET_OPEN_FAILURE; 
+    if ((status = bagReadAttribute ((* bag_handle), (* bag_handle)->unc_dataset_id, (u8 *)MIN_UNCERTAINTY_NAME, &(* bag_handle)->bag.min_uncertainty)) != BAG_SUCCESS)
+    {
+        return (status);
+    }
+    if ((status = bagReadAttribute ((* bag_handle), (* bag_handle)->unc_dataset_id, (u8 *)MAX_UNCERTAINTY_NAME, &(* bag_handle)->bag.max_uncertainty)) != BAG_SUCCESS)
+    {
+        return (status);
+    }
+
+    /*! Obtain Uncertainty datatype */
+    if (((* bag_handle)->unc_datatype_id = H5Dget_type((* bag_handle)->unc_dataset_id)) < 0)
+        return BAG_HDF_TYPE_NOT_FOUND;
+
+    /*! Obtain Uncertainty file space  */
+    (* bag_handle)->unc_filespace_id = H5Dget_space((* bag_handle)->unc_dataset_id);
+    if ((* bag_handle)->unc_filespace_id < 0)
+    {
+        return BAG_HDF_DATASPACE_CORRUPTED;
+    }
+
+    /*! Open the Tracking list dataset. */
+    (* bag_handle)->trk_dataset_id = H5Dopen((* bag_handle)->file_id, (u8 *)TRACKING_LIST_PATH);
+    if ((* bag_handle)->trk_dataset_id < 0)
+        return BAG_HDF_DATASET_OPEN_FAILURE; 
+
+    if (((* bag_handle)->trk_datatype_id = H5Dget_type((* bag_handle)->trk_dataset_id)) < 0)
+        return BAG_HDF_TYPE_NOT_FOUND;
+
+    /*! Open the Tracking list filespace */
+    (* bag_handle)->trk_filespace_id = H5Dget_space((* bag_handle)->trk_dataset_id);
+    if ((* bag_handle)->trk_filespace_id < 0)
+    {
+        return BAG_HDF_DATASPACE_CORRUPTED;
+    }
+    
+    count[0]  = TRACKING_LIST_BLOCK_SIZE;  /* chunk size */
+
+    /*! define the Tracking list memspace */
+    if (((* bag_handle)->trk_memspace_id = H5Screate_simple (1, count, NULL)) < 0)
+    {
+        return BAG_HDF_CREATE_DATASPACE_FAILURE;
+    }
+
+    /*! Open the \a metadata dataset */
+    (* bag_handle)->mta_dataset_id = H5Dopen((* bag_handle)->file_id, (u8 *)METADATA_PATH);
+    if ((* bag_handle)->mta_dataset_id < 0)
+        return BAG_HDF_DATASET_OPEN_FAILURE; 
+
+    if (((* bag_handle)->mta_datatype_id = H5Dget_type((* bag_handle)->mta_dataset_id)) < 0)
+        return BAG_HDF_TYPE_NOT_FOUND;
+
+    /*! Open the filespace for the case where we're reading into a NULL \a metadata */
+    (* bag_handle)->mta_filespace_id = H5Dget_space((* bag_handle)->mta_dataset_id);
+    if ((* bag_handle)->mta_filespace_id < 0)
+    {
+        return BAG_HDF_DATASPACE_CORRUPTED;
+    }
+    if (((* bag_handle)->mta_cparms_id = H5Dget_create_plist ((* bag_handle)->mta_dataset_id)) < 0)
+        return BAG_HDF_CREATE_PROPERTY_CLASS_FAILURE;
+    
+    if (H5D_CHUNKED == H5Pget_layout ((* bag_handle)->mta_cparms_id))
+    {
+        rank_chunk = H5Pget_chunk ((* bag_handle)->mta_cparms_id, 1, chunk_dimsr);
     }
 
     (* bag_handle)->bag.metadata = (u8 *)calloc (XML_METADATA_MAX_LENGTH, sizeof (u8));
@@ -539,13 +672,29 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         return (BAG_MEMORY_ALLOCATION_FAILED);
     }
 
-    /* MP - Removed a simple direct read of the XML data and called the full XML parsing function.
-            Previously this wasn't being called so parts of the bag definition structure we not 
-            being properly filled. 
-    */
-    if( (status = bagInitDefinitionFromBag( *bag_handle )) < 0 )
+    /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+    if ((status = bagReadSurfaceDims ((* bag_handle), max_dims)) != BAG_SUCCESS)
     {
+        H5Fclose ((* bag_handle)->file_id);
         return status;
+    }
+    (* bag_handle)->bag.def.nrows = max_dims[0];
+    (* bag_handle)->bag.def.ncols = max_dims[1];
+
+    if (access_mode != BAG_OPEN_CREATE)
+    {
+        /*!
+          MP - Removed a simple direct read of the XML data and called the full XML parsing function.
+          Previously this wasn't being called so parts of the bag definition structure were not 
+          being properly filled.  
+          
+          WXM - Unfortunately the Xerces parsing leaves a slight one-time memory leak...
+                One should keep \a bagFileOpen calls to a minimum.
+        */
+        if( (status = bagInitDefinitionFromBag( *bag_handle )) != BAG_SUCCESS )
+        {
+            return status;
+        }
     }
 
     return (BAG_SUCCESS);
@@ -578,7 +727,95 @@ bagError bagFileClose (bagHandle bag_handle)
     {
         return(BAG_HDF_GROUP_CLOSE_FAILURE);
     }
- 
+
+    /*! close the \a HDF entities */
+    if (bag_handle->trk_memspace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->trk_memspace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->trk_filespace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->trk_filespace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->trk_datatype_id >= 0)
+    {
+        status = H5Tclose (bag_handle->trk_datatype_id);
+        check_hdf_status();
+    }
+    if (bag_handle->trk_dataset_id >= 0)
+    {
+        status = H5Dclose (bag_handle->trk_dataset_id);
+        check_hdf_status();
+    }
+    if (bag_handle->mta_memspace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->mta_memspace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->mta_cparms_id >= 0)
+    {
+        status = H5Pclose (bag_handle->mta_cparms_id);
+        check_hdf_status();
+    }
+    if (bag_handle->mta_filespace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->mta_filespace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->mta_datatype_id >= 0)
+    {
+        status = H5Tclose (bag_handle->mta_datatype_id);
+        check_hdf_status();
+    }
+    if (bag_handle->mta_dataset_id >= 0)
+    {
+        status = H5Dclose (bag_handle->mta_dataset_id);
+        check_hdf_status();
+    }
+    if (bag_handle->unc_memspace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->unc_memspace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->unc_filespace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->unc_filespace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->unc_datatype_id >= 0)
+    {
+        status = H5Tclose (bag_handle->unc_datatype_id);
+        check_hdf_status();
+    }
+    if (bag_handle->unc_dataset_id >= 0)
+    {
+        status = H5Dclose (bag_handle->unc_dataset_id);
+        check_hdf_status();
+    }
+    if (bag_handle->elv_memspace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->elv_memspace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->elv_filespace_id >= 0)
+    {
+        status = H5Sclose (bag_handle->elv_filespace_id);
+        check_hdf_status();
+    }
+    if (bag_handle->elv_datatype_id >= 0)
+    {
+        status = H5Tclose (bag_handle->elv_datatype_id);
+        check_hdf_status();
+    }
+    if (bag_handle->elv_dataset_id >= 0)
+    {
+        status = H5Dclose (bag_handle->elv_dataset_id);
+        check_hdf_status();
+    }
+
+    /*! close the main file */
     if ((status = H5Fclose (bag_handle->file_id)) < 0)
     {
         return(BAG_HDF_FILE_CLOSE_FAILURE);
@@ -587,10 +824,10 @@ bagError bagFileClose (bagHandle bag_handle)
     /*! if BAG was opened for a \a READ_WRITE, restore the \a ONSCryptoBlock */
     if (bag_handle->cryptoBlock != NULL)
     {
-      status  = bagWriteCertification ((char *)bag_handle->filename,
+        status  = bagWriteCertification ((u8 *)bag_handle->filename,
                                          bag_handle->cryptoBlock,
                                          bag_handle->cryptoID);
-
+        
         free (bag_handle->cryptoBlock);
         bag_handle->cryptoBlock = NULL;
         if (status != BAG_CRYPTO_SIGNATURE_OK)
@@ -642,7 +879,7 @@ bagData *bagGetDataPointer(bagHandle bag_handle)
 
 bagError bagGetErrorString(bagError code, u8 **error)
 {
-    static char str[MAX_STR];
+    static u8 str[MAX_STR];
 
     str[0] = '\0';
 
