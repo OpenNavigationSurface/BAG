@@ -123,12 +123,12 @@
 	</xs:simpleType>
 	<xs:simpleType name="positiveDecimal_Type">
 		<xs:restriction base="smXML:Decimal_Type">
-			<xs:minExclusive value="0.0"/>
+			<xs:minInclusive value="0.0"/>
 		</xs:restriction>
 	</xs:simpleType>
 	<xs:simpleType name="positiveInteger_Type">
 		<xs:restriction base="smXML:Integer_Type">
-			<xs:minExclusive value="0"/>
+			<xs:minInclusive value="0"/>
 		</xs:restriction>
 	</xs:simpleType>
 </xs:schema>
