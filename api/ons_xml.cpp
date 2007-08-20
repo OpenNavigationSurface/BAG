@@ -22,11 +22,7 @@
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationLS.hpp>
 #include <xercesc/dom/DOMWriter.hpp>
-#if defined(XERCES_NEW_IOSTREAMS)
 #include <iostream>
-#else
-#include <iostream.h>
-#endif
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
 #include <xercesc/framework/MemBufFormatTarget.hpp>
@@ -281,7 +277,7 @@ DOMNode *bagGetXMLNodeByName(
                 XMLString::release(&pNodeName);
                 if (endPos == NULL)
                 {
-                    // if we're at the end return the node.
+                    // if we are at the end, return the node.
                     return pChild;
                 }
                 else
@@ -353,9 +349,41 @@ bagMetaData bagValidateMetadata(
         return NULL;
     }
 
-    char *schemaEntry = new char[strlen(ons_schema_nameSpace) + totalLen + 2];
-    sprintf(schemaEntry, "%s %s", ons_schema_nameSpace, schemaFile);
+    // make sure that any spaces in the file name are replaced with %20 so that Xerces will parse correctly.
+    size_t i, idx = 0, numSpaces = 0;
+    size_t length = strlen(schemaFile);
 
+    // count the number of spaces in the string.
+    for (i = 0; i < length; i++)
+    {
+        if (schemaFile[i] == ' ')
+            numSpaces++;
+    }
+
+    // create the buffer for the new file name (with spaces replaced with %20)
+    char *newFileName = new char[strlen(schemaFile) + numSpaces * 3 + 1];
+
+    // replace spaces.
+    for (i = 0; i < length; i++)
+    {
+        if (schemaFile[i] == ' ')
+        {
+            newFileName[idx++] = '%';
+            newFileName[idx++] = '2';
+            newFileName[idx++] = '0';
+        }
+        else
+            newFileName[idx++] = schemaFile[i];
+    }
+
+    // terminate the string.
+    newFileName[idx] = '\0';
+
+    totalLen = strlen(newFileName) + strlen(ons_schema_location) + 2;
+    char *schemaEntry = new char[strlen(ons_schema_nameSpace) + totalLen + 2];
+
+    sprintf(schemaEntry, "%s %s", ons_schema_nameSpace, newFileName);
+    delete [] newFileName;
 
     //  Create our parser, then attach an error handler to the parser.
     //  The parser will call back to methods of the ErrorHandler if it
@@ -364,7 +392,7 @@ bagMetaData bagValidateMetadata(
     metaData->parser = new XercesDOMParser;
     metaData->parser->setValidationScheme(XercesDOMParser::Val_Always);
     metaData->parser->setDoNamespaces(true);
-    metaData->parser->setDoSchema(true);
+    metaData->parser->setDoSchema(ons_force_schema_validation);
     metaData->parser->setValidationSchemaFullChecking(false);
     metaData->parser->setCreateEntityReferenceNodes(false);
     metaData->parser->setExternalSchemaLocation(schemaEntry);
