@@ -194,6 +194,7 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
         return error;
 
     /* open and validate the XML file. */
+	/*strcpy(fileName, "D:\\michelle\\dbdbv_v6.0\\OPENNavSurf\\examples\\sample-data\\sample.xml");*/
     metaData = bagValidateMetadataFile(fileName, &error);
 
     if (error)
@@ -216,6 +217,12 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
     bufferLen = XML_METADATA_MAX_LENGTH;
     data->metadata = malloc(sizeof(char) * bufferLen);
     error = bagGetXMLBuffer(metaData, (char *)data->metadata, &bufferLen);
+	data->metadata = realloc(data->metadata, sizeof(char) * (bufferLen +1));
+	if(data->metadata == NULL)
+		return (BAG_MEMORY_ALLOCATION_FAILED);
+	else
+		data->metadata[bufferLen] = 0;
+
 
     /* free the meta data */
     bagFreeMetadata(metaData);
