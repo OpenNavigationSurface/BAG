@@ -46,4 +46,7 @@ path and also dot (.) in the current path. You might need to add it with a
 command similar to:
      export PATH=$PATH:.
 
+Another toplevel build script called:
+build-win.mak is provided.  This script is very similar to build-linux.mak, but is
+intended for use with a MINGW32 build environment.  It will run the extlibs/buildlibs-win.mak.
 
