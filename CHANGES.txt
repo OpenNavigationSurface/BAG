@@ -1,0 +1,29 @@
+=========================
+BAG v.1.1.0 Release Notes
+=========================
+
+
+January 23, 2008  (rev 105)
+- Added memory reallocation and setting of NULL to the end of the
+  metadata string buffer upon BAG file open/initialization.
+
+
+August 20, 2007  (rev 104)
+- Added URL style whitespace delimiters, "%20", for handling windows
+  filenames in the metadata support directory filename. 
+
+
+May 1, 2007   (rev 101-103) 
+- Substantial revisions to the BAG HDF accessor functions to avoid
+  memory leaks.
+- Edited metadata schema to allow positiveDecimals to be minInclusive
+  0.0 instead of minExclusive 0.0, which prohibited default values of
+  0.0 to be used in the metadata. 
+
+
+June 15, 2006 - July 13, 2006  (rev 82-98) 
+- Repaired build targets in .vcproj files
+- Disabled DEBUG from the .pro files.
+- Added bag.sln
+
+
