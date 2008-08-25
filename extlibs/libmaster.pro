@@ -16,7 +16,7 @@ include (libincludes.pro)
 
 # Define the basic template for the application
 win32 {
-	TEMPLATE = vclib
+	TEMPLATE = lib
 }
 unix {
 	TEMPLATE = lib
@@ -25,7 +25,7 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= 
 LANGUAGE = C++
-CONFIG	+= debug
+CONFIG	+= 
 CONFIG  -= qt
 
 QMAKE_CFLAGS_DEBUG = 
@@ -35,9 +35,9 @@ win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
 	# The defines should define and IVS OS, GUI, and Hardware platform among others
 	DEFINES	+= WIN32 _WINDOWS _MBCS
-	OBJECTS_DIR = Debug
-	QMAKE_LIBDIR = ../../libsrc/lib/debug
-	DESTDIR = ../lib/debug	
+	OBJECTS_DIR = .obj/$(HOSTMACHINE)
+	#QMAKE_LIBDIR = ../../libsrc/lib/debug
+	DESTDIR = ../lib/$(HOSTMACHINE)/	
 }
 
 #win32:debug {
