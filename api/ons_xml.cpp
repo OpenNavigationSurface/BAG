@@ -273,11 +273,10 @@ DOMNode *bagGetXMLNodeByName(
             const XMLCh *pCurrNodeName = pChild->getNodeName();
             if (XMLString::compareString(pNodeName, pCurrNodeName) == 0)
             {
-                // release the string 
-                XMLString::release(&pNodeName);
                 if (endPos == NULL)
                 {
-                    // if we are at the end, return the node.
+                    // if we are at the end release the string and return the node.
+                    XMLString::release(&pNodeName);
                     return pChild;
                 }
                 else
