@@ -1,12 +1,12 @@
-//************************************************************************
-//      File:    bagcreate.cpp
-//
-//      Open Navigation Surface Working Group, 2005
-//
-//      - Initial implementation
-//        Mark Paton, 7/22/2005
-//
-//************************************************************************
+/************************************************************************
+/      File:    bagcreate.cpp
+/
+/      Open Navigation Surface Working Group, 2005
+/
+/      - Initial implementation
+/        Mark Paton, 7/22/2005
+/
+*************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -20,8 +20,10 @@ int main (int argc, char *argv[])
     /* Fake data - normally read from a file */
     float      surf[GRD_SIZE][GRD_SIZE];
     float      uncert[GRD_SIZE][GRD_SIZE];
+	float      nominal_depth[GRD_SIZE][GRD_SIZE];
     float      surfRange[2];
     float      uncertRange[2];
+	float	   nominal_depthRange[2];
     
     int        nrows, ncols;
  
@@ -30,7 +32,9 @@ int main (int argc, char *argv[])
     int        j;
     bagError   err;
     bagData    data;
+	bagDataOpt opt_data_nominal;
     bagHandle  bagHandle;       /* Primary Pointer to BAG object */
+	bagHandle_opt  bagHandle_nominal; /* pointer to the optional BAG dataset */
     char       outFileName[256];
     char       xmlFileName[256];   
     FILE *xmlF;
@@ -39,14 +43,15 @@ int main (int argc, char *argv[])
 
     if( argc != 3 )
     {
-        fprintf( stderr, "Usage is: bagcreate <inputXMLFile> <outputBagFile>\n" );
+        fprintf( stderr, "Usage is: bagcreate <inputXMLFile> <outputBagFile> \n" );
         exit(-1);
     }
     
     strncpy( xmlFileName, argv[1], 255 );   /* Store the XML fileName */
     strncpy( outFileName, argv[2], 255 );   /* Store the BAG fileName to write */
-///*     
+     
     memset (&data, 0, sizeof(data));
+	memset (&opt_data_nominal, 0, sizeof(opt_data_nominal));
 
     for (i=0; i<GRD_SIZE; i++)
     {
@@ -54,12 +59,15 @@ int main (int argc, char *argv[])
         {
             surf[i][j] = 10.0 + (float)(GRD_SIZE*i + j) / 10.0;
             uncert[i][j] =   1.0 + (float)(GRD_SIZE*i + j) / 100.0; 
+			nominal_depth[i][j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
         }
     }
     surfRange[0] = 10.0;
     surfRange[1] = 10.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/10.0;
     uncertRange[0] = 1.0;
     uncertRange[1] = 1.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/100.0;
+	nominal_depthRange[0] = 20.0;
+    nominal_depthRange[1] = 20.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/20.0;
 
     printf( "Attempting to initialize a BAG!\n" );
     data.min_elevation = surfRange[0];
@@ -140,7 +148,32 @@ int main (int argc, char *argv[])
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
     }
-//*/
+
+
+	/* adding optional nominal elevation dataset */
+	opt_data_nominal.def = data.def;
+	opt_data_nominal.datatype = H5T_NATIVE_FLOAT; 
+	err = bagCreateOptionalDataset (bagHandle, &bagHandle_nominal, &opt_data_nominal, Nominal_Elevation);
+
+	bagAllocOptArray (bagHandle_nominal, 0, 0, 
+                        GRD_SIZE-1, GRD_SIZE-1);
+	
+	for( i=0; i<GRD_SIZE; i++ )
+    {
+        err = bagWriteOptRow( bagHandle, bagHandle_nominal, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth[i] );
+		
+    }
+
+	err = bagUpdateOptSurface (bagHandle, bagHandle_nominal, Nominal_Elevation);
+    if( err != BAG_SUCCESS )
+    {
+        char *errstr;
+        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        {
+            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
+        }
+    }
+
     err = bagFileClose( bagHandle );   
     if( err != BAG_SUCCESS )
     {
