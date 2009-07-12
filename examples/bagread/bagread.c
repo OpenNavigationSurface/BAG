@@ -11,6 +11,7 @@
 #include <stdio.h>
 
 #include "bag.h" 
+#include "bag_opt_surfaces.h"
 
 /******************************************************************************/
 
@@ -20,23 +21,32 @@ int ProcessCommandInput( int argc, char **argv, char *gisFile, char *xmlFile, ch
 int main( int argc, char **argv )
 {
     bagHandle hnd;
+	bagHandle_opt hnd_opt;
     u32 i, j;
     bagError stat;
     f32 *data = NULL;
     char gisExportFileName[512], xmlFileName[512], bagFileName[512];
     int summaryOnly;
     FILE *oFile;
+	s32 num_opt_datasets; 
+	int opt_dataset_entities[10];
+	bagData    xml_data;
+	int NominalFound =0;
 
     gisExportFileName[0] = '\0';
     xmlFileName[0]       = '\0';
     bagFileName[0]       = '\0';
-    summaryOnly = 0;    // By default verbosly output information to standard out
+    summaryOnly = 0;    /* By default verbosly output information to standard out */
 
     if ( argc < 2 )
     {
         printf("usage:  %s [-e arcgisAsciiFileName ] [-xml xmlFileName ] <bagFilename>\n", argv[0]);
         return EXIT_FAILURE;
     }
+
+	/* turn off HDF5error messages to stderr nad stdout */
+    H5Eset_auto(NULL,NULL);
+
     ProcessCommandInput( argc, argv, gisExportFileName, xmlFileName, bagFileName, &summaryOnly );
 
     if( bagFileName[0] == '\0' )
@@ -60,6 +70,34 @@ int main( int argc, char **argv )
         return EXIT_FAILURE;
     }
     printf("bagFileOpen status = %d\n", stat);
+
+	stat = bagInitDefinitionFromFile(&xml_data, xmlFileName);
+
+	switch(xml_data.def.depthCorrectionType)
+	{
+		case Unknown:
+		default:
+			printf("Depth Correction type is unknown.\n");
+			break;
+		case True_Depth:
+			printf("Depths in elevation dataset are TRUE\n");
+			break;
+		case Nominal_Depth_Meters:
+			printf("Depths in elevation dataset are Nominal at 1500m\\s.\n");
+			break;
+		case Nominal_Depth_Feet:
+			printf("Depths in elevation dataset are Nominal at 4800ft\\s.\n");
+			break;
+		case Corrected_Carters:
+			printf("Depths in elevation dataset were corrected via Carter's tables\n");
+			break;
+		case Corrected_Matthews:
+			printf("Depths in elevation dataset were corrected via Matthew's tables\n");
+			break;
+	}
+		
+
+
     
     printf("BAG row/column extents: %dx%d\n", bagGetDataPointer(hnd)->def.nrows, bagGetDataPointer(hnd)->def.ncols);
     
@@ -71,6 +109,29 @@ int main( int argc, char **argv )
     stat = bagReadXMLStream( hnd );
     printf("status for bagReadDataset(Metadata) = %d\n", stat);
 */
+	/* read the BAG file to determine whether or not any optional datasets exist */
+	stat = bagGetOptDatasets(&hnd_opt, bagFileName, &num_opt_datasets, opt_dataset_entities);
+
+	if(num_opt_datasets ==0)
+	{
+		printf("\n Only mandatory datasets were found in the BAG.\n");
+		if(xml_data.def.depthCorrectionType == Nominal_Depth_Meters || 
+			xml_data.def.depthCorrectionType == Nominal_Depth_Feet)
+			printf("\nThe elevation dataset however includes only Nominal depth not True depth\n\n");
+	}
+
+
+	for(i=0; i<num_opt_datasets; i++)
+	{
+		printf("\nOptional datasets have been found\n");
+		
+		if(opt_dataset_entities[i] == Nominal_Elevation)
+		{
+			printf("\n Nominal data has been found in the bag and is contained in the optional dataset\n\n");
+			NominalFound = 1;
+		}
+	}
+
     if( !summaryOnly )    /* Don't display if just the summary is requested */
     {
         printf("metadata = {%s}\n\n", bagGetDataPointer(hnd)->metadata);
@@ -88,7 +149,7 @@ int main( int argc, char **argv )
     }
 
     /* Read data using the ReadRow method */
-    if( !summaryOnly )      // Display heights and uncertainties 
+    if( !summaryOnly )      /* Display heights and uncertainties  */
     {
         fprintf(stdout, "Elevation:=  {\n\t");
         fflush(stdout);
@@ -125,6 +186,35 @@ int main( int argc, char **argv )
         free(data);
         fprintf(stdout, "\n\t}\n");
         fflush(stdout);
+
+		/* if optional datasets are present read them in */
+		if(num_opt_datasets > 0)
+		{
+			if(NominalFound)
+			{
+				fprintf(stdout, "Nominal Elevation:=  {\n\t");
+				fflush(stdout);
+
+				bagGetOptDatasetInfo(&hnd_opt, Nominal_Elevation);
+
+				                
+				data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32));
+				for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++)
+				{
+					bagReadOptRow (hnd, hnd_opt, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Nominal_Elevation, data);
+					for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
+					{
+						fprintf(stdout, "%0.3f\t", data[j]);
+					}
+					fprintf(stdout, "\n\t");
+					fflush(stdout); 
+				}
+				
+				free(data);
+				fprintf(stdout, "\n\t}");
+				fflush(stdout);
+			}
+		}
     } 
     
     if( gisExportFileName[0] != '\0' )
@@ -182,6 +272,33 @@ int main( int argc, char **argv )
             fprintf(oFile, "\n");
         }
         free(data);
+
+		/* Export the uncertainty data to <file>_nominal.asc */
+		if(num_opt_datasets > 0)
+		{
+			sprintf( outName, "%s_nominal.asc", gisExportFileName );
+			if( (oFile = fopen( outName, "wb" )) == NULL )
+			{
+				fprintf( stderr, "ERROR: Opening file %s for nominal data export\n", outName );
+				exit(-1);
+			}
+			fprintf( oFile, "ncols %d\n", bagGetDataPointer(hnd)->def.ncols );
+			fprintf( oFile, "nrows %d\n", bagGetDataPointer(hnd)->def.nrows );
+			fprintf( oFile, "xllcenter %lf\n", bagGetDataPointer(hnd)->def.swCornerX );
+			fprintf( oFile, "yllcenter %lf\n", bagGetDataPointer(hnd)->def.swCornerY);
+			fprintf( oFile, "cellsize %lf\n", bagGetDataPointer(hnd)->def.nodeSpacingX );
+			data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32));
+			for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++)
+			{
+				bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Nominal_Elevation, data);
+				for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
+				{
+					fprintf(oFile, "%0.3f\t", data[j]);
+				}
+				fprintf(oFile, "\n");
+			}
+			free(data);
+		}
     }
 
     /* uses ReadDataset - reads the data arrays in one shot - an alternate method to read the data */
@@ -255,7 +372,7 @@ int ProcessCommandInput( int argc, char **argv, char *gisFile, char *xmlFile, ch
     int i;
 
     i = 1;
-    while( i < argc )   // Process until done
+    while( i < argc )   /*  Process until done */
     {
         if( strcmp( argv[i], "-e") == 0 )
         {
