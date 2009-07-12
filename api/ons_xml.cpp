@@ -273,10 +273,11 @@ DOMNode *bagGetXMLNodeByName(
             const XMLCh *pCurrNodeName = pChild->getNodeName();
             if (XMLString::compareString(pNodeName, pCurrNodeName) == 0)
             {
+                // release the string 
+                XMLString::release(&pNodeName);
                 if (endPos == NULL)
                 {
-                    // if we are at the end release the string and return the node.
-                    XMLString::release(&pNodeName);
+                    // if we are at the end, return the node.
                     return pChild;
                 }
                 else
@@ -1534,3 +1535,86 @@ bagError bagGetUncertantyType(
 
     return error;
 }
+
+//************************************************************************
+//      Method name:    bagGetDepthCorrectionType()
+//
+//      
+//      - Initial implementation
+//        NAVOCEANO, 06/06/2008
+//
+//************************************************************************
+//! Get the type of depth correction type represented by the depth layer in the BAG file.
+/*!
+\param metaData
+    \li The handle to the meta data structure.
+\param depthCorrectionType
+    \li Modified to contain the type of depth correction represented in this BAG.
+    See BAG_DEPTH_CORRECTION_TYPES in bag.h for a complete listing.
+\return
+    \li Error code.
+*/
+//************************************************************************
+bagError bagGetDepthCorrectionType(
+    bagMetaData metaData,
+    u32 *depthCorrectionType
+    )
+{
+    bagError error = BAG_SUCCESS;
+    *depthCorrectionType = NULL_GENERIC;
+
+    char * pDepthCorrectionType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/depthCorrectionType";
+    DOMNode *pDepthCorrectionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pDepthCorrectionType);
+
+    if (pDepthCorrectionNode)
+    {
+        DOMNode *pTmpNode = pDepthCorrectionNode->getFirstChild();
+        if (pTmpNode)
+        {
+            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+            if (pTmpStr)
+            {
+                // convert the string to data type.
+#ifdef WIN32
+                if (_stricmp(pTmpStr, "True Depth") == 0)
+                    *depthCorrectionType = True_Depth;
+                else if (_stricmp(pTmpStr, "Nominal at 1500 m/s") == 0)
+                    *depthCorrectionType = Nominal_Depth_Meters;
+				else if (_stricmp(pTmpStr, "Nominal at 4800 ft/s") == 0)
+                    *depthCorrectionType = Nominal_Depth_Feet;
+				else if (_stricmp(pTmpStr, "Corrected via Carter's Tables") == 0)
+                    *depthCorrectionType = Corrected_Carters;
+				else if (_stricmp(pTmpStr, "Corrected via Matthew's Tables") == 0)
+                    *depthCorrectionType = Corrected_Matthews;
+				else if (_stricmp(pTmpStr, "Unknown") == 0)
+                    *depthCorrectionType = Unknown;
+
+		
+                
+#else
+              
+				if (strcasecmp(pTmpStr, "True Depth") == 0)
+                    *depthCorrectionType = True_Depth;
+                else if (strcasecmp(pTmpStr, "Nominal at 1500 m/s") == 0)
+                    *depthCorrectionType = Nominal_Depth_Meters;
+				else if (strcasecmp(pTmpStr, "Nominal at 4800 ft/s") == 0)
+                    *depthCorrectionType = Nominal_Depth_Feet;
+				else if (strcasecmp(pTmpStr, "Corrected via Carter's Tables") == 0)
+                    *depthCorrectionType = Corrected_Carters;
+				else if (strcasecmp(pTmpStr, "Corrected via Matthew's Tables") == 0)
+                    *depthCorrectionType = Corrected_Matthews;
+				else if (strcasecmp(pTmpStr, "Unknown") == 0)
+                    *depthCorrectionType = Unknown;
+                
+#endif
+            }
+
+            XMLString::release(&pTmpStr);
+        }
+    }
+    else
+        error = BAG_METADTA_DPTHCORR_MISSING;
+
+    return error;
+}
+

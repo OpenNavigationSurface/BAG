@@ -222,6 +222,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         filespace_id = bagHandle->unc_filespace_id;
         dataset_id   = bagHandle->unc_dataset_id;
         break;
+	
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -429,6 +430,8 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         filespace_id = bagHandle->unc_filespace_id;
         dataset_id   = bagHandle->unc_dataset_id;
         break;
+	
+       
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -730,6 +733,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         filespace_id = bagHandle->unc_filespace_id;
         dataset_id   = bagHandle->unc_dataset_id;
         break;
+	
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -1296,7 +1300,6 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
         null_val      = NULL_UNCERTAINTY;
         surface_array = &hnd->uncertaintyArray;
         break;
-
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -1311,8 +1314,10 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
 
     for (i=0; i < hnd->bag.def.nrows; i++)
     {
-        bagReadRegion (hnd, i, 0, i, hnd->bag.def.ncols-1, type);
-        for (j=0; j < hnd->bag.def.ncols-1; j++)
+		
+		bagReadRegion (hnd, i, 0, i, hnd->bag.def.ncols-1, type);
+			
+		for (j=0; j < hnd->bag.def.ncols-1; j++)
         {
             if ((* surface_array)[j] != null_val)
             {
@@ -1332,19 +1337,22 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
     *omin = *min_tmp;
     *omax = *max_tmp;
 
-    if (*max_tmp != null_val)
-    {
-        status = bagWriteAttribute (hnd, dataset_id, max_name, max_tmp);
-        check_hdf_status();
-    }
-    if (*min_tmp != null_val)
-    {
-        status = bagWriteAttribute (hnd, dataset_id, min_name, min_tmp);
-        check_hdf_status();
-    }
+	
+	if (*max_tmp != null_val)
+	{
+		status = bagWriteAttribute (hnd, dataset_id, max_name, max_tmp);
+		check_hdf_status();
+	}
+	if (*min_tmp != null_val)
+	{
+		status = bagWriteAttribute (hnd, dataset_id, min_name, min_tmp);
+		check_hdf_status();
+	}
+	
 
     free (min_tmp);
     free (max_tmp);
 
     return BAG_SUCCESS;
 }
+

@@ -55,6 +55,12 @@
 #define UNCERTAINTY_PATH   ROOT_PATH"/uncertainty"
 #define TRACKING_LIST_PATH ROOT_PATH"/tracking_list"
 
+/*! Path names for optional BAG entities */
+#define NOMINAL_ELEVATION_PATH  ROOT_PATH"/nominal_elevation"
+#define NUM_HYPOTHESES_PATH		ROOT_PATH"/num_hypotheses"
+#define AVERAGE_PATH			ROOT_PATH"/average"
+#define STANDARD_DEV_PATH		ROOT_PATH"/standard_dev"
+
 /*! Names for BAG Attributes */
 #define BAG_VERSION_NAME     "Bag Version"                /*!< Name for version attribute, value set in bag.h */
 #define	MIN_ELEVATION_NAME   "Minimum Elevation Value"    /*!< Name for min elevation attribute, value stored in bagData */
@@ -111,6 +117,37 @@ typedef struct _t_bagHandle {
             mta_cparms_id;
 } BagHandle;
 
+/* Structs */
+/*! \brief The internal BagHandle_opt object is only accessed within the library 
+ *
+ * The BagHandle_opt type is only used privately.  It contains essential
+ * private file information for the optional datasets in a BAG such as the HDF file descriptor ID,
+ * the actual bag filename, a copy of the optional ONSCryptoBlock in case we're
+ * in READ_BAG mode, and internal  memory structures for communication between
+ * the user and the actual HDF BAG.
+ */
+typedef struct _t_bagHandle_opt {
+
+    bagDataOpt bag;
+
+    /*! contiguous 1D arrays for HDF I/O of the optional dataset surfaces */
+    f32    *dataArray;
+
+    /*! scratch buffer for the ONSCryptoBlock, see bagFileOpen() */
+    u8     *cryptoBlock;
+    u32     cryptoID;  /*sigID*/
+
+    u8      filename[MAX_STR];
+
+    /*! HDF structs identifiers */
+    hid_t   file_id;
+    hid_t   bagGroupID; 
+    hid_t   memspace_id,
+            dataset_id,
+            filespace_id,
+            datatype_id;
+} BagHandle_opt;
+
 
 /* enums */
 
@@ -155,6 +192,9 @@ bagError bagAlignXMLStream  (bagHandle hnd, s32 read_or_write);
 bagError bagAlignRow        (bagHandle hnd, u32 row, u32 start_col,u32 end_col, s32 type, s32 read_or_write, void *data);
 bagError bagAlignRegion     (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type, s32 read_or_write, hid_t xfer);
 bagError bagAlignNode       (bagHandle hnd, u32 row, u32 col, s32 type, void *data, s32 read_or_write);
+bagError bagAlignOptRow     (bagHandle hnd, bagHandle_opt hnd_opt, u32 row, u32 start_col,u32 end_col, s32 type, s32 read_or_write, void *data);
+bagError bagAlignOptRegion  (bagHandle hnd, bagHandle_opt hnd_opt, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type, s32 read_or_write, hid_t xfer);
+bagError bagAlignOptNode    (bagHandle hnd, bagHandle_opt hnd_opt, u32 row, u32 col, s32 type, void *data, s32 read_or_write);
 bagError bagUpdateMinMax    (bagHandle hnd, u32 type);
 bagError bagReadTrackingList(bagHandle hnd, u16 mode, u32 inp1, u32 inp2, bagTrackingItem **items, u32 *rtn_len);
 bagError bagFillPos         (bagHandle hnd, u32 r1, u32 c1 , u32 r2, u32 c2, f64 **x, f64 **y);

@@ -134,6 +134,24 @@ bagError bagInitDefinition(
         return error;
     }
 
+	/* retrieve the depth correction type */
+	error = bagGetDepthCorrectionType(metaData, &definition->depthCorrectionType);
+    if (error == BAG_METADTA_DPTHCORR_MISSING)
+	{
+		/* bag made pre-addition of the depthCorrectionType */
+		definition->depthCorrectionType = Unknown;
+	}
+	else if (error != BAG_SUCCESS)
+    {
+        char *errstr;
+        if (bagGetErrorString (error, (u8 **)&errstr) == BAG_SUCCESS)
+        {
+            fprintf(stderr, "Error in metadata initialization: {%s}\n", errstr);
+            fflush(stderr);
+        }
+        return error;
+    }
+
     /* retrieve the horizontal datum */
     error = bagGetHorizDatum(metaData, ellipId, 256);
     if (error)
@@ -194,8 +212,7 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
         return error;
 
     /* open and validate the XML file. */
-	/*strcpy(fileName, "D:\\michelle\\dbdbv_v6.0\\OPENNavSurf\\examples\\sample-data\\sample.xml");*/
-    metaData = bagValidateMetadataFile(fileName, &error);
+	metaData = bagValidateMetadataFile(fileName, &error);
 
     if (error)
         return error;

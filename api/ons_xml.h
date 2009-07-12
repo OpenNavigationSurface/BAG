@@ -88,7 +88,7 @@ extern bagError bagGetProjectionParams(bagMetaData metaData, char *projId, size_
                                     f64 *scaleAtProjOrigin);
 extern bagError bagGetHorizDatum(bagMetaData metaData, char *buffer, u32 bufferSize);
 extern bagError bagGetUncertantyType(bagMetaData metaData, u32 *uncrtType);
-
+extern bagError bagGetDepthCorrectionType(bagMetaData metaData, u32 *depthCorrectionType);
 #ifdef __cplusplus
 }
 #endif
