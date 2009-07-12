@@ -667,6 +667,7 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     }
 
     (* bag_handle)->bag.metadata = (u8 *)calloc (XML_METADATA_MAX_LENGTH, sizeof (u8));
+	
     if ((* bag_handle)->bag.metadata == (u8 *) NULL)
     {
         return (BAG_MEMORY_ALLOCATION_FAILED);
