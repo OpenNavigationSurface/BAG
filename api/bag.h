@@ -139,6 +139,7 @@ enum BAG_ERRORS {
     BAG_METADTA_INVLID_DIMENSIONS              = 414, /*!< The number of dimensions is incorrect. (not equal to 2). */
     BAG_METADTA_UNCRT_MISSING                  = 415, /*!< The 'uncertaintyType' information is missing from the XML structure. */
     BAG_METADTA_BUFFER_EXCEEDED                = 416, /*!< The supplied buffer is to large to be stored in the internal array. */
+	BAG_METADTA_DPTHCORR_MISSING               = 417, /*!< The 'depthCorrectionType' information is missing from the XML structure. */
 
     BAG_NOT_HDF5_FILE                          = 602, /*!< HDF Bag is not an HDF5 File */
     BAG_HDF_RANK_INCOMPATIBLE                  = 605, /*!< HDF Bag's rank is incompatible with expected Rank of the Datasets */
@@ -181,6 +182,8 @@ enum BAG_ERRORS {
 #define NULL_ELEVATION      1e6
 #define NULL_UNCERTAINTY    1e6
 #define NULL_STD_DEV        1e6
+#define NULL_GENERIC	    1e6
+
 
 /* 
  * Unknown Uncertainty :
@@ -189,6 +192,7 @@ enum BAG_ERRORS {
  * be used to distinguish it from NULL.
  */
 #define UNK_UNCERTAINTY 0
+
 
 /* Define convenience data structure for BAG geographic definitions */
 enum BAG_COORDINATES {
@@ -278,6 +282,7 @@ typedef struct t_bagGeotransTuple
 } bagGeotransTuple;
 
 typedef struct _t_bagHandle *bagHandle;
+typedef struct _t_bagHandle_opt *bagHandle_opt; /* bag handle to optional dataset */
 
 typedef struct _t_bag_definition
 {
@@ -291,6 +296,7 @@ typedef struct _t_bag_definition
     bagGeotransParameters geoParameters;              /* Parameters for projection information                        */
     u16    trackingID;                                /* index of the current metadata lineage of tracking list edits */
     u32    uncertType;                                /* The type of Uncertainty encoded in this BAG.                 */
+	u32	   depthCorrectionType;						  /* The type of depth correction */
 } bagDef;
 
 #define	BAG_NAME_MAX_LENGTH 256  
@@ -310,6 +316,22 @@ typedef struct _t_bag_data
     bagTrackingItem *tracking_list;                   /* Tracking list array                                          */
 } bagData;
 
+/* Structure to hold an optional dataset being loaded into the bag */
+typedef struct _t_bag_data_opt
+{
+    bagDef   def;                                     /* Geospatial definitions                                       */
+    u8       version[BAG_VERSION_LENGTH];             /* Mapped from HDF file, defines BAG version of current file    */
+    s32		 type;									  /* BAG_SURFACE_PARAMS data type								  */
+	u8       bagName[BAG_NAME_MAX_LENGTH];            /* Mapped from XML metadata for convenient access (To Be Done)  */
+    u8      *metadata;                                /* Mapped from XML metadata                                     */
+    f32    **opt_data;                                /* 2D array of values for each node						      */
+    f32      min;									  /* Minimum value in the dataset							      */
+    f32      max;									  /* Maximum value in the dataset							      */
+	hid_t    datatype;								  /* HDF5 datatype identifier									  */
+    f32		 datanull;								  /* value for null data										  */
+	bagTrackingItem *tracking_list;                   /* Tracking list array									      */
+} bagDataOpt;
+
 /* The type of Uncertainty encoded in this BAG. */
 enum BAG_UNCERT_TYPES
 {
@@ -320,6 +342,16 @@ enum BAG_UNCERT_TYPES
     Historical_Std_Dev  = 4  /* "Historical Std Dev" - Estimated standard deviation based on historical/archive data. */
 };
 
+enum BAG_DEPTH_CORRECTION_TYPES
+{
+	True_Depth				= 0, /* "True Depth" - Depth corrected for sound velocity */
+	Nominal_Depth_Meters	= 1, /* "Nominal at 1500 m/s " - Depth at assumed sound velocity of 1500m/s*/
+	Nominal_Depth_Feet		= 2, /* "Nominal at 4800 ft/s" - Depth at assumed sound velocity of 4800ft/s*/	
+	Corrected_Carters		= 3, /* "Corrected via Carter's Tables" - Corrected depth using Carter's tables */
+	Corrected_Matthews		= 4, /* "Corrected via Matthew's Tables" - Corrected depth using Matthew's tables*/
+	Unknown					= 5  /* "Unknown" - Unknown depth correction type or mixture of above types */
+};
+
 /* ELEVATION, UNCERTAINTY are mandatory BAG datasets, the rest are optional. */
 enum BAG_SURFACE_PARAMS {
     Metadata       = 0,
@@ -327,7 +359,8 @@ enum BAG_SURFACE_PARAMS {
     Uncertainty    = 2, 
     Num_Hypotheses = 3,
     Average        = 4,
-    Standard_Dev   = 5
+    Standard_Dev   = 5,
+	Nominal_Elevation = 6,
 };
 
 /* Function prototypes */
@@ -409,6 +442,17 @@ extern bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void 
  
 /* TBD */
 extern bagError bagWriteNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
+extern bagError bagWriteOptNode (bagHandle bag, bagHandle_opt bagHandle_opt, u32 row, u32 col, s32 type, void *data);
+/* Description:
+ *     This function writes a value to the specified node in the specified BAG for the optional dataset.
+ *     The "type" argument defines which surface parameter is updated.
+ *
+ * Arguments:
+ *
+ * Return value:
+ *     On success, a value of zero is returned.  On failure a value of -1 is returned.
+ */
+
 extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, void *data);
 /* Description:
  *     This function writes a value to the specified node in the specified BAG.  
@@ -419,6 +463,8 @@ extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, vo
  * Return value:
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
+
+extern bagError bagReadOptRow (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
 
 extern bagError bagReadRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
@@ -443,6 +489,19 @@ extern bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_co
  */
 
  
+extern bagError bagWriteOptRow(bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
+/* Description:
+ *     This function writes the row of data values for the surface parameter
+ *     specified by type to the specified optional dataset row for the BAG specified by bagHandle_opt.
+ *     The intended usage of this function is for initial load of data into a BAG
+ *     The tracking list is not updated for this operation.
+ *
+ * Arguments:
+ *
+ * Return value:
+ *     On success, a value of zero is returned.  On failure a value of -1 is returned. 
+ */
+
 extern bagError bagWriteRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
  *     This function writes the row of data values for the surface parameter 
@@ -491,6 +550,10 @@ extern bagError bagReadDatasetPos (bagHandle bag, s32 type, f64 **x, f64 **y);
 extern bagError bagReadRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                u32 end_row, u32 end_col, s32 type);
 extern bagError bagWriteRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
+                                u32 end_row, u32 end_col, s32 type);
+extern bagError bagReadOptRegion (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 start_row, u32 start_col, 
+                               u32 end_row, u32 end_col, s32 type);
+extern bagError bagWriteOptRegion (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 start_row, u32 start_col, 
                                 u32 end_row, u32 end_col, s32 type);
 extern bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col, 
                                   u32 end_row, u32 end_col, s32 type, f64 **x, f64 **y);
@@ -715,6 +778,7 @@ extern Coordinate_Type bagCoordsys(char *str);
 extern bagDatum        bagDatumID(char *str);
 
 extern bagData *bagGetDataPointer(bagHandle bag_handle);
+extern bagDataOpt *bagGetOptDataPointer(bagHandle_opt bag_handle_opt);
 
 /****************************************************************************************
  * The array functions manage private memory within the bagHandle
@@ -725,6 +789,15 @@ extern bagData *bagGetDataPointer(bagHandle bag_handle);
 extern bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
 extern bagError bagFreeArray (bagHandle hnd, s32 type);
 
+/****************************************************************************************
+ * The array functions manage private memory within the bagHandle
+ * which is used to buffer data from the surface datasets.
+ * The user is able to access this data from the bagData's
+ * 2D **elevation and **uncertainty pointers.
+ ****************************************************************************************/
+extern bagError bagAllocOptArray (bagHandle_opt hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col);
+extern bagError bagFreeOptArray (bagHandle_opt hnd);
+
 /*
  *  bagFreeXMLMeta ():
  *  
@@ -734,6 +807,7 @@ extern bagError bagFreeArray (bagHandle hnd, s32 type);
 extern bagError bagFreeXMLMeta ();
 
 extern bagError bagUpdateSurface (bagHandle hnd, u32 type);
+extern bagError bagUpdateOptSurface (bagHandle hnd, bagHandle_opt hnd_opt, u32 type);
 
 /* 
  * Routine:     bagTrackingListLength
@@ -902,6 +976,21 @@ extern bagError bagGetErrorString(bagError code, u8 **error);
  */
 extern bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims);
 
+
+/*! \brief  bagCreateOptionalDataset
+ * Description:
+ *     This function creates optional datasets as defined in BAG_SURFACE_PARAMS
+ * 
+ *  \param    *file_name		pointer to the Bag file name to be written to
+ *  \param	  *data				pointer to the structure containing information to create the dataset
+ *	\param	  type				BAG_SURFACE_PARAMS for the dataset
+ *
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
+extern bagError bagCreateOptionalDataset (bagHandle bagHandle, bagHandle_opt *bagHandle_opt, bagDataOpt *data,  s32 type);
+
+extern bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s32 *num_opt_datasets, 
+							int opt_dataset_names[10]);
 
 /* APIs to be defined...
 
