@@ -5,10 +5,12 @@
       <xs:extension base="smXML:MD_DataIdentification_Type">
         <xs:sequence>
           <xs:element name="verticalUncertaintyType" type="smXML:CharacterString_Type" minOccurs="1"/>
+          <xs:element name="depthCorrectionType" type="smXML:CharacterString_Type" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
+ 
   <xs:element name="BAG_DataIdentification" type="smXML:BAG_DataIdentification_Type" substitutionGroup="smXML:MD_DataIdentification"/>
 <xs:complexType name="BAG_DataIdentification_PropertyType">
     <xs:choice>
