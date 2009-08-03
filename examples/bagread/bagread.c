@@ -100,7 +100,9 @@ int main( int argc, char **argv )
 
     
     printf("BAG row/column extents: %dx%d\n", bagGetDataPointer(hnd)->def.nrows, bagGetDataPointer(hnd)->def.ncols);
-    
+    printf("BAG South-West Corner : %lf, %lf\n", bagGetDataPointer(hnd)->def.swCornerX, bagGetDataPointer(hnd)->def.swCornerY );
+    printf("BAG Node Spacing      : %lf, %lf\n", bagGetDataPointer(hnd)->def.nodeSpacingX, bagGetDataPointer(hnd)->def.nodeSpacingY );
+
     /* Read the XML Metadata from the BAG file:
        Note that the metadata is not null terminated so the printf will probably
        print a bunch of junk at the end of the XML file.
