@@ -58,8 +58,8 @@
 #include "stdtypes.h"
 
 /* include headers for the 2 geotrans modules to be used from src root of geotrans */
-#include "dt_cc.h"      /* various geotrans dt_cc includes utm/utm.h, ...  */
-#include <engine.h>     /* include the geotrans engine header */
+//MP - REMOVE #include "dt_cc.h"      /* various geotrans dt_cc includes utm/utm.h, ...  */
+//MP - REMOVE #include <engine.h>     /* include the geotrans engine header */
 
 /* Get the required HDF5 include files */
 #include <hdf5.h>
@@ -270,16 +270,18 @@ typedef struct t_bagTrackingItem
 } bagTrackingItem;
 
 /* struct for all the coordinate tuples needed for bag, cumulative as params  */
+/* MP - REMOVED
 typedef struct t_bagGeotransTuple
 {
-        f64 longitude;                                /* degrees                    */
-        f64 latitude;                                 /* degrees                    */
-        f64 height;                                   /* pos. up, -depth (meters)   */
-        f64 easting;                                  /* meters                     */
-        f64 northing;                                 /* meters                     */
-        s32 zone;                                     /* for utm                    */
-        char hemisphere;                              /* 'N' or 'S', for utm & ups  */
+        f64 longitude;                                 degrees                    
+        f64 latitude;                                  degrees                    
+        f64 height;                                    pos. up, -depth (meters)   
+        f64 easting;                                   meters                     
+        f64 northing;                                  meters                     
+        s32 zone;                                      for utm                    
+        char hemisphere;                               'N' or 'S', for utm & ups  
 } bagGeotransTuple;
+*/ 
 
 typedef struct _t_bagHandle *bagHandle;
 typedef struct _t_bagHandle_opt *bagHandle_opt; /* bag handle to optional dataset */
@@ -292,11 +294,11 @@ typedef struct _t_bag_definition
     f64    nodeSpacingY;                              /* node spacing in y dimension in units defined by coord system */
     f64    swCornerX;                                 /* X coordinate of SW corner of BAG in BAG_COORDINATES          */
     f64    swCornerY;                                 /* Y coordinate of SW corner of BAG in BAG_COORDINATES          */
-    Coordinate_Type coordSys;                         /* either Geodetic or Mercator Transvers_Mercator,etc(engine.h) */
-    bagGeotransParameters geoParameters;              /* Parameters for projection information                        */
+/*MP-REMOVED    Coordinate_Type coordSys;           */              /* either Geodetic or Mercator Transvers_Mercator,etc(engine.h) */
+/*MP-REMOVED    bagGeotransParameters geoParameters;  */            /* Parameters for projection information                        */
     u16    trackingID;                                /* index of the current metadata lineage of tracking list edits */
     u32    uncertType;                                /* The type of Uncertainty encoded in this BAG.                 */
-	u32	   depthCorrectionType;						  /* The type of depth correction */
+    u32	   depthCorrectionType;	                      /* The type of depth correction */
 } bagDef;
 
 #define	BAG_NAME_MAX_LENGTH 256  
@@ -763,19 +765,22 @@ extern bagError bagConvertCryptoFormat(u8 *object, bagCryptoObject objType, bagC
 */
 
 /* returns 0 on success, non-zero on failure (ERROR codes above actually) */
+/* MP-REMOVED
 extern bagError bagGeotransInit( const Coordinate_Type input_sys,
                                  bagGeotransParameters *input_params,
                                  const Coordinate_Type output_sys,
                                  bagGeotransParameters *output_params );
-
+*/
 /* returns 0 on success, non-zero on failure (ERROR codes above actually) */
+/*MP-REMOVED
 extern bagError bagGeotransConvert( const Coordinate_Type input_sys,
                                     bagGeotransTuple *input_coords,
                                     const Coordinate_Type output_sys,
                                     bagGeotransTuple *output_coords );
+*/
 
-extern Coordinate_Type bagCoordsys(char *str);
-extern bagDatum        bagDatumID(char *str);
+//extern Coordinate_Type bagCoordsys(char *str);
+//extern bagDatum        bagDatumID(char *str);
 
 extern bagData *bagGetDataPointer(bagHandle bag_handle);
 extern bagDataOpt *bagGetOptDataPointer(bagHandle_opt bag_handle_opt);

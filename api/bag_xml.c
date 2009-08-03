@@ -88,10 +88,10 @@ bagError bagInitDefinition(
 {
     bagError error = 0;
     f64 urx, ury, longOfProjCenter;
-	f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint; /* dhf */
+    f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint; /* dhf */
     char projectionId[256];
     char ellipId[256];
-    Coordinate_Type coordType;
+/*MP - REMOVED    Coordinate_Type coordType; */
 
 
     /* read the grid spacing */
@@ -105,19 +105,20 @@ bagError bagInitDefinition(
         return error;
 
     /* read the projection information */
+/* MP - REMOVED
     error = bagGetProjectionParams(metaData, projectionId, 256,
         &definition->geoParameters.zone, &definition->geoParameters.std_parallel_1,
         &definition->geoParameters.central_meridian, &definition->geoParameters.origin_latitude, 
         &definition->geoParameters.false_easting, &definition->geoParameters.false_northing,
-        &scaleFactAtEq, /* dhf - used if Mercator coord sys */
-        &heightOfPersPoint, /* dhf - for space oblique mercator (not in bag) */
-        &longOfProjCenter,  /* dhf - for oblique conformal conic (not in bag) */
+        &scaleFactAtEq,                   // dhf - used if Mercator coord sys //
+        &heightOfPersPoint,               // dhf - for space oblique mercator (not in bag) //
+        &longOfProjCenter,                // dhf - for oblique conformal conic (not in bag) //
         &definition->geoParameters.std_parallel_2, 
-        &scaleAtCenterLine, /* dhf - used if oblique mercator (not bag implemented) */
+        &scaleAtCenterLine,               // dhf - used if oblique mercator (not bag implemented) //
         &definition->geoParameters.longitude_down_from_pole,
-        &scaleAtProjOrigin /* used for polar stereographic & transverse mercator */
+        &scaleAtProjOrigin                // used for polar stereographic & transverse mercator //
 	);
-
+*/
     if (error)
         return error;
 
@@ -158,9 +159,9 @@ bagError bagInitDefinition(
         return error;
 
     /*convert the projection id to a supported type */
-    coordType = bagCoordsys(projectionId);
+//MP-REMOVED    coordType = bagCoordsys(projectionId);
 
-    definition->coordSys = coordType;
+//MP-REMOVED    definition->coordSys = coordType;
     
     /* read the cover information */
     /* if (coordType == Geodetic) */
@@ -176,13 +177,14 @@ bagError bagInitDefinition(
     /* scaleFactAtEq - for mercator */
     /* scaleAtCenterLine - for oblique mercator (not supported) */
     /* scaleAtProjOrigin - for polar stereographic & transverse mercator */
+/*MP - REMOVED
     if ( coordType == Mercator )
     	definition->geoParameters.scale_factor = scaleFactAtEq;
     if ( coordType == Transverse_Mercator || coordType == Polar_Stereo )
     	definition->geoParameters.scale_factor = scaleAtProjOrigin;
-
+*/
     /* convert the ellipsoid type */
-    definition->geoParameters.datum = bagDatumID(ellipId);
+/*MP-REMOVED    definition->geoParameters.datum = bagDatumID(ellipId);   */
 
     return error;
 }
