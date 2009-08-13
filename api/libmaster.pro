@@ -23,7 +23,7 @@ unix {
 }
 
 # Setup shared definitions across all platforms
-DEFINES	+= 
+DEFINES	+= H5_USE_16_API
 LANGUAGE = C++
 #CONFIG	+= qt warn_off debug opengl
 #CONFIG	+= qt warn_off debug 
