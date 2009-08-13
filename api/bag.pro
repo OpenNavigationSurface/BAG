@@ -34,9 +34,9 @@ SOURCES += crc32.c \
         ons_xml.cpp \
         bag_attr.c \
         bag_crypto.c \
-        bag_geotrans.c \
         bag_hdf.c  \
         bag_surfaces.c \
+        bag_opt_surfaces.c \
         bag_tracking_list.c \
         bag_xml.c
            
