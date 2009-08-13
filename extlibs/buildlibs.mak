@@ -15,9 +15,8 @@ if [ ! -n "$PWD" ] ; then
 fi
 
 export XERCESCROOT=$PWD/xerces-c-src_2_6_0
-export GEOTRANS_LIB=geotrans
 export BEECRYPT_LIB=beecrypt-4.1.2
-export HDF5_LIB=hdf5-1.6.1
+export HDF5_LIB=hdf5-1.8.1
 export SZIP_LIB=szip
 export ZLIB_LIB=zlib
 
@@ -75,27 +74,27 @@ fi
 #################################
 #  GEOTRANS library build
 #################################
-$ECHO "Checking for $GEOTRANS_LIB"
-if [ ! -d $GEOTRANS_LIB ] ; then
-	$UNTAR $GEOTRANS_LIB.tgz
-else
-	$ECHO "$GEOTRANS_LIB  exists"
-fi
-if [ ! -e lib/$HOSTMACHINE/libgeotrans.so ] ; then
-	$ECHO "Running make for $GEOTRANS_LIB"
-	$CD $GEOTRANS_LIB
-	make
-	$CD ..
-	if [ ! -e lib/$HOSTMACHINE/libgeotrans.so ] ; then
-		$ECHO "FAILED to build libgeotrans.so"
-		exit
-	else
-		$ECHO "built lib/$HOSTMACHINE/libgeotrans.so successfully"
-	fi
-else
-	$ECHO "lib/$HOSTMACHINE/libgeotrans.so  exists"
-fi	
-
+#$ECHO "Checking for $GEOTRANS_LIB"
+#if [ ! -d $GEOTRANS_LIB ] ; then
+#	$UNTAR $GEOTRANS_LIB.tgz
+#else
+#	$ECHO "$GEOTRANS_LIB  exists"
+#fi
+#if [ ! -e lib/$HOSTMACHINE/libgeotrans.so ] ; then
+#	$ECHO "Running make for $GEOTRANS_LIB"
+#	$CD $GEOTRANS_LIB
+#	make
+#	$CD ..
+#	if [ ! -e lib/$HOSTMACHINE/libgeotrans.so ] ; then
+#		$ECHO "FAILED to build libgeotrans.so"
+#		exit
+#	else
+#		$ECHO "built lib/$HOSTMACHINE/libgeotrans.so successfully"
+#	fi
+#else
+#	$ECHO "lib/$HOSTMACHINE/libgeotrans.so  exists"
+#fi	
+#
 #################################
 #  BEECRYPT library build
 #################################
