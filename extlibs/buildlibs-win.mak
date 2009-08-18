@@ -17,7 +17,7 @@ fi
 export XERCESCROOT=$PWD/xerces-c-src_2_6_0
 export GEOTRANS_LIB=geotrans
 #export BEECRYPT_LIB=beecrypt-4.1.2
-export HDF5_LIB=hdf5-1.6.5
+export HDF5_LIB=hdf5-1.8.3
 export SZIP_LIB=szip
 export ZLIB_LIB=zlib
 
