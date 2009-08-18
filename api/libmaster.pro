@@ -51,7 +51,7 @@ unix {
 	OBJECTS_DIR = .obj/$(HOSTMACHINE)
 	QMAKE_CFLAGS += ${IVSCOPTS} 
 	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
-	OPENNSLIBS += -lhdf5 -lxerces-c -lgeotrans -lbeecrypt -lszip -lzlib -lpthread
+	OPENNSLIBS += -lhdf5 -lxerces-c -lbeecrypt -lszip -lzlib -lpthread
 	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS $$EXTRAUNIXLIBS
         DESTDIR = ../lib/$(HOSTMACHINE)/
     macx {
