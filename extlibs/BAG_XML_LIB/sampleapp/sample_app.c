@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 
     /* Step 3:  Call GetAllStructures to populate the structures with the contents the BAG XML metadata string. */
 
-    /* Get a BAG XML metadata string from somewhere.  In this case, the sample XML file from the BAG library is read in. *?
+    /* Get a BAG XML metadata string from somewhere.  In this case, the sample XML file from the BAG library is read in. */
 
     NV_U_CHAR * xml_string;
     readSampleXml("./sample.xml", &xml_string);
