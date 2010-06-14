@@ -38,5 +38,7 @@ SOURCES += crc32.c \
         bag_surfaces.c \
         bag_opt_surfaces.c \
         bag_tracking_list.c \
-        bag_xml.c
+        bag_xml.c \
+        bag_epsg.c
+
            
