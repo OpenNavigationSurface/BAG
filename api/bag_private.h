@@ -202,4 +202,6 @@ bagError bagSortTrackingList(bagHandle hnd, u16 mode);
 s32 bagCompareTrackIndices  (const void *a, const void *b);
 s32 bagCompareTrackNodes    (const void *a, const void *b);
 s32 bagCompareTrackCodes    (const void *a, const void *b);
+s32 bagIdentifyEPSG         (s32 crd_sys, bagDatum datum, s32 zone, f64 false_northing);
+
 #endif
