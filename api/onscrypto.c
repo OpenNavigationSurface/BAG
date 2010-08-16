@@ -45,13 +45,13 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include "beecrypt/aes.h"
-#include "beecrypt/dsa.h"
-#include "beecrypt/sha1.h"
-#include "beecrypt/sha256.h"
+#include "aes.h"
+#include "dsa.h"
+#include "sha1.h"
+#include "sha256.h"
 #include "crc32.h"
-#include "beecrypt/mpnumber.h"
-#include "beecrypt/mpbarrett.h"
+#include "mpnumber.h"
+#include "mpbarrett.h"
 
 #define DEFAULT_MD_BUFFER_LEN	40960			/*!< The default length of blocks to digest in the Message Digest */
 #define DEFAULT_KEY_LEN		1024				/*!< Maximum bit length allowed for asymmetric keys */
