@@ -38,7 +38,7 @@ s32        bagIdentifyEPSG(s32 crd_sys, bagDatum datum, s32 zone, f64 false_nort
 {
     s32 is_north = ( false_northing == 0. ? 1 : 0 ), EPSG = 0;  // if the false northing is 0, it is in the northern hemisphere
 
-    if( crd_sys == BAG_COORDINATES_GEOGRAPHIC ) // If it is a geodetic unprojected system, return the geographic code for that datum
+    if( crd_sys == Geodetic ) // If it is a geodetic unprojected system, return the geographic code for that datum
     {
         if ( datum == wgs84 ) // WGS84 geodetic
         {
@@ -53,7 +53,11 @@ s32        bagIdentifyEPSG(s32 crd_sys, bagDatum datum, s32 zone, f64 false_nort
             EPSG = 4322;
         }
     }
-    else  // If it is projected - it is assumed to be UTM - return the code for the projected system
+    else if( crd_sys == Mercator )
+    {
+        EPSG = 3395;
+    }
+    else if( crd_sys == UTM )
     {
         if ( datum == wgs84 || datum == nad83 )
         {
