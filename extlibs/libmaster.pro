@@ -25,7 +25,7 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= 
 LANGUAGE = C++
-CONFIG	+= 
+CONFIG	+= shared
 CONFIG  -= qt
 
 QMAKE_CFLAGS_DEBUG = 
