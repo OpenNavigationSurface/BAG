@@ -26,7 +26,7 @@ win32 {
 }
 
 unix {
-	OPENNSLIBS += -lbag -lhdf5 -lxerces-c -lgeotrans -lbeecrypt -lszip -lzlib -lpthread
+	OPENNSLIBS += -lbag -lhdf5 -lxerces-c  -lbeecrypt -lszip -lzlib -lpthread
 	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS $$EXTRAUNIXLIBS
 }
 

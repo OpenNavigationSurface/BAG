@@ -6,6 +6,7 @@
                   Mark Paton, 04/06   - Significant enhancements, ability to export to
                                         ArcGis Ascii files, and export the XML component of
                                         the bag file.
+                  Webb McDonald -- Mon Aug  2 11:27:16 2010 - added surface correctors opt dataset
 */
 
 #include <stdio.h>
@@ -22,20 +23,22 @@ int main( int argc, char **argv )
 {
     bagHandle hnd;
 	bagHandle_opt hnd_opt;
-    u32 i, j;
+    u32 i, j, k;
     bagError stat;
     f32 *data = NULL;
-    char gisExportFileName[512], xmlFileName[512], bagFileName[512];
+    bagVerticalCorrector *vdata = NULL;
+    char gisExportFileName[512], xmlFileName[512], bagFileName[512], datum[55];
     int summaryOnly;
     FILE *oFile;
 	s32 num_opt_datasets; 
 	int opt_dataset_entities[10];
 	bagData    xml_data;
-	int NominalFound =0;
+	int NominalFound =0, sepFound = 0;
 
     gisExportFileName[0] = '\0';
     xmlFileName[0]       = '\0';
     bagFileName[0]       = '\0';
+    datum[0]       = '\0';
     summaryOnly = 0;    /* By default verbosly output information to standard out */
 
     if ( argc < 2 )
@@ -97,16 +100,31 @@ int main( int argc, char **argv )
 	}
 		
 
-
+    /* switch btwn Geotrans CoordSys types and PROJ #defines */
+        switch (bagGetDataPointer(hnd)->def.geoParameters.datum)
+        {
+        case wgs84:
+            strcpy (datum, "WGS84");
+            break;
+        case wgs72:
+            strcpy (datum, "WGS72");
+            break;
+        case nad83:
+            strcpy (datum, "NAD83");
+            break;
+        default:
+            strcpy (datum, "UNKNOWN");
+            break;
+        }
     
     printf("BAG row/column extents: %dx%d\n", bagGetDataPointer(hnd)->def.nrows, bagGetDataPointer(hnd)->def.ncols);
     printf("BAG South-West Corner : %lf, %lf\n", bagGetDataPointer(hnd)->def.swCornerX, bagGetDataPointer(hnd)->def.swCornerY );
     printf("BAG Node Spacing      : %lf, %lf\n", bagGetDataPointer(hnd)->def.nodeSpacingX, bagGetDataPointer(hnd)->def.nodeSpacingY );
-
-    /* Read the XML Metadata from the BAG file:
-       Note that the metadata is not null terminated so the printf will probably
-       print a bunch of junk at the end of the XML file.
-    */
+    printf("BAG Horizontal Datum  : %s\n", datum );
+    printf("BAG Vertical Datum    : %s\n", bagGetDataPointer(hnd)->def.geoParameters.vertical_datum );
+    printf("BAG Ellipsoid         : %s\n", bagGetDataPointer(hnd)->def.geoParameters.ellipsoid );
+    
+    
 /*
     stat = bagReadXMLStream( hnd );
     printf("status for bagReadDataset(Metadata) = %d\n", stat);
@@ -122,15 +140,19 @@ int main( int argc, char **argv )
 			printf("\nThe elevation dataset however includes only Nominal depth not True depth\n\n");
 	}
 
+    printf("\nOptional datasets have been found\n");
 
 	for(i=0; i<num_opt_datasets; i++)
 	{
-		printf("\nOptional datasets have been found\n");
-		
 		if(opt_dataset_entities[i] == Nominal_Elevation)
 		{
 			printf("\n Nominal data has been found in the bag and is contained in the optional dataset\n\n");
 			NominalFound = 1;
+		}
+        if(opt_dataset_entities[i] == Surface_Correction)
+		{
+			printf("\n Vertical Datum Corrections have been found in the bag and are contained in an optional dataset\n\n");
+			sepFound = 1;
 		}
 	}
 
@@ -153,41 +175,41 @@ int main( int argc, char **argv )
     /* Read data using the ReadRow method */
     if( !summaryOnly )      /* Display heights and uncertainties  */
     {
-        fprintf(stdout, "Elevation:=  {\n\t");
-        fflush(stdout);
+        /* fprintf(stdout, "Elevation:=  {\n\t"); */
+/*         fflush(stdout); */
                 
-        data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32));
-        for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++)
-        {
-            bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Elevation, data);
-            for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
-            {
-                fprintf(stdout, "%0.3f\t", data[j]);
-            }
-            fprintf(stdout, "\n\t");
-            fflush(stdout); 
-        }
-        free(data);
-        fprintf(stdout, "\n\t}");
-        fflush(stdout);
+/*         data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32)); */
+/*         for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++) */
+/*         { */
+/*             bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Elevation, data); */
+/*             for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++) */
+/*             { */
+/*                 fprintf(stdout, "%0.3f\t", data[j]); */
+/*             } */
+/*             fprintf(stdout, "\n\t"); */
+/*             fflush(stdout);  */
+/*         } */
+/*         free(data); */
+/*         fprintf(stdout, "\n\t}"); */
+/*         fflush(stdout); */
 
-        fprintf(stdout, "uncertainty:=  {\n\t");
-        fflush(stdout);
+/*         fprintf(stdout, "uncertainty:=  {\n\t"); */
+/*         fflush(stdout); */
 
-        data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32));
-        for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++)
-        {
-            bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Uncertainty, data);
-            for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
-            {
-                fprintf(stdout, "%0.3f\t", data[j]);
-            }
-            fprintf(stdout, "\n\t");
-            fflush(stdout); 
-        }
-        free(data);
-        fprintf(stdout, "\n\t}\n");
-        fflush(stdout);
+/*         data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32)); */
+/*         for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++) */
+/*         { */
+/*             bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Uncertainty, data); */
+/*             for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++) */
+/*             { */
+/*                 fprintf(stdout, "%0.3f\t", data[j]); */
+/*             } */
+/*             fprintf(stdout, "\n\t"); */
+/*             fflush(stdout);  */
+/*         } */
+/*         free(data); */
+/*         fprintf(stdout, "\n\t}\n"); */
+/*         fflush(stdout); */
 
 		/* if optional datasets are present read them in */
 		if(num_opt_datasets > 0)
@@ -200,11 +222,11 @@ int main( int argc, char **argv )
 				bagGetOptDatasetInfo(&hnd_opt, Nominal_Elevation);
 
 				                
-				data = calloc (bagGetDataPointer(hnd)->def.ncols, sizeof(f32));
-				for (i=0; i < bagGetDataPointer(hnd)->def.nrows; i++)
+				data = calloc (bagGetOptDataPointer(hnd_opt)->def.ncols, sizeof(f32));
+				for (i=0; i < bagGetOptDataPointer(hnd_opt)->def.nrows; i++)
 				{
-					bagReadOptRow (hnd, hnd_opt, i, 0, bagGetDataPointer(hnd)->def.ncols-1, Nominal_Elevation, data);
-					for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
+					bagReadOptRow (hnd, hnd_opt, i, 0, bagGetOptDataPointer(hnd_opt)->def.ncols-1, Nominal_Elevation, data);
+					for (j=0; j < bagGetOptDataPointer(hnd_opt)->def.ncols; j++)
 					{
 						fprintf(stdout, "%0.3f\t", data[j]);
 					}
@@ -213,7 +235,40 @@ int main( int argc, char **argv )
 				}
 				
 				free(data);
-				fprintf(stdout, "\n\t}");
+				fprintf(stdout, "}\n\t");
+				fflush(stdout);
+			}
+
+            if(sepFound)
+			{
+				fprintf(stdout, "Vertical Datum Correctors :=  {\n\t");
+				fflush(stdout);
+
+				bagGetOptDatasetInfo(&hnd_opt, Surface_Correction);
+
+				                
+				vdata = calloc (bagGetOptDataPointer(hnd_opt)->def.ncols, sizeof(bagVerticalCorrector));
+				for (i=0; i < bagGetOptDataPointer(hnd_opt)->def.nrows; i++)
+				{
+					bagReadOptRow (hnd, hnd_opt, i, 0, bagGetOptDataPointer(hnd_opt)->def.ncols-1, Surface_Correction, vdata);
+					for (j=0; j < bagGetOptDataPointer(hnd_opt)->def.ncols; j++)
+					{
+                        u32 limit;
+                        bagGetNumSurfaceCorrectors  (hnd_opt, &limit);
+                        for (k=0; k < limit; k++)
+                        {
+                            fprintf(stdout, "Z%d=%0.3lf ", k, vdata[j].z[k]); 
+                        }
+						fprintf(stdout, "X=%0.3lf Y=%0.3lf\t", vdata[j].x, vdata[j].y);
+					}
+					fprintf(stdout, "\n\t");
+					fflush(stdout); 
+
+                    fprintf(stderr, "ROW %d\n", i);
+				}
+				
+				free(vdata);
+				fprintf(stdout, "\t}\n");
 				fflush(stdout);
 			}
 		}
@@ -427,6 +482,7 @@ int ProcessCommandInput( int argc, char **argv, char *gisFile, char *xmlFile, ch
             i++;
         }
     }
+    return EXIT_SUCCESS;
 }
 
 
