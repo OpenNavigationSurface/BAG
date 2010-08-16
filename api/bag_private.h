@@ -37,6 +37,7 @@
 
 #include "hdf5.h"
 #include "bag.h"
+#include "ons_xml.h"
 
 #ifndef __BAG_PRIVATE_H__
 #define __BAG_PRIVATE_H__
@@ -57,6 +58,7 @@
 
 /*! Path names for optional BAG entities */
 #define NOMINAL_ELEVATION_PATH  ROOT_PATH"/nominal_elevation"
+#define VERT_DATUM_CORR_PATH    ROOT_PATH"/vertical_datum_corrections"
 #define NUM_HYPOTHESES_PATH		ROOT_PATH"/num_hypotheses"
 #define AVERAGE_PATH			ROOT_PATH"/average"
 #define STANDARD_DEV_PATH		ROOT_PATH"/standard_dev"
@@ -188,6 +190,7 @@ bagError bagWriteAttribute  (bagHandle hnd, hid_t lid, u8 *attr_name, void *valu
 bagError bagReadAttribute   (bagHandle hnd, hid_t lid, u8 *attr_name, void *value);
 bagError bagAlignAttribute  (bagHandle hnd, hid_t lid, u8 *attr_name, void *value, u32 read_or_write);
 bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims);
+bagError bagReadOptSurfaceDims (bagHandle_opt hnd, hsize_t *max_dims);
 bagError bagAlignXMLStream  (bagHandle hnd, s32 read_or_write);
 bagError bagAlignRow        (bagHandle hnd, u32 row, u32 start_col,u32 end_col, s32 type, s32 read_or_write, void *data);
 bagError bagAlignRegion     (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type, s32 read_or_write, hid_t xfer);
@@ -203,5 +206,7 @@ s32 bagCompareTrackIndices  (const void *a, const void *b);
 s32 bagCompareTrackNodes    (const void *a, const void *b);
 s32 bagCompareTrackCodes    (const void *a, const void *b);
 s32 bagIdentifyEPSG         (s32 crd_sys, bagDatum datum, s32 zone, f64 false_northing);
+bagError bagGetVertDatum    (bagMetaData metaData,char *buffer,u32 bufferSize);
+bagError bagGetHorizDatum    (bagMetaData metaData,char *buffer,u32 bufferSize);
 
 #endif

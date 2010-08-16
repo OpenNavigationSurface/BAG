@@ -16,7 +16,7 @@ include (libincludes.pro)
 
 # Define the basic template for the application
 win32 {
-	TEMPLATE = vclib
+	TEMPLATE = lib
 }
 unix {
 	TEMPLATE = lib
@@ -25,8 +25,6 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= H5_USE_16_API
 LANGUAGE = C++
-#CONFIG	+= qt warn_off debug opengl
-#CONFIG	+= qt warn_off debug 
 CONFIG	+= warn_off
 CONFIG  -= qt
 
@@ -34,11 +32,12 @@ win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
 	# The defines should define and IVS OS, GUI, and Hardware platform among others
 	DEFINES	+= WIN32 _WINDOWS _MBCS
-	QMAKE_CXXFLAGS += /EHsc
-	QMAKE_CFLAGS += /EHsc
-	OBJECTS_DIR = Debug
-	QMAKE_LIBDIR = ../../libsrc/lib/debug
-	DESTDIR = lib/debug	
+	OBJECTS_DIR = .obj/$(HOSTMACHINE)
+	QMAKE_CFLAGS += ${IVSCOPTS} 
+	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
+	OPENNSLIBS += -lhdf5 -lxerces-c -lbeecrypt -lszip -lzlib
+	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS $$EXTRAUNIXLIBS
+        DESTDIR = ../lib/$(HOSTMACHINE)/
 }
 
 #win32:debug {

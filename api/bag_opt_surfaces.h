@@ -10,3 +10,4 @@ extern bagError bagGetOptDatasetInfo(bagHandle_opt *bag_handle_opt, s32 type);
 extern bagError bagWriteOptDataset (bagHandle bagHandle, bagHandle_opt bagHandle_opt, s32 type);
 extern bagError bagUpdateOptMinMax (bagHandle hnd, bagHandle_opt hnd_opt, u32 type);
 extern bagError bagUpdateOptSurface (bagHandle hnd, bagHandle_opt hnd_opt, u32 type);
+

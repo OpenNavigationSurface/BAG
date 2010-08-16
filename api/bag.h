@@ -57,10 +57,6 @@
 #include <float.h>
 #include "stdtypes.h"
 
-/* include headers for the 2 geotrans modules to be used from src root of geotrans */
-//MP - REMOVE #include "dt_cc.h"      /* various geotrans dt_cc includes utm/utm.h, ...  */
-//MP - REMOVE #include <engine.h>     /* include the geotrans engine header */
-
 /* Get the required HDF5 include files */
 #include <hdf5.h>
 
@@ -70,7 +66,7 @@ extern          "C"
 #endif
 
 
-#define BAG_VERSION         "1.1.0"
+#define BAG_VERSION         "1.2.0"
 #define BAG_VERSION_LENGTH  32           /* 32 bytes of space reserved in BAG attribute for VERSION string */
 #define XML_METADATA_MIN_LENGTH 1024   /* Encoded XML string expected to be at least this long to be valid */
 #define XML_METADATA_MAX_LENGTH 1000000
@@ -99,7 +95,6 @@ extern          "C"
 #define BAG_CRYPTO_ERROR_BASE                   200
 #define BAG_METADATA_ERROR_BASE                 400
 #define BAG_HDFV_ERROR_BASE                     600
-#define BAG_GEOTRANS_ERROR_BASE                 800
 
 
 
@@ -169,10 +164,6 @@ enum BAG_ERRORS {
     BAG_HDF_DATASET_OPEN_FAILURE               = 629, /*!< HDF Unable to open Dataset */
     BAG_HDF_TYPE_CREATE_FAILURE                = 630, /*!< HDF Unable to create Datatype */
 
-    BAG_GEOTRANS_DATAFILE_INIT_ERROR           = 800, /*!< Geotrans Datafile initialization error */
-    BAG_GEOTRANS_ENGINE_INIT_ERROR             = 801, /*!< Geotrans Engine initialization error */
-    BAG_GEOTRANS_IO_INIT_ERROR                 = 802, /*!< Geotrans IO initiatlization error */
-    BAG_GEOTRANS_CONVERSION_ERROR              = 803  /*!< Geotrans conversion error */
 };
 
 
@@ -228,13 +219,51 @@ typedef enum bagDatums
         nad83
 } bagDatum;
 
+/* Coordinate Type Enumeration */
+typedef enum Coordinate_Types
+{
+  Geodetic,
+  GEOREF,
+  Geocentric,
+  Local_Cartesian,    
+  MGRS,
+  UTM,
+  UPS,
+  Albers_Equal_Area_Conic,
+  Azimuthal_Equidistant,
+  BNG,
+  Bonne,
+  Cassini,
+  Cylindrical_Equal_Area,
+  Eckert4,
+  Eckert6,
+  Equidistant_Cylindrical,
+  Gnomonic,
+  Lambert_Conformal_Conic,
+  Mercator,
+  Miller_Cylindrical,
+  Mollweide,
+  Neys,
+  NZMG,
+  Oblique_Mercator,
+  Orthographic,
+  Polar_Stereo,
+  Polyconic,
+  Sinusoidal,
+  Stereographic,
+  Transverse_Cylindrical_Equal_Area,
+  Transverse_Mercator,
+  Van_der_Grinten
+} Coordinate_Type;
+
+
 /* structure for parameters of all bag supported horizontal coord. sys.
-        mercator, tm, utm, ps, ups, lambert, & geodetic.  note that the names
-        match the parameter structures in engine.h for the cumulative systems
-        bag supports */
-typedef struct t_bagGeotransParameters
+        mercator, tm, utm, ps, ups, lambert, & geodetic. */
+typedef struct t_bagProjectionParameters
 {
         bagDatum datum;                               /* wgs84, wgs72, nad83, ...   */
+        u8  ellipsoid[256];                           /* ellipsoid                  */
+        u8  vertical_datum[256];                      /* vertical datum             */
         f64 origin_latitude;                          /* degrees                    */
         f64 central_meridian;                         /* degrees                    */
         f64 std_parallel_1;                           /* degrees                    */
@@ -246,7 +275,7 @@ typedef struct t_bagGeotransParameters
         f64 longitude_down_from_pole;                 /* degrees                    */
         s32 zone;                                     /* utm zone 1-60              */
         s32 override;                                 /* utm: 0=autozone,1=use zone */
-} bagGeotransParameters;
+} bagProjectionParameters;
 
 /* some basic tracking list codes */
 enum bagTrackCode
@@ -269,20 +298,6 @@ typedef struct t_bagTrackingItem
                      /* describes the modifications                            */
 } bagTrackingItem;
 
-/* struct for all the coordinate tuples needed for bag, cumulative as params  */
-/* MP - REMOVED
-typedef struct t_bagGeotransTuple
-{
-        f64 longitude;                                 degrees                    
-        f64 latitude;                                  degrees                    
-        f64 height;                                    pos. up, -depth (meters)   
-        f64 easting;                                   meters                     
-        f64 northing;                                  meters                     
-        s32 zone;                                      for utm                    
-        char hemisphere;                               'N' or 'S', for utm & ups  
-} bagGeotransTuple;
-*/ 
-
 typedef struct _t_bagHandle *bagHandle;
 typedef struct _t_bagHandle_opt *bagHandle_opt; /* bag handle to optional dataset */
 
@@ -294,11 +309,12 @@ typedef struct _t_bag_definition
     f64    nodeSpacingY;                              /* node spacing in y dimension in units defined by coord system */
     f64    swCornerX;                                 /* X coordinate of SW corner of BAG in BAG_COORDINATES          */
     f64    swCornerY;                                 /* Y coordinate of SW corner of BAG in BAG_COORDINATES          */
-/*MP-REMOVED    Coordinate_Type coordSys;           */              /* either Geodetic or Mercator Transvers_Mercator,etc(engine.h) */
-/*MP-REMOVED    bagGeotransParameters geoParameters;  */            /* Parameters for projection information                        */
+    Coordinate_Type coordSys;                         /* either Geodetic or Mercator Transvers_Mercator,etc */
+    bagProjectionParameters geoParameters;            /* Parameters for projection information                        */
     u16    trackingID;                                /* index of the current metadata lineage of tracking list edits */
     u32    uncertType;                                /* The type of Uncertainty encoded in this BAG.                 */
     u32	   depthCorrectionType;	                      /* The type of depth correction */
+    u8     surfaceCorrectionTopography;                 /* The type of topography of the surface correction opt dataset   */
 } bagDef;
 
 #define	BAG_NAME_MAX_LENGTH 256  
@@ -334,6 +350,19 @@ typedef struct _t_bag_data_opt
 	bagTrackingItem *tracking_list;                   /* Tracking list array									      */
 } bagDataOpt;
 
+/* The maximum number of datum correctors per bagVerticalCorrector */
+#define BAG_SURFACE_CORRECTOR_LIMIT 10
+
+
+typedef struct _t_bag_vdatum
+{
+    f64 x;
+    f64 y;
+    f32 z[BAG_SURFACE_CORRECTOR_LIMIT];
+
+} bagVerticalCorrector;
+
+
 /* The type of Uncertainty encoded in this BAG. */
 enum BAG_UNCERT_TYPES
 {
@@ -354,6 +383,13 @@ enum BAG_DEPTH_CORRECTION_TYPES
 	Unknown					= 5  /* "Unknown" - Unknown depth correction type or mixture of above types */
 };
 
+/* Surface Correction dataset coordinate topography types */
+enum BAG_SURFACE_CORRECTION_TOPOGRAPHY { 
+    BAG_SURFACE_UNKNOWN = 0,        /* Unknown */
+    BAG_SURFACE_GRID_EXTENTS,       /* Optional corrector dataset grid coordinates, spanning the required BAG surface extents */
+    BAG_SURFACE_IRREGULARLY_SPACED, /* Irregularly spaced corrector values in optional corrector dataset */
+};
+
 /* ELEVATION, UNCERTAINTY are mandatory BAG datasets, the rest are optional. */
 enum BAG_SURFACE_PARAMS {
     Metadata       = 0,
@@ -363,9 +399,8 @@ enum BAG_SURFACE_PARAMS {
     Average        = 4,
     Standard_Dev   = 5,
 	Nominal_Elevation = 6,
+	Surface_Correction = 7
 };
-
-/* Function prototypes */
 
 /* Definitions for file open access modes */
 enum BAG_OPEN_MODE { 
@@ -376,6 +411,8 @@ enum BAG_OPEN_MODE {
 /* Bit flag definitions for file open access ID */
 #define BAG_ACCESS_DEFAULT           0
 
+
+/* Function prototypes */
 
 /* bag_hdf.c */  
 extern bagError bagFileOpen(bagHandle *bagHandle, s32 accessMode, const u8 *fileName); 
@@ -466,7 +503,22 @@ extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, vo
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
 
+extern bagError bagGetOptDatasetInfo(bagHandle_opt *bag_handle_opt, s32 type);
+
 extern bagError bagReadOptRow (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
+extern bagError bagReadOptNode (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 k, u32 start_col, s32 type, void *data);
+
+extern bagError bagReadCorrectorVerticalDatum  (bagHandle hnd, bagHandle_opt hnd_opt, u32, u8 * datum);
+extern bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u32, u8 * datum);
+extern bagError bagReadCorrectedDataset(bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 corrIndex, u32 surfIndex, f32 *data);
+extern bagError bagReadCorrectedRegion (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 startrow, u32 endrow, u32 startcol, u32 endcol, u32 corrIndex, u32 surfIndex, f32 *data);
+extern bagError bagReadCorrectedRow    (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row, u32 corrIndex, u32 surfIndex, f32 *data);
+extern bagError bagReadCorrectedNode   (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row, u32 col, u32 corrIndex, u32 surfIndex, f32 *data);
+
+extern bagError bagGetNumSurfaceCorrectors (bagHandle_opt hnd_opt, u32 *num);
+extern bagError bagGetSurfaceCorrectionTopography(bagHandle hnd, bagHandle_opt hnd_opt, u8 *type);
+
+
 
 extern bagError bagReadRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
@@ -747,40 +799,8 @@ extern bagError bagGenerateKeyPair(u8 **pubKey, u8 **secKey);
 extern bagError bagConvertCryptoFormat(u8 *object, bagCryptoObject objType, bagConvDir convDir, u8 **converted);
 
 
-
-/* in and out systems are constants for the various projections supported.
-        they include:
-                Geodetic, Mercator, Transverse_Mercator, UTM,
-                Polar_Stereo, UPS, and Lambert_Conformal_Conic
-
-        these are defined in the engine.h as an enum type
-
-                example call:
-                bagGeotransInit( Geodetic, &input_params,
-                                        Mercator, &output_params );
-                bagGeotransConvert( Geodetic, &input_params, 
-                                        Mercator, &output_params );
-
-        this allows for one initialize and many converts.
-*/
-
-/* returns 0 on success, non-zero on failure (ERROR codes above actually) */
-/* MP-REMOVED
-extern bagError bagGeotransInit( const Coordinate_Type input_sys,
-                                 bagGeotransParameters *input_params,
-                                 const Coordinate_Type output_sys,
-                                 bagGeotransParameters *output_params );
-*/
-/* returns 0 on success, non-zero on failure (ERROR codes above actually) */
-/*MP-REMOVED
-extern bagError bagGeotransConvert( const Coordinate_Type input_sys,
-                                    bagGeotransTuple *input_coords,
-                                    const Coordinate_Type output_sys,
-                                    bagGeotransTuple *output_coords );
-*/
-
-//extern Coordinate_Type bagCoordsys(char *str);
-//extern bagDatum        bagDatumID(char *str);
+extern Coordinate_Type bagCoordsys(char *str);
+extern bagDatum        bagDatumID(char *str);
 
 extern bagData *bagGetDataPointer(bagHandle bag_handle);
 extern bagDataOpt *bagGetOptDataPointer(bagHandle_opt bag_handle_opt);
@@ -992,17 +1012,13 @@ extern bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims);
  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
-extern bagError bagCreateOptionalDataset (bagHandle bagHandle, bagHandle_opt *bagHandle_opt, bagDataOpt *data,  s32 type);
-
+extern bagError bagCreateOptionalDataset  (bagHandle bagHandle, bagHandle_opt *bagHandle_opt, bagDataOpt *data,  s32 type);
+extern bagError bagCreateCorrectorDataset (bagHandle hnd, bagHandle_opt *hnd_opt, bagDataOpt *opt_def,
+                                           u32 numCorrectors, u8 type);
 extern bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s32 *num_opt_datasets, 
-							int opt_dataset_names[10]);
+                                  int opt_dataset_names[10]);
 
-/* APIs to be defined...
 
-extern bagError bagWriteNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
-extern bagError bagReadNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
-
-*/
 
 
 #ifdef __cplusplus

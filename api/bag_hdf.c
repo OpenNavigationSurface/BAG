@@ -1043,18 +1043,6 @@ bagError bagGetErrorString(bagError code, u8 **error)
     case BAG_HDF_TYPE_CREATE_FAILURE:
         strncpy (str, "HDF Unable to create Datatype", MAX_STR-1);
         break;
-    case BAG_GEOTRANS_DATAFILE_INIT_ERROR:
-        strncpy (str, "Geotrans Datafile initialization error", MAX_STR-1);
-        break;
-    case BAG_GEOTRANS_ENGINE_INIT_ERROR:
-        strncpy (str, "Geotrans Engine initialization error", MAX_STR-1);
-        break;
-    case BAG_GEOTRANS_IO_INIT_ERROR:
-        strncpy (str, "Geotrans IO initiatlization error", MAX_STR-1);
-        break;
-    case BAG_GEOTRANS_CONVERSION_ERROR:
-        strncpy (str, "Geotrans conversion error", MAX_STR-1);
-        break;
     case BAG_CRYPTO_SIGNATURE_OK:
         strncpy (str, "Crypto Signature is OK", MAX_STR-1);
         break;

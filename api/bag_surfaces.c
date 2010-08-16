@@ -1326,25 +1326,32 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
                 if (*min_tmp == null_val)
                     *min_tmp = (* surface_array)[j];
                 if ((* surface_array)[j] > *max_tmp)
+                {
                     *max_tmp = (* surface_array)[j];
+                    //fprintf(stdout, "ex: %f\n", (* surface_array)[j]);
+
+                }
                 if ((* surface_array)[j] < *min_tmp)
+                {
+                    // fprintf(stdout, "ex: %f\n", (* surface_array)[j]);
                     *min_tmp = (* surface_array)[j];
+                }
             }
         }
     }
 
-    /*! update the original bagData values */
-    *omin = *min_tmp;
-    *omax = *max_tmp;
-
-	
 	if (*max_tmp != null_val)
 	{
+        fprintf(stdout, "max = %f\n", *max_tmp);
+
+        *omax = *max_tmp;
 		status = bagWriteAttribute (hnd, dataset_id, max_name, max_tmp);
 		check_hdf_status();
 	}
 	if (*min_tmp != null_val)
-	{
+	{ 
+        fprintf(stdout, "min = %f\n", *min_tmp);
+       *omin = *min_tmp;
 		status = bagWriteAttribute (hnd, dataset_id, min_name, min_tmp);
 		check_hdf_status();
 	}
