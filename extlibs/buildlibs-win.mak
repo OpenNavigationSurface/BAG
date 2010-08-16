@@ -15,8 +15,7 @@ if [ ! -n "$PWD" ] ; then
 fi
 
 export XERCESCROOT=$PWD/xerces-c-src_2_6_0
-export GEOTRANS_LIB=geotrans
-#export BEECRYPT_LIB=beecrypt-4.1.2
+export BEECRYPT_LIB=beecrypt-4.1.2
 export HDF5_LIB=hdf5-1.8.3
 export SZIP_LIB=szip
 export ZLIB_LIB=zlib
@@ -72,44 +71,23 @@ else
 fi
 
 #################################
-#  GEOTRANS library build
-#################################
-$ECHO "Checking for $GEOTRANS_LIB"
-if [ ! -d $GEOTRANS_LIB ] ; then
-	$UNTAR $GEOTRANS_LIB.tgz
-else
-	$ECHO "$GEOTRANS_LIB  exists"
-fi
-if [ ! -e lib/$HOSTMACHINE/libgeotrans.dll ] ; then
-	$ECHO "Running make for $GEOTRANS_LIB"
-	$CD $GEOTRANS_LIB
-	make
-	$CD ..
-	if [ ! -e lib/$HOSTMACHINE/libgeotrans.dll ] ; then
-		$ECHO "FAILED to build libgeotrans.dll"
-		exit
-	else
-		$ECHO "built lib/$HOSTMACHINE/libgeotrans.dll successfully"
-	fi
-else
-	$ECHO "lib/$HOSTMACHINE/libgeotrans.dll  exists"
-fi	
-
-#################################
 #  BEECRYPT library build
 #################################
-#$ECHO "Checking for $BEECRYPT_LIB"
-#if [ ! -d $BEECRYPT_LIB ] ; then
-#	 $UNTAR $BEECRYPT_LIB.tar.gz
-#else
-#	 $ECHO "$BEECRYPT_LIB  exists"
-#fi
+$ECHO "Checking for $BEECRYPT_LIB"
+if [ ! -d $BEECRYPT_LIB ] ; then
+	 $UNTAR $BEECRYPT_LIB.tar.gz
+         $CD $BEECRYPT_LIB
+	 sh configure
+         $CD ..
+else
+	 $ECHO "$BEECRYPT_LIB  exists"
+fi
 #if [ ! -e lib/$HOSTMACHINE/libbeecrypt.dll ] ; then
 #	 $ECHO "Configuring and running make for $BEECRYPT_LIB"
 #	 $CD $BEECRYPT_LIB
 #	 configure
-#	 make
-#	 $CP .libs/libbeecrypt.dll* ../lib/$HOSTMACHINE
+#	 #make
+#	 #$CP .libs/libbeecrypt.dll* ../lib/$HOSTMACHINE
 #	 $CD ..
 #	 if [ ! -e lib/$HOSTMACHINE/libbeecrypt.dll ] ; then
 #		 $ECHO "FAILED to build libbeecrypt.dll"
@@ -129,7 +107,7 @@ if [ ! -d $HDF5_LIB ] ; then
 	 $UNTAR $HDF5_LIB.tar.gz
          $ECHO "Configuring and running make for $HDF5_LIB"
 	 $CD $HDF5_LIB
-	 sh configure
+	 sh configure --enable-shared
 	 $CD ..
 	 $ECHO "built lib/$HOSTMACHINE/libhdf5.dll successfully"
 else
@@ -138,7 +116,7 @@ fi
 #if [ ! -e lib/$HOSTMACHINE/libhdf5.dll ] ; then
 #	 $ECHO "Configuring and running make for $HDF5_LIB"
 #	 $CD $HDF5_LIB
-#	 configure
+#	 configure --enable-shared
 #	 make
 #	 $CP src/.libs/libhdf5.dll* ../lib/$HOSTMACHINE
 #	 $CD ..
@@ -150,6 +128,7 @@ fi
 #	 fi	
 #else
 #	 $ECHO "lib/$HOSTMACHINE/libhdf5.dll  exists"
+#
 #fi
 
 #################################

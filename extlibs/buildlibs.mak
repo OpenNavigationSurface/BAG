@@ -1,7 +1,7 @@
 #/bin/bash
 #################################
-# Linux build script for external libraries
-# Webb McDonald -- Sat Mar 18 15:02:43 2006
+# Windows script for external libraries
+# Webb McDonald -- Fri Aug 03 08:59:05 2007
 #################################
 
 export ECHO='echo -e'
@@ -30,20 +30,19 @@ if [ ! -d $SZIP_LIB ] ; then
 else
 	$ECHO "$SZIP_LIB  exists"
 fi
-if [ ! -e lib/$HOSTMACHINE/libszip.so ] ; then
+if [ ! -e lib/$HOSTMACHINE/libszip.dll ] ; then
 	$ECHO "Running make for $SZIP_LIB"
 	$CD $SZIP_LIB
 	make
 	$CD ..
-
-	if [ ! -e lib/$HOSTMACHINE/libszip.so ] ; then
-		$ECHO "FAILED to build libszip.so"
+        if [ ! -e lib/$HOSTMACHINE/libszip.dll ] ; then
+		$ECHO "FAILED to build libszip.dll"
 		exit
 	else
-		$ECHO "built lib/$HOSTMACHINE/libszip.so successfully"
+		$ECHO "built lib/$HOSTMACHINE/libszip.dll successfully"
 	fi
 else
-	$ECHO "lib/$HOSTMACHINE/libszip.so  exists"
+	$ECHO "lib/$HOSTMACHINE/libszip.dll  exists"
 fi
 
 #################################
@@ -55,97 +54,82 @@ if [ ! -d $ZLIB_LIB ] ; then
 else
 	$ECHO "$ZLIB_LIB  exists"
 fi
-if [ ! -e lib/$HOSTMACHINE/libzlib.so ] ; then
+if [ ! -e lib/$HOSTMACHINE/libzlib.dll ] ; then
 	$ECHO "Running make for $ZLIB_LIB"
 	$CD $ZLIB_LIB
 	make
 	$CD ..
 
-	if [ ! -e lib/$HOSTMACHINE/libzlib.so ] ; then
-		$ECHO "FAILED to build libzlib.so"
+	if [ ! -e lib/$HOSTMACHINE/libzlib.dll ] ; then
+		$ECHO "FAILED to build libzlib.dll"
 		exit
 	else
-		$ECHO "built lib/$HOSTMACHINE/libzlib.so successfully"
+		$ECHO "built lib/$HOSTMACHINE/libzlib.dll successfully"
 	fi
 else
-	$ECHO "lib/$HOSTMACHINE/libzlib.so  exists"
+	$ECHO "lib/$HOSTMACHINE/libzlib.dll  exists"
 fi
 
-#################################
-#  GEOTRANS library build
-#################################
-#$ECHO "Checking for $GEOTRANS_LIB"
-#if [ ! -d $GEOTRANS_LIB ] ; then
-#	$UNTAR $GEOTRANS_LIB.tgz
-#else
-#	$ECHO "$GEOTRANS_LIB  exists"
-#fi
-#if [ ! -e lib/$HOSTMACHINE/libgeotrans.so ] ; then
-#	$ECHO "Running make for $GEOTRANS_LIB"
-#	$CD $GEOTRANS_LIB
-#	make
-#	$CD ..
-#	if [ ! -e lib/$HOSTMACHINE/libgeotrans.so ] ; then
-#		$ECHO "FAILED to build libgeotrans.so"
-#		exit
-#	else
-#		$ECHO "built lib/$HOSTMACHINE/libgeotrans.so successfully"
-#	fi
-#else
-#	$ECHO "lib/$HOSTMACHINE/libgeotrans.so  exists"
-#fi	
-#
 #################################
 #  BEECRYPT library build
 #################################
 $ECHO "Checking for $BEECRYPT_LIB"
 if [ ! -d $BEECRYPT_LIB ] ; then
-	$UNTAR $BEECRYPT_LIB.tar.gz
+	 $UNTAR $BEECRYPT_LIB.tar.gz
+         $CD $BEECRYPT_LIB
+	 sh configure
+         $CD ..
 else
-	$ECHO "$BEECRYPT_LIB  exists"
+	 $ECHO "$BEECRYPT_LIB  exists"
 fi
-if [ ! -e lib/$HOSTMACHINE/libbeecrypt.so ] ; then
-	$ECHO "Configuring and running make for $BEECRYPT_LIB"
-	$CD $BEECRYPT_LIB
-	configure
-	make
-	$CP .libs/libbeecrypt.so* ../lib/$HOSTMACHINE
-	$CD ..
-	if [ ! -e lib/$HOSTMACHINE/libbeecrypt.so ] ; then
-		$ECHO "FAILED to build libbeecrypt.so"
-		exit
-	else
-		$ECHO "built lib/$HOSTMACHINE/libbeecrypt.so successfully"
-	fi
-else
-	$ECHO "lib/$HOSTMACHINE/libbeecrypt.so  exists"
-fi	
+#if [ ! -e lib/$HOSTMACHINE/libbeecrypt.dll ] ; then
+#	 $ECHO "Configuring and running make for $BEECRYPT_LIB"
+#	 $CD $BEECRYPT_LIB
+#	 configure
+#	 #make
+#	 #$CP .libs/libbeecrypt.dll* ../lib/$HOSTMACHINE
+#	 $CD ..
+#	 if [ ! -e lib/$HOSTMACHINE/libbeecrypt.dll ] ; then
+#		 $ECHO "FAILED to build libbeecrypt.dll"
+#		 exit
+#	 else
+#		 $ECHO "built lib/$HOSTMACHINE/libbeecrypt.dll successfully"
+#	 fi
+#else
+#	 $ECHO "lib/$HOSTMACHINE/libbeecrypt.dll  exists"
+#fi	
 
 #################################
 #  HDF5 library build
 #################################
 $ECHO "Checking for $HDF5_LIB"
 if [ ! -d $HDF5_LIB ] ; then
-	$UNTAR $HDF5_LIB.tar.gz
+	 $UNTAR $HDF5_LIB.tar.gz
+         $ECHO "Configuring and running make for $HDF5_LIB"
+	 $CD $HDF5_LIB
+	 sh configure --enable-shared
+	 $CD ..
+	 $ECHO "built lib/$HOSTMACHINE/libhdf5.dll successfully"
 else
-	$ECHO "$HDF5_LIB  exists"
+	 $ECHO "$HDF5_LIB  exists"
 fi
-if [ ! -e lib/$HOSTMACHINE/libhdf5.so ] ; then
-	$ECHO "Configuring and running gmake for $HDF5_LIB"
-	$CD $HDF5_LIB
-	configure
-	gmake
-	$CP src/.libs/libhdf5.so* ../lib/$HOSTMACHINE
-	$CD ..
-	if [ ! -e lib/$HOSTMACHINE/libhdf5.so ] ; then
-		$ECHO "FAILED to build libhdf5.so"
-		exit
-	else
-		$ECHO "built lib/$HOSTMACHINE/libhdf5.so successfully"
-	fi	
-else
-	$ECHO "lib/$HOSTMACHINE/libhdf5.so  exists"
-fi
+#if [ ! -e lib/$HOSTMACHINE/libhdf5.dll ] ; then
+#	 $ECHO "Configuring and running make for $HDF5_LIB"
+#	 $CD $HDF5_LIB
+#	 configure --enable-shared
+#	 make
+#	 $CP src/.libs/libhdf5.dll* ../lib/$HOSTMACHINE
+#	 $CD ..
+#	 if [ ! -e lib/$HOSTMACHINE/libhdf5.dll ] ; then
+#		 $ECHO "FAILED to build libhdf5.dll"
+#		 exit
+#	 else
+#		 $ECHO "built lib/$HOSTMACHINE/libhdf5.dll successfully"
+#	 fi	
+#else
+#	 $ECHO "lib/$HOSTMACHINE/libhdf5.dll  exists"
+#
+#fi
 
 #################################
 #  XERCESC library build
@@ -156,20 +140,20 @@ if [ ! -d $XERCESCROOT/src/xercesc ] ; then
 else
 	$ECHO "$XERCESCROOT  exists"
 fi
-if [ ! -e lib/$HOSTMACHINE/libxerces-c.so ] ; then
-	$ECHO "Configuring and running gmake for $XERCESCROOT"
+if [ ! -e lib/$HOSTMACHINE/libxerces-c.dll ] ; then
+	$ECHO "Configuring and running make for $XERCESCROOT"
 	$CD $XERCESCROOT/src/xercesc
-	autoconf
-	runConfigure -plinux -cgcc -xg++ -minmem -nsocket -tnative -rpthread
-	gmake
+	sh autoconf
+	sh runConfigure -pmingw-msys -cgcc -xg++ -minmem -nfileonly -tnative -rnone
+	make
 	$CD $XERCESCROOT/..
-	$CP $XERCESCROOT/lib/libxerces-c.so* lib/$HOSTMACHINE
-	if [ ! -e lib/$HOSTMACHINE/libxerces-c.so ] ; then
-		$ECHO "FAILED to build libxerces-c.so"
+	$CP $XERCESCROOT/lib/libxerces-c.dll* lib/$HOSTMACHINE
+	if [ ! -e lib/$HOSTMACHINE/libxerces-c.dll ] ; then
+		$ECHO "FAILED to build libxerces-c.dll"
 		exit
 	else
-		$ECHO "built lib/$HOSTMACHINE/libxerces-c.so successfully"
+		$ECHO "built lib/$HOSTMACHINE/libxerces-c.dll successfully"
 	fi	
 else
-	$ECHO "lib/$HOSTMACHINE/libxerces-c.so  exists"
+	$ECHO "lib/$HOSTMACHINE/libxerces-c.dll  exists"
 fi
