@@ -60,6 +60,7 @@
 					<xs:element name="projection" type="smXML:RS_Identifier_PropertyType" minOccurs="0"/>
 					<xs:element name="ellipsoid" type="smXML:RS_Identifier_PropertyType" minOccurs="0"/>
 					<xs:element name="datum" type="smXML:RS_Identifier_PropertyType" minOccurs="0"/>
+					<xs:element name="verticalDatum" type="smXML:RS_Identifier_PropertyType" minOccurs="0"/>
 					<xs:element name="projectionParameters" type="smXML:MD_ProjectionParameters_PropertyType" minOccurs="0"/>
 					<xs:element name="ellipsoidParameters" type="smXML:MD_EllipsoidParameters_PropertyType" minOccurs="0"/>
 				</xs:sequence>
