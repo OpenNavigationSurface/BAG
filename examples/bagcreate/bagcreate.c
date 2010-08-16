@@ -14,6 +14,7 @@
 #include "bag.h"
 
 #define GRD_SIZE 10
+#define SEP_SIZE 3
 
 int main (int argc, char *argv[])
 {
@@ -21,9 +22,11 @@ int main (int argc, char *argv[])
     float      surf[GRD_SIZE][GRD_SIZE];
     float      uncert[GRD_SIZE][GRD_SIZE];
 	float      nominal_depth[GRD_SIZE][GRD_SIZE];
+	bagVerticalCorrector      sep_depth[SEP_SIZE][SEP_SIZE];
     float      surfRange[2];
     float      uncertRange[2];
 	float	   nominal_depthRange[2];
+	float	   sep_depthRange[2];
     
     int        nrows, ncols;
  
@@ -33,8 +36,10 @@ int main (int argc, char *argv[])
     bagError   err;
     bagData    data;
 	bagDataOpt opt_data_nominal;
+	bagDataOpt opt_data_sep;
     bagHandle  bagHandle;       /* Primary Pointer to BAG object */
 	bagHandle_opt  bagHandle_nominal; /* pointer to the optional BAG dataset */
+	bagHandle_opt  bagHandle_sep; /* pointer to the optional BAG dataset */
     char       outFileName[256];
     char       xmlFileName[256];   
     FILE *xmlF;
@@ -52,24 +57,43 @@ int main (int argc, char *argv[])
      
     memset (&data, 0, sizeof(data));
 	memset (&opt_data_nominal, 0, sizeof(opt_data_nominal));
+	memset (&opt_data_sep, 0, sizeof(opt_data_sep));
 
     for (i=0; i<GRD_SIZE; i++)
     {
         for (j=0; j<GRD_SIZE; j++)
         {
-            surf[i][j] = 10.0 + (float)(GRD_SIZE*i + j) / 10.0;
+            surf[i][j] = 0 - (10.0 + (float)(GRD_SIZE*i + j) / 10.0);
             uncert[i][j] =   1.0 + (float)(GRD_SIZE*i + j) / 100.0; 
 			nominal_depth[i][j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
         }
     }
-    surfRange[0] = 10.0;
-    surfRange[1] = 10.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/10.0;
+
+    surfRange[0] = -10.0;
+    surfRange[1] = -10.0 - (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/10.0;
+
     uncertRange[0] = 1.0;
     uncertRange[1] = 1.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/100.0;
+
 	nominal_depthRange[0] = 20.0;
     nominal_depthRange[1] = 20.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/20.0;
 
+    for (i=0; i<SEP_SIZE; i++)
+    {
+        for (j=0; j<SEP_SIZE; j++)
+        {
+			sep_depth[i][j].z[0] =  -(i +0.3333) * (j+1);
+			sep_depth[i][j].z[1] =  (i +0.55) * (j+1);
+			sep_depth[i][j].x =  (i +10.3333) * (j+1);
+			sep_depth[i][j].y =  (i +180.3333) * (j+1);
+        }
+    }
+
+    sep_depthRange[0] = 0.3333;
+    sep_depthRange[1] = 103.333;
+
     printf( "Attempting to initialize a BAG!\n" );
+
     data.min_elevation = surfRange[0];
     data.max_elevation = surfRange[1];
     data.min_uncertainty = uncertRange[0];
@@ -158,7 +182,7 @@ int main (int argc, char *argv[])
 	bagAllocOptArray (bagHandle_nominal, 0, 0, 
                         GRD_SIZE-1, GRD_SIZE-1);
 	
-	for( i=0; i<GRD_SIZE; i++ )
+	for( i=0; i < GRD_SIZE; i++ )
     {
         err = bagWriteOptRow( bagHandle, bagHandle_nominal, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth[i] );
 		
@@ -172,6 +196,28 @@ int main (int argc, char *argv[])
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
+    }
+    bagFreeOptArray (bagHandle_nominal);
+
+    /* adding optional sep elevation dataset */
+	opt_data_sep.def = data.def;
+    opt_data_sep.def.ncols = SEP_SIZE;
+    opt_data_sep.def.nrows = SEP_SIZE;
+
+	err = bagCreateCorrectorDataset (bagHandle, &bagHandle_sep, &opt_data_sep, 2, BAG_SURFACE_IRREGULARLY_SPACED);
+    if( err != BAG_SUCCESS )
+    {
+        char *errstr;
+        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        {
+            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
+        }
+    }
+
+	for( i=0; i < SEP_SIZE; i++ )
+    {
+        err = bagWriteOptRow( bagHandle, bagHandle_sep, i, 0, SEP_SIZE-1, Surface_Correction, (void *)sep_depth[i] );
+		
     }
 
     err = bagFileClose( bagHandle );   
