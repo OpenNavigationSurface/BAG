@@ -18,6 +18,9 @@
 extern "C" {
 #endif
 
+#define XML_ATTR_MAXSTR 256
+
+
 /* Type definition of the bag metadata handle. */
 typedef struct bagXMLHandle *bagMetaData;
 
@@ -87,6 +90,8 @@ extern bagError bagGetProjectionParams(bagMetaData metaData, char *projId, size_
                                     f64 *latOfProjCenter, f64 *scaleAtCenterLine, f64 *vertLongFromPole,
                                     f64 *scaleAtProjOrigin);
 extern bagError bagGetHorizDatum(bagMetaData metaData, char *buffer, u32 bufferSize);
+extern bagError bagGetVertDatum(bagMetaData metaData, char *buffer, u32 bufferSize);
+extern bagError bagGetEllipsoid(bagMetaData metaData, char *buffer, u32 bufferSize);
 extern bagError bagGetUncertantyType(bagMetaData metaData, u32 *uncrtType);
 extern bagError bagGetDepthCorrectionType(bagMetaData metaData, u32 *depthCorrectionType);
 #ifdef __cplusplus

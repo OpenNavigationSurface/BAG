@@ -771,7 +771,7 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
 
 
     f64 latS = DBL_MAX, latN = DBL_MAX, lngE = DBL_MAX, lngW = DBL_MAX;
-    char * pGeoBox = "smXML:MD_Metadata/identificationInfo/smXML:MD_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox";
+    char * pGeoBox = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox";
 
     // define the needed strings.
     XMLCh *pllx = XMLString::transcode("westBoundLongitude");
@@ -1043,7 +1043,6 @@ bagError bagGetGridSpacing(
 
     return 0;
 }
-
 
 //************************************************************************
 //      Method name:    bagGetProjectionParams()
@@ -1439,6 +1438,116 @@ bagError bagGetHorizDatum(
     )
 {
     char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/datum/smXML:RS_Identifier/code";
+
+    DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
+
+    bagError error = 0;
+    if (pEllipIdNode)
+    {
+        DOMNode *pTmpNode = pEllipIdNode->getFirstChild();
+        if (pTmpNode)
+        {
+            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+
+            if (strlen(pTmpStr) > bufferSize)
+            {
+                strncpy(buffer, pTmpStr, sizeof(char) * bufferSize);
+                buffer[bufferSize - 1] = '\0';
+            }
+            else
+            {
+                strcpy(buffer, pTmpStr);
+            }
+
+            XMLString::release(&pTmpStr);
+        }
+    }
+
+    return error;
+}
+
+//************************************************************************
+//      Method name:    bagGetVertDatum()
+//
+//      
+//      - Initial implementation
+//        Webb McDonald -- Fri Jul 30 12:01:41 2010
+//
+//************************************************************************
+//! Get the vertical datum identifier from the meta data.
+/*!
+\param metaData
+    \li The meta data to be searched.
+\param buffer
+    \li Modified to contain the horizontal datum id from the meta data.
+\param bufferSize
+    \li The maximum size of buffer.
+\return
+    \li 0 if the function succeeds, non-zero if the function fails.
+*/
+//************************************************************************
+bagError bagGetVertDatum(
+    bagMetaData metaData,
+    char *buffer,
+    u32 bufferSize
+    )
+{
+    char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/verticalDatum/smXML:RS_Identifier/code";
+
+    DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
+
+    bagError error = 0;
+    if (pEllipIdNode)
+    {
+        DOMNode *pTmpNode = pEllipIdNode->getFirstChild();
+        if (pTmpNode)
+        {
+            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+
+            if (strlen(pTmpStr) > bufferSize)
+            {
+                strncpy(buffer, pTmpStr, sizeof(char) * bufferSize);
+                buffer[bufferSize - 1] = '\0';
+            }
+            else
+            {
+                strcpy(buffer, pTmpStr);
+            }
+
+            XMLString::release(&pTmpStr);
+        }
+    }
+
+    return error;
+}
+
+//************************************************************************
+//      Method name:    bagGetEllipsoid()
+//
+//      
+//      - Initial implementation
+//        Webb McDonald -- Fri Jul 30 12:01:41 2010
+//
+//************************************************************************
+//! Get the ellipsoid identifier from the meta data.
+/*!
+\param metaData
+    \li The meta data to be searched.
+\param buffer
+    \li Modified to contain the horizontal datum id from the meta data.
+\param bufferSize
+    \li The maximum size of buffer.
+\return
+    \li 0 if the function succeeds, non-zero if the function fails.
+*/
+//************************************************************************
+bagError bagGetEllipsoid(
+    bagMetaData metaData,
+    char *buffer,
+    u32 bufferSize
+    )
+{
+    char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/ellipsoid/smXML:RS_Identifier/code";
 
     DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
 

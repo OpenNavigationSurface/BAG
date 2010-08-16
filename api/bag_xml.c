@@ -47,10 +47,94 @@
 #include "ons_xml.h"
 
 #define MAX_GRIDS 20
+#define MAX_NCOORD_SYS 32
+#define MAX_DATUMS 3
+
+#define DATUM_NAME(k) DATUM_NAME_LIST[k].name
+#define COORD_SYS_NAME(k) COORDINATE_SYS_LIST[k].name
+
 
 bagMetaData **metadataCache = NULL;
 char cacheString [MAX_GRIDS] [XML_METADATA_MAX_LENGTH];
 int  cacheStringInit = 1;
+
+struct COORDINATE_SYS_TYPE
+{
+	char *name;
+};
+struct DATUM_NAME_TYPE
+{
+	char *name;
+};
+
+static struct COORDINATE_SYS_TYPE COORDINATE_SYS_LIST[]=
+{
+  {"Geodetic"},
+  {"GEOREF"},
+  {"Geocentric"},
+  {"Local_Cartesian"},
+  {"MGRS"},
+  {"UTM"},
+  {"UPS"},
+  {"Albers_Equal_Area_Conic"},
+  {"Azimuthal_Equidistant"},
+  {"BNG"},
+  {"Bonne"},
+  {"Cassini"},
+  {"Cylindrical_Equal_Area"},
+  {"Eckert4"},
+  {"Eckert6"},
+  {"Equidistant_Cylindrical"},
+  {"Gnomonic"},
+  {"Lambert_Conformal_Conic"},
+  {"Mercator"},
+  {"Miller_Cylindrical"},
+  {"Mollweide"},
+  {"Neys"},
+  {"NZMG"},
+  {"Oblique_Mercator"},
+  {"Orthographic"},
+  {"Polar_Stereo"},
+  {"Polyconic"},
+  {"Sinusoidal"},
+  {"Stereographic"},
+  {"Transverse_Cylindrical_Equal_Area"},
+  {"Transverse_Mercator"},
+  {"Van_der_Grinten"}
+
+};
+
+
+static struct DATUM_NAME_TYPE DATUM_NAME_LIST[]=
+{
+  {"WGS84"},
+  {"WGS72"},
+  {"NAD83"}
+};
+
+
+/******************************************************************************/
+Coordinate_Type bagCoordsys( char *str )
+{
+	long i;
+	for(i = 0; i < MAX_NCOORD_SYS; i++)
+		if ( strncmp(str, COORD_SYS_NAME(i), strlen(COORD_SYS_NAME(i))) == 0 )
+			return i;
+	return -1;
+} /* bagCoordsys */
+
+/******************************************************************************/
+bagDatum bagDatumID( char *str )
+{
+	long i;
+
+	for(i = 0; i < MAX_DATUMS; i++)
+		if ( strncmp(str, DATUM_NAME(i), strlen(DATUM_NAME(i))) == 0 )
+			return i;
+	return -1;
+} /* bagDatumID */
+
+
 
 bagError bagFreeXMLMeta ()
 {
@@ -89,9 +173,9 @@ bagError bagInitDefinition(
     bagError error = 0;
     f64 urx, ury, longOfProjCenter;
     f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint; /* dhf */
-    char projectionId[256];
-    char ellipId[256];
-/*MP - REMOVED    Coordinate_Type coordType; */
+    char projectionId[XML_ATTR_MAXSTR];
+    char ellipId[XML_ATTR_MAXSTR], datumId[XML_ATTR_MAXSTR];
+    Coordinate_Type coordType; 
 
 
     /* read the grid spacing */
@@ -105,8 +189,8 @@ bagError bagInitDefinition(
         return error;
 
     /* read the projection information */
-/* MP - REMOVED
-    error = bagGetProjectionParams(metaData, projectionId, 256,
+
+    error = bagGetProjectionParams(metaData, projectionId, XML_ATTR_MAXSTR,
         &definition->geoParameters.zone, &definition->geoParameters.std_parallel_1,
         &definition->geoParameters.central_meridian, &definition->geoParameters.origin_latitude, 
         &definition->geoParameters.false_easting, &definition->geoParameters.false_northing,
@@ -118,7 +202,7 @@ bagError bagInitDefinition(
         &definition->geoParameters.longitude_down_from_pole,
         &scaleAtProjOrigin                // used for polar stereographic & transverse mercator //
 	);
-*/
+
     if (error)
         return error;
 
@@ -153,21 +237,27 @@ bagError bagInitDefinition(
         return error;
     }
 
+    /* retrieve the ellipsoid */
+    error = bagGetEllipsoid(metaData, (char *)definition->geoParameters.ellipsoid, XML_ATTR_MAXSTR);
+    if (error)
+        return error;
+
     /* retrieve the horizontal datum */
-    error = bagGetHorizDatum(metaData, ellipId, 256);
+    error = bagGetHorizDatum(metaData, datumId, XML_ATTR_MAXSTR);
+    if (error)
+        return error;
+
+    /* retrieve the vertical datum */
+    error = bagGetVertDatum(metaData, (char *)definition->geoParameters.vertical_datum, XML_ATTR_MAXSTR);
     if (error)
         return error;
 
     /*convert the projection id to a supported type */
-//MP-REMOVED    coordType = bagCoordsys(projectionId);
+    coordType = bagCoordsys(projectionId);
 
-//MP-REMOVED    definition->coordSys = coordType;
+    definition->coordSys = coordType;
     
     /* read the cover information */
-    /* if (coordType == Geodetic) */
-/*         error = bagGetGeoCover (metaData, &definition->swCornerX,  */
-/*                                 &definition->swCornerY, &urx, &ury); */
-/*     else */
     error = bagGetProjectedCover (metaData, &definition->swCornerX, 
                                   &definition->swCornerY, &urx, &ury);
     if (error)
@@ -177,14 +267,14 @@ bagError bagInitDefinition(
     /* scaleFactAtEq - for mercator */
     /* scaleAtCenterLine - for oblique mercator (not supported) */
     /* scaleAtProjOrigin - for polar stereographic & transverse mercator */
-/*MP - REMOVED
+
     if ( coordType == Mercator )
     	definition->geoParameters.scale_factor = scaleFactAtEq;
     if ( coordType == Transverse_Mercator || coordType == Polar_Stereo )
     	definition->geoParameters.scale_factor = scaleAtProjOrigin;
-*/
-    /* convert the ellipsoid type */
-/*MP-REMOVED    definition->geoParameters.datum = bagDatumID(ellipId);   */
+
+    /* convert the datum type */
+    definition->geoParameters.datum = bagDatumID(datumId);  
 
     return error;
 }
@@ -269,7 +359,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     u32 chng      = 0;
 
     if (data == NULL || buffer == NULL)
-        return error;
+        return BAG_METADTA_INSUFFICIENT_BUFFER;
 
     /* check the size of the input buffer */
     if (bufferSize >= XML_METADATA_MAX_LENGTH)
@@ -356,7 +446,6 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
         strncpy((char *)data->metadata, (char *)buffer, bufferLen);
         /*error = bagGetXMLBuffer(metadataCache[i], data->metadata, &bufferLen);*/
     }
-
     return error;
 }
 /* Routine:     bagInitDefinitionFromBag
@@ -371,10 +460,13 @@ bagError bagInitDefinitionFromBag(bagHandle hnd)
     bagData *pData = NULL;
 
     if ((stat = bagReadXMLStream(hnd)) != BAG_SUCCESS)
-        return stat;
+    {
+        ;
+    }
     else
     {
         pData = bagGetDataPointer(hnd);
-        return bagInitDefinitionFromBuffer(pData, pData->metadata, strlen((char *)pData->metadata));
+        stat = bagInitDefinitionFromBuffer(pData, pData->metadata, strlen((char *)pData->metadata));
     }
+    return stat;
 }
