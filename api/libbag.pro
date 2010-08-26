@@ -16,7 +16,7 @@ INCLUDEPATH += $$INC_OPENNSALL
 #
 
 CONFIG -= qt
-CONFIG += 
+CONFIG += shared
 
 QMAKE_CFLAGS_DEBUG = 
 QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
@@ -25,6 +25,7 @@ QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
 HEADERS += stdtypes.h \
         crc32.h \
         ons_xml.h \
+        onscrypto.h \
         ons_xml_error_handler.h \
         bag_private.h \
         bag.h
@@ -37,6 +38,7 @@ SOURCES += crc32.c \
         onscrypto.c \
         bag_hdf.c  \
         bag_surfaces.c \
+        bag_surface_correct.c \
         bag_opt_surfaces.c \
         bag_tracking_list.c \
         bag_xml.c

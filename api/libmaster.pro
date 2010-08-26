@@ -25,7 +25,7 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= H5_USE_16_API
 LANGUAGE = C++
-CONFIG	+= warn_off
+CONFIG	+= warn_off exceptions
 CONFIG  -= qt
 
 win32 {
