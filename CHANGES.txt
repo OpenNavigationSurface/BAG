@@ -1,4 +1,44 @@
 =========================
+BAG v.1.3.0 Release Notes
+=========================
+
+August 16, 2010 (rev 154)
+- Addition of a new optional dataset for storage of correctors to
+  allow the conversion of the bathymetry dataset(s) from the
+  attributed vertical datum to the ellipsoid or to other
+  user-specified vertical datum(s). 
+
+
+June 14, 2010 (rev 141)
+- Inclusion of an EPSG code as a means of defining the BAG projection
+  and horizontal coordinate system.
+
+
+=========================
+BAG v.1.2.0 Release Notes
+=========================
+
+August 18, 2009 (rev 137)
+- Updated to HDF5-1.8.3
+
+August 03, 2009 (rev 128)
+- Removed geotrans library linkages.
+
+
+July 14, 2009  (rev 125)
+- Added the BAG_XML_LIB to the extlibs.
+
+
+July 12, 2009  (rev 113-121)
+- Added ability to read the depth correction type as well as any
+  optional datasets contained within the BAG.
+
+- Implemented the optional dataset functions into the BAG API to allow
+  for the addition of optional datasets into the BAG files
+
+
+
+=========================
 BAG v.1.1.0 Release Notes
 =========================
 
