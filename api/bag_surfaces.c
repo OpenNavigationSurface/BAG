@@ -1328,12 +1328,12 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
                 if ((* surface_array)[j] > *max_tmp)
                 {
                     *max_tmp = (* surface_array)[j];
-                    //fprintf(stdout, "ex: %f\n", (* surface_array)[j]);
+                    /* fprintf(stdout, "ex: %f\n", (* surface_array)[j]); */
 
                 }
                 if ((* surface_array)[j] < *min_tmp)
                 {
-                    // fprintf(stdout, "ex: %f\n", (* surface_array)[j]);
+                    /* fprintf(stdout, "ex: %f\n", (* surface_array)[j]); */
                     *min_tmp = (* surface_array)[j];
                 }
             }
