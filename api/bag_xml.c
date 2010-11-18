@@ -224,7 +224,7 @@ bagError bagInitDefinition(
     if (error == BAG_METADTA_DPTHCORR_MISSING)
 	{
 		/* bag made pre-addition of the depthCorrectionType */
-		definition->depthCorrectionType = Unknown;
+		definition->depthCorrectionType = Unknown_Depth_Correction;
 	}
 	else if (error != BAG_SUCCESS)
     {

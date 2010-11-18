@@ -1696,7 +1696,7 @@ bagError bagGetDepthCorrectionType(
 				else if (_stricmp(pTmpStr, "Corrected via Matthew's Tables") == 0)
                     *depthCorrectionType = Corrected_Matthews;
 				else if (_stricmp(pTmpStr, "Unknown") == 0)
-                    *depthCorrectionType = Unknown;
+                    *depthCorrectionType = Unknown_Depth_Correction;
 
 		
                 
@@ -1713,7 +1713,7 @@ bagError bagGetDepthCorrectionType(
 				else if (strcasecmp(pTmpStr, "Corrected via Matthew's Tables") == 0)
                     *depthCorrectionType = Corrected_Matthews;
 				else if (strcasecmp(pTmpStr, "Unknown") == 0)
-                    *depthCorrectionType = Unknown;
+                    *depthCorrectionType = Unknown_Depth_Correction;
                 
 #endif
             }
