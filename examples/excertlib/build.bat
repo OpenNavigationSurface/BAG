@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building excert application project
 qmake -t lib -o Makefile_win32 excert.pro
-qmake excert.pro
+qmake -t vclib excert.pro
 goto end1
 
 :build_rebuild
