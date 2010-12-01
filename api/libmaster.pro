@@ -17,6 +17,8 @@ include (libincludes.pro)
 # Define the basic template for the application
 win32 {
 	TEMPLATE = lib
+    CONFIG -= embed_manifest_exe
+    CONFIG -= embed_manifest_dll
 }
 unix {
 	TEMPLATE = lib
@@ -25,24 +27,26 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= H5_USE_16_API
 LANGUAGE = C++
-CONFIG	+= warn_off exceptions
+CONFIG	+= warn_off
 CONFIG  -= qt
 
 win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
-	# The defines should define and IVS OS, GUI, and Hardware platform among others
+	# The defines should define and GUI, and Hardware platform among others
 	DEFINES	+= WIN32 _WINDOWS _MBCS
-	OBJECTS_DIR = .obj/$(HOSTMACHINE)
-	QMAKE_CFLAGS += ${IVSCOPTS} 
-	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
+    CONFIG += debug_and_release
+    CONFIG(debug, debug|release) {
+            message( libmaster.pro - WIN32 --> Setting lib\debug directory )
+    	DESTDIR = ../lib/Debug/
+	    OBJECTS_DIR = ./DebugObj/
+    } else {
+            message( libmaster.pro - WIN32 --> setting lib\release directory )
+    	DESTDIR = ../lib/Release/
+	    OBJECTS_DIR = ./ReleaseObj/
+    }
 	OPENNSLIBS += -lhdf5 -lxerces-c -lbeecrypt -lszip -lzlib
-	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS $$EXTRAUNIXLIBS
-        DESTDIR = ../lib/$(HOSTMACHINE)/
+	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS
 }
-
-#win32:debug {
-#	CONFIG += console
-#}
 
 unix {
 	message( In libmaster.pro for the general unix platform )
@@ -52,7 +56,7 @@ unix {
 	QMAKE_CXXFLAGS += ${IVSCCOPTS2} 
 	OPENNSLIBS += -lhdf5 -lxerces-c -lbeecrypt -lszip -lzlib -lpthread
 	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS $$EXTRAUNIXLIBS
-        DESTDIR = ../lib/$(HOSTMACHINE)/
+    DESTDIR = ../lib/$(HOSTMACHINE)/
     macx {
 	    message( In libmaster.pro for the Macintosh platform )
     	DEFINES += _SYS_TIMESPEC_H
