@@ -15,10 +15,9 @@ INCLUDEPATH += $$INC_OPENNSALL
 ###                  LIBRARY SPECIFIC SECTION (Edit Here)                          
 #
 
-CONFIG += debug
-
-QMAKE_CFLAGS_DEBUG = 
-QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
+win32 {
+    CONFIG += staticlib
+}
 
 HEADERS += rice.h \
         SZconfig.h \
