@@ -1,116 +1,166 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="XercesLib"
 	ProjectGUID="{152CE948-F659-4206-A50A-1D2B9658EF96}"
 	RootNamespace="XercesLib"
-	SccProjectName=""
-	SccLocalPath="">
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
 			OutputDirectory="..\..\..\..\..\lib"
 			IntermediateDirectory=".\..\..\..\Build\Win32\VC7\Release\obj"
 			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="NDEBUG"
+				MkTypLibCompatible="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\..\..\Build\Win32\VC7\Release/XercesLib.tlb"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="1"
 				InlineFunctionExpansion="2"
 				AdditionalIncludeDirectories="..\..\..\..\"
 				PreprocessorDefinitions="NDEBUG;PLATFORM_WIN32;_CRTDBG_MAP_ALLOC;PROJ_XMLPARSER;PROJ_XMLUTIL;PROJ_PARSERS;PROJ_SAX4C;PROJ_SAX2;PROJ_DOM;PROJ_VALIDATORS;XML_SINGLEDLL;WIN32;_WINDOWS;XML_USE_WIN32_TRANSCODER;XML_USE_WIN32_MSGLOADER;XML_USE_NETACCESSOR_WINSOCK"
-				StringPooling="TRUE"
+				StringPooling="true"
 				RuntimeLibrary="2"
 				PrecompiledHeaderFile=".\..\..\..\Build\Win32\VC7\Release\obj/XercesLib.pch"
 				AssemblerListingLocation=".\..\..\..\Build\Win32\VC7\Release\obj/"
 				ObjectFile=".\..\..\..\Build\Win32\VC7\Release\obj/"
 				ProgramDataBaseFileName=".\..\..\..\Build\Win32\VC7\Release\obj/"
 				WarningLevel="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="NDEBUG"
-				MkTypLibCompatible="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\..\..\..\Build\Win32\VC7\Release/XercesLib.tlb"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="NDEBUG"
-				Culture="1033"/>
+				Culture="1033"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\lib\Release\xercesLib.lib"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="..\..\..\..\..\lib"
 			IntermediateDirectory=".\..\..\..\Build\Win32\VC7\Debug\obj"
 			ConfigurationType="4"
+			InheritedPropertySheets="$(VCInstallDir)VCProjectDefaults\UpgradeFromVC71.vsprops"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				PreprocessorDefinitions="_DEBUG"
+				MkTypLibCompatible="true"
+				TargetEnvironment="1"
+				TypeLibraryName=".\..\..\..\Build\Win32\VC7\Debug/XercesLib.tlb"
+			/>
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
 				AdditionalIncludeDirectories="..\..\..\..\"
 				PreprocessorDefinitions="_DEBUG,_CRTDBG_MAP_ALLOC;PROJ_SAX2;_DEBUG;PROJ_XMLPARSER;PROJ_XMLUTIL;PROJ_PARSERS;PROJ_SAX4C;PROJ_DOM;PROJ_VALIDATORS;WIN32;_WINDOWS;XML_USE_WIN32_TRANSCODER;XML_USE_WIN32_MSGLOADER;XML_USE_NETACCESSOR_WINSOCK"
 				RuntimeLibrary="3"
+				TreatWChar_tAsBuiltInType="false"
 				PrecompiledHeaderFile=".\..\..\..\Build\Win32\VC7\Debug\obj/XercesLib.pch"
 				AssemblerListingLocation=".\..\..\..\Build\Win32\VC7\Debug\obj/"
 				ObjectFile=".\..\..\..\Build\Win32\VC7\Debug\obj/"
 				ProgramDataBaseFileName="$(OutDir)\$(ProjectName).pdb"
 				WarningLevel="3"
 				DebugInformationFormat="3"
-				CompileAs="0"/>
+				CompileAs="0"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLibrarianTool"
-				OutputFile="$(OUTDIR)\$(ProjectName)d.lib"/>
-			<Tool
-				Name="VCMIDLTool"
-				PreprocessorDefinitions="_DEBUG"
-				MkTypLibCompatible="TRUE"
-				TargetEnvironment="1"
-				TypeLibraryName=".\..\..\..\Build\Win32\VC7\Debug/XercesLib.tlb"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
 				PreprocessorDefinitions="_DEBUG"
-				Culture="1033"/>
+				Culture="1033"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\lib\Debug\xercesLib.lib"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -118,2233 +168,2966 @@
 	<Files>
 		<Filter
 			Name="util"
-			Filter=".cpp,.hpp">
+			Filter=".cpp,.hpp"
+			>
 			<File
-				RelativePath="..\..\..\util\ArrayIndexOutOfBoundsException.hpp">
+				RelativePath="..\..\..\util\ArrayIndexOutOfBoundsException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\AutoSense.hpp">
+				RelativePath="..\..\..\util\AutoSense.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\Base64.cpp">
+				RelativePath="..\..\..\util\Base64.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\Base64.hpp">
+				RelativePath="..\..\..\util\Base64.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BaseRefVectorOf.hpp">
+				RelativePath="..\..\..\util\BaseRefVectorOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BinFileInputStream.cpp">
+				RelativePath="..\..\..\util\BinFileInputStream.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BinFileInputStream.hpp">
+				RelativePath="..\..\..\util\BinFileInputStream.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BinInputStream.cpp">
+				RelativePath="..\..\..\util\BinInputStream.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BinInputStream.hpp">
+				RelativePath="..\..\..\util\BinInputStream.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BinMemInputStream.cpp">
+				RelativePath="..\..\..\util\BinMemInputStream.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BinMemInputStream.hpp">
+				RelativePath="..\..\..\util\BinMemInputStream.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BitOps.hpp">
+				RelativePath="..\..\..\util\BitOps.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BitSet.cpp">
+				RelativePath="..\..\..\util\BitSet.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\BitSet.hpp">
+				RelativePath="..\..\..\util\BitSet.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\CountedPointer.hpp">
+				RelativePath="..\..\..\util\CountedPointer.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\DefaultPanicHandler.cpp">
+				RelativePath="..\..\..\util\DefaultPanicHandler.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\DefaultPanicHandler.hpp">
+				RelativePath="..\..\..\util\DefaultPanicHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\EmptyStackException.hpp">
+				RelativePath="..\..\..\util\EmptyStackException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\EncodingValidator.cpp">
+				RelativePath="..\..\..\util\EncodingValidator.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\EncodingValidator.hpp">
+				RelativePath="..\..\..\util\EncodingValidator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\FlagJanitor.hpp">
+				RelativePath="..\..\..\util\FlagJanitor.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HashBase.hpp">
+				RelativePath="..\..\..\util\HashBase.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HashCMStateSet.hpp">
+				RelativePath="..\..\..\util\HashCMStateSet.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HashPtr.cpp">
+				RelativePath="..\..\..\util\HashPtr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HashPtr.hpp">
+				RelativePath="..\..\..\util\HashPtr.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HashXMLCh.cpp">
+				RelativePath="..\..\..\util\HashXMLCh.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HashXMLCh.hpp">
+				RelativePath="..\..\..\util\HashXMLCh.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HeaderDummy.cpp">
+				RelativePath="..\..\..\util\HeaderDummy.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HexBin.cpp">
+				RelativePath="..\..\..\util\HexBin.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\HexBin.hpp">
+				RelativePath="..\..\..\util\HexBin.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\IllegalArgumentException.hpp">
+				RelativePath="..\..\..\util\IllegalArgumentException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\InvalidCastException.hpp">
+				RelativePath="..\..\..\util\InvalidCastException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\IOException.hpp">
+				RelativePath="..\..\..\util\IOException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\Janitor.hpp">
+				RelativePath="..\..\..\util\Janitor.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\KeyRefPair.hpp">
+				RelativePath="..\..\..\util\KeyRefPair.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\KeyValuePair.hpp">
+				RelativePath="..\..\..\util\KeyValuePair.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\KVStringPair.cpp">
+				RelativePath="..\..\..\util\KVStringPair.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\KVStringPair.hpp">
+				RelativePath="..\..\..\util\KVStringPair.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\Mutexes.cpp">
+				RelativePath="..\..\..\util\Mutexes.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\Mutexes.hpp">
+				RelativePath="..\..\..\util\Mutexes.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\NameIdPool.hpp">
+				RelativePath="..\..\..\util\NameIdPool.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\NoSuchElementException.hpp">
+				RelativePath="..\..\..\util\NoSuchElementException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\NullPointerException.hpp">
+				RelativePath="..\..\..\util\NullPointerException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\OutOfMemoryException.hpp">
+				RelativePath="..\..\..\util\OutOfMemoryException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\PanicHandler.cpp">
+				RelativePath="..\..\..\util\PanicHandler.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\PanicHandler.hpp">
+				RelativePath="..\..\..\util\PanicHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\PlatformUtils.cpp">
+				RelativePath="..\..\..\util\PlatformUtils.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\PlatformUtils.hpp">
+				RelativePath="..\..\..\util\PlatformUtils.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\QName.cpp">
+				RelativePath="..\..\..\util\QName.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\QName.hpp">
+				RelativePath="..\..\..\util\QName.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RefArrayOf.hpp">
+				RelativePath="..\..\..\util\RefArrayOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RefArrayVectorOf.hpp">
+				RelativePath="..\..\..\util\RefArrayVectorOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RefHash2KeysTableOf.hpp">
+				RelativePath="..\..\..\util\RefHash2KeysTableOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RefHash3KeysIdPool.hpp">
+				RelativePath="..\..\..\util\RefHash3KeysIdPool.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RefHashTableOf.hpp">
+				RelativePath="..\..\..\util\RefHashTableOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RefStackOf.hpp">
+				RelativePath="..\..\..\util\RefStackOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RefVectorOf.hpp">
+				RelativePath="..\..\..\util\RefVectorOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\RuntimeException.hpp">
+				RelativePath="..\..\..\util\RuntimeException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\SchemaDateTimeException.hpp">
+				RelativePath="..\..\..\util\SchemaDateTimeException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\StringPool.cpp">
+				RelativePath="..\..\..\util\StringPool.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\StringPool.hpp">
+				RelativePath="..\..\..\util\StringPool.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\SynchronizedStringPool.cpp">
+				RelativePath="..\..\..\util\SynchronizedStringPool.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\TranscodingException.hpp">
+				RelativePath="..\..\..\util\TranscodingException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\TransService.cpp">
+				RelativePath="..\..\..\util\TransService.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\TransService.hpp">
+				RelativePath="..\..\..\util\TransService.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\UnexpectedEOFException.hpp">
+				RelativePath="..\..\..\util\UnexpectedEOFException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\UnsupportedEncodingException.hpp">
+				RelativePath="..\..\..\util\UnsupportedEncodingException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\UTFDataFormatException.hpp">
+				RelativePath="..\..\..\util\UTFDataFormatException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\ValueArrayOf.hpp">
+				RelativePath="..\..\..\util\ValueArrayOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\ValueHashTableOf.hpp">
+				RelativePath="..\..\..\util\ValueHashTableOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\ValueStackOf.hpp">
+				RelativePath="..\..\..\util\ValueStackOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\ValueVectorOf.hpp">
+				RelativePath="..\..\..\util\ValueVectorOf.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XercesDefs.hpp">
+				RelativePath="..\..\..\util\XercesDefs.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XercesVersion.hpp">
+				RelativePath="..\..\..\util\XercesVersion.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMemory.cpp">
+				RelativePath="..\..\..\util\XMemory.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMemory.hpp">
+				RelativePath="..\..\..\util\XMemory.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XML256TableTranscoder.cpp">
+				RelativePath="..\..\..\util\XML256TableTranscoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XML256TableTranscoder.hpp">
+				RelativePath="..\..\..\util\XML256TableTranscoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XML88591Transcoder.cpp">
+				RelativePath="..\..\..\util\XML88591Transcoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XML88591Transcoder.hpp">
+				RelativePath="..\..\..\util\XML88591Transcoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLAbstractDoubleFloat.cpp">
+				RelativePath="..\..\..\util\XMLAbstractDoubleFloat.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLAbstractDoubleFloat.hpp">
+				RelativePath="..\..\..\util\XMLAbstractDoubleFloat.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLASCIITranscoder.cpp">
+				RelativePath="..\..\..\util\XMLASCIITranscoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLASCIITranscoder.hpp">
+				RelativePath="..\..\..\util\XMLASCIITranscoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLBigDecimal.cpp">
+				RelativePath="..\..\..\util\XMLBigDecimal.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLBigDecimal.hpp">
+				RelativePath="..\..\..\util\XMLBigDecimal.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLBigInteger.cpp">
+				RelativePath="..\..\..\util\XMLBigInteger.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLBigInteger.hpp">
+				RelativePath="..\..\..\util\XMLBigInteger.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLChar.cpp">
+				RelativePath="..\..\..\util\XMLChar.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLChar.hpp">
+				RelativePath="..\..\..\util\XMLChar.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLChTranscoder.cpp">
+				RelativePath="..\..\..\util\XMLChTranscoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLChTranscoder.hpp">
+				RelativePath="..\..\..\util\XMLChTranscoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLDateTime.cpp">
+				RelativePath="..\..\..\util\XMLDateTime.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLDateTime.hpp">
+				RelativePath="..\..\..\util\XMLDateTime.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLDeleterFor.hpp">
+				RelativePath="..\..\..\util\XMLDeleterFor.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLDOMMsg.hpp">
+				RelativePath="..\..\..\util\XMLDOMMsg.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLDOMMsg.hpp">
+				RelativePath="..\..\..\util\XMLDOMMsg.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLDouble.cpp">
+				RelativePath="..\..\..\util\XMLDouble.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLDouble.hpp">
+				RelativePath="..\..\..\util\XMLDouble.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLEBCDICTranscoder.cpp">
+				RelativePath="..\..\..\util\XMLEBCDICTranscoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLEBCDICTranscoder.hpp">
+				RelativePath="..\..\..\util\XMLEBCDICTranscoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLEntityResolver.hpp">
+				RelativePath="..\..\..\util\XMLEntityResolver.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLEnumerator.hpp">
+				RelativePath="..\..\..\util\XMLEnumerator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLException.cpp">
+				RelativePath="..\..\..\util\XMLException.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLException.hpp">
+				RelativePath="..\..\..\util\XMLException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLExceptMsgs.hpp">
+				RelativePath="..\..\..\util\XMLExceptMsgs.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLFloat.cpp">
+				RelativePath="..\..\..\util\XMLFloat.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLFloat.hpp">
+				RelativePath="..\..\..\util\XMLFloat.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLIBM1047Transcoder.cpp">
+				RelativePath="..\..\..\util\XMLIBM1047Transcoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLIBM1047Transcoder.hpp">
+				RelativePath="..\..\..\util\XMLIBM1047Transcoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLIBM1140Transcoder.cpp">
+				RelativePath="..\..\..\util\XMLIBM1140Transcoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLIBM1140Transcoder.hpp">
+				RelativePath="..\..\..\util\XMLIBM1140Transcoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLInteger.hpp">
+				RelativePath="..\..\..\util\XMLInteger.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLMsgLoader.cpp">
+				RelativePath="..\..\..\util\XMLMsgLoader.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLMsgLoader.hpp">
+				RelativePath="..\..\..\util\XMLMsgLoader.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLNetAccessor.hpp">
+				RelativePath="..\..\..\util\XMLNetAccessor.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLNumber.cpp">
+				RelativePath="..\..\..\util\XMLNumber.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLNumber.hpp">
+				RelativePath="..\..\..\util\XMLNumber.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLResourceIdentifier.hpp">
+				RelativePath="..\..\..\util\XMLResourceIdentifier.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLString.cpp">
+				RelativePath="..\..\..\util\XMLString.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLString.hpp">
+				RelativePath="..\..\..\util\XMLString.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLStringTokenizer.cpp">
+				RelativePath="..\..\..\util\XMLStringTokenizer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLStringTokenizer.hpp">
+				RelativePath="..\..\..\util\XMLStringTokenizer.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUCS4Transcoder.hpp">
+				RelativePath="..\..\..\util\XMLUCS4Transcoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUCSTranscoder.cpp">
+				RelativePath="..\..\..\util\XMLUCSTranscoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUni.cpp">
+				RelativePath="..\..\..\util\XMLUni.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUni.hpp">
+				RelativePath="..\..\..\util\XMLUni.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUniDefs.hpp">
+				RelativePath="..\..\..\util\XMLUniDefs.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUri.cpp">
+				RelativePath="..\..\..\util\XMLUri.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUri.hpp">
+				RelativePath="..\..\..\util\XMLUri.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLURL.cpp">
+				RelativePath="..\..\..\util\XMLURL.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLURL.hpp">
+				RelativePath="..\..\..\util\XMLURL.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUTF16Transcoder.cpp">
+				RelativePath="..\..\..\util\XMLUTF16Transcoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUTF16Transcoder.hpp">
+				RelativePath="..\..\..\util\XMLUTF16Transcoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUTF8Transcoder.cpp">
+				RelativePath="..\..\..\util\XMLUTF8Transcoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLUTF8Transcoder.hpp">
+				RelativePath="..\..\..\util\XMLUTF8Transcoder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLWin1252Transcoder.cpp">
+				RelativePath="..\..\..\util\XMLWin1252Transcoder.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\util\XMLWin1252Transcoder.hpp">
+				RelativePath="..\..\..\util\XMLWin1252Transcoder.hpp"
+				>
 			</File>
 			<Filter
 				Name="Win32"
-				Filter=".cpp,.hpp">
+				Filter=".cpp,.hpp"
+				>
 				<File
-					RelativePath="..\..\..\util\Platforms\Win32\resource.h">
+					RelativePath="..\..\..\util\Platforms\Win32\resource.h"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\Platforms\Win32\Win32Defs.hpp">
+					RelativePath="..\..\..\util\Platforms\Win32\Win32Defs.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\Platforms\Win32\Win32PlatformUtils.cpp">
+					RelativePath="..\..\..\util\Platforms\Win32\Win32PlatformUtils.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\XMLRegisterCleanup.cpp">
+					RelativePath="..\..\..\util\XMLRegisterCleanup.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\XMLRegisterCleanup.hpp">
+					RelativePath="..\..\..\util\XMLRegisterCleanup.hpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="Transcoders"
-				Filter=".cpp,.hpp">
+				Filter=".cpp,.hpp"
+				>
 				<File
-					RelativePath="..\..\..\util\Transcoders\Win32\Win32TransService.cpp">
+					RelativePath="..\..\..\util\Transcoders\Win32\Win32TransService.cpp"
+					>
 					<FileConfiguration
-						Name="Release|Win32">
+						Name="Release|Win32"
+						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
+							DisableLanguageExtensions="false"
+						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|Win32">
+						Name="Debug|Win32"
+						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
+							DisableLanguageExtensions="false"
+						/>
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\..\util\Transcoders\Win32\Win32TransService.hpp">
+					RelativePath="..\..\..\util\Transcoders\Win32\Win32TransService.hpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="NetAccessors"
-				Filter=".cpp,.hpp">
+				Filter=".cpp,.hpp"
+				>
 				<File
-					RelativePath="..\..\..\util\NetAccessors\WinSock\BinHTTPURLInputStream.cpp">
+					RelativePath="..\..\..\util\NetAccessors\WinSock\BinHTTPURLInputStream.cpp"
+					>
 					<FileConfiguration
-						Name="Release|Win32">
+						Name="Release|Win32"
+						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
+							DisableLanguageExtensions="false"
+						/>
 					</FileConfiguration>
 					<FileConfiguration
-						Name="Debug|Win32">
+						Name="Debug|Win32"
+						>
 						<Tool
 							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\..\..\util\NetAccessors\WinSock\BinHTTPURLInputStream.hpp">
-				</File>
-				<File
-					RelativePath="..\..\..\util\NetAccessors\WinSock\WinSockNetAccessor.cpp">
-					<FileConfiguration
-						Name="Release|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32">
-						<Tool
-							Name="VCCLCompilerTool"
-							DisableLanguageExtensions="FALSE"/>
+							DisableLanguageExtensions="false"
+						/>
 					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\..\util\NetAccessors\WinSock\WinSockNetAccessor.hpp">
+					RelativePath="..\..\..\util\NetAccessors\WinSock\BinHTTPURLInputStream.hpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\util\NetAccessors\WinSock\WinSockNetAccessor.cpp"
+					>
+					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableLanguageExtensions="false"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							DisableLanguageExtensions="false"
+						/>
+					</FileConfiguration>
+				</File>
+				<File
+					RelativePath="..\..\..\util\NetAccessors\WinSock\WinSockNetAccessor.hpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="regx"
-				Filter=".cpp,.hpp">
+				Filter=".cpp,.hpp"
+				>
 				<File
-					RelativePath="..\..\..\util\regx\ASCIIRangeFactory.cpp">
+					RelativePath="..\..\..\util\regx\ASCIIRangeFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ASCIIRangeFactory.hpp">
+					RelativePath="..\..\..\util\regx\ASCIIRangeFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\BlockRangeFactory.cpp">
+					RelativePath="..\..\..\util\regx\BlockRangeFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\BlockRangeFactory.hpp">
+					RelativePath="..\..\..\util\regx\BlockRangeFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\BMPattern.cpp">
+					RelativePath="..\..\..\util\regx\BMPattern.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\BMPattern.hpp">
+					RelativePath="..\..\..\util\regx\BMPattern.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\CharToken.cpp">
+					RelativePath="..\..\..\util\regx\CharToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\CharToken.hpp">
+					RelativePath="..\..\..\util\regx\CharToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ClosureToken.cpp">
+					RelativePath="..\..\..\util\regx\ClosureToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ClosureToken.hpp">
+					RelativePath="..\..\..\util\regx\ClosureToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ConcatToken.cpp">
+					RelativePath="..\..\..\util\regx\ConcatToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ConcatToken.hpp">
+					RelativePath="..\..\..\util\regx\ConcatToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ConditionToken.cpp">
+					RelativePath="..\..\..\util\regx\ConditionToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ConditionToken.hpp">
+					RelativePath="..\..\..\util\regx\ConditionToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\Match.cpp">
+					RelativePath="..\..\..\util\regx\Match.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\Match.hpp">
+					RelativePath="..\..\..\util\regx\Match.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ModifierToken.cpp">
+					RelativePath="..\..\..\util\regx\ModifierToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ModifierToken.hpp">
+					RelativePath="..\..\..\util\regx\ModifierToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\Op.cpp">
+					RelativePath="..\..\..\util\regx\Op.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\Op.hpp">
+					RelativePath="..\..\..\util\regx\Op.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\OpFactory.cpp">
+					RelativePath="..\..\..\util\regx\OpFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\OpFactory.hpp">
+					RelativePath="..\..\..\util\regx\OpFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ParenToken.cpp">
+					RelativePath="..\..\..\util\regx\ParenToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ParenToken.hpp">
+					RelativePath="..\..\..\util\regx\ParenToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ParserForXMLSchema.cpp">
+					RelativePath="..\..\..\util\regx\ParserForXMLSchema.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\ParserForXMLSchema.hpp">
+					RelativePath="..\..\..\util\regx\ParserForXMLSchema.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RangeFactory.cpp">
+					RelativePath="..\..\..\util\regx\RangeFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RangeFactory.hpp">
+					RelativePath="..\..\..\util\regx\RangeFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RangeToken.cpp">
+					RelativePath="..\..\..\util\regx\RangeToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RangeToken.hpp">
+					RelativePath="..\..\..\util\regx\RangeToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RangeTokenMap.cpp">
+					RelativePath="..\..\..\util\regx\RangeTokenMap.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RangeTokenMap.hpp">
+					RelativePath="..\..\..\util\regx\RangeTokenMap.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RegularExpression.cpp">
+					RelativePath="..\..\..\util\regx\RegularExpression.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RegularExpression.hpp">
+					RelativePath="..\..\..\util\regx\RegularExpression.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RegxDefs.hpp">
+					RelativePath="..\..\..\util\regx\RegxDefs.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RegxParser.cpp">
+					RelativePath="..\..\..\util\regx\RegxParser.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RegxParser.hpp">
+					RelativePath="..\..\..\util\regx\RegxParser.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RegxUtil.cpp">
+					RelativePath="..\..\..\util\regx\RegxUtil.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\RegxUtil.hpp">
+					RelativePath="..\..\..\util\regx\RegxUtil.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\StringToken.cpp">
+					RelativePath="..\..\..\util\regx\StringToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\StringToken.hpp">
+					RelativePath="..\..\..\util\regx\StringToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\Token.cpp">
+					RelativePath="..\..\..\util\regx\Token.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\Token.hpp">
+					RelativePath="..\..\..\util\regx\Token.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\TokenFactory.cpp">
+					RelativePath="..\..\..\util\regx\TokenFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\TokenFactory.hpp">
+					RelativePath="..\..\..\util\regx\TokenFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\TokenInc.hpp">
+					RelativePath="..\..\..\util\regx\TokenInc.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\UnicodeRangeFactory.cpp">
+					RelativePath="..\..\..\util\regx\UnicodeRangeFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\UnicodeRangeFactory.hpp">
+					RelativePath="..\..\..\util\regx\UnicodeRangeFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\UnionToken.cpp">
+					RelativePath="..\..\..\util\regx\UnionToken.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\UnionToken.hpp">
+					RelativePath="..\..\..\util\regx\UnionToken.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\XMLRangeFactory.cpp">
+					RelativePath="..\..\..\util\regx\XMLRangeFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\XMLRangeFactory.hpp">
+					RelativePath="..\..\..\util\regx\XMLRangeFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\XMLUniCharacter.cpp">
+					RelativePath="..\..\..\util\regx\XMLUniCharacter.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\util\regx\XMLUniCharacter.hpp">
+					RelativePath="..\..\..\util\regx\XMLUniCharacter.hpp"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="framework"
-			Filter="">
+			>
 			<File
-				RelativePath="..\..\..\framework\LocalFileFormatTarget.cpp">
+				RelativePath="..\..\..\framework\LocalFileFormatTarget.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\LocalFileFormatTarget.hpp">
+				RelativePath="..\..\..\framework\LocalFileFormatTarget.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\LocalFileInputSource.cpp">
+				RelativePath="..\..\..\framework\LocalFileInputSource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\LocalFileInputSource.Hpp">
+				RelativePath="..\..\..\framework\LocalFileInputSource.Hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\MemBufFormatTarget.cpp">
+				RelativePath="..\..\..\framework\MemBufFormatTarget.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\MemBufFormatTarget.hpp">
+				RelativePath="..\..\..\framework\MemBufFormatTarget.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\MemBufInputSource.cpp">
+				RelativePath="..\..\..\framework\MemBufInputSource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\MemBufInputSource.hpp">
+				RelativePath="..\..\..\framework\MemBufInputSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\MemoryManager.hpp">
+				RelativePath="..\..\..\framework\MemoryManager.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\StdInInputSource.cpp">
+				RelativePath="..\..\..\framework\StdInInputSource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\StdInInputSource.hpp">
+				RelativePath="..\..\..\framework\StdInInputSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\StdOutFormatTarget.cpp">
+				RelativePath="..\..\..\framework\StdOutFormatTarget.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\StdOutFormatTarget.hpp">
+				RelativePath="..\..\..\framework\StdOutFormatTarget.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\URLInputSource.cpp">
+				RelativePath="..\..\..\framework\URLInputSource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\URLInputSource.hpp">
+				RelativePath="..\..\..\framework\URLInputSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\ValidationContext.hpp">
+				RelativePath="..\..\..\framework\ValidationContext.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\Wrapper4DOMInputSource.cpp">
+				RelativePath="..\..\..\framework\Wrapper4DOMInputSource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\Wrapper4DOMInputSource.hpp">
+				RelativePath="..\..\..\framework\Wrapper4DOMInputSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\Wrapper4InputSource.cpp">
+				RelativePath="..\..\..\framework\Wrapper4InputSource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\Wrapper4InputSource.hpp">
+				RelativePath="..\..\..\framework\Wrapper4InputSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLAttDef.cpp">
+				RelativePath="..\..\..\framework\XMLAttDef.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLAttDef.hpp">
+				RelativePath="..\..\..\framework\XMLAttDef.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLAttDefList.cpp">
+				RelativePath="..\..\..\framework\XMLAttDefList.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLAttDefList.hpp">
+				RelativePath="..\..\..\framework\XMLAttDefList.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLAttr.cpp">
+				RelativePath="..\..\..\framework\XMLAttr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLAttr.hpp">
+				RelativePath="..\..\..\framework\XMLAttr.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLBuffer.cpp">
+				RelativePath="..\..\..\framework\XMLBuffer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLBuffer.hpp">
+				RelativePath="..\..\..\framework\XMLBuffer.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLBufferMgr.cpp">
+				RelativePath="..\..\..\framework\XMLBufferMgr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLBufferMgr.hpp">
+				RelativePath="..\..\..\framework\XMLBufferMgr.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLContentModel.cpp">
+				RelativePath="..\..\..\framework\XMLContentModel.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLContentModel.hpp">
+				RelativePath="..\..\..\framework\XMLContentModel.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLDocumentHandler.hpp">
+				RelativePath="..\..\..\framework\XMLDocumentHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLDTDDescription.cpp">
+				RelativePath="..\..\..\framework\XMLDTDDescription.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLElementDecl.cpp">
+				RelativePath="..\..\..\framework\XMLElementDecl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLElementDecl.hpp">
+				RelativePath="..\..\..\framework\XMLElementDecl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLEntityDecl.cpp">
+				RelativePath="..\..\..\framework\XMLEntityDecl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLEntityDecl.hpp">
+				RelativePath="..\..\..\framework\XMLEntityDecl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLEntityHandler.hpp">
+				RelativePath="..\..\..\framework\XMLEntityHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLErrorCodes.hpp">
+				RelativePath="..\..\..\framework\XMLErrorCodes.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLErrorReporter.hpp">
+				RelativePath="..\..\..\framework\XMLErrorReporter.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLFormatter.cpp">
+				RelativePath="..\..\..\framework\XMLFormatter.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLFormatter.hpp">
+				RelativePath="..\..\..\framework\XMLFormatter.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLGrammarDescription.cpp">
+				RelativePath="..\..\..\framework\XMLGrammarDescription.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLNotationDecl.cpp">
+				RelativePath="..\..\..\framework\XMLNotationDecl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLNotationDecl.hpp">
+				RelativePath="..\..\..\framework\XMLNotationDecl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLPScanToken.hpp">
+				RelativePath="..\..\..\framework\XMLPScanToken.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLRecognizer.cpp">
+				RelativePath="..\..\..\framework\XMLRecognizer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLRecognizer.hpp">
+				RelativePath="..\..\..\framework\XMLRecognizer.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLRefInfo.cpp">
+				RelativePath="..\..\..\framework\XMLRefInfo.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLRefInfo.hpp">
+				RelativePath="..\..\..\framework\XMLRefInfo.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLSchemaDescription.cpp">
+				RelativePath="..\..\..\framework\XMLSchemaDescription.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLValidator.cpp">
+				RelativePath="..\..\..\framework\XMLValidator.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLValidator.hpp">
+				RelativePath="..\..\..\framework\XMLValidator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\XMLValidityCodes.hpp">
+				RelativePath="..\..\..\framework\XMLValidityCodes.hpp"
+				>
 			</File>
 			<Filter
 				Name="psvi"
-				Filter="">
+				>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIAttribute.cpp">
+					RelativePath="..\..\..\framework\psvi\PSVIAttribute.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIAttribute.hpp">
+					RelativePath="..\..\..\framework\psvi\PSVIAttribute.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIAttributeList.cpp">
+					RelativePath="..\..\..\framework\psvi\PSVIAttributeList.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIAttributeList.hpp">
+					RelativePath="..\..\..\framework\psvi\PSVIAttributeList.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIElement.cpp">
+					RelativePath="..\..\..\framework\psvi\PSVIElement.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIElement.hpp">
+					RelativePath="..\..\..\framework\psvi\PSVIElement.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIHandler.hpp">
+					RelativePath="..\..\..\framework\psvi\PSVIHandler.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIItem.cpp">
+					RelativePath="..\..\..\framework\psvi\PSVIItem.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\PSVIItem.hpp">
+					RelativePath="..\..\..\framework\psvi\PSVIItem.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAnnotation.cpp">
+					RelativePath="..\..\..\framework\psvi\XSAnnotation.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAnnotation.hpp">
+					RelativePath="..\..\..\framework\psvi\XSAnnotation.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAttributeDeclaration.cpp">
+					RelativePath="..\..\..\framework\psvi\XSAttributeDeclaration.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAttributeDeclaration.hpp">
+					RelativePath="..\..\..\framework\psvi\XSAttributeDeclaration.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAttributeGroupDefinition.cpp">
+					RelativePath="..\..\..\framework\psvi\XSAttributeGroupDefinition.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAttributeGroupDefinition.hpp">
+					RelativePath="..\..\..\framework\psvi\XSAttributeGroupDefinition.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAttributeUse.cpp">
+					RelativePath="..\..\..\framework\psvi\XSAttributeUse.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSAttributeUse.hpp">
+					RelativePath="..\..\..\framework\psvi\XSAttributeUse.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSComplexTypeDefinition.cpp">
+					RelativePath="..\..\..\framework\psvi\XSComplexTypeDefinition.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSComplexTypeDefinition.hpp">
+					RelativePath="..\..\..\framework\psvi\XSComplexTypeDefinition.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSConstants.hpp">
+					RelativePath="..\..\..\framework\psvi\XSConstants.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSElementDeclaration.cpp">
+					RelativePath="..\..\..\framework\psvi\XSElementDeclaration.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSElementDeclaration.hpp">
+					RelativePath="..\..\..\framework\psvi\XSElementDeclaration.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSFacet.cpp">
+					RelativePath="..\..\..\framework\psvi\XSFacet.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSFacet.hpp">
+					RelativePath="..\..\..\framework\psvi\XSFacet.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSIDCDefinition.cpp">
+					RelativePath="..\..\..\framework\psvi\XSIDCDefinition.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSIDCDefinition.hpp">
+					RelativePath="..\..\..\framework\psvi\XSIDCDefinition.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSModel.cpp">
+					RelativePath="..\..\..\framework\psvi\XSModel.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSModel.hpp">
+					RelativePath="..\..\..\framework\psvi\XSModel.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSModelGroup.cpp">
+					RelativePath="..\..\..\framework\psvi\XSModelGroup.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSModelGroup.hpp">
+					RelativePath="..\..\..\framework\psvi\XSModelGroup.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSModelGroupDefinition.cpp">
+					RelativePath="..\..\..\framework\psvi\XSModelGroupDefinition.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSModelGroupDefinition.hpp">
+					RelativePath="..\..\..\framework\psvi\XSModelGroupDefinition.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSMultiValueFacet.cpp">
+					RelativePath="..\..\..\framework\psvi\XSMultiValueFacet.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSMultiValueFacet.hpp">
+					RelativePath="..\..\..\framework\psvi\XSMultiValueFacet.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSNamedMap.hpp">
+					RelativePath="..\..\..\framework\psvi\XSNamedMap.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSNamespaceItem.cpp">
+					RelativePath="..\..\..\framework\psvi\XSNamespaceItem.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSNamespaceItem.hpp">
+					RelativePath="..\..\..\framework\psvi\XSNamespaceItem.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSNotationDeclaration.cpp">
+					RelativePath="..\..\..\framework\psvi\XSNotationDeclaration.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSNotationDeclaration.hpp">
+					RelativePath="..\..\..\framework\psvi\XSNotationDeclaration.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSObject.cpp">
+					RelativePath="..\..\..\framework\psvi\XSObject.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSObject.hpp">
+					RelativePath="..\..\..\framework\psvi\XSObject.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSParticle.cpp">
+					RelativePath="..\..\..\framework\psvi\XSParticle.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSParticle.hpp">
+					RelativePath="..\..\..\framework\psvi\XSParticle.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSSimpleTypeDefinition.cpp">
+					RelativePath="..\..\..\framework\psvi\XSSimpleTypeDefinition.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSSimpleTypeDefinition.hpp">
+					RelativePath="..\..\..\framework\psvi\XSSimpleTypeDefinition.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSTypeDefinition.cpp">
+					RelativePath="..\..\..\framework\psvi\XSTypeDefinition.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSTypeDefinition.hpp">
+					RelativePath="..\..\..\framework\psvi\XSTypeDefinition.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSValue.cpp">
+					RelativePath="..\..\..\framework\psvi\XSValue.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSValue.hpp">
+					RelativePath="..\..\..\framework\psvi\XSValue.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSWildcard.cpp">
+					RelativePath="..\..\..\framework\psvi\XSWildcard.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\framework\psvi\XSWildcard.hpp">
+					RelativePath="..\..\..\framework\psvi\XSWildcard.hpp"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="internal"
-			Filter=".cpp,.hpp">
+			Filter=".cpp,.hpp"
+			>
 			<File
-				RelativePath="..\..\..\internal\BinFileOutputStream.cpp">
+				RelativePath="..\..\..\internal\BinFileOutputStream.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\BinFileOutputStream.hpp">
+				RelativePath="..\..\..\internal\BinFileOutputStream.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\BinMemOutputStream.cpp">
+				RelativePath="..\..\..\internal\BinMemOutputStream.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\BinMemOutputStream.hpp">
+				RelativePath="..\..\..\internal\BinMemOutputStream.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\BinOutputStream.cpp">
+				RelativePath="..\..\..\framework\BinOutputStream.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\framework\BinOutputStream.hpp">
+				RelativePath="..\..\..\framework\BinOutputStream.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\CharTypeTables.hpp">
+				RelativePath="..\..\..\internal\CharTypeTables.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\DGXMLScanner.cpp">
+				RelativePath="..\..\..\internal\DGXMLScanner.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\DGXMLScanner.hpp">
+				RelativePath="..\..\..\internal\DGXMLScanner.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\ElemStack.cpp">
+				RelativePath="..\..\..\internal\ElemStack.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\ElemStack.hpp">
+				RelativePath="..\..\..\internal\ElemStack.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\EndOfEntityException.hpp">
+				RelativePath="..\..\..\internal\EndOfEntityException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\IANAEncodings.hpp">
+				RelativePath="..\..\..\internal\IANAEncodings.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\IGXMLScanner.cpp">
+				RelativePath="..\..\..\internal\IGXMLScanner.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\IGXMLScanner.hpp">
+				RelativePath="..\..\..\internal\IGXMLScanner.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\IGXMLScanner2.cpp">
+				RelativePath="..\..\..\internal\IGXMLScanner2.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\MemoryManagerArrayImpl.cpp">
+				RelativePath="..\..\..\internal\MemoryManagerArrayImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\MemoryManagerArrayImpl.hpp">
+				RelativePath="..\..\..\internal\MemoryManagerArrayImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\MemoryManagerImpl.cpp">
+				RelativePath="..\..\..\internal\MemoryManagerImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\MemoryManagerImpl.hpp">
+				RelativePath="..\..\..\internal\MemoryManagerImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\ReaderMgr.cpp">
+				RelativePath="..\..\..\internal\ReaderMgr.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\ReaderMgr.hpp">
+				RelativePath="..\..\..\internal\ReaderMgr.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\SGXMLScanner.cpp">
+				RelativePath="..\..\..\internal\SGXMLScanner.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\SGXMLScanner.hpp">
+				RelativePath="..\..\..\internal\SGXMLScanner.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\ValidationContextImpl.cpp">
+				RelativePath="..\..\..\internal\ValidationContextImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\ValidationContextImpl.hpp">
+				RelativePath="..\..\..\internal\ValidationContextImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\VecAttributesImpl.cpp">
+				RelativePath="..\..\..\internal\VecAttributesImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\VecAttributesImpl.hpp">
+				RelativePath="..\..\..\internal\VecAttributesImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\VecAttrListImpl.cpp">
+				RelativePath="..\..\..\internal\VecAttrListImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\VecAttrListImpl.hpp">
+				RelativePath="..\..\..\internal\VecAttrListImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\WFXMLScanner.cpp">
+				RelativePath="..\..\..\internal\WFXMLScanner.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\WFXMLScanner.hpp">
+				RelativePath="..\..\..\internal\WFXMLScanner.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLGrammarPoolImpl.cpp">
+				RelativePath="..\..\..\internal\XMLGrammarPoolImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLGrammarPoolImpl.hpp">
+				RelativePath="..\..\..\internal\XMLGrammarPoolImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLInternalErrorHandler.hpp">
+				RelativePath="..\..\..\internal\XMLInternalErrorHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLReader.cpp">
+				RelativePath="..\..\..\internal\XMLReader.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLReader.hpp">
+				RelativePath="..\..\..\internal\XMLReader.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLScanner.cpp">
+				RelativePath="..\..\..\internal\XMLScanner.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLScanner.hpp">
+				RelativePath="..\..\..\internal\XMLScanner.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLScannerResolver.cpp">
+				RelativePath="..\..\..\internal\XMLScannerResolver.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XMLScannerResolver.hpp">
+				RelativePath="..\..\..\internal\XMLScannerResolver.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XObjectComparator.cpp">
+				RelativePath="..\..\..\internal\XObjectComparator.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XObjectComparator.hpp">
+				RelativePath="..\..\..\internal\XObjectComparator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XProtoType.cpp">
+				RelativePath="..\..\..\internal\XProtoType.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XSAXMLScanner.cpp">
+				RelativePath="..\..\..\internal\XSAXMLScanner.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XSAXMLScanner.hpp">
+				RelativePath="..\..\..\internal\XSAXMLScanner.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XSerializeEngine.cpp">
+				RelativePath="..\..\..\internal\XSerializeEngine.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XSObjectFactory.cpp">
+				RelativePath="..\..\..\internal\XSObjectFactory.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XTemplateComparator.cpp">
+				RelativePath="..\..\..\internal\XTemplateComparator.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XTemplateComparator.hpp">
+				RelativePath="..\..\..\internal\XTemplateComparator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XTemplateSerializer.cpp">
+				RelativePath="..\..\..\internal\XTemplateSerializer.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\internal\XTemplateSerializer.hpp">
+				RelativePath="..\..\..\internal\XTemplateSerializer.hpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="sax"
-			Filter=".cpp,.hpp">
+			Filter=".cpp,.hpp"
+			>
 			<File
-				RelativePath="..\..\..\sax\AttributeList.hpp">
+				RelativePath="..\..\..\sax\AttributeList.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\DocumentHandler.hpp">
+				RelativePath="..\..\..\sax\DocumentHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\DTDHandler.hpp">
+				RelativePath="..\..\..\sax\DTDHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\Dummy.cpp">
+				RelativePath="..\..\..\sax\Dummy.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\EntityResolver.hpp">
+				RelativePath="..\..\..\sax\EntityResolver.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\ErrorHandler.hpp">
+				RelativePath="..\..\..\sax\ErrorHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\HandlerBase.hpp">
+				RelativePath="..\..\..\sax\HandlerBase.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\InputSource.cpp">
+				RelativePath="..\..\..\sax\InputSource.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\InputSource.hpp">
+				RelativePath="..\..\..\sax\InputSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\Locator.hpp">
+				RelativePath="..\..\..\sax\Locator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\Parser.hpp">
+				RelativePath="..\..\..\sax\Parser.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\SAXException.cpp">
+				RelativePath="..\..\..\sax\SAXException.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\SAXException.hpp">
+				RelativePath="..\..\..\sax\SAXException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\SAXParseException.cpp">
+				RelativePath="..\..\..\sax\SAXParseException.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax\SAXParseException.hpp">
+				RelativePath="..\..\..\sax\SAXParseException.hpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="parsers"
-			Filter=".cpp,.hpp">
+			Filter=".cpp,.hpp"
+			>
 			<File
-				RelativePath="..\..\..\parsers\AbstractDOMParser.cpp">
+				RelativePath="..\..\..\parsers\AbstractDOMParser.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\AbstractDOMParser.hpp">
+				RelativePath="..\..\..\parsers\AbstractDOMParser.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\DOMBuilderImpl.cpp">
+				RelativePath="..\..\..\parsers\DOMBuilderImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\DOMBuilderImpl.hpp">
+				RelativePath="..\..\..\parsers\DOMBuilderImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\SAX2XMLReaderImpl.cpp">
+				RelativePath="..\..\..\parsers\SAX2XMLReaderImpl.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\SAX2XMLReaderImpl.hpp">
+				RelativePath="..\..\..\parsers\SAX2XMLReaderImpl.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\SAXParser.cpp">
+				RelativePath="..\..\..\parsers\SAXParser.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\SAXParser.hpp">
+				RelativePath="..\..\..\parsers\SAXParser.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\XercesDOMParser.cpp">
+				RelativePath="..\..\..\parsers\XercesDOMParser.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\parsers\XercesDOMParser.hpp">
+				RelativePath="..\..\..\parsers\XercesDOMParser.hpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="validators"
-			Filter=".cpp,.hpp">
+			Filter=".cpp,.hpp"
+			>
 			<Filter
 				Name="common"
-				Filter="*.cpp, *.hpp">
+				Filter="*.cpp, *.hpp"
+				>
 				<File
-					RelativePath="..\..\..\validators\common\AllContentModel.cpp">
+					RelativePath="..\..\..\validators\common\AllContentModel.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\AllContentModel.hpp">
+					RelativePath="..\..\..\validators\common\AllContentModel.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMAny.cpp">
+					RelativePath="..\..\..\validators\common\CMAny.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMAny.hpp">
+					RelativePath="..\..\..\validators\common\CMAny.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMBinaryOp.cpp">
+					RelativePath="..\..\..\validators\common\CMBinaryOp.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMBinaryOp.hpp">
+					RelativePath="..\..\..\validators\common\CMBinaryOp.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMLeaf.hpp">
+					RelativePath="..\..\..\validators\common\CMLeaf.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMNode.hpp">
+					RelativePath="..\..\..\validators\common\CMNode.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMStateSet.hpp">
+					RelativePath="..\..\..\validators\common\CMStateSet.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMUnaryOp.cpp">
+					RelativePath="..\..\..\validators\common\CMUnaryOp.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\CMUnaryOp.hpp">
+					RelativePath="..\..\..\validators\common\CMUnaryOp.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\ContentLeafNameTypeVector.cpp">
+					RelativePath="..\..\..\validators\common\ContentLeafNameTypeVector.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\ContentLeafNameTypeVector.hpp">
+					RelativePath="..\..\..\validators\common\ContentLeafNameTypeVector.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\ContentSpecNode.cpp">
+					RelativePath="..\..\..\validators\common\ContentSpecNode.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\ContentSpecNode.hpp">
+					RelativePath="..\..\..\validators\common\ContentSpecNode.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\DFAContentModel.cpp">
+					RelativePath="..\..\..\validators\common\DFAContentModel.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\DFAContentModel.hpp">
+					RelativePath="..\..\..\validators\common\DFAContentModel.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\Grammar.cpp">
+					RelativePath="..\..\..\validators\common\Grammar.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\Grammar.hpp">
+					RelativePath="..\..\..\validators\common\Grammar.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\GrammarResolver.cpp">
+					RelativePath="..\..\..\validators\common\GrammarResolver.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\GrammarResolver.hpp">
+					RelativePath="..\..\..\validators\common\GrammarResolver.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\MixedContentModel.cpp">
+					RelativePath="..\..\..\validators\common\MixedContentModel.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\MixedContentModel.hpp">
+					RelativePath="..\..\..\validators\common\MixedContentModel.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\SimpleContentModel.cpp">
+					RelativePath="..\..\..\validators\common\SimpleContentModel.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\common\SimpleContentModel.hpp">
+					RelativePath="..\..\..\validators\common\SimpleContentModel.hpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="datatype"
-				Filter="*.cpp, *.hpp">
+				Filter="*.cpp, *.hpp"
+				>
 				<File
-					RelativePath="..\..\..\validators\datatype\AbstractNumericFacetValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\AbstractNumericFacetValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AbstractNumericFacetValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\AbstractNumericFacetValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AbstractNumericValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\AbstractNumericValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AbstractNumericValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\AbstractNumericValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AbstractStringValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\AbstractStringValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AbstractStringValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\AbstractStringValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AnySimpleTypeDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\AnySimpleTypeDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AnySimpleTypeDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\AnySimpleTypeDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AnyURIDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\AnyURIDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\AnyURIDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\AnyURIDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\Base64BinaryDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\Base64BinaryDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\Base64BinaryDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\Base64BinaryDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\BooleanDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\BooleanDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\BooleanDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\BooleanDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DatatypeValidatorFactory.cpp">
+					RelativePath="..\..\..\validators\datatype\DatatypeValidatorFactory.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DatatypeValidatorFactory.hpp">
+					RelativePath="..\..\..\validators\datatype\DatatypeValidatorFactory.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DateDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DateDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DateDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DateDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DateTimeDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DateTimeDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DateTimeDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DateTimeDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DateTimeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DateTimeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DateTimeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DateTimeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DayDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DayDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DayDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DayDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DecimalDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DecimalDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DecimalDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DecimalDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DoubleDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DoubleDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DoubleDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DoubleDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DurationDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\DurationDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\DurationDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\DurationDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\ENTITYDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\ENTITYDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\ENTITYDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\ENTITYDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\FloatDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\FloatDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\FloatDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\FloatDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\HexBinaryDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\HexBinaryDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\HexBinaryDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\HexBinaryDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\IDDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\IDDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\IDDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\IDDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\IDREFDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\IDREFDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\IDREFDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\IDREFDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\InvalidDatatypeFacetException.hpp">
+					RelativePath="..\..\..\validators\datatype\InvalidDatatypeFacetException.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\InvalidDatatypeValueException.hpp">
+					RelativePath="..\..\..\validators\datatype\InvalidDatatypeValueException.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\ListDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\ListDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\ListDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\ListDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\MonthDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\MonthDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\MonthDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\MonthDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\MonthDayDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\MonthDayDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\MonthDayDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\MonthDayDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\NameDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\NameDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\NameDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\NameDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\NCNameDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\NCNameDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\NCNameDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\NCNameDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\NOTATIONDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\NOTATIONDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\NOTATIONDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\NOTATIONDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\QNameDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\QNameDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\QNameDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\QNameDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\StringDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\StringDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\StringDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\StringDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\TimeDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\TimeDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\TimeDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\TimeDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\UnionDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\UnionDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\UnionDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\UnionDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\XMLCanRepGroup.cpp">
+					RelativePath="..\..\..\validators\datatype\XMLCanRepGroup.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\XMLCanRepGroup.hpp">
+					RelativePath="..\..\..\validators\datatype\XMLCanRepGroup.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\YearDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\YearDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\YearDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\YearDatatypeValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\YearMonthDatatypeValidator.cpp">
+					RelativePath="..\..\..\validators\datatype\YearMonthDatatypeValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\datatype\YearMonthDatatypeValidator.hpp">
+					RelativePath="..\..\..\validators\datatype\YearMonthDatatypeValidator.hpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="DTD"
-				Filter="*.cpp, *.hpp">
+				Filter="*.cpp, *.hpp"
+				>
 				<File
-					RelativePath="..\..\..\validators\DTD\DocTypeHandler.hpp">
+					RelativePath="..\..\..\validators\DTD\DocTypeHandler.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDAttDef.cpp">
+					RelativePath="..\..\..\validators\DTD\DTDAttDef.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDAttDef.hpp">
+					RelativePath="..\..\..\validators\DTD\DTDAttDef.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDAttDefList.cpp">
+					RelativePath="..\..\..\validators\DTD\DTDAttDefList.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDAttDefList.hpp">
+					RelativePath="..\..\..\validators\DTD\DTDAttDefList.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDElementDecl.cpp">
+					RelativePath="..\..\..\validators\DTD\DTDElementDecl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDElementDecl.hpp">
+					RelativePath="..\..\..\validators\DTD\DTDElementDecl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDEntityDecl.cpp">
+					RelativePath="..\..\..\validators\DTD\DTDEntityDecl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDEntityDecl.hpp">
+					RelativePath="..\..\..\validators\DTD\DTDEntityDecl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDGrammar.cpp">
+					RelativePath="..\..\..\validators\DTD\DTDGrammar.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDGrammar.hpp">
+					RelativePath="..\..\..\validators\DTD\DTDGrammar.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDScanner.cpp">
+					RelativePath="..\..\..\validators\DTD\DTDScanner.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDScanner.hpp">
+					RelativePath="..\..\..\validators\DTD\DTDScanner.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDValidator.cpp">
+					RelativePath="..\..\..\validators\DTD\DTDValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\DTDValidator.hpp">
+					RelativePath="..\..\..\validators\DTD\DTDValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\XMLDTDDescriptionImpl.cpp">
+					RelativePath="..\..\..\validators\DTD\XMLDTDDescriptionImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\DTD\XMLDTDDescriptionImpl.hpp">
+					RelativePath="..\..\..\validators\DTD\XMLDTDDescriptionImpl.hpp"
+					>
 				</File>
 			</Filter>
 			<Filter
 				Name="schema"
-				Filter="*.cpp, *.hpp">
+				Filter="*.cpp, *.hpp"
+				>
 				<File
-					RelativePath="..\..\..\validators\schema\ComplexTypeInfo.cpp">
+					RelativePath="..\..\..\validators\schema\ComplexTypeInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\ComplexTypeInfo.hpp">
+					RelativePath="..\..\..\validators\schema\ComplexTypeInfo.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\GeneralAttributeCheck.cpp">
+					RelativePath="..\..\..\validators\schema\GeneralAttributeCheck.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\GeneralAttributeCheck.hpp">
+					RelativePath="..\..\..\validators\schema\GeneralAttributeCheck.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\NamespaceScope.cpp">
+					RelativePath="..\..\..\validators\schema\NamespaceScope.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\NamespaceScope.hpp">
+					RelativePath="..\..\..\validators\schema\NamespaceScope.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\PSVIDefs.hpp">
+					RelativePath="..\..\..\validators\schema\PSVIDefs.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaAttDef.cpp">
+					RelativePath="..\..\..\validators\schema\SchemaAttDef.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaAttDef.hpp">
+					RelativePath="..\..\..\validators\schema\SchemaAttDef.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaAttDefList.cpp">
+					RelativePath="..\..\..\validators\schema\SchemaAttDefList.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaAttDefList.hpp">
+					RelativePath="..\..\..\validators\schema\SchemaAttDefList.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaElementDecl.cpp">
+					RelativePath="..\..\..\validators\schema\SchemaElementDecl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaElementDecl.hpp">
+					RelativePath="..\..\..\validators\schema\SchemaElementDecl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaGrammar.cpp">
+					RelativePath="..\..\..\validators\schema\SchemaGrammar.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaGrammar.hpp">
+					RelativePath="..\..\..\validators\schema\SchemaGrammar.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaInfo.cpp">
+					RelativePath="..\..\..\validators\schema\SchemaInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaInfo.hpp">
+					RelativePath="..\..\..\validators\schema\SchemaInfo.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaSymbols.cpp">
+					RelativePath="..\..\..\validators\schema\SchemaSymbols.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaSymbols.hpp">
+					RelativePath="..\..\..\validators\schema\SchemaSymbols.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaValidator.cpp">
+					RelativePath="..\..\..\validators\schema\SchemaValidator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SchemaValidator.hpp">
+					RelativePath="..\..\..\validators\schema\SchemaValidator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SubstitutionGroupComparator.cpp">
+					RelativePath="..\..\..\validators\schema\SubstitutionGroupComparator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\SubstitutionGroupComparator.hpp">
+					RelativePath="..\..\..\validators\schema\SubstitutionGroupComparator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\TraverseSchema.cpp">
+					RelativePath="..\..\..\validators\schema\TraverseSchema.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\TraverseSchema.hpp">
+					RelativePath="..\..\..\validators\schema\TraverseSchema.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XercesAttGroupInfo.cpp">
+					RelativePath="..\..\..\validators\schema\XercesAttGroupInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XercesAttGroupInfo.hpp">
+					RelativePath="..\..\..\validators\schema\XercesAttGroupInfo.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XercesElementWildcard.cpp">
+					RelativePath="..\..\..\validators\schema\XercesElementWildcard.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XercesElementWildcard.hpp">
+					RelativePath="..\..\..\validators\schema\XercesElementWildcard.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XercesGroupInfo.cpp">
+					RelativePath="..\..\..\validators\schema\XercesGroupInfo.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XercesGroupInfo.hpp">
+					RelativePath="..\..\..\validators\schema\XercesGroupInfo.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XMLSchemaDescriptionImpl.cpp">
+					RelativePath="..\..\..\validators\schema\XMLSchemaDescriptionImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XMLSchemaDescriptionImpl.hpp">
+					RelativePath="..\..\..\validators\schema\XMLSchemaDescriptionImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XSDDOMParser.cpp">
+					RelativePath="..\..\..\validators\schema\XSDDOMParser.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XSDDOMParser.hpp">
+					RelativePath="..\..\..\validators\schema\XSDDOMParser.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XSDErrorReporter.cpp">
+					RelativePath="..\..\..\validators\schema\XSDErrorReporter.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XSDErrorReporter.hpp">
+					RelativePath="..\..\..\validators\schema\XSDErrorReporter.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XSDLocator.cpp">
+					RelativePath="..\..\..\validators\schema\XSDLocator.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XSDLocator.hpp">
+					RelativePath="..\..\..\validators\schema\XSDLocator.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XUtil.cpp">
+					RelativePath="..\..\..\validators\schema\XUtil.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\validators\schema\XUtil.hpp">
+					RelativePath="..\..\..\validators\schema\XUtil.hpp"
+					>
 				</File>
 				<Filter
 					Name="identity"
-					Filter="*.cpp, *.hpp">
+					Filter="*.cpp, *.hpp"
+					>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\FieldActivator.cpp">
+						RelativePath="..\..\..\validators\schema\identity\FieldActivator.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\FieldActivator.hpp">
+						RelativePath="..\..\..\validators\schema\identity\FieldActivator.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\FieldValueMap.cpp">
+						RelativePath="..\..\..\validators\schema\identity\FieldValueMap.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\FieldValueMap.hpp">
+						RelativePath="..\..\..\validators\schema\identity\FieldValueMap.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Field.cpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Field.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Field.hpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Field.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Key.cpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Key.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Key.hpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Key.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_KeyRef.cpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_KeyRef.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_KeyRef.hpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_KeyRef.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Selector.cpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Selector.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Selector.hpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Selector.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Unique.cpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Unique.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IC_Unique.hpp">
+						RelativePath="..\..\..\validators\schema\identity\IC_Unique.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IdentityConstraint.cpp">
+						RelativePath="..\..\..\validators\schema\identity\IdentityConstraint.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\IdentityConstraint.hpp">
+						RelativePath="..\..\..\validators\schema\identity\IdentityConstraint.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\ValueStore.cpp">
+						RelativePath="..\..\..\validators\schema\identity\ValueStore.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\ValueStore.hpp">
+						RelativePath="..\..\..\validators\schema\identity\ValueStore.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\ValueStoreCache.cpp">
+						RelativePath="..\..\..\validators\schema\identity\ValueStoreCache.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\ValueStoreCache.hpp">
+						RelativePath="..\..\..\validators\schema\identity\ValueStoreCache.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XercesXPath.cpp">
+						RelativePath="..\..\..\validators\schema\identity\XercesXPath.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XercesXPath.hpp">
+						RelativePath="..\..\..\validators\schema\identity\XercesXPath.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XPathException.hpp">
+						RelativePath="..\..\..\validators\schema\identity\XPathException.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XPathMatcher.cpp">
+						RelativePath="..\..\..\validators\schema\identity\XPathMatcher.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XPathMatcher.hpp">
+						RelativePath="..\..\..\validators\schema\identity\XPathMatcher.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XPathMatcherStack.cpp">
+						RelativePath="..\..\..\validators\schema\identity\XPathMatcherStack.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XPathMatcherStack.hpp">
+						RelativePath="..\..\..\validators\schema\identity\XPathMatcherStack.hpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XPathSymbols.cpp">
+						RelativePath="..\..\..\validators\schema\identity\XPathSymbols.cpp"
+						>
 					</File>
 					<File
-						RelativePath="..\..\..\validators\schema\identity\XPathSymbols.hpp">
+						RelativePath="..\..\..\validators\schema\identity\XPathSymbols.hpp"
+						>
 					</File>
 				</Filter>
 			</Filter>
 		</Filter>
 		<Filter
 			Name="sax2"
-			Filter=".cpp,.hpp">
+			Filter=".cpp,.hpp"
+			>
 			<File
-				RelativePath="..\..\..\sax2\Attributes.hpp">
+				RelativePath="..\..\..\sax2\Attributes.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax2\ContentHandler.hpp">
+				RelativePath="..\..\..\sax2\ContentHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax2\DefaultHandler.hpp">
+				RelativePath="..\..\..\sax2\DefaultHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax2\sax2Dummy.cpp">
+				RelativePath="..\..\..\sax2\sax2Dummy.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax2\SAX2XMLReader.hpp">
+				RelativePath="..\..\..\sax2\SAX2XMLReader.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\sax2\XMLReaderFactory.hpp">
+				RelativePath="..\..\..\sax2\XMLReaderFactory.hpp"
+				>
 			</File>
 		</Filter>
 		<Filter
 			Name="dom"
-			Filter="">
+			>
 			<File
-				RelativePath="..\..\..\dom\DOMAttr.hpp">
+				RelativePath="..\..\..\dom\DOMAttr.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMBuilder.hpp">
+				RelativePath="..\..\..\dom\DOMBuilder.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMCDATASection.hpp">
+				RelativePath="..\..\..\dom\DOMCDATASection.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMCharacterData.hpp">
+				RelativePath="..\..\..\dom\DOMCharacterData.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMComment.hpp">
+				RelativePath="..\..\..\dom\DOMComment.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMConfiguration.hpp">
+				RelativePath="..\..\..\dom\DOMConfiguration.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMDocument.hpp">
+				RelativePath="..\..\..\dom\DOMDocument.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMDocumentFragment.hpp">
+				RelativePath="..\..\..\dom\DOMDocumentFragment.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMDocumentRange.hpp">
+				RelativePath="..\..\..\dom\DOMDocumentRange.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMDocumentTraversal.hpp">
+				RelativePath="..\..\..\dom\DOMDocumentTraversal.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMDocumentType.hpp">
+				RelativePath="..\..\..\dom\DOMDocumentType.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMElement.hpp">
+				RelativePath="..\..\..\dom\DOMElement.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMEntity.hpp">
+				RelativePath="..\..\..\dom\DOMEntity.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMEntityReference.hpp">
+				RelativePath="..\..\..\dom\DOMEntityReference.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMEntityResolver.hpp">
+				RelativePath="..\..\..\dom\DOMEntityResolver.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMError.hpp">
+				RelativePath="..\..\..\dom\DOMError.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMErrorHandler.hpp">
+				RelativePath="..\..\..\dom\DOMErrorHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMException.cpp">
+				RelativePath="..\..\..\dom\DOMException.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMException.hpp">
+				RelativePath="..\..\..\dom\DOMException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMImplementation.hpp">
+				RelativePath="..\..\..\dom\DOMImplementation.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMImplementationLS.hpp">
+				RelativePath="..\..\..\dom\DOMImplementationLS.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMImplementationRegistry.hpp">
+				RelativePath="..\..\..\dom\DOMImplementationRegistry.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMImplementationSource.hpp">
+				RelativePath="..\..\..\dom\DOMImplementationSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMInputSource.hpp">
+				RelativePath="..\..\..\dom\DOMInputSource.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMLocator.hpp">
+				RelativePath="..\..\..\dom\DOMLocator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMNamedNodeMap.hpp">
+				RelativePath="..\..\..\dom\DOMNamedNodeMap.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMNode.hpp">
+				RelativePath="..\..\..\dom\DOMNode.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMNodeFilter.hpp">
+				RelativePath="..\..\..\dom\DOMNodeFilter.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMNodeIterator.hpp">
+				RelativePath="..\..\..\dom\DOMNodeIterator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMNodeList.hpp">
+				RelativePath="..\..\..\dom\DOMNodeList.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMNotation.hpp">
+				RelativePath="..\..\..\dom\DOMNotation.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMProcessingInstruction.hpp">
+				RelativePath="..\..\..\dom\DOMProcessingInstruction.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMRange.hpp">
+				RelativePath="..\..\..\dom\DOMRange.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMRangeException.cpp">
+				RelativePath="..\..\..\dom\DOMRangeException.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMRangeException.hpp">
+				RelativePath="..\..\..\dom\DOMRangeException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMText.hpp">
+				RelativePath="..\..\..\dom\DOMText.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMTreeWalker.hpp">
+				RelativePath="..\..\..\dom\DOMTreeWalker.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMTypeInfo.hpp">
+				RelativePath="..\..\..\dom\DOMTypeInfo.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMUserDataHandler.hpp">
+				RelativePath="..\..\..\dom\DOMUserDataHandler.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMWriter.hpp">
+				RelativePath="..\..\..\dom\DOMWriter.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMWriterFilter.hpp">
+				RelativePath="..\..\..\dom\DOMWriterFilter.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMXPathEvaluator.hpp">
+				RelativePath="..\..\..\dom\DOMXPathEvaluator.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMXPathException.cpp">
+				RelativePath="..\..\..\dom\DOMXPathException.cpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMXPathException.hpp">
+				RelativePath="..\..\..\dom\DOMXPathException.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMXPathExpression.hpp">
+				RelativePath="..\..\..\dom\DOMXPathExpression.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMXPathNamespace.hpp">
+				RelativePath="..\..\..\dom\DOMXPathNamespace.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMXPathNSResolver.hpp">
+				RelativePath="..\..\..\dom\DOMXPathNSResolver.hpp"
+				>
 			</File>
 			<File
-				RelativePath="..\..\..\dom\DOMXPathResult.hpp">
+				RelativePath="..\..\..\dom\DOMXPathResult.hpp"
+				>
 			</File>
 			<Filter
 				Name="impl"
-				Filter="">
+				>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMAttrImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMAttrImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMAttrImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMAttrImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMAttrMapImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMAttrMapImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMAttrMapImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMAttrMapImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMAttrNSImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMAttrNSImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMAttrNSImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMAttrNSImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMCasts.hpp">
+					RelativePath="..\..\..\dom\impl\DOMCasts.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMCDATASectionImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMCDATASectionImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMCDATASectionImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMCDATASectionImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMCharacterDataImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMCharacterDataImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMCharacterDataImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMCharacterDataImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMChildNode.cpp">
+					RelativePath="..\..\..\dom\impl\DOMChildNode.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMChildNode.hpp">
+					RelativePath="..\..\..\dom\impl\DOMChildNode.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMCommentImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMCommentImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMCommentImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMCommentImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMConfigurationImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMConfigurationImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMConfigurationImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMConfigurationImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDeepNodeListImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMDeepNodeListImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDeepNodeListImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMDeepNodeListImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDeepNodeListPool.hpp">
+					RelativePath="..\..\..\dom\impl\DOMDeepNodeListPool.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDocumentFragmentImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMDocumentFragmentImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDocumentFragmentImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMDocumentFragmentImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDocumentImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMDocumentImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDocumentImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMDocumentImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDocumentTypeImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMDocumentTypeImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMDocumentTypeImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMDocumentTypeImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMElementImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMElementImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMElementImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMElementImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMElementNSImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMElementNSImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMElementNSImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMElementNSImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMEntityImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMEntityImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMEntityImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMEntityImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMEntityReferenceImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMEntityReferenceImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMEntityReferenceImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMEntityReferenceImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMErrorImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMErrorImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMErrorImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMErrorImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMImplementationImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMImplementationImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMImplementationimpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMImplementationimpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMImplementationRegistry.cpp">
+					RelativePath="..\..\..\dom\impl\DOMImplementationRegistry.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMLocatorImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMLocatorImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMLocatorImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMLocatorImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNamedNodeMapImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNamedNodeMapImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNamedNodeMapImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNamedNodeMapImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeIDMap.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeIDMap.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeIDMap.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeIDMap.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeIteratorImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeIteratorImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeIteratorImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeIteratorImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeListImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeListImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeListImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeListImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeVector.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeVector.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNodeVector.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNodeVector.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNormalizer.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNormalizer.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNormalizer.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNormalizer.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNotationImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMNotationImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMNotationImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMNotationImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMParentNode.cpp">
+					RelativePath="..\..\..\dom\impl\DOMParentNode.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMParentNode.hpp">
+					RelativePath="..\..\..\dom\impl\DOMParentNode.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMProcessingInstructionImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMProcessingInstructionImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMProcessingInstructionImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMProcessingInstructionImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMRangeImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMRangeImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMRangeImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMRangeImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMStringPool.cpp">
+					RelativePath="..\..\..\dom\impl\DOMStringPool.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMStringPool.hpp">
+					RelativePath="..\..\..\dom\impl\DOMStringPool.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMTextImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMTextImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMTextImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMTextImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMTreeWalkerImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMTreeWalkerImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMTreeWalkerImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMTreeWalkerImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMTypeInfoImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMTypeInfoImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMTypeInfoImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMTypeInfoImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMWriterImpl.cpp">
+					RelativePath="..\..\..\dom\impl\DOMWriterImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\DOMWriterImpl.hpp">
+					RelativePath="..\..\..\dom\impl\DOMWriterImpl.hpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\XSDElementNSImpl.cpp">
+					RelativePath="..\..\..\dom\impl\XSDElementNSImpl.cpp"
+					>
 				</File>
 				<File
-					RelativePath="..\..\..\dom\impl\XSDElementNSImpl.hpp">
+					RelativePath="..\..\..\dom\impl\XSDElementNSImpl.hpp"
+					>
 				</File>
 			</Filter>
 		</Filter>
 		<File
-			RelativePath="..\..\..\validators\schema\identity\IdentityConstraintHandler.cpp">
+			RelativePath="..\..\..\validators\schema\identity\IdentityConstraintHandler.cpp"
+			>
 		</File>
 		<File
-			RelativePath="..\..\..\validators\schema\identity\IdentityConstraintHandler.hpp">
+			RelativePath="..\..\..\validators\schema\identity\IdentityConstraintHandler.hpp"
+			>
 		</File>
 		<File
-			RelativePath="..\..\..\util\Platforms\Win32\Version.rc">
+			RelativePath="..\..\..\util\Platforms\Win32\Version.rc"
+			>
 			<FileConfiguration
-				Name="Release|Win32">
+				Name="Release|Win32"
+				>
 				<Tool
 					Name="VCResourceCompilerTool"
-					AdditionalIncludeDirectories="..\..\..\util\Platforms\Win32;$(NoInherit)"/>
+					AdditionalIncludeDirectories="..\..\..\util\Platforms\Win32;$(NoInherit)"
+				/>
 			</FileConfiguration>
 			<FileConfiguration
-				Name="Debug|Win32">
+				Name="Debug|Win32"
+				>
 				<Tool
 					Name="VCResourceCompilerTool"
-					AdditionalIncludeDirectories="..\..\..\util\Platforms\Win32;$(NoInherit)"/>
+					AdditionalIncludeDirectories="..\..\..\util\Platforms\Win32;$(NoInherit)"
+				/>
 			</FileConfiguration>
 		</File>
 		<File
-			RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.cpp">
+			RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.cpp"
+			>
 		</File>
 		<File
-			RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.hpp">
+			RelativePath="..\..\..\util\MsgLoaders\Win32\Win32MsgLoader.hpp"
+			>
 		</File>
 	</Files>
 	<Globals>
