@@ -20,30 +20,35 @@ include (../libincludes.pro)
 # Define the basic template for the application
 win32 {
 	TEMPLATE = vcapp
+    CONFIG -= embed_manifest_exe
+    CONFIG -= embed_manifest_dll
 }
 unix {
 	TEMPLATE = app
 }
 
 # Setup shared definitions across all platforms
-DEFINES	+= 
 LANGUAGE = C++
-#CONFIG	+= warn_off 
+CONFIG	+= warn_off 
 CONFIG  -= qt
 
 win32 {
 	message( appmaster.pro - WIN32 --> Setting up basic windows parameters )
-	# The defines should define and IVS OS, GUI, and Hardware platform among others
+	# The defines should define GUI, and Hardware platform among others
 	DEFINES	+= WIN32 _WINDOWS _MBCS PLATFORM_WIN32
-	OBJECTS_DIR = Debug
-	QMAKE_LIBDIR = ../../extlibs/lib/Debug ../../api/lib/debug
-	DESTDIR = ../bin/debug	
-        SYSOBJFILES=
+    CONFIG += debug_and_release
+    CONFIG(debug, debug|release) {
+            message( appmaster.pro - WIN32 --> Setting lib\debug directory )
+    	DESTDIR = ../exe/Debug/
+	    QMAKE_LIBDIR = ../../lib/Debug/ ../../extlibs/lib/Debug/
+	    OBJECTS_DIR = ./DebugObj/
+    } else {
+            message( appmaster.pro - WIN32 --> setting lib\release directory )
+    	DESTDIR = ../exe/Release/
+	    QMAKE_LIBDIR = ../../lib/Release/ ../../extlibs/lib/Release/
+	    OBJECTS_DIR = ./ReleaseObj/
+    }
 }
-
-#win32:debug {
-#	CONFIG += console
-#}
 
 unix {
 	message( In appmaster.pro for the general unix platform )
@@ -75,7 +80,7 @@ unix {
     }
 }
 win32 {
-	EXTRAWINLIBS    = netapi32.lib comctl32.lib ws2_32.lib
+	EXTRAWINLIBS    = netapi32.lib comctl32.lib ws2_32.lib winmm.lib
 	OPENNSLIBS      = 
 #	OPENNSLIBS      = bag.lib XercesLib.lib
 }
