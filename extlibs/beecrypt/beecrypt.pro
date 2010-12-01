@@ -17,6 +17,10 @@ INCLUDEPATH += $$INC_OPENNSALL
 
 DEFINES += BEE_STATIC
 
+win32 {
+    CONFIG += staticlib
+}
+
 HEADERS += aes.h \
         aesopt.h \
         aes_be.h \
