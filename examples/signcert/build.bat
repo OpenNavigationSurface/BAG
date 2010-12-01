@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building signcert application project
 qmake -t app -o Makefile_win32 signcert.pro
-qmake signcert.pro
+qmake -t vcapp signcert.pro
 goto end1
 
 :build_rebuild
