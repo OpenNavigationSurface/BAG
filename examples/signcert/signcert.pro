@@ -33,7 +33,6 @@ unix {
 
 win32 {
 	QMAKE_LIBDIR += ../excertlib/lib/Debug
-	LIBS	+= $$OPENNSLIBS $$EXTRAWINLIBS haspw32.lib winmm.lib libxml2.lib iconv.lib
+	LIBS	+= $$OPENNSLIBS $$EXTRAWINLIBS haspw32.lib libxml2_a.lib iconv_a.lib
 	SOURCES += $$SYSOBJFILES
-	QMAKE_LFLAGS_WINDOWS += /nodefaultlib:"libcmt.lib"
 }
