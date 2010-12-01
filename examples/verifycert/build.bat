@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building verifycert application project
 qmake -t app -o Makefile_win32 verifycert.pro
-qmake verifycert.pro
+qmake -t vcapp verifycert.pro
 goto end1
 
 :build_rebuild
