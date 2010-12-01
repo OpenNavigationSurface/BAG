@@ -1,0 +1,1 @@
+These are the core source library files from ZLib 1.2.5, for use with the BAG library, mainly for native compile and link on windows platforms. Other platform related files have been removed. Also files related to documatation that is not relevant for compile on windows have been removed. ( Other platforms untar their source from compressed files in the BAG's base directory. )
