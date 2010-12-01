@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building signfile application project
 qmake -t app -o Makefile_win32 signfile.pro
-qmake signfile.pro
+qmake -t vcapp signfile.pro
 goto end1
 
 :build_rebuild
