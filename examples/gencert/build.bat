@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building gencert application project
 qmake -t app -o Makefile_win32 gencert.pro
-qmake gencert.pro
+qmake -t vcapp gencert.pro
 goto end1
 
 :build_rebuild
