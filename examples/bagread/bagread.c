@@ -78,7 +78,7 @@ int main( int argc, char **argv )
 
 	switch(xml_data.def.depthCorrectionType)
 	{
-		case Unknown:
+		case Unknown_Depth_Correction:
 		default:
 			printf("Depth Correction type is unknown.\n");
 			break;
