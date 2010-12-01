@@ -1,137 +1,202 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="7.10"
+	Version="8.00"
 	Name="bagcreate"
-	ProjectGUID="{BA124797-2024-353E-BA17-4A8D2258C6EA}">
+	ProjectGUID="{F8BFAE33-216D-3F60-9DAD-5D7D7498B519}"
+	Keyword="Qt4VSv1.0"
+	>
 	<Platforms>
 		<Platform
-			Name="Win32"/>
+			Name="Win32"
+		/>
 	</Platforms>
+	<ToolFiles>
+	</ToolFiles>
 	<Configurations>
-		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="."
-			IntermediateDirectory="Debug\"
-			ConfigurationType="1"
-			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE">
-			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm200"
-				Optimization="1"
-				AdditionalIncludeDirectories="..\..\api,..\..\api\crypto,..\..\extlibs\hdf5,..\..\extlibs\geotrans,..\..\extlibs\beecrypt,..\..\extlibs,L:\main-openns\examples\bagcreate,g:\qt\mkspecs\win32-msvc.net"
-				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,WIN32,_WINDOWS,_MBCS,PLATFORM_WIN32,BEE_STATIC,QT_DLL,NDEBUG"
-				GeneratePreprocessedFile="0"
-				ExceptionHandling="FALSE"
-				RuntimeLibrary="2"
-				BufferSecurityCheck="FALSE"
-				AssemblerListingLocation="Debug\"
-				ObjectFile="Debug\"
-				ProgramDataBaseFileName=".\"
-				WarningLevel="0"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="0"/>
-			<Tool
-				Name="VCCustomBuildTool"/>
-			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="bag.lib hdf5.lib xercesLib.lib beecrypt.lib szip.lib zlib.lib netapi32.lib comctl32.lib ws2_32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
-				OutputFile="..\bin\debug\bagcreate.exe"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="../../extlibs/lib/Debug,../../api/lib/debug"
-				DelayLoadDLLs="comdlg32.dll,oleaut32.dll,winmm.dll,wsock32.dll,winspool.dll"
-				GenerateDebugInformation="FALSE"
-				ProgramDatabaseFile=""
-				SubSystem="1"/>
-			<Tool
-				Name="VCMIDLTool"
-				WarningLevel="0"
-				DefaultCharType="0"
-				EnableErrorChecks="1"/>
-			<Tool
-				Name="VCPostBuildEventTool"/>
-			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
-			<Tool
-				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"/>
-			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
-			<Tool
-				Name="VCXMLDataGeneratorTool"/>
-			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
-			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
-		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
 			OutputDirectory="."
-			IntermediateDirectory="Debug\"
+			IntermediateDirectory="DebugObj\"
 			ConfigurationType="1"
 			UseOfMFC="0"
-			ATLMinimizesCRunTimeLibraryUsage="FALSE">
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
 			<Tool
-				Name="VCCLCompilerTool"
-				AdditionalOptions="-Zm200"
-				Optimization="0"
-				AdditionalIncludeDirectories="..\..\api,..\..\api\crypto,..\..\extlibs\hdf5,..\..\extlibs\geotrans,..\..\extlibs\beecrypt,..\..\extlibs,L:\main-openns\examples\bagcreate,g:\qt\mkspecs\win32-msvc.net"
-				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
-				GeneratePreprocessedFile="0"
-				MinimalRebuild="TRUE"
-				ExceptionHandling="TRUE"
-				BasicRuntimeChecks="0"
-				RuntimeLibrary="3"
-				BufferSecurityCheck="FALSE"
-				AssemblerListingLocation="Debug\"
-				ObjectFile="Debug\"
-				ProgramDataBaseFileName=".\"
-				WarningLevel="0"
-				SuppressStartupBanner="TRUE"
-				DebugInformationFormat="3"/>
+				Name="VCPreBuildEventTool"
+			/>
 			<Tool
-				Name="VCCustomBuildTool"/>
+				Name="VCCustomBuildTool"
+			/>
 			<Tool
-				Name="VCLinkerTool"
-				IgnoreImportLibrary="TRUE"
-				AdditionalDependencies="bag.lib hdf5.lib geotrans.lib xercesLib.lib beecrypt.lib szip.lib zlib.lib netapi32.lib comctl32.lib ws2_32.lib kernel32.lib user32.lib gdi32.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib imm32.lib winmm.lib wsock32.lib winspool.lib delayimp.lib"
-				OutputFile="Debug\\bagcreate.exe"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="../../extlibs/lib/Debug,../../api/lib/debug"
-				IgnoreDefaultLibraryNames="libcd.lib"
-				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=""
-				SubSystem="1"/>
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
 			<Tool
 				Name="VCMIDLTool"
 				WarningLevel="0"
 				DefaultCharType="0"
-				EnableErrorChecks="1"/>
+				EnableErrorChecks="1"
+			/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm200 -Zm200"
+				Optimization="4"
+				AdditionalIncludeDirectories="..\..\api;&quot;..\..\extlibs\hdf5-1.8.5-patch1&quot;;..\..\extlibs\geotrans;..\..\extlibs\beecrypt;..\..\extlibs;&quot;..\extlibs\xerces-c-src_2_6_0\include&quot;;."
+				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,WIN32,_WINDOWS,_MBCS,PLATFORM_WIN32,BEE_STATIC"
+				GeneratePreprocessedFile="0"
+				ExceptionHandling="1"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="false"
+				RuntimeTypeInfo="true"
+				AssemblerListingLocation="DebugObj\"
+				ObjectFile="DebugObj\"
+				ProgramDataBaseFileName=".\"
+				WarningLevel="0"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="3"
+			/>
 			<Tool
-				Name="VCPreBuildEventTool"/>
-			<Tool
-				Name="VCPreLinkEventTool"/>
+				Name="VCManagedResourceCompilerTool"
+			/>
 			<Tool
 				Name="VCResourceCompilerTool"
-				PreprocessorDefinitions="NDEBUG"/>
+				PreprocessorDefinitions="UNICODE,WIN32,QT_LARGEFILE_SUPPORT,WIN32,_WINDOWS,_MBCS,PLATFORM_WIN32,BEE_STATIC,_DEBUG"
+			/>
 			<Tool
-				Name="VCWebServiceProxyGeneratorTool"/>
+				Name="VCPreLinkEventTool"
+			/>
 			<Tool
-				Name="VCXMLDataGeneratorTool"/>
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				AdditionalOptions="/NODEFAULTLIB:LIBCMT"
+				AdditionalDependencies="bag.lib hdf5.lib xercesLib.lib beecrypt.lib szip.lib zlib.lib netapi32.lib comctl32.lib ws2_32.lib winmm.lib"
+				OutputFile="..\exe\Debug\bagcreate.exe"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\lib\Debug\,..\..\extlibs\lib\Debug\"
+				GenerateDebugInformation="true"
+				ProgramDatabaseFile=""
+				SubSystem="1"
+				LinkTimeCodeGeneration="0"
+			/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
+				Name="VCALinkTool"
+			/>
 			<Tool
-				Name="VCManagedWrapperGeneratorTool"/>
+				Name="VCManifestTool"
+			/>
 			<Tool
-				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
+		</Configuration>
+		<Configuration
+			Name="Release|Win32"
+			OutputDirectory="."
+			IntermediateDirectory="ReleaseObj\"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="false"
+			>
+			<Tool
+				Name="VCPreBuildEventTool"
+			/>
+			<Tool
+				Name="VCCustomBuildTool"
+			/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"
+			/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"
+			/>
+			<Tool
+				Name="VCMIDLTool"
+				WarningLevel="0"
+				DefaultCharType="0"
+				EnableErrorChecks="1"
+			/>
+			<Tool
+				Name="VCCLCompilerTool"
+				AdditionalOptions="-Zm200 -Zm200"
+				Optimization="2"
+				AdditionalIncludeDirectories="&quot;..\..\api&quot;,&quot;..\..\extlibs\hdf5-1.8.5-patch1&quot;,&quot;..\..\extlibs\geotrans&quot;,&quot;..\..\extlibs\beecrypt&quot;,&quot;..\..\extlibs&quot;,&quot;..\extlibs\xerces-c-src_2_6_0\include&quot;,&quot;.&quot;,..\..\..\..\Qt\4.4.3\mkspecs\win32-msvc2005"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,WIN32,_WINDOWS,_MBCS,PLATFORM_WIN32,BEE_STATIC,NDEBUG"
+				GeneratePreprocessedFile="0"
+				ExceptionHandling="1"
+				RuntimeLibrary="2"
+				BufferSecurityCheck="false"
+				RuntimeTypeInfo="true"
+				AssemblerListingLocation="ReleaseObj\"
+				ObjectFile="ReleaseObj\"
+				ProgramDataBaseFileName=".\"
+				WarningLevel="0"
+				SuppressStartupBanner="true"
+				DebugInformationFormat="0"
+			/>
+			<Tool
+				Name="VCManagedResourceCompilerTool"
+			/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="QT_NO_DEBUG,NDEBUG,UNICODE,WIN32,QT_LARGEFILE_SUPPORT,WIN32,_WINDOWS,_MBCS,PLATFORM_WIN32,BEE_STATIC"
+			/>
+			<Tool
+				Name="VCPreLinkEventTool"
+			/>
+			<Tool
+				Name="VCLinkerTool"
+				IgnoreImportLibrary="true"
+				AdditionalDependencies="bag.lib hdf5.lib xercesLib.lib beecrypt.lib szip.lib zlib.lib netapi32.lib comctl32.lib ws2_32.lib winmm.lib"
+				OutputFile="..\exe\Release\bagcreate.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="true"
+				AdditionalLibraryDirectories="..\..\lib\Release\,..\..\extlibs\lib\Release\"
+				GenerateDebugInformation="false"
+				ProgramDatabaseFile=""
+				SubSystem="1"
+				LinkTimeCodeGeneration="0"
+			/>
+			<Tool
+				Name="VCALinkTool"
+			/>
+			<Tool
+				Name="VCManifestTool"
+			/>
+			<Tool
+				Name="VCXDCMakeTool"
+			/>
+			<Tool
+				Name="VCBscMakeTool"
+			/>
+			<Tool
+				Name="VCFxCopTool"
+			/>
+			<Tool
+				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
+			/>
+			<Tool
+				Name="VCPostBuildEventTool"
+			/>
 		</Configuration>
 	</Configurations>
 	<References>
@@ -139,9 +204,12 @@
 	<Files>
 		<Filter
 			Name="Source Files"
-			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			Filter="cpp;c;cxx;def;odl;idl;hpj;bat;asm;asmx"
+			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
+			>
 			<File
-				RelativePath="bagcreate.c">
+				RelativePath="bagcreate.c"
+				>
 			</File>
 		</Filter>
 	</Files>
