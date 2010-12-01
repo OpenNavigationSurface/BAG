@@ -16,10 +16,14 @@ INCLUDEPATH += $$INC_OPENNSALL
 #
 
 CONFIG -= qt
-CONFIG += 
 
-QMAKE_CFLAGS_DEBUG = 
-QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
+DEFINES -= UNICODE
+DEFINES += BEE_STATIC
+
+win32 {
+    CONFIG += staticlib
+    QMAKE_CFLAGS += -Zc:wchar_t-
+}
 
 HEADERS += stdtypes.h \
         crc32.h \
