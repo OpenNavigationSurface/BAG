@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building the beecrypt library project
 qmake -t lib -o Makefile_win32 beecrypt.pro
-qmake beecrypt.pro
+qmake -t vclib beecrypt.pro
 goto end1
 
 :build_rebuild
