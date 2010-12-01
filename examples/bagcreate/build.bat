@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building bagcreate application project
 qmake -t app -o Makefile_win32 bagcreate.pro
-qmake bagcreate.pro
+qmake -t vcapp bagcreate.pro
 goto end1
 
 :build_rebuild
