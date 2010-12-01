@@ -25,7 +25,7 @@ goto end1
 :build_project
 echo Building bagread application project
 qmake -t app -o Makefile_win32 bagread.pro
-qmake bagread.pro
+qmake -t vcapp bagread.pro
 goto end1
 
 :build_rebuild
