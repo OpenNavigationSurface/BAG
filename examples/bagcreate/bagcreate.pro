@@ -33,6 +33,5 @@ unix {
 win32 {
 	LIBS	+= $$OPENNSLIBS $$EXTRAWINLIBS
 	SOURCES += $$SYSOBJFILES
-	QMAKE_LFLAGS_WINDOWS += /nodefaultlib:"libcmt.lib"
 }
 
