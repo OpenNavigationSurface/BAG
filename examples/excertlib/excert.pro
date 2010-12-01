@@ -22,17 +22,24 @@ unix {
 
 DEFINES -= UNICODE
 
-CONFIG -= qt debug
+CONFIG -= qt
 
 win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
-	# The defines should define and IVS OS, GUI, and Hardware platform among others
+	# The defines should define the OS, GUI, and Hardware platform among others
 	DEFINES	+= WIN32 _WINDOWS _MBCS
-	QMAKE_CXXFLAGS +=
-	QMAKE_CFLAGS += 
-	OBJECTS_DIR = Debug
-	QMAKE_LIBDIR = ./lib/debug
-	DESTDIR = lib/debug	
+    CONFIG += warn_off
+    CONFIG -= QT_DLL
+    CONFIG(debug, debug|release) {
+            message( libmaster.pro - WIN32 --> Setting lib\debug directory )
+    	DESTDIR = ../../lib/Debug/
+	    OBJECTS_DIR = ./DebugObj/
+    } else {
+            message( libmaster.pro - WIN32 --> setting lib\release directory )
+    	DESTDIR = ../../lib/Release/
+	    OBJECTS_DIR = ./ReleaseObj/
+    }
+    CONFIG += staticlib
 }
 
 unix {
@@ -47,9 +54,6 @@ unix {
     	DEFINES += _SYS_TIMESPEC_H
     }
 }
-
-
-
 
 INCLUDEPATH  += ../../extlibs ../../api
 
