@@ -1,8 +1,21 @@
 
+/*********************************************************************************************
+
+    This library is public domain software that was developed by 
+    the U.S. Naval Oceanographic Office.
+
+    This is a work of the US Government. In accordance with 17 USC 105,
+    copyright protection is not available for any work of the US Government.
+
+    This software is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+*********************************************************************************************/
 
 #ifndef VERSION
 
-#define     VERSION     "BAG XML Metadata API library V1.9 - 6/30/2009"
+#define     BAG_XML_LIB_VERSION     "BAG XML Metadata API library V2.10 - 01/15/11"
 
 #endif
 
@@ -79,14 +92,37 @@
       1. New method(InitSourceInfo) to initalize SOURCE_INFO data structure.
       2. Type-o correction for postionName.
 
-	Version 1.9
+
+    Version 1.9
     6/30/2009
     M. Russell
 	 
-	 - Modified the depthCorrectionType string in the INDENTIFICATIO_INFO structure from 22 to 32
-	   as per the ONSWG teleconference 2009-06-12 regarding the enumerated types.
+    - Modified the depthCorrectionType string in the INDENTIFICATIO_INFO structure from 22 to 32
+    as per the ONSWG teleconference 2009-06-12 regarding the enumerated types.
 
 
+    Version 1.91
+    Jan C. Depner
+    07/29/09
+
+    Changed %lf in printf statements to %f.  The MinGW folks broke this even though it works on every
+    compiler known to man (including theirs up to the last version).  No compiler warnings or errors
+    are issued.  Many thanks to the MinGW folks for fixing what wasn't broken.
+
+
+    Version 2.0
+    Jan C. Depner
+    04/30/10
+
+    Now use "const NV_CHAR *" arguments instead of "NV_CHAR *" arguments where applicable (gcc 4.4 doesn't like 
+    you calling functions with constant strings [i.e. "fred"] if the argument in the function isn't declared const).
+
+
+    Version 2.01
+    Jan C. Depner
+    01/15/11
+
+    Changed all NAVO specific data types to those used by OpenNS (BAG) in the stdtypes.h file.  Cleaned up code
+    for readability.
 
  */
-
