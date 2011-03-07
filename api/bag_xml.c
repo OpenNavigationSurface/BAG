@@ -194,13 +194,13 @@ bagError bagInitDefinition(
         &definition->geoParameters.zone, &definition->geoParameters.std_parallel_1,
         &definition->geoParameters.central_meridian, &definition->geoParameters.origin_latitude, 
         &definition->geoParameters.false_easting, &definition->geoParameters.false_northing,
-        &scaleFactAtEq,                   // dhf - used if Mercator coord sys //
-        &heightOfPersPoint,               // dhf - for space oblique mercator (not in bag) //
-        &longOfProjCenter,                // dhf - for oblique conformal conic (not in bag) //
+        &scaleFactAtEq,                   /* dhf - used if Mercator coord sys */
+        &heightOfPersPoint,               /* dhf - for space oblique mercator (not in bag) */
+        &longOfProjCenter,                /* dhf - for oblique conformal conic (not in bag) */
         &definition->geoParameters.std_parallel_2, 
-        &scaleAtCenterLine,               // dhf - used if oblique mercator (not bag implemented) //
+        &scaleAtCenterLine,               /* dhf - used if oblique mercator (not bag implemented) */
         &definition->geoParameters.longitude_down_from_pole,
-        &scaleAtProjOrigin                // used for polar stereographic & transverse mercator //
+        &scaleAtProjOrigin                /* used for polar stereographic & transverse mercator */
 	);
 
     if (error)

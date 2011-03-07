@@ -1615,25 +1615,22 @@ bagError bagGetUncertantyType(
             if (pTmpStr)
             {
                 // convert the string to data type.
-#ifdef WIN32
-                if (_stricmp(pTmpStr, "Raw Std Dev") == 0)
+
+                //  Generic version so we don't need to check for WIN32
+
+                char *lower = new char[strlen (pTmpStr) + 1];
+
+                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
+                lower[strlen (pTmpStr)] = 0;
+
+                if (!strcmp(lower, "raw std dev"))
                     *uncrtType = Raw_Std_Dev;
-                else if (_stricmp(pTmpStr, "CUBE Std Dev") == 0)
+                else if (!strcmp(lower, "cube std dev"))
                     *uncrtType = CUBE_Std_Dev;
-                else if (_stricmp(pTmpStr, "Product Uncert") == 0)
+                else if (!strcmp(lower, "product uncert"))
                     *uncrtType = Product_Uncert;
-                else if (_stricmp(pTmpStr, "Historical Std Dev") == 0)
+                else if (!strcmp(lower, "historical std dev"))
                     *uncrtType = Historical_Std_Dev;
-#else
-                if (strcasecmp(pTmpStr, "Raw Std Dev") == 0)
-                    *uncrtType = Raw_Std_Dev;
-                else if (strcasecmp(pTmpStr, "CUBE Std Dev") == 0)
-                    *uncrtType = CUBE_Std_Dev;
-                else if (strcasecmp(pTmpStr, "Product Uncert") == 0)
-                    *uncrtType = Product_Uncert;
-                else if (strcasecmp(pTmpStr, "Historical Std Dev") == 0)
-                    *uncrtType = Historical_Std_Dev;
-#endif
             }
 
             XMLString::release(&pTmpStr);
@@ -1670,7 +1667,7 @@ bagError bagGetDepthCorrectionType(
     )
 {
     bagError error = BAG_SUCCESS;
-    *depthCorrectionType = NULL_GENERIC;
+    *depthCorrectionType = (unsigned int) NULL_GENERIC;
 
     char * pDepthCorrectionType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/depthCorrectionType";
     DOMNode *pDepthCorrectionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pDepthCorrectionType);
@@ -1684,38 +1681,26 @@ bagError bagGetDepthCorrectionType(
             if (pTmpStr)
             {
                 // convert the string to data type.
-#ifdef WIN32
-                if (_stricmp(pTmpStr, "True Depth") == 0)
-                    *depthCorrectionType = True_Depth;
-                else if (_stricmp(pTmpStr, "Nominal at 1500 m/s") == 0)
-                    *depthCorrectionType = Nominal_Depth_Meters;
-				else if (_stricmp(pTmpStr, "Nominal at 4800 ft/s") == 0)
-                    *depthCorrectionType = Nominal_Depth_Feet;
-				else if (_stricmp(pTmpStr, "Corrected via Carter's Tables") == 0)
-                    *depthCorrectionType = Corrected_Carters;
-				else if (_stricmp(pTmpStr, "Corrected via Matthew's Tables") == 0)
-                    *depthCorrectionType = Corrected_Matthews;
-				else if (_stricmp(pTmpStr, "Unknown") == 0)
-                    *depthCorrectionType = Unknown_Depth_Correction;
 
-		
-                
-#else
-              
-				if (strcasecmp(pTmpStr, "True Depth") == 0)
+                //  Generic version so we don't need to check for WIN3
+
+                char *lower = new char[strlen (pTmpStr) + 1];
+
+                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
+                lower[strlen (pTmpStr)] = 0;
+
+                if (!strcmp(lower, "true depth"))
                     *depthCorrectionType = True_Depth;
-                else if (strcasecmp(pTmpStr, "Nominal at 1500 m/s") == 0)
+                else if (!strcmp(lower, "nominal at 1500 m/s"))
                     *depthCorrectionType = Nominal_Depth_Meters;
-				else if (strcasecmp(pTmpStr, "Nominal at 4800 ft/s") == 0)
+                else if (!strcmp(lower, "nominal at 4800 ft/s"))
                     *depthCorrectionType = Nominal_Depth_Feet;
-				else if (strcasecmp(pTmpStr, "Corrected via Carter's Tables") == 0)
+                else if (!strcmp(lower, "corrected via carter's tables"))
                     *depthCorrectionType = Corrected_Carters;
-				else if (strcasecmp(pTmpStr, "Corrected via Matthew's Tables") == 0)
+                else if (!strcmp(lower, "corrected via matthew's tables"))
                     *depthCorrectionType = Corrected_Matthews;
-				else if (strcasecmp(pTmpStr, "Unknown") == 0)
-                    *depthCorrectionType = Unknown_Depth_Correction;
-                
-#endif
+                else if (!strcmp(lower, "unknown"))
+                    *depthCorrectionType = Unknown;
             }
 
             XMLString::release(&pTmpStr);

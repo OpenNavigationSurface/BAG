@@ -229,7 +229,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
     }
 
     /*! Select grid cell within dataset file space. */
-    status = H5Sselect_elements (filespace_id, H5S_SELECT_SET, 1, (const hsize_t **)offset);
+    status = H5Sselect_elements (filespace_id, H5S_SELECT_SET, 1, (const hsize_t *)offset);
     check_hdf_status();
     
     /*!  perform read_or_write on element */
@@ -1342,7 +1342,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
 
 	if (*max_tmp != null_val)
 	{
-        fprintf(stdout, "max = %f\n", *max_tmp);
+          /*fprintf(stdout, "max = %f\n", *max_tmp);*/
 
         *omax = *max_tmp;
 		status = bagWriteAttribute (hnd, dataset_id, max_name, max_tmp);
@@ -1350,7 +1350,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
 	}
 	if (*min_tmp != null_val)
 	{ 
-        fprintf(stdout, "min = %f\n", *min_tmp);
+          /*fprintf(stdout, "min = %f\n", *min_tmp);*/
        *omin = *min_tmp;
 		status = bagWriteAttribute (hnd, dataset_id, min_name, min_tmp);
 		check_hdf_status();
