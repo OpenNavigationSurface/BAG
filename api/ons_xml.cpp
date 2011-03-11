@@ -1700,7 +1700,7 @@ bagError bagGetDepthCorrectionType(
                 else if (!strcmp(lower, "corrected via matthew's tables"))
                     *depthCorrectionType = Corrected_Matthews;
                 else if (!strcmp(lower, "unknown"))
-                    *depthCorrectionType = Unknown;
+                    *depthCorrectionType = Unknown_Correction;
             }
 
             XMLString::release(&pTmpStr);

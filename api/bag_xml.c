@@ -142,7 +142,7 @@ bagError bagFreeXMLMeta ()
     for (i=0; i < MAX_GRIDS; i++)
     {
         if (metadataCache[i] != NULL)
-            bagFreeMetadata(metadataCache[i]);
+          bagFreeMetadata((bagMetaData) metadataCache[i]);
     }
 
     if (metadataCache != NULL)
@@ -174,7 +174,7 @@ bagError bagInitDefinition(
     f64 urx, ury, longOfProjCenter;
     f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint; /* dhf */
     char projectionId[XML_ATTR_MAXSTR];
-    char ellipId[XML_ATTR_MAXSTR], datumId[XML_ATTR_MAXSTR];
+    char datumId[XML_ATTR_MAXSTR];
     Coordinate_Type coordType; 
 
 
@@ -224,7 +224,7 @@ bagError bagInitDefinition(
     if (error == BAG_METADTA_DPTHCORR_MISSING)
 	{
 		/* bag made pre-addition of the depthCorrectionType */
-		definition->depthCorrectionType = Unknown_Depth_Correction;
+		definition->depthCorrectionType = Unknown_Correction;
 	}
 	else if (error != BAG_SUCCESS)
     {
@@ -400,7 +400,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     {
         if (metadataCache[i] != NULL)
         {
-            bagFreeMetadata (metadataCache[i]);
+          bagFreeMetadata ((bagMetaData) metadataCache[i]);
             metadataCache[i] = NULL;
         }
 
@@ -417,7 +417,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     if (chng)
     {
         /* open and validate the XML file. */
-        metadataCache[i] = bagValidateMetadataBuffer(cacheString[i], bufferSize, &error);
+      metadataCache[i] = (bagMetaData *) bagValidateMetadataBuffer(cacheString[i], bufferSize, &error);
     }
 
 
@@ -425,7 +425,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
         return error;
 
     /* retrieve the necessary parameters */
-    error = bagInitDefinition(&data->def, metadataCache[i]);
+    error = bagInitDefinition(&data->def, (bagMetaData) metadataCache[i]);
     if (error)
     {
         /* free the meta data */
