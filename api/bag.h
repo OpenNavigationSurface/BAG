@@ -375,21 +375,12 @@ enum BAG_UNCERT_TYPES
 
 enum BAG_DEPTH_CORRECTION_TYPES
 {
-<<<<<<< .mine
 	True_Depth				= 0, /* "True Depth" - Depth corrected for sound velocity */
 	Nominal_Depth_Meters	= 1, /* "Nominal at 1500 m/s " - Depth at assumed sound velocity of 1500m/s*/
 	Nominal_Depth_Feet		= 2, /* "Nominal at 4800 ft/s" - Depth at assumed sound velocity of 4800ft/s*/	
 	Corrected_Carters		= 3, /* "Corrected via Carter's Tables" - Corrected depth using Carter's tables */
 	Corrected_Matthews		= 4, /* "Corrected via Matthew's Tables" - Corrected depth using Matthew's tables*/
 	Unknown_Correction		= 5  /* "Unknown" - Unknown depth correction type or mixture of above types */
-=======
-	True_Depth               = 0, /* "True Depth" - Depth corrected for sound velocity */
-	Nominal_Depth_Meters     = 1, /* "Nominal at 1500 m/s " - Depth at assumed sound velocity of 1500m/s*/
-	Nominal_Depth_Feet       = 2, /* "Nominal at 4800 ft/s" - Depth at assumed sound velocity of 4800ft/s*/	
-	Corrected_Carters        = 3, /* "Corrected via Carter's Tables" - Corrected depth using Carter's tables */
-	Corrected_Matthews       = 4, /* "Corrected via Matthew's Tables" - Corrected depth using Matthew's tables*/
-	Unknown_Depth_Correction = 5  /* "Unknown depth correction" - Unknown depth correction type or mixture of above types */
->>>>>>> .r197
 };
 
 /* Surface Correction dataset coordinate topography types */
