@@ -1,4 +1,12 @@
 =========================
+BAG v.1.4.0 Release Notes
+=========================
+
+July 7, 2011 (rev 158)
+- Addition HDF5 compression support in the BAG surface datasets.
+
+
+=========================
 BAG v.1.3.0 Release Notes
 =========================
 
