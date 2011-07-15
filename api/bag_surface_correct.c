@@ -26,6 +26,7 @@
  ********************************************************************/
 
 #include "bag_private.h"
+#include <math.h>
 
 #define SEARCH_RADIUS 3
 
@@ -118,7 +119,7 @@ bagError bagGetNumSurfaceCorrectors  (bagHandle_opt hnd_opt, u32 *num)
 bagError bagReadCorrectedDataset(bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 corrIndex, u32 surfIndex, f32 *data)
 {
     bagError err;
-    s32 i;
+    u32 i;
 
     for (i=0; i < bagHandle->bag.def.nrows; i++)
     {
@@ -140,8 +141,8 @@ bagError bagReadCorrectedRegion (bagHandle bagHandle, bagHandle_opt bagOptHandle
     s32 i, j, f;
     f32 *sepData;
     
-    if (startcol < 0 || endcol < 0 || endcol >= bagHandle->bag.def.ncols ||
-        startrow < 0 || endrow < 0 || endrow >= bagHandle->bag.def.nrows ||
+    if (endcol >= bagHandle->bag.def.ncols ||
+        endrow >= bagHandle->bag.def.nrows ||
         startrow > endrow || 
         startcol > endcol)
     {
@@ -207,9 +208,9 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
 {
     bagError err;
     u32 j,q,u;
-    f64 xres, yres;
+    f64 xres = 0, yres = 0;
     f32 * surfbuf;
-    s32 lastP[2];
+    s32 lastP[2] = {-1,-1};
     bagVerticalCorrector * readbuf, originbuf[4];
     u8 topography;
 
@@ -225,8 +226,8 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
         return  BAG_INVALID_FUNCTION_ARGUMENT;
     }
 
-    if (startcol < 0 || endcol < 0 || endcol >= bagHandle->bag.def.ncols ||
-        row < 0 || row >= bagHandle->bag.def.nrows || 
+    if (endcol >= bagHandle->bag.def.ncols ||
+        row >= bagHandle->bag.def.nrows || 
         startcol > endcol)
     {
         fprintf(stderr, "Internal error, bad parameters given to access surface extents! Aborting...\n");
@@ -255,12 +256,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
 
     topography = bagOptHandle->bag.def.surfaceCorrectionTopography;
 
-    if (topography == BAG_SURFACE_IRREGULARLY_SPACED)
-    {
-        lastP[0] = -1;
-        lastP[1] = -1;
-    }
-    else if (BAG_SURFACE_GRID_EXTENTS == topography)
+    if (BAG_SURFACE_GRID_EXTENTS == topography)
     {
         /*! Calculate the cell resolution between the neighboring points at origin (0,1,1,0) */
         err = bagReadOptRow ( bagHandle,  bagOptHandle, 0, 0, 1, Surface_Correction, originbuf);
@@ -291,7 +287,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
         f64 nodeXY[2];
         f64 sum_sep = 0.0, sum = 0.0,
             leastDistSq = FLT_MAX;
-        s32 rowRange[2], colRange[2];
+        s32 rowRange[2] = {0, 0}, colRange[2] = {0, 0};
         u32 indx = j-startcol;
         u8  zeroDist=0;
 
@@ -391,7 +387,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
                 /*! is a constant SEP with one point? */
                 if (vertCorr->y == NULL_GENERIC && vertCorr->x == NULL_GENERIC)
                 {
-                    // skip null points
+                  /* skip null points */
                     if (z1 == NULL_GENERIC)
                     {
                         continue;
@@ -414,8 +410,8 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
                     }
 
                     /*! calculate distance weight between nodeXY and y1/x1 */
-                    distSq  = powl ((nodeXY[0] - vertCorr->x), 2.0) +
-                        powl (resratio * (nodeXY[1] - vertCorr->y), 2.0);
+                    distSq  = powl ((nodeXY[0] - vertCorr->x), 2.0L) +
+                        powl (resratio * (nodeXY[1] - vertCorr->y), 2.0L);
 
                     if (distSq == 0)
                     {
@@ -437,9 +433,9 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
                     sum     += 1.0 / distSq;
                 }
     
-            } // for u cols
+            } /* for u cols */
 
-        } // for q rows
+        } /* for q rows */
         
         /*! is not a constant SEP with one point? */
         if (sum_sep != 0.0 && sum != 0.0 && surfbuf[indx] != NULL_GENERIC)
@@ -477,7 +473,7 @@ bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u
     hid_t  dataset_id;
     u8     *tok, buff[XML_ATTR_MAXSTR];
     u8     datum_array [BAG_SURFACE_CORRECTOR_LIMIT][XML_ATTR_MAXSTR];
-    s32    rc, i;
+    u32    i;
 
     for (i = 0 ; i < BAG_SURFACE_CORRECTOR_LIMIT; i++)
         datum_array[i][0] = '\0';
@@ -499,19 +495,19 @@ bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u
 
     status = bagReadAttribute (hnd, dataset_id, (u8 *)"vertical_datum", buff);
 
-    if (status == BAG_SUCCESS && strlen(buff) > 0)
+    if (status == BAG_SUCCESS && strlen((char *) buff) > 0)
     {
         i = 0;
-        tok = strtok (buff, ",");
+        tok = (u8 *) strtok ((char *) buff, ",");
         do
         {
-            strncpy (datum_array + i++, tok, XML_ATTR_MAXSTR -1);
+          strncpy ((char *) (datum_array + i++), (char *) tok, XML_ATTR_MAXSTR -1);
 
         } while (i < BAG_SURFACE_CORRECTOR_LIMIT && 
-                 (tok = strtok (NULL, ",")) != NULL);
+                 (tok = (u8 *) strtok (NULL, ",")) != NULL);
     }
-    strncpy (datum_array[type-1], datum, XML_ATTR_MAXSTR-1);
-    sprintf(buff, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
+    strncpy ((char *) datum_array[type-1], (char *) datum, XML_ATTR_MAXSTR-1);
+    sprintf((char *) buff, "%s,%s,%s,%s,%s,%s,%s,%s,%s,%s",
             datum_array[0], datum_array[1],datum_array[2],datum_array[3],datum_array[4],
             datum_array[5],datum_array[6],datum_array[7],datum_array[8],datum_array[9]);
 
@@ -540,7 +536,7 @@ bagError bagReadCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u3
     hid_t  dataset_id;
     u8     buff [XML_ATTR_MAXSTR];
     u8     d [BAG_SURFACE_CORRECTOR_LIMIT][XML_ATTR_MAXSTR];
-    s32    rc, i;
+    u32    i;
 
     for (i = 0 ; i < BAG_SURFACE_CORRECTOR_LIMIT; i ++)
         memset (d[i], 0, sizeof(u8) *XML_ATTR_MAXSTR );
@@ -565,20 +561,20 @@ bagError bagReadCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u3
 
     check_hdf_status();
 
-    if (strlen(buff) > 0)
+    if (strlen((char *) buff) > 0)
     {
         u8 * tok;
         i = 0;
-        tok = strtok (buff, ",");
+        tok = (u8 *) strtok ((char *) buff, ",");
         do
         {
-            strncpy (d + i++, tok, XML_ATTR_MAXSTR -1);
+          strncpy ((char *) (d + i++), (char *) tok, XML_ATTR_MAXSTR -1);
 
         } while (i < BAG_SURFACE_CORRECTOR_LIMIT && 
-                 (tok = strtok (NULL, ",")) != NULL);
+                 (tok = (u8 *) strtok (NULL, ",")) != NULL);
 
         if (i > type-1)
-            strncpy (datum, d[type-1], XML_ATTR_MAXSTR-1);
+          strncpy ((char *) datum, (char *) d[type-1], XML_ATTR_MAXSTR-1);
         else
             return BAG_HDF_ATTRIBUTE_OPEN_FAILURE;
     }

@@ -18,6 +18,9 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ * Webb McDonald -- Wed Jun 29 15:32:44 2011
+ *   -fixes for compile warnings
+ *
  * Webb McDonald -- Fri Mar  2 14:13:35 2007
  *   -each "surface" now has a bunch of HDF structs initialized at the
  *    bag_hdf.c level now instead of temporarily being opened and 
@@ -143,7 +146,7 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         return BAG_INVALID_BAG_HANDLE;
 
     /*! some error checking on surfaces extents */
-    if (row < 0 || row >= bagHandle->bag.def.nrows || col >= bagHandle->bag.def.ncols || col < 0)
+    if (row >= bagHandle->bag.def.nrows || col >= bagHandle->bag.def.ncols)
     {
         fprintf(stderr, "Fail to access out of bounds row/col = %d/%d out of possible size: %d/%d. Aborting\n",
                 row, col, bagHandle->bag.def.nrows, bagHandle->bag.def.ncols);
@@ -239,8 +242,6 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
     else if (read_or_write == WRITE_BAG)
         status = H5Dwrite (dataset_id, datatype_id, memspace_id, filespace_id, 
                            H5P_DEFAULT, data);
-    else
-        ; /*!  error? */
     check_hdf_status();
 
     if (status < 0)
@@ -354,8 +355,8 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (start_col < 0 || end_col < 0 || end_col >= bagHandle->bag.def.ncols ||
-        row < 0 || row >= bagHandle->bag.def.nrows ||
+    if (end_col >= bagHandle->bag.def.ncols ||
+        row >= bagHandle->bag.def.nrows ||
         start_col > end_col)
     {
         fprintf(stderr, "Internal error, bad parameters given to access surface extents! Aborting...\n");
@@ -449,8 +450,6 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
     else if (read_or_write == WRITE_BAG)
         status = H5Dwrite (dataset_id, datatype_id, memspace_id, filespace_id, 
                            H5P_DEFAULT, data);
-    else
-        ; /* error? */
     check_hdf_status();
 
     if (status < 0)
@@ -635,8 +634,8 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (start_col < 0 || end_col < 0 || end_col >= bagHandle->bag.def.ncols ||
-        start_row < 0 || end_row < 0 || end_row >= bagHandle->bag.def.nrows ||
+    if (end_col >= bagHandle->bag.def.ncols ||
+        end_row >= bagHandle->bag.def.nrows ||
         start_row > end_row || 
         start_col > end_col)
     {
@@ -761,8 +760,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
     else if (read_or_write == WRITE_BAG)
         status = H5Dwrite (dataset_id, datatype_id, memspace_id, filespace_id, 
                            xfer, data);
-    else
-        ; /*  error? */
+
     check_hdf_status();
 
     /*! did what we came to do, now close up */
@@ -822,8 +820,8 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (start_col < 0 || end_col < 0 || end_col >= hnd->bag.def.ncols ||
-        start_row < 0 || end_row < 0 || end_row >= hnd->bag.def.nrows ||
+    if (end_col >= hnd->bag.def.ncols ||
+        end_row >= hnd->bag.def.nrows ||
         start_row > end_row || 
         start_col > end_col)
     {
@@ -971,8 +969,8 @@ bagError bagFillPos (bagHandle bagHandle, u32 r1, u32 c1 , u32 r2, u32 c2, f64 *
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (c1 < 0 || c2 < 0 || c2 >= bagHandle->bag.def.ncols ||
-        r1 < 0 || r2 < 0 || r2 >= bagHandle->bag.def.nrows ||
+    if (c2 >= bagHandle->bag.def.ncols ||
+        r2 >= bagHandle->bag.def.nrows ||
         r1 > r2 || 
         c1 > c2)
     {
@@ -1141,8 +1139,7 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     else if (read_or_write == WRITE_BAG)
         status = H5Dwrite (hnd->mta_dataset_id, hnd->mta_datatype_id, hnd->mta_memspace_id, hnd->mta_filespace_id, 
                            H5P_DEFAULT, data);
-    else
-        ; /* error? */
+
     check_hdf_status();
 
     return BAG_SUCCESS;

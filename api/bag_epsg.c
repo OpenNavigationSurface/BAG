@@ -36,19 +36,19 @@
 
 s32        bagIdentifyEPSG(s32 crd_sys, bagDatum datum, s32 zone, f64 false_northing)
 {
-    s32 is_north = ( false_northing == 0. ? 1 : 0 ), EPSG = 0;  // if the false northing is 0, it is in the northern hemisphere
+  s32 is_north = ( false_northing == 0. ? 1 : 0 ), EPSG = 0;  /* if the false northing is 0, it is in the northern hemisphere */
 
-    if( crd_sys == Geodetic ) // If it is a geodetic unprojected system, return the geographic code for that datum
+  if( crd_sys == Geodetic ) /* If it is a geodetic unprojected system, return the geographic code for that datum */
     {
-        if ( datum == wgs84 ) // WGS84 geodetic
+      if ( datum == wgs84 ) /* WGS84 geodetic */
         {
             EPSG = 4326;
         }
-        else if ( datum == nad83 ) // NAD83 geodetic
+      else if ( datum == nad83 ) /* NAD83 geodetic */
         {
             EPSG = 4269;
         }
-        else if ( datum == wgs72 ) // WGS72 geodetic
+      else if ( datum == wgs72 ) /* WGS72 geodetic */
         {
             EPSG = 4322;
         }
@@ -61,11 +61,11 @@ s32        bagIdentifyEPSG(s32 crd_sys, bagDatum datum, s32 zone, f64 false_nort
     {
         if ( datum == wgs84 || datum == nad83 )
         {
-            if( datum == nad83 && zone >= 1 && zone <= 23 && is_north ) // NAD83 UTM
+          if( datum == nad83 && zone >= 1 && zone <= 23 && is_north ) /* NAD83 UTM */
             {
                 EPSG = 26900 + zone;
             }
-            else // if this is a NAD83 - use the wgs84 codes outside of the specified N.A. range - WGS84 UTM
+          else /* if this is a NAD83 - use the wgs84 codes outside of the specified N.A. range - WGS84 UTM */
             {
                 if ( is_north ) 
                 {
@@ -77,7 +77,7 @@ s32        bagIdentifyEPSG(s32 crd_sys, bagDatum datum, s32 zone, f64 false_nort
                 }
             }
         }
-        else if ( datum == wgs72 ) // WGS72 UTM 
+        else if ( datum == wgs72 ) /* WGS72 UTM */
         {
             if ( is_north )
             {
