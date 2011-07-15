@@ -15,6 +15,9 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ * Webb McDonald -- Wed Jun 29 15:33:10 2011
+ *  -added compression support
+ *
  * Webb McDonald -- Fri Mar  2 14:13:35 2007
  *   -each "surface" now has a bunch of HDF structs initialized at the
  *    this bag_hdf.c level now instead of temporarily being opened and
@@ -90,6 +93,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
 
     /* chunking data block */
     hsize_t      chunk_dims[1];
+    hsize_t      chunk_size[RANK] = {0,0};
     hid_t        cparms;
 
     *bag_handle = (bagHandle) calloc (1, sizeof (struct _t_bagHandle));
@@ -258,6 +262,20 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_HDF_SET_PROPERTY_FAILURE);
     }
 
+
+    if (data->compressionLevel > 0 && data->compressionLevel <= 9)
+    {
+        if ((status = H5Pset_deflate (cparms, data->compressionLevel)) < 0)
+        {
+            status = H5Fclose (file_id);
+            return (BAG_HDF_SET_PROPERTY_FAILURE);
+        }
+    }
+    else if (data->compressionLevel) /* if anything other than zero */
+    {
+        return (BAG_HDF_INVALID_COMPRESSION_LEVEL);
+    }
+
     if ((dataset_id = H5Dcreate(file_id, TRACKING_LIST_PATH, datatype_id, dataspace_id, cparms)) < 0)
     {
         status = H5Fclose (file_id);
@@ -288,9 +306,30 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     status = H5Sclose(dataspace_id);
     status = H5Tclose(datatype_id);
 
-    /*! Create the mandatory \a elevation dataset */
     dims[0] = data->def.nrows;
     dims[1] = data->def.ncols;
+
+    if (data->chunkSize > 0)
+    {
+        chunk_size[0] = chunk_size[1] = data->chunkSize;
+    }
+    else
+    {
+        if (dims[0] > 100 && dims[1] > 100)
+        {
+            chunk_size[0] = chunk_size[1] = 100;
+        }        
+        else if (dims[0] > 10 && dims[1] > 10)
+        {
+            chunk_size[0] = chunk_size[1] = 10;
+        }
+        else
+        {
+            data->compressionLevel = 0;
+        }
+    }
+
+    /*! Create the mandatory \a elevation dataset */
     if ((dataspace_id = H5Screate_simple(RANK, dims, NULL)) < 0)
     {
         status = H5Fclose (file_id);
@@ -318,6 +357,23 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
     status = H5Pset_fill_value (plist_id, datatype_id, &null_elv);
     check_hdf_status();
+
+
+    if (data->compressionLevel > 0 && data->compressionLevel <= 9)
+    {
+        status = H5Pset_layout (plist_id, H5D_CHUNKED);
+        status = H5Pset_chunk(plist_id, RANK, chunk_size);
+        
+        if ((status = H5Pset_deflate (plist_id, data->compressionLevel)) < 0)
+        {
+            status = H5Fclose (file_id);
+            return (BAG_HDF_SET_PROPERTY_FAILURE);
+        }
+    }
+    else if (data->compressionLevel) /* if anything other than zero */
+    {
+        return (BAG_HDF_INVALID_COMPRESSION_LEVEL);
+    }
 
     if ((dataset_id = H5Dcreate(file_id, ELEVATION_PATH, datatype_id, dataspace_id, plist_id)) < 0)
     {    
@@ -381,6 +437,23 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
     status = H5Pset_fill_value (plist_id, datatype_id, &null_unc);
     check_hdf_status();
+
+
+    if (data->compressionLevel > 0 && data->compressionLevel <= 9)
+    {
+        status = H5Pset_layout (plist_id, H5D_CHUNKED);
+        status = H5Pset_chunk(plist_id, RANK, chunk_size);
+        
+        if ((status = H5Pset_deflate (plist_id, data->compressionLevel)) < 0)
+        {
+            status = H5Fclose (file_id);
+            return (BAG_HDF_SET_PROPERTY_FAILURE);
+        }
+    }
+    else if (data->compressionLevel) /* if anything other than zero */
+    {
+        return (BAG_HDF_INVALID_COMPRESSION_LEVEL);
+    }
 
     if ((dataset_id = H5Dcreate(file_id, UNCERTAINTY_PATH, datatype_id, dataspace_id, plist_id)) < 0)
     {    
@@ -1041,6 +1114,9 @@ bagError bagGetErrorString(bagError code, u8 **error)
         break;
     case BAG_HDF_TYPE_CREATE_FAILURE:
         strncpy (str, "HDF Unable to create Datatype", MAX_STR-1);
+        break;
+    case BAG_HDF_INVALID_COMPRESSION_LEVEL:
+        strncpy (str, "HDF compression level not in acceptable range of 0 to 9", MAX_STR-1);
         break;
     case BAG_CRYPTO_SIGNATURE_OK:
         strncpy (str, "Crypto Signature is OK", MAX_STR-1);

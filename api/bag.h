@@ -66,11 +66,12 @@ extern          "C"
 #endif
 
 
-#define BAG_VERSION         "1.3.0"
+#define BAG_VERSION         "1.4.0"
 #define BAG_VERSION_LENGTH  32           /* 32 bytes of space reserved in BAG attribute for VERSION string */
 #define XML_METADATA_MIN_LENGTH 1024   /* Encoded XML string expected to be at least this long to be valid */
 #define XML_METADATA_MAX_LENGTH 1000000
 #define DEFAULT_KEY_LEN		1024  /* taken from onscrypto.c */
+#define BAG_DEFAULT_COMPRESSION 1
 
 
 /* General conventions:
@@ -163,6 +164,7 @@ enum BAG_ERRORS {
     BAG_HDF_DATASET_CLOSE_FAILURE              = 628, /*!< HDF Failure closing Dataset */
     BAG_HDF_DATASET_OPEN_FAILURE               = 629, /*!< HDF Unable to open Dataset */
     BAG_HDF_TYPE_CREATE_FAILURE                = 630, /*!< HDF Unable to create Datatype */
+    BAG_HDF_INVALID_COMPRESSION_LEVEL          = 631, /*!< HDF compression level not in acceptable range of 0 to 9 */
 
 };
 
@@ -314,7 +316,7 @@ typedef struct _t_bag_definition
     u16    trackingID;                                /* index of the current metadata lineage of tracking list edits */
     u32    uncertType;                                /* The type of Uncertainty encoded in this BAG.                 */
     u32	   depthCorrectionType;	                      /* The type of depth correction */
-    u8     surfaceCorrectionTopography;                 /* The type of topography of the surface correction opt dataset   */
+    u8     surfaceCorrectionTopography;               /* The type of topography of the surface correction opt dataset  */
 } bagDef;
 
 #define	BAG_NAME_MAX_LENGTH 256  
@@ -332,6 +334,8 @@ typedef struct _t_bag_data
     f32      min_uncertainty;                         /* Minimum elevation value in the elevation dataset             */
     f32      max_uncertainty;                         /* Maximum elevation value in the elevation dataset             */
     bagTrackingItem *tracking_list;                   /* Tracking list array                                          */
+    u8       compressionLevel;                        /* The requested compression level for surface datasets         */
+    u32      chunkSize;                               /* The chunk size for disk I/O access of surface datasets       */
 } bagData;
 
 /* Structure to hold an optional dataset being loaded into the bag */
@@ -348,6 +352,8 @@ typedef struct _t_bag_data_opt
 	hid_t    datatype;								  /* HDF5 datatype identifier									  */
     f32		 datanull;								  /* value for null data										  */
 	bagTrackingItem *tracking_list;                   /* Tracking list array									      */
+    u8       compressionLevel;                        /* The requested compression level for optional datasets        */
+    u32      chunkSize;                               /* The chunk size for disk I/O access of surface datasets       */
 } bagDataOpt;
 
 /* The maximum number of datum correctors per bagVerticalCorrector */
