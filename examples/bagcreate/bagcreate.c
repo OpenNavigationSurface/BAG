@@ -13,15 +13,15 @@
 
 #include "bag.h"
 
-#define GRD_SIZE 10
+#define GRD_SIZE 1200
 #define SEP_SIZE 3
 
 int main (int argc, char *argv[])
 {
     /* Fake data - normally read from a file */
-    float      surf[GRD_SIZE][GRD_SIZE];
-    float      uncert[GRD_SIZE][GRD_SIZE];
-	float      nominal_depth[GRD_SIZE][GRD_SIZE];
+    float      surf[GRD_SIZE];
+    float      uncert[GRD_SIZE];
+	float      nominal_depth[GRD_SIZE];
 	bagVerticalCorrector      sep_depth[SEP_SIZE][SEP_SIZE];
     float      surfRange[2];
     float      uncertRange[2];
@@ -59,15 +59,15 @@ int main (int argc, char *argv[])
 	memset (&opt_data_nominal, 0, sizeof(opt_data_nominal));
 	memset (&opt_data_sep, 0, sizeof(opt_data_sep));
 
-    for (i=0; i<GRD_SIZE; i++)
-    {
-        for (j=0; j<GRD_SIZE; j++)
-        {
-            surf[i][j] = 0 - (10.0 + (float)(GRD_SIZE*i + j) / 10.0);
-            uncert[i][j] =   1.0 + (float)(GRD_SIZE*i + j) / 100.0; 
-			nominal_depth[i][j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
-        }
-    }
+    /* for (i=0; i<GRD_SIZE; i++) */
+/*     { */
+/*         for (j=0; j<GRD_SIZE; j++) */
+/*         { */
+/*             surf[i][j] = 0 - (10.0 + (float)(GRD_SIZE*i + j) / 10.0); */
+/*             uncert[i][j] =   1.0 + (float)(GRD_SIZE*i + j) / 100.0;  */
+/* 			nominal_depth[i][j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0; */
+/*         } */
+/*     } */
 
     surfRange[0] = -10.0;
     surfRange[1] = -10.0 - (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/10.0;
@@ -131,6 +131,10 @@ int main (int argc, char *argv[])
         }
     }
 
+    opt_data_nominal.compressionLevel = 
+        opt_data_sep.compressionLevel = 
+        data.compressionLevel = 1;
+
     err = bagFileCreate( outFileName, &data, &bagHandle);
     if( err != BAG_SUCCESS )
     {
@@ -147,12 +151,28 @@ int main (int argc, char *argv[])
             bagGetDataPointer(bagHandle)->def.ncols );
     for( i=0; i<GRD_SIZE; i++ )
     {
-        err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Elevation, (void *)surf[i] );
+        for (j=0; j < GRD_SIZE; j++)
+        {
+            if ( j > 500 && j < 1000)
+                surf[j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
+            else
+                surf[j] = 0;
+        }
+        
+        err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Elevation, (void *)surf );
     }
 
     for( i=0; i<GRD_SIZE; i++ )
     {
-        err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Uncertainty, (void *)uncert[i] );
+        for (j=0; j < GRD_SIZE; j++)
+        {
+            if ( j > 500 && j < 1000)
+                uncert[j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
+            else
+                uncert[j] = 0;
+        }
+        
+        err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Uncertainty, (void *)uncert );
     }
     err = bagUpdateSurface( bagHandle, Elevation );
     if( err != BAG_SUCCESS )
@@ -184,7 +204,15 @@ int main (int argc, char *argv[])
 	
 	for( i=0; i < GRD_SIZE; i++ )
     {
-        err = bagWriteOptRow( bagHandle, bagHandle_nominal, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth[i] );
+        for (j=0; j < GRD_SIZE; j++)
+        {
+            if ( j > 500 && j < 1000)
+                nominal_depth[j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
+            else
+                nominal_depth[j] = 0;
+
+        }
+        err = bagWriteOptRow( bagHandle, bagHandle_nominal, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth );
 		
     }
 
