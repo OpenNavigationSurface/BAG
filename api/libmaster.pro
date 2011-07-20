@@ -27,33 +27,15 @@ unix {
 # Setup shared definitions across all platforms
 DEFINES	+= H5_USE_16_API
 LANGUAGE = C++
-<<<<<<< .mine
-CONFIG	+= exceptions
-=======
-CONFIG	+= warn_off
->>>>>>> .r199
 CONFIG  -= qt
 
 win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
 	# The defines should define and GUI, and Hardware platform among others
 	DEFINES	+= WIN32 _WINDOWS _MBCS
-<<<<<<< .mine
 	OBJECTS_DIR = .obj/$(HOSTMACHINE)
 	QMAKE_CFLAGS += -ansi ${IVSCOPTS} 
 	QMAKE_CXXFLAGS += -ansi ${IVSCCOPTS2} 
-=======
-    CONFIG += debug_and_release
-    CONFIG(debug, debug|release) {
-            message( libmaster.pro - WIN32 --> Setting lib\debug directory )
-    	DESTDIR = ../lib/Debug/
-	    OBJECTS_DIR = ./DebugObj/
-    } else {
-            message( libmaster.pro - WIN32 --> setting lib\release directory )
-    	DESTDIR = ../lib/Release/
-	    OBJECTS_DIR = ./ReleaseObj/
-    }
->>>>>>> .r199
 	OPENNSLIBS += -lhdf5 -lxerces-c -lbeecrypt -lszip -lzlib
 	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS
 }

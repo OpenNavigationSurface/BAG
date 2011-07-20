@@ -172,10 +172,6 @@ bagError bagAlignAttribute (bagHandle bag, hid_t loc_id, u8 *attr_name,
     if (data == NULL)
         return BAG_HDF_CANNOT_WRITE_NULL_DATA;
 
-    /* Don't if it doesn't exist. Webb McDonald -- Tue Jul 20 17:47:19 2010 */
-    //if (!H5Aexists (loc_id, (char*)attr_name))
-    //    return BAG_HDF_ATTRIBUTE_OPEN_FAILURE;
-
     attribute_id = H5Aopen_name (loc_id, (char *)attr_name);
     if (attribute_id < 0)
         return BAG_HDF_ATTRIBUTE_OPEN_FAILURE;
