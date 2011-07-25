@@ -14,20 +14,19 @@
 
 include (libincludes.pro)
 
+	TEMPLATE = lib
+
 # Define the basic template for the application
 win32 {
-	TEMPLATE = lib
     CONFIG -= embed_manifest_exe
     CONFIG -= embed_manifest_dll
-}
-unix {
-	TEMPLATE = lib
 }
 
 # Setup shared definitions across all platforms
 DEFINES	+= H5_USE_16_API
 LANGUAGE = C++
 CONFIG  -= qt
+CONFIG  += exceptions warn_off
 
 win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
@@ -38,6 +37,7 @@ win32 {
 	QMAKE_CXXFLAGS += -ansi ${IVSCCOPTS2} 
 	OPENNSLIBS += -lhdf5 -lxerces-c -lbeecrypt -lszip -lzlib
 	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS
+    DESTDIR = ../lib/$(HOSTMACHINE)/
 }
 
 unix {
