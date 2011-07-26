@@ -77,8 +77,8 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagHandle_opt *bag_hnd_opt
     (* bag_hnd_opt)->filespace_id = 
     (* bag_hnd_opt)->datatype_id  = -1;
 
-    (* bag_hnd_opt)->dataArray    = 
-    (* bag_hnd_opt)->bag.opt_data = NULL;
+    (* bag_hnd_opt)->dataArray    = (f32 *) NULL;
+    (* bag_hnd_opt)->bag.opt_data = (f32 **) NULL;
 
 	/*! Create the mandatory \a elevation dataset */
     dims[0] = data->def.nrows;
@@ -494,7 +494,7 @@ bagError bagAlignOptNode (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 
     }
 
     /*! Select grid cell within dataset file space. */
-    status = H5Sselect_elements (filespace_id, H5S_SELECT_SET, 1, (const hsize_t **)offset);
+    status = H5Sselect_elements (filespace_id, H5S_SELECT_SET, 1, (const hsize_t *)offset);
     check_hdf_status();
     
     /*!  perform read_or_write on element */
@@ -592,7 +592,7 @@ bagError bagAlignOptRow (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 r
     if (data == NULL)
         return  BAG_INVALID_FUNCTION_ARGUMENT;
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *) offset, NULL, count, NULL);
     check_hdf_status();
 
     /*! perform read_or_write on hyperslab */
@@ -721,7 +721,7 @@ bagError bagAlignOptRegion (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32
     if (data == NULL)
         return BAG_MEMORY_ALLOCATION_FAILED;
 
-    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, offset, NULL, count, NULL);
+    status = H5Sselect_hyperslab (filespace_id, H5S_SELECT_SET, (hsize_t *) offset, NULL, count, NULL);
     check_hdf_status();
 
     /*! xfer params */

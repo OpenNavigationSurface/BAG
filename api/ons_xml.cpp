@@ -241,7 +241,7 @@ void BAGMetaDataErrorHandler::resetErrors(
 //************************************************************************
 DOMNode *bagGetXMLNodeByName(
     DOMNode *parent,
-    char *pathName
+    const char *pathName
     )
 {
     if (parent == NULL)
@@ -647,7 +647,7 @@ bagError bagGetCellDims(
 
 
     // get the number of dimensions.
-    char *pDimensions = "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/numberOfDimensions";
+    const char *pDimensions = "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/numberOfDimensions";
     DOMNode *pDimNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pDimensions);
 
     s32 numDims = 0;
@@ -771,7 +771,7 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
 
 
     f64 latS = DBL_MAX, latN = DBL_MAX, lngE = DBL_MAX, lngW = DBL_MAX;
-    char * pGeoBox = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox";
+    const char * pGeoBox = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox";
 
     // define the needed strings.
     XMLCh *pllx = XMLString::transcode("westBoundLongitude");
@@ -895,7 +895,7 @@ bagError bagGetProjectedCover(
 
     f64 lx = DBL_MAX, ly = DBL_MAX, rx = DBL_MAX, ry = DBL_MAX;
 
-    char * pGeoBox = "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/cornerPoints/gml:Point/gml:coordinates";
+    const char * pGeoBox = "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/cornerPoints/gml:Point/gml:coordinates";
 
     DOMNode *pGMLCoord = bagGetXMLNodeByName(metaData->parser->getDocument(), pGeoBox);
 
@@ -1115,8 +1115,8 @@ bagError bagGetProjectionParams(
     if (metaData == NULL)
         return BAG_METADTA_INVALID_HANDLE;
 
-    char * pProjIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projection/smXML:RS_Identifier/code";
-    char * pProjLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projectionParameters/smXML:MD_ProjectionParameters";
+    const char * pProjIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projection/smXML:RS_Identifier/code";
+    const char * pProjLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projectionParameters/smXML:MD_ProjectionParameters";
 
     // Needed strings.
     XMLCh *pZone = XMLString::transcode("zone");
@@ -1437,7 +1437,7 @@ bagError bagGetHorizDatum(
     u32 bufferSize
     )
 {
-    char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/datum/smXML:RS_Identifier/code";
+    const char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/datum/smXML:RS_Identifier/code";
 
     DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
 
@@ -1492,7 +1492,7 @@ bagError bagGetVertDatum(
     u32 bufferSize
     )
 {
-    char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/verticalDatum/smXML:RS_Identifier/code";
+    const char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/verticalDatum/smXML:RS_Identifier/code";
 
     DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
 
@@ -1547,7 +1547,7 @@ bagError bagGetEllipsoid(
     u32 bufferSize
     )
 {
-    char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/ellipsoid/smXML:RS_Identifier/code";
+    const char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/ellipsoid/smXML:RS_Identifier/code";
 
     DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
 
@@ -1603,7 +1603,7 @@ bagError bagGetUncertantyType(
     bagError error = BAG_SUCCESS;
     *uncrtType = Unknown_Uncert;
 
-    char * pUncrtType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/verticalUncertaintyType";
+    const char * pUncrtType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/verticalUncertaintyType";
     DOMNode *pUncrtNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pUncrtType);
 
     if (pUncrtNode)
@@ -1669,7 +1669,7 @@ bagError bagGetDepthCorrectionType(
     bagError error = BAG_SUCCESS;
     *depthCorrectionType = (unsigned int) NULL_GENERIC;
 
-    char * pDepthCorrectionType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/depthCorrectionType";
+    const char * pDepthCorrectionType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/depthCorrectionType";
     DOMNode *pDepthCorrectionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pDepthCorrectionType);
 
     if (pDepthCorrectionNode)

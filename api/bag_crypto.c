@@ -230,7 +230,7 @@ u8 *bagComputeFileSignature(char *name, u32 sigID, u8 *secKey)
 #ifdef __BAG_BIG_ENDIAN__
 	swap_4((void*)&sigID);
 #endif
- 	return(ons_compute_signature(name, (u8*)sigID, sizeof(u32), secKey));
+ 	return(ons_compute_signature(name, (u8*)&sigID, sizeof(u32), secKey));
 }
 
 /*! \brief Convenience function to sequence all functions required to sign a BAG file ab initio.

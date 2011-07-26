@@ -455,7 +455,7 @@ OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid)
 	if ((f = fopen(file, "r+b")) == NULL) {
 		fprintf(stderr, "error: failed to open \"%s\" for ONSCryptoBlock write.\n",
 			file);
-		free(buffer);
+		/*free(buffer);*/
 		return(ONS_CRYPTO_FILE_ERR);
 	}
 	fseek(f, -ONS_CRYPTO_SIG_BLOCK_SIZE, SEEK_END);
