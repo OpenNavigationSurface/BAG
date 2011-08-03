@@ -29,6 +29,8 @@
  * Change Descriptions :
  * who when      what
  * --- ----      ----
+ * Mike Van Duzee -- Wed Aug 3 15:48:50 2011
+ *   -The bagFreeXMLMeta() function would cause a crash if called more than once.
  *
  * Classification : 
  *  Unclassified
@@ -138,15 +140,15 @@ bagDatum bagDatumID( char *str )
 
 bagError bagFreeXMLMeta ()
 {
-    u32 i;
-    for (i=0; i < MAX_GRIDS; i++)
-    {
-        if (metadataCache[i] != NULL)
-          bagFreeMetadata((bagMetaData) metadataCache[i]);
-    }
-
     if (metadataCache != NULL)
     {
+        u32 i;
+        for (i=0; i < MAX_GRIDS; i++)
+        {
+            if (metadataCache[i] != NULL)
+              bagFreeMetadata((bagMetaData) metadataCache[i]);
+        }
+
         free (metadataCache);
         metadataCache = NULL;
     }

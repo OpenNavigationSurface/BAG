@@ -18,6 +18,9 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ * Mike Van Duzee -- Wed Aug 3 15:48:50 2011
+ *  -The bagUpdateOptMinMax() function was only processing the last row.
+ *
  * Webb McDonald -- Wed Jun 29 15:33:10 2011
  *  -added compression support
  *
@@ -1427,21 +1430,20 @@ bagError bagUpdateOptMinMax (bagHandle hnd, bagHandle_opt hnd_opt, u32 type)
     for (i=0; i < hnd_opt->bag.def.nrows; i++)
     {
 		bagReadOptRegion (hnd, hnd_opt, i, 0, i, hnd_opt->bag.def.ncols-1, type);
-	}
 			
-
-    for (j=0; j < hnd_opt->bag.def.ncols-1; j++)
-    {
-        if ((* surface_array)[j] != null_val)
+        for (j=0; j < hnd_opt->bag.def.ncols-1; j++)
         {
-            if (*max_tmp == null_val)
-                *max_tmp = (* surface_array)[j];
-            if (*min_tmp == null_val)
-                *min_tmp = (* surface_array)[j];
-            if ((* surface_array)[j] > *max_tmp)
-                *max_tmp = (* surface_array)[j];
-            if ((* surface_array)[j] < *min_tmp)
-                *min_tmp = (* surface_array)[j];
+            if ((* surface_array)[j] != null_val)
+            {
+                if (*max_tmp == null_val)
+                    *max_tmp = (* surface_array)[j];
+                if (*min_tmp == null_val)
+                    *min_tmp = (* surface_array)[j];
+                if ((* surface_array)[j] > *max_tmp)
+                    *max_tmp = (* surface_array)[j];
+                if ((* surface_array)[j] < *min_tmp)
+                    *min_tmp = (* surface_array)[j];
+            }
         }
     }
     

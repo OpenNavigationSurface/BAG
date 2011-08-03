@@ -18,6 +18,9 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ * Mike Van Duzee -- Wed Aug 3 15:48:50 2011
+ *   -The bagUpdateMinMax() function was missing the last column.
+ *
  * Webb McDonald -- Wed Jun 29 15:32:44 2011
  *   -fixes for compile warnings
  *
@@ -1314,7 +1317,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
 		
 		bagReadRegion (hnd, i, 0, i, hnd->bag.def.ncols-1, type);
 			
-		for (j=0; j < hnd->bag.def.ncols-1; j++)
+		for (j=0; j < hnd->bag.def.ncols; j++)
         {
             if ((* surface_array)[j] != null_val)
             {

@@ -248,7 +248,7 @@ DOMNode *bagGetXMLNodeByName(
         return NULL;
 
     // stip out the first section of the path.
-    char *endPos = strchr(pathName, '/');
+    const char *endPos = strchr(pathName, '/');
 
     XMLCh *pNodeName = NULL;
     if (endPos)
