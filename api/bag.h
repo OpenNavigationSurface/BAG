@@ -510,6 +510,8 @@ extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, vo
  */
 
 extern bagError bagGetOptDatasetInfo(bagHandle_opt *bag_handle_opt, s32 type);
+extern bagError bagFileCloseOpt (bagHandle_opt);
+extern bagError bagFreeInfoOpt  (bagHandle_opt);
 
 extern bagError bagReadOptRow (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
 extern bagError bagReadOptNode (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 k, u32 start_col, s32 type, void *data);

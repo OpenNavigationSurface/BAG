@@ -18,6 +18,9 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ * Webb McDonald -- Fri Aug  5 15:05:38 2011
+ *  -added bagFileCloseOpt
+ *
  * Mike Van Duzee -- Wed Aug 3 15:48:50 2011
  *  -The bagUpdateOptMinMax() function was only processing the last row.
  *
@@ -77,6 +80,7 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagHandle_opt *bag_hnd_opt
 	   /*! init all the HDF structs to -1 */
     (* bag_hnd_opt)->memspace_id  = 
     (* bag_hnd_opt)->dataset_id   =  
+    (* bag_hnd_opt)->bagGroupID   =  
     (* bag_hnd_opt)->filespace_id = 
     (* bag_hnd_opt)->datatype_id  = -1;
 
@@ -260,7 +264,8 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagHandle_opt *bag_hnd_opt
 bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s32 *num_opt_datasets, 
 							int opt_dataset_names[10])
 {
-    hid_t        dataset_id;
+    hid_t     dataset_id;
+    herr_t    status;
        
     *bag_handle_opt = (bagHandle_opt) calloc (1, sizeof (struct _t_bagHandle_opt));
     if (*bag_handle_opt == (bagHandle_opt) NULL)
@@ -289,6 +294,8 @@ bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s3
 	{
 		opt_dataset_names[*num_opt_datasets] = Nominal_Elevation;
 		++(*num_opt_datasets);
+        status = H5Dclose (dataset_id);
+        check_hdf_status();
 	}
 
 
@@ -298,6 +305,8 @@ bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s3
 	{
 		opt_dataset_names[*num_opt_datasets] = Surface_Correction;
 		++(*num_opt_datasets);
+        status = H5Dclose (dataset_id);
+        check_hdf_status();
 	}
 
 
@@ -307,6 +316,8 @@ bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s3
     {
 		opt_dataset_names[*num_opt_datasets] = Num_Hypotheses;
 		++(*num_opt_datasets);
+        status = H5Dclose (dataset_id);
+        check_hdf_status();
 	}
 
 	/*!  Try to open the average dataset */
@@ -315,6 +326,8 @@ bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s3
     {
 		opt_dataset_names[*num_opt_datasets] = Average;
 		++(*num_opt_datasets);
+        status = H5Dclose (dataset_id);
+        check_hdf_status();
 	}
 
 	/*!  Try to open the standard deviation dataset */
@@ -323,11 +336,100 @@ bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s3
     {
 		opt_dataset_names[*num_opt_datasets] = Standard_Dev;
 		++num_opt_datasets;
+        status = H5Dclose (dataset_id);
+        check_hdf_status();
 	}
 	
     
     return (BAG_SUCCESS);
 }
+
+
+/********************************************************************/
+/*! \brief : bagFileCloseOpt
+ *
+ * Description : 
+ *   This function closes HDF GroupID and fileIDs previously opened via
+ *           bagGetOptDatasets or bagCreateOptionalDataset
+ *
+ * \param bag_handle_opt  External reference to the private object 
+ *                                          used within the library.
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ *
+ ********************************************************************/
+
+bagError bagFileCloseOpt (bagHandle_opt bag_handle_opt)
+{
+    herr_t    status;
+
+
+    if (bag_handle_opt == NULL)
+        return BAG_INVALID_BAG_HANDLE;
+
+    if (bag_handle_opt->bagGroupID > 0 && (status = H5Gclose (bag_handle_opt->bagGroupID)) < 0)
+    {
+        return(BAG_HDF_GROUP_CLOSE_FAILURE);
+    }
+
+    /*! close the main file */
+    if (bag_handle_opt->file_id > 0 && (status = H5Fclose (bag_handle_opt->file_id)) < 0)
+    {
+        return(BAG_HDF_FILE_CLOSE_FAILURE);
+    }
+
+    return (BAG_SUCCESS);   
+}
+
+/********************************************************************/
+/*! \brief : bagFreeInfoOpt
+ *
+ * Description : 
+ *   This function closes the HDF handles previously opened via
+ *           bagGetOptDatasetInfo.
+ *
+ * \param bag_handle_opt  External reference to the private object 
+ *                                          used within the library.
+ *
+ * \return : \li On success, \a bagError is set to \a BAG_SUCCESS
+ *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
+ *
+ ********************************************************************/
+
+bagError bagFreeInfoOpt (bagHandle_opt bag_handle_opt)
+{
+    herr_t    status;
+
+
+    if (bag_handle_opt == NULL)
+        return BAG_INVALID_BAG_HANDLE;
+
+    /*! close the \a HDF entities */
+    if (bag_handle_opt->memspace_id >= 0)
+    {
+        status = H5Sclose (bag_handle_opt->memspace_id);
+        check_hdf_status();
+    }
+    if (bag_handle_opt->filespace_id >= 0)
+    {
+        status = H5Sclose (bag_handle_opt->filespace_id);
+        check_hdf_status();
+    }
+    if (bag_handle_opt->datatype_id >= 0)
+    {
+        status = H5Tclose (bag_handle_opt->datatype_id);
+        check_hdf_status();
+    }
+    if (bag_handle_opt->dataset_id >= 0)
+    {
+        status = H5Dclose (bag_handle_opt->dataset_id);
+        check_hdf_status();
+    }
+
+    return (BAG_SUCCESS);   
+}
+
 
 /****************************************************************************************/
 /*! \brief  bagAllocArray, for 2dimensional access to the surface, this function simplifies allocation of memory structures for the user
@@ -1429,7 +1531,7 @@ bagError bagUpdateOptMinMax (bagHandle hnd, bagHandle_opt hnd_opt, u32 type)
 
     for (i=0; i < hnd_opt->bag.def.nrows; i++)
     {
-		bagReadOptRegion (hnd, hnd_opt, i, 0, i, hnd_opt->bag.def.ncols-1, type);
+        bagReadOptRegion (hnd, hnd_opt, i, 0, i, hnd_opt->bag.def.ncols-1, type);
 			
         for (j=0; j < hnd_opt->bag.def.ncols-1; j++)
         {
