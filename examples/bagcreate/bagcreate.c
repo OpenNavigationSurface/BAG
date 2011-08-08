@@ -226,6 +226,7 @@ int main (int argc, char *argv[])
         }
     }
     bagFreeOptArray (bagHandle_nominal);
+    bagFreeInfoOpt  (bagHandle_nominal);
 
     /* adding optional sep elevation dataset */
 	opt_data_sep.def = data.def;
@@ -248,6 +249,8 @@ int main (int argc, char *argv[])
 		
     }
 
+    bagFreeInfoOpt  (bagHandle_sep);
+
     err = bagFileClose( bagHandle );   
     if( err != BAG_SUCCESS )
     {
@@ -257,6 +260,8 @@ int main (int argc, char *argv[])
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
     }
+    free (bagHandle_sep);
+    free (bagHandle_nominal);
     printf(    "Excellent... our bag is cooked!, Final ErrorCode = %d\n", err );
 
     return (0);
