@@ -47,10 +47,7 @@ int main( int argc, char **argv )
         return EXIT_FAILURE;
     }
 
-	/* turn off HDF5error messages to stderr nad stdout */
-    H5Eset_auto(NULL,NULL);
-
-    ProcessCommandInput( argc, argv, gisExportFileName, xmlFileName, bagFileName, &summaryOnly );
+	ProcessCommandInput( argc, argv, gisExportFileName, xmlFileName, bagFileName, &summaryOnly );
 
     if( bagFileName[0] == '\0' )
     {
@@ -78,7 +75,7 @@ int main( int argc, char **argv )
 
 	switch(xml_data.def.depthCorrectionType)
 	{
-		case Unknown_Depth_Correction:
+		case Unknown_Correction:
 		default:
 			printf("Depth Correction type is unknown.\n");
 			break;
@@ -139,8 +136,10 @@ int main( int argc, char **argv )
 			xml_data.def.depthCorrectionType == Nominal_Depth_Feet)
 			printf("\nThe elevation dataset however includes only Nominal depth not True depth\n\n");
 	}
-
-    printf("\nOptional datasets have been found\n");
+    else
+    {
+        printf("\nOptional datasets have been found\n");
+    }
 
 	for(i=0; i<num_opt_datasets; i++)
 	{
@@ -235,9 +234,10 @@ int main( int argc, char **argv )
 				}
 				
 				free(data);
+                bagFreeInfoOpt (hnd_opt);
 				fprintf(stdout, "}\n\t");
 				fflush(stdout);
-			}
+            }
 
             if(sepFound)
 			{
@@ -264,10 +264,11 @@ int main( int argc, char **argv )
 					fprintf(stdout, "\n\t");
 					fflush(stdout); 
 
-                    fprintf(stderr, "ROW %d\n", i);
+                    fprintf(stdout, "ROW %d\n", i);
 				}
 				
 				free(vdata);
+				bagFreeInfoOpt (hnd_opt);
 				fprintf(stdout, "\t}\n");
 				fflush(stdout);
 			}
@@ -359,8 +360,8 @@ int main( int argc, char **argv )
     }
 
     /* uses ReadDataset - reads the data arrays in one shot - an alternate method to read the data */
-/*
-    if (1)
+
+    if (!summaryOnly)
     {
         bagAllocArray (hnd, 0, 0, bagGetDataPointer(hnd)->def.nrows-1, bagGetDataPointer(hnd)->def.ncols-1, Elevation);
         bagAllocArray (hnd, 0, 0, bagGetDataPointer(hnd)->def.nrows-1, bagGetDataPointer(hnd)->def.ncols-1, Uncertainty);
@@ -406,7 +407,7 @@ int main( int argc, char **argv )
 
     bagUpdateSurface (hnd, Elevation);
     bagUpdateSurface (hnd, Uncertainty);
-*/
+
 
     fprintf(stdout, "min_elv    %0.3f, max_elv    %0.3f\n", 
             bagGetDataPointer(hnd)->min_elevation, 
@@ -417,7 +418,9 @@ int main( int argc, char **argv )
             bagGetDataPointer(hnd)->max_uncertainty);
     fflush(stdout);
 
+    stat =  bagFileCloseOpt ( hnd_opt );
     stat =  bagFileClose( hnd );
+    free (hnd_opt);
     printf("stat for bagFileClose = %d\n", stat);
 
     return EXIT_SUCCESS;
