@@ -260,8 +260,6 @@ int main (int argc, char *argv[])
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
     }
-    free (bagHandle_sep);
-    free (bagHandle_nominal);
     printf(    "Excellent... our bag is cooked!, Final ErrorCode = %d\n", err );
 
     return (0);
