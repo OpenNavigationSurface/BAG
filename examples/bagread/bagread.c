@@ -420,7 +420,6 @@ int main( int argc, char **argv )
 
     stat =  bagFileCloseOpt ( hnd_opt );
     stat =  bagFileClose( hnd );
-    free (hnd_opt);
     printf("stat for bagFileClose = %d\n", stat);
 
     return EXIT_SUCCESS;
