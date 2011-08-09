@@ -984,12 +984,6 @@ bagError bagFillPos (bagHandle bagHandle, u32 r1, u32 c1 , u32 r2, u32 c2, f64 *
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
 
-    /*! ensures corner coord and nodespacing are available */
-    if ((stat = bagInitDefinitionFromBag (bagHandle)) != BAG_SUCCESS)
-    {
-        return stat;
-    }
-
     /*! first step is to figure out how much memory to alloc for the arrays */
     ylen  = (r2 -r1) + 1;
     xlen  = (c2 -c1) + 1;

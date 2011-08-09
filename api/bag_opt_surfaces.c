@@ -379,6 +379,9 @@ bagError bagFileCloseOpt (bagHandle_opt bag_handle_opt)
         return(BAG_HDF_FILE_CLOSE_FAILURE);
     }
 
+    /*! free previously calloc'd bagHandle */
+    free (bag_handle_opt);
+
     return (BAG_SUCCESS);   
 }
 

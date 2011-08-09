@@ -906,7 +906,8 @@ bagError bagFileClose (bagHandle bag_handle)
         if (status != BAG_CRYPTO_SIGNATURE_OK)
             return status;
     }
-
+    /*! free previously calloc'd bagHandle */
+    free (bag_handle);
     return (BAG_SUCCESS);   
 }
 
