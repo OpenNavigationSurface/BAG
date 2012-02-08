@@ -3,8 +3,8 @@ all: build
 build: Makefile_$(HOSTMACHINE)
 	$(MAKE) -f Makefile_$(HOSTMACHINE)
 
-Makefile_$(HOSTMACHINE): libbag.pro
-	qmake -o Makefile_$(HOSTMACHINE) libbag.pro
+Makefile_$(HOSTMACHINE): bag.pro
+	qmake -o Makefile_$(HOSTMACHINE) bag.pro
 
 clean: Makefile_$(HOSTMACHINE)
 	$(MAKE) -f Makefile_$(HOSTMACHINE) clean

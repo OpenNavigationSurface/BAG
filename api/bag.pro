@@ -1,5 +1,5 @@
 ###############################################################################
-#                OpenNS Application Build Project (v1.0)                      #
+#                OpenNS Application Build Project (v1.5)                      #
 ###############################################################################
 #                                                                             
 ###                       DO NOT EDIT THIS SECTION                          
@@ -16,14 +16,12 @@ INCLUDEPATH += $$INC_OPENNSALL
 #
 
 CONFIG -= qt
+CONFIG += 
 
-DEFINES -= UNICODE
-DEFINES += BEE_STATIC
+VERSION=1.5.0
 
-win32 {
-    CONFIG += staticlib
-    QMAKE_CFLAGS += -Zc:wchar_t-
-}
+QMAKE_CFLAGS_DEBUG = 
+QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
 
 HEADERS += stdtypes.h \
         crc32.h \
@@ -42,6 +40,7 @@ SOURCES += crc32.c \
         bag_hdf.c  \
         bag_epsg.c  \
         bag_surfaces.c \
+        bag_opt_group.c \
         bag_opt_surfaces.c \
         bag_tracking_list.c \
         bag_xml.c

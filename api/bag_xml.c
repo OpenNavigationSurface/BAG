@@ -221,7 +221,11 @@ bagError bagInitDefinition(
         return error;
     }
 
-	/* retrieve the depth correction type */
+    /*! retrieve the optional node, elevation solution group types */
+	error = bagGetNodeGroupType(metaData, &definition->nodeGroupType);
+    error = bagGetElevationSolutionType(metaData, &definition->elevationSolutionGroupType);
+
+    /* retrieve the depth correction type */
 	error = bagGetDepthCorrectionType(metaData, &definition->depthCorrectionType);
     if (error == BAG_METADTA_DPTHCORR_MISSING)
 	{
@@ -262,6 +266,7 @@ bagError bagInitDefinition(
     /* read the cover information */
     error = bagGetProjectedCover (metaData, &definition->swCornerX, 
                                   &definition->swCornerY, &urx, &ury);
+
     if (error)
         return error;
 
@@ -357,7 +362,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
 {
     u32 i=0;
     bagError error = BAG_SUCCESS;
-    u32 bufferLen = 0;
+    u32 bufferLen = XML_METADATA_MAX_LENGTH-1;
     u32 chng      = 0;
 
     if (data == NULL || buffer == NULL)
@@ -406,10 +411,10 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
             metadataCache[i] = NULL;
         }
 
-        strncpy (cacheString[i], (char *)buffer, bufferSize);
+        strncpy (cacheString[i], (char *)buffer, bufferLen-1);
 
         /* need to make sure that the buffer is NULL terminated. */
-        cacheString[i][bufferSize] = '\0';
+        cacheString[i][bufferLen] = '\0';
         
     }
 
@@ -439,13 +444,12 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     {
         void *tmp;
         /* attach the XML stream to the structure */
-        bufferLen = XML_METADATA_MAX_LENGTH;
-        tmp = realloc(data->metadata, sizeof(char) * bufferLen);
+        tmp = realloc(data->metadata, sizeof(u8) * bufferLen);
         if (tmp != NULL)
             data->metadata = tmp;
         else
             return BAG_MEMORY_ALLOCATION_FAILED;
-        strncpy((char *)data->metadata, (char *)buffer, bufferLen);
+        strncpy((char *)data->metadata, (char *)buffer, bufferLen-1);
         /*error = bagGetXMLBuffer(metadataCache[i], data->metadata, &bufferLen);*/
     }
     return error;
@@ -461,11 +465,7 @@ bagError bagInitDefinitionFromBag(bagHandle hnd)
     bagError stat;
     bagData *pData = NULL;
 
-    if ((stat = bagReadXMLStream(hnd)) != BAG_SUCCESS)
-    {
-        ;
-    }
-    else
+    if ((stat = bagReadXMLStream(hnd)) == BAG_SUCCESS)
     {
         pData = bagGetDataPointer(hnd);
         stat = bagInitDefinitionFromBuffer(pData, pData->metadata, strlen((char *)pData->metadata));

@@ -66,12 +66,14 @@ extern          "C"
 #endif
 
 
-#define BAG_VERSION         "1.4.0"
+#define BAG_VERSION         "1.5.0"
 #define BAG_VERSION_LENGTH  32           /* 32 bytes of space reserved in BAG attribute for VERSION string */
 #define XML_METADATA_MIN_LENGTH 1024   /* Encoded XML string expected to be at least this long to be valid */
 #define XML_METADATA_MAX_LENGTH 1000000
 #define DEFAULT_KEY_LEN		1024  /* taken from onscrypto.c */
 #define BAG_DEFAULT_COMPRESSION 1
+#define BAG_OPT_SURFACE_LIMIT 10        /* The maximum number of optional surfaces in a single BAG */
+#define BAG_SURFACE_CORRECTOR_LIMIT 10  /* The maximum number of datum correctors per bagVerticalCorrector */
 
 
 /* General conventions:
@@ -301,7 +303,6 @@ typedef struct t_bagTrackingItem
 } bagTrackingItem;
 
 typedef struct _t_bagHandle *bagHandle;
-typedef struct _t_bagHandle_opt *bagHandle_opt; /* bag handle to optional dataset */
 
 typedef struct _t_bag_definition
 {
@@ -316,16 +317,26 @@ typedef struct _t_bag_definition
     u16    trackingID;                                /* index of the current metadata lineage of tracking list edits */
     u32    uncertType;                                /* The type of Uncertainty encoded in this BAG.                 */
     u32	   depthCorrectionType;	                      /* The type of depth correction */
+    u8	   nodeGroupType;    	                      /* The type of optional node group */
+    u8	   elevationSolutionGroupType;	              /* The type of optional elevation solution group */
     u8     surfaceCorrectionTopography;               /* The type of topography of the surface correction opt dataset  */
 } bagDef;
 
-#define	BAG_NAME_MAX_LENGTH 256  
+/* Structure to hold an optional dataset being loaded into the bag */
+typedef struct _t_bag_data_opt
+{
+    u32    nrows;                                 /* number of rows of data contained in the arrays               */
+    u32    ncols;                                 /* number of columns of data contained in the arrays            */
+    f32    **data;                                /* 2D array of values for each node						      */
+    f32      min;								  /* Minimum value in the opt dataset						      */
+    f32      max;								  /* Maximum value in the opt dataset    					      */
+	hid_t    datatype;							  /* HDF5 datatype identifier									  */
+} bagDataOpt;
 
 typedef struct _t_bag_data
 {
     bagDef   def;                                     /* Geospatial definitions                                       */
     u8       version[BAG_VERSION_LENGTH];             /* Mapped from HDF file, defines BAG version of current file    */
-    u8       bagName[BAG_NAME_MAX_LENGTH];            /* Mapped from XML metadata for convenient access (To Be Done)  */
     u8      *metadata;                                /* Mapped from XML metadata                                     */
     f32    **elevation;                               /* 2D array of Mandatory elevation values for each node         */
     f32      min_elevation;                           /* Minimum elevation value in the elevation dataset             */
@@ -333,32 +344,19 @@ typedef struct _t_bag_data
     f32    **uncertainty;                             /* 2D array of Mandatory uncertainty values for each node       */
     f32      min_uncertainty;                         /* Minimum elevation value in the elevation dataset             */
     f32      max_uncertainty;                         /* Maximum elevation value in the elevation dataset             */
+    bagDataOpt opt[BAG_OPT_SURFACE_LIMIT];            /* Optional Surface Dataset info                                */
     bagTrackingItem *tracking_list;                   /* Tracking list array                                          */
     u8       compressionLevel;                        /* The requested compression level for surface datasets         */
     u32      chunkSize;                               /* The chunk size for disk I/O access of surface datasets       */
 } bagData;
 
-/* Structure to hold an optional dataset being loaded into the bag */
-typedef struct _t_bag_data_opt
+typedef struct _t_bag_vorigin
 {
-    bagDef   def;                                     /* Geospatial definitions                                       */
-    u8       version[BAG_VERSION_LENGTH];             /* Mapped from HDF file, defines BAG version of current file    */
-    s32		 type;									  /* BAG_SURFACE_PARAMS data type								  */
-	u8       bagName[BAG_NAME_MAX_LENGTH];            /* Mapped from XML metadata for convenient access (To Be Done)  */
-    u8      *metadata;                                /* Mapped from XML metadata                                     */
-    f32    **opt_data;                                /* 2D array of values for each node						      */
-    f32      min;									  /* Minimum value in the dataset							      */
-    f32      max;									  /* Maximum value in the dataset							      */
-	hid_t    datatype;								  /* HDF5 datatype identifier									  */
-    f32		 datanull;								  /* value for null data										  */
-	bagTrackingItem *tracking_list;                   /* Tracking list array									      */
-    u8       compressionLevel;                        /* The requested compression level for optional datasets        */
-    u32      chunkSize;                               /* The chunk size for disk I/O access of surface datasets       */
-} bagDataOpt;
-
-/* The maximum number of datum correctors per bagVerticalCorrector */
-#define BAG_SURFACE_CORRECTOR_LIMIT 10
-
+    f64    nodeSpacingX; /* node spacing in x dimension in units defined by coord system */ 
+    f64    nodeSpacingY; /* node spacing in y dimension in units defined by coord system */
+    f64    swCornerX;    /* X coordinate of SW corner of vertical corrector surface in BAG_COORDINATES   */
+    f64    swCornerY;    /* Y coordinate of SW corner of vertical corrector surface in BAG_COORDINATES */
+}  bagVerticalCorrectorDef;
 
 typedef struct _t_bag_vdatum
 {
@@ -368,15 +366,39 @@ typedef struct _t_bag_vdatum
 
 } bagVerticalCorrector;
 
+typedef struct _t_bag_vnode
+{
+    f32 z[BAG_SURFACE_CORRECTOR_LIMIT];
+
+} bagVerticalCorrectorNode;
+
+
+typedef struct _t_bag_optNodeGroup
+{
+    f32 hyp_strength;
+    u32 num_hypotheses;
+
+} bagOptNodeGroup;
+
+
+typedef struct _t_bag_optElevationSolutionGroup
+{
+    f32 shoal_elevation;
+    f32 stddev;
+    u32 num_soundings;
+
+} bagOptElevationSolutionGroup;
+
 
 /* The type of Uncertainty encoded in this BAG. */
 enum BAG_UNCERT_TYPES
 {
     Unknown_Uncert      = 0, /* "Unknown" - The uncertainty layer is an unknown type. */
     Raw_Std_Dev         = 1, /* "Raw Std Dev" - Raw standard deviation of soundings the contributed to the node */
-    CUBE_Std_Dev        = 2, /* "CUBE Std Dev" - Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE’s standard output of uncertainty) */
+    CUBE_Std_Dev        = 2, /* "CUBE Std Dev" - Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE's standard output of uncertainty) */
     Product_Uncert      = 3, /* "Product Uncert" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures). */
-    Historical_Std_Dev  = 4  /* "Historical Std Dev" - Estimated standard deviation based on historical/archive data. */
+    Historical_Std_Dev  = 4, /* "Historical Std Dev" - Estimated standard deviation based on historical/archive data. */
+    Average_TPE         = 5  /* "Average Total Propagated Error" -  Average of all of the contributing sounding TPE's within the node */
 };
 
 enum BAG_DEPTH_CORRECTION_TYPES
@@ -387,6 +409,14 @@ enum BAG_DEPTH_CORRECTION_TYPES
 	Corrected_Carters		= 3, /* "Corrected via Carter's Tables" - Corrected depth using Carter's tables */
 	Corrected_Matthews		= 4, /* "Corrected via Matthew's Tables" - Corrected depth using Matthew's tables*/
 	Unknown_Correction		= 5  /* "Unknown" - Unknown depth correction type or mixture of above types */
+};
+
+enum BAG_OPT_GROUP_TYPES
+{
+	Unknown_Solution = 0, /* None, Node and Elevation Solution Groups unused */
+	CUBE_Solution,	      /* CUBE contributed the elevation solution */
+    Product_Solution,     /* "Product Uncert" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures). */
+    Average_TPE_Solution, /* "Average Total Propagated Error" -  Average of all of the contributing sounding TPE's within the node */
 };
 
 /* Surface Correction dataset coordinate topography types */
@@ -405,7 +435,9 @@ enum BAG_SURFACE_PARAMS {
     Average        = 4,
     Standard_Dev   = 5,
 	Nominal_Elevation = 6,
-	Surface_Correction = 7
+	Surface_Correction = 7,  /* 7 and above are assumed to be composite datasets */
+	Node_Group = 8,
+	Elevation_Solution_Group = 9
 };
 
 /* Definitions for file open access modes */
@@ -487,7 +519,7 @@ extern bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void 
  
 /* TBD */
 extern bagError bagWriteNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
-extern bagError bagWriteOptNode (bagHandle bag, bagHandle_opt bagHandle_opt, u32 row, u32 col, s32 type, void *data);
+extern bagError bagWriteOptNode (bagHandle bag, u32 row, u32 col, s32 type, void *data);
 /* Description:
  *     This function writes a value to the specified node in the specified BAG for the optional dataset.
  *     The "type" argument defines which surface parameter is updated.
@@ -509,22 +541,23 @@ extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, vo
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
 
-extern bagError bagGetOptDatasetInfo(bagHandle_opt *bag_handle_opt, s32 type);
-extern bagError bagFileCloseOpt (bagHandle_opt);
-extern bagError bagFreeInfoOpt  (bagHandle_opt);
+extern bagError bagGetOptDatasetInfo(bagHandle *bag_handle_opt, s32 type);
+extern bagError bagFreeInfoOpt  (bagHandle);
 
-extern bagError bagReadOptRow (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
-extern bagError bagReadOptNode (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 k, u32 start_col, s32 type, void *data);
+extern bagError bagReadOptRow (bagHandle bagHandle, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
+extern bagError bagReadOptRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 type, 
+                                  void *data, f64 **x, f64 **y);
+extern bagError bagReadOptNode (bagHandle bagHandle, u32 k, u32 start_col, s32 type, void *data);
 
-extern bagError bagReadCorrectorVerticalDatum  (bagHandle hnd, bagHandle_opt hnd_opt, u32, u8 * datum);
-extern bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u32, u8 * datum);
-extern bagError bagReadCorrectedDataset(bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 corrIndex, u32 surfIndex, f32 *data);
-extern bagError bagReadCorrectedRegion (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 startrow, u32 endrow, u32 startcol, u32 endcol, u32 corrIndex, u32 surfIndex, f32 *data);
-extern bagError bagReadCorrectedRow    (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row, u32 corrIndex, u32 surfIndex, f32 *data);
-extern bagError bagReadCorrectedNode   (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row, u32 col, u32 corrIndex, u32 surfIndex, f32 *data);
+extern bagError bagReadCorrectorVerticalDatum  (bagHandle hnd, u32, u8 * datum);
+extern bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, u32, u8 * datum);
+extern bagError bagReadCorrectedDataset(bagHandle bagHandle, u32 corrIndex, u32 surfIndex, f32 *data);
+extern bagError bagReadCorrectedRegion (bagHandle bagHandle, u32 startrow, u32 endrow, u32 startcol, u32 endcol, u32 corrIndex, u32 surfIndex, f32 *data);
+extern bagError bagReadCorrectedRow    (bagHandle bagHandle, u32 row, u32 corrIndex, u32 surfIndex, f32 *data);
+extern bagError bagReadCorrectedNode   (bagHandle bagHandle, u32 row, u32 col, u32 corrIndex, u32 surfIndex, f32 *data);
 
-extern bagError bagGetNumSurfaceCorrectors (bagHandle_opt hnd_opt, u32 *num);
-extern bagError bagGetSurfaceCorrectionTopography(bagHandle hnd, bagHandle_opt hnd_opt, u8 *type);
+extern bagError bagGetNumSurfaceCorrectors (bagHandle hnd_opt, u32 *num);
+extern bagError bagGetSurfaceCorrectionTopography(bagHandle hnd, u8 *type);
 
 
 
@@ -551,10 +584,10 @@ extern bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_co
  */
 
  
-extern bagError bagWriteOptRow(bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
+extern bagError bagWriteOptRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
  *     This function writes the row of data values for the surface parameter
- *     specified by type to the specified optional dataset row for the BAG specified by bagHandle_opt.
+ *     specified by type to the specified optional dataset row for the BAG specified by bagHandle.
  *     The intended usage of this function is for initial load of data into a BAG
  *     The tracking list is not updated for this operation.
  *
@@ -613,9 +646,9 @@ extern bagError bagReadRegion (bagHandle bagHandle, u32 start_row, u32 start_col
                                u32 end_row, u32 end_col, s32 type);
 extern bagError bagWriteRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                 u32 end_row, u32 end_col, s32 type);
-extern bagError bagReadOptRegion (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 start_row, u32 start_col, 
+extern bagError bagReadOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                u32 end_row, u32 end_col, s32 type);
-extern bagError bagWriteOptRegion (bagHandle bagHandle, bagHandle_opt bagHandle_opt, u32 start_row, u32 start_col, 
+extern bagError bagWriteOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                 u32 end_row, u32 end_col, s32 type);
 extern bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col, 
                                   u32 end_row, u32 end_col, s32 type, f64 **x, f64 **y);
@@ -811,7 +844,6 @@ extern Coordinate_Type bagCoordsys(char *str);
 extern bagDatum        bagDatumID(char *str);
 
 extern bagData *bagGetDataPointer(bagHandle bag_handle);
-extern bagDataOpt *bagGetOptDataPointer(bagHandle_opt bag_handle_opt);
 
 /****************************************************************************************
  * The array functions manage private memory within the bagHandle
@@ -828,8 +860,8 @@ extern bagError bagFreeArray (bagHandle hnd, s32 type);
  * The user is able to access this data from the bagData's
  * 2D **elevation and **uncertainty pointers.
  ****************************************************************************************/
-extern bagError bagAllocOptArray (bagHandle_opt hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col);
-extern bagError bagFreeOptArray (bagHandle_opt hnd);
+extern bagError bagAllocOptArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
+extern bagError bagFreeOptArray (bagHandle hnd, s32 type);
 
 /*
  *  bagFreeXMLMeta ():
@@ -840,7 +872,11 @@ extern bagError bagFreeOptArray (bagHandle_opt hnd);
 extern bagError bagFreeXMLMeta ();
 
 extern bagError bagUpdateSurface (bagHandle hnd, u32 type);
-extern bagError bagUpdateOptSurface (bagHandle hnd, bagHandle_opt hnd_opt, u32 type);
+extern bagError bagUpdateOptSurface (bagHandle hnd, u32 type);
+extern bagError bagReadMinMaxNodeGroup (bagHandle hnd,
+                                        bagOptNodeGroup *minGroup, bagOptNodeGroup *maxGroup);
+extern bagError bagReadMinMaxElevationSolutionGroup (bagHandle hnd,
+                                                     bagOptElevationSolutionGroup *minGroup, bagOptElevationSolutionGroup *maxGroup);
 
 /* 
  * Routine:     bagTrackingListLength
@@ -1020,11 +1056,13 @@ extern bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims);
  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
-extern bagError bagCreateOptionalDataset  (bagHandle bagHandle, bagHandle_opt *bagHandle_opt, bagDataOpt *data,  s32 type);
-extern bagError bagCreateCorrectorDataset (bagHandle hnd, bagHandle_opt *hnd_opt, bagDataOpt *opt_def,
-                                           u32 numCorrectors, u8 type);
-extern bagError bagGetOptDatasets(bagHandle_opt *bag_handle_opt,const u8 *file_name, s32 *num_opt_datasets, 
-                                  int opt_dataset_names[10]);
+extern bagError bagCreateOptionalDataset  (bagHandle bagHandle, bagData *data,  s32 type);
+extern bagError bagCreateNodeGroup  (bagHandle hnd, bagData *opt_data);
+extern bagError bagCreateElevationSolutionGroup (bagHandle hnd, bagData *opt_data);
+extern bagError bagCreateCorrectorDataset   (bagHandle hnd, bagData *opt_data, u32 numCorrectors, u8 type);
+extern bagError bagWriteCorrectorDefinition (bagHandle hnd, bagVerticalCorrectorDef *def);
+extern bagError bagReadCorrectorDefinition  (bagHandle hnd, bagVerticalCorrectorDef *def);
+extern bagError bagGetOptDatasets(bagHandle *bag_handle, s32 *num_opt_datasets, int opt_dataset_names[BAG_OPT_SURFACE_LIMIT]);
 
 
 

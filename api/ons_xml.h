@@ -94,6 +94,8 @@ extern bagError bagGetVertDatum(bagMetaData metaData, char *buffer, u32 bufferSi
 extern bagError bagGetEllipsoid(bagMetaData metaData, char *buffer, u32 bufferSize);
 extern bagError bagGetUncertantyType(bagMetaData metaData, u32 *uncrtType);
 extern bagError bagGetDepthCorrectionType(bagMetaData metaData, u32 *depthCorrectionType);
+extern bagError bagGetNodeGroupType(bagMetaData metaData, u8 *);
+extern bagError bagGetElevationSolutionType(bagMetaData metaData, u8 *);
 #ifdef __cplusplus
 }
 #endif

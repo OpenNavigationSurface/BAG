@@ -16,6 +16,10 @@
  * Change Descriptions :
  * who  when      what
  * ---  ----      ----
+ * Webb McDonald -- Mon Jan  9 17:09:46 2012
+ *   Obtain the correctors surface origin and node spacing from new function,
+ *   bagVerticalCorrectorDef.
+ *
  * Webb McDonald -- Tue Jul 27 17:36:08 2010
  *   Added another optional dataset to BAG: vertical datum / surface correctors.
  *
@@ -30,60 +34,118 @@
 
 #define SEARCH_RADIUS 3
 
-static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row, u32 startcol, u32 endcol,
+static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 startcol, u32 endcol,
                                             u32 type, u32 surf, f32 *data);
 
 /****************************************************************************************/
 /*! \brief bagCreateCorrectorDataset initializes the surface correctors optional bag surface
  *
  *  \param hnd        BagHandle Pointer
- *	\param bagDataOpt Pointer to memory holding the data for the optional dataset
- *  \param opt_data   Data definition for this dataset.
+ *  \param data       Data definition for this dataset.
  *  \param numCorrectors  The number of surface corrections per node of the optional dataset
  *
  *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
  *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
  * 
  ********************************************************************/
-bagError bagCreateCorrectorDataset  (bagHandle hnd, bagHandle_opt *hnd_opt, bagDataOpt *opt_data,
-                                     u32 numCorrectors, u8 type)
+bagError bagCreateCorrectorDataset  (bagHandle hnd, bagData *data, u32 numCorrectors, u8 type)
 {
     hsize_t        adims[] = {1, 2}; 
     bagError       err;
     herr_t         herr, status;
+    hid_t          dataset_id;
     
-    if ((opt_data->datatype = H5Tcreate(H5T_COMPOUND, sizeof (bagVerticalCorrector))) < 0)
-    {
-        return BAG_HDF_TYPE_CREATE_FAILURE;
-    }
-
     adims[1] = numCorrectors;
 
-    herr = H5Tinsert (opt_data->datatype, "x", HOFFSET(bagVerticalCorrector, x), H5T_NATIVE_DOUBLE);
-    if (herr < 0)
-        return BAG_HDF_TYPE_CREATE_FAILURE;
+    if (BAG_SURFACE_GRID_EXTENTS == type)
+    {
+        if ((data->opt[Surface_Correction].datatype = H5Tcreate(H5T_COMPOUND, sizeof (bagVerticalCorrectorNode))) < 0)
+        {
+            return BAG_HDF_TYPE_CREATE_FAILURE;
+        }
 
-    herr = H5Tinsert (opt_data->datatype, "y", HOFFSET(bagVerticalCorrector, y), H5T_NATIVE_DOUBLE);
-    if (herr < 0)
-        return BAG_HDF_TYPE_CREATE_FAILURE;
+       /*! Allow user to set the size of the Z array here.  1 x N array to be, with N = numCorrectors */
+        herr = H5Tinsert (data->opt[Surface_Correction].datatype, "z", HOFFSET(bagVerticalCorrectorNode, z), H5Tarray_create(H5T_NATIVE_FLOAT, RANK, adims, NULL));
+        if (herr < 0)
+            return BAG_HDF_TYPE_CREATE_FAILURE;
+    }
+    else
+    {
+        if ((data->opt[Surface_Correction].datatype = H5Tcreate(H5T_COMPOUND, sizeof (bagVerticalCorrector))) < 0)
+        {
+            return BAG_HDF_TYPE_CREATE_FAILURE;
+        }
 
-    /*! Allow user to set the size of the Z array here.  1 x N array to be, with N = numCorrectors */
-    herr = H5Tinsert (opt_data->datatype, "z", HOFFSET(bagVerticalCorrector, z), H5Tarray_create(H5T_NATIVE_FLOAT, RANK, adims, NULL));
-    if (herr < 0)
-        return BAG_HDF_TYPE_CREATE_FAILURE;
+        herr = H5Tinsert (data->opt[Surface_Correction].datatype, "x", HOFFSET(bagVerticalCorrector, x), H5T_NATIVE_DOUBLE);
+        if (herr < 0)
+            return BAG_HDF_TYPE_CREATE_FAILURE;
 
-	err = bagCreateOptionalDataset (hnd, hnd_opt, opt_data, Surface_Correction);
+        herr = H5Tinsert (data->opt[Surface_Correction].datatype, "y", HOFFSET(bagVerticalCorrector, y), H5T_NATIVE_DOUBLE);
+        if (herr < 0)
+            return BAG_HDF_TYPE_CREATE_FAILURE;
+
+        /*! Allow user to set the size of the Z array here.  1 x N array to be, with N = numCorrectors */
+        herr = H5Tinsert (data->opt[Surface_Correction].datatype, "z", HOFFSET(bagVerticalCorrector, z), H5Tarray_create(H5T_NATIVE_FLOAT, RANK, adims, NULL));
+        if (herr < 0)
+            return BAG_HDF_TYPE_CREATE_FAILURE;
+    }
+
+	err = bagCreateOptionalDataset (hnd, data, Surface_Correction);
+
+    dataset_id = (hnd)->opt_dataset_id[Surface_Correction];   
+    if (dataset_id < 0)
+        return BAG_HDF_DATASET_OPEN_FAILURE; 
 
     if (err == BAG_SUCCESS)
     {
-        status = bagWriteAttribute (hnd, (*hnd_opt)->dataset_id, (u8 *)"surface_type", (u8 *)&type);
+        status = bagWriteAttribute (hnd,  dataset_id , (u8 *)"surface_type", (u8 *)&type);
         check_hdf_status();
+    }
+
+    if (type == BAG_SURFACE_GRID_EXTENTS)
+    {
+        f64 junk=0.0;
+
+        /*! Create the mandatory attributes for this level */
+        if ((status = bagCreateAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWX, sizeof(f64), BAG_ATTR_F64)) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        } 
+        if ((status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWX, (void *) &(junk) )) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        }
+        if ((status = bagCreateAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWY, sizeof(f64), BAG_ATTR_F64)) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        } 
+        if ((status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWY, (void *) &(junk) )) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        }
+        if ((status = bagCreateAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSX, sizeof(f64), BAG_ATTR_F64)) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        } 
+        if ((status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSX, (void *) &(junk) )) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        }
+        if ((status = bagCreateAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSY, sizeof(f64), BAG_ATTR_F64)) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        } 
+        if ((status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSY, (void *) &(junk) )) != BAG_SUCCESS)
+        {
+            return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
+        }
+
     }
 
     return err;
 }
 
-bagError bagGetNumSurfaceCorrectors  (bagHandle_opt hnd_opt, u32 *num)
+bagError bagGetNumSurfaceCorrectors  (bagHandle hnd_opt, u32 *num)
 {
     hid_t          typenow;
     hsize_t        adims[] = {0,0};
@@ -96,8 +158,8 @@ bagError bagGetNumSurfaceCorrectors  (bagHandle_opt hnd_opt, u32 *num)
         return BAG_INVALID_BAG_HANDLE;
 
     /*! Access the "z" member of the datatype */
-    inx = H5Tget_member_index (hnd_opt->datatype_id, "z");
-    typenow = H5Tget_member_type (hnd_opt->datatype_id, inx );
+    inx = H5Tget_member_index (hnd_opt->opt_datatype_id[Surface_Correction], "z");
+    typenow = H5Tget_member_type (hnd_opt->opt_datatype_id[Surface_Correction], inx );
 
     if (typenow < 0)
         return BAG_HDF_TYPE_NOT_FOUND;
@@ -116,16 +178,16 @@ bagError bagGetNumSurfaceCorrectors  (bagHandle_opt hnd_opt, u32 *num)
     }
 }
 
-bagError bagReadCorrectedDataset(bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 corrIndex, u32 surfIndex, f32 *data)
+bagError bagReadCorrectedDataset(bagHandle bagHandle, u32 corrIndex, u32 surfIndex, f32 *data)
 {
     bagError err;
     u32 i;
 
-    for (i=0; i < bagHandle->bag.def.nrows; i++)
+    for (i=0; i <  bagHandle->bag.def.nrows; i++)
     {
         /*! By row at a time, fill the whole buffer */
-        err = bagReadCorrectedRow (bagHandle,  bagOptHandle,  i,
-                                   corrIndex, surfIndex, (data + (bagHandle->bag.def.ncols * i)));
+        err = bagReadCorrectedRow (bagHandle, i, corrIndex, surfIndex,
+                                   (data + (bagHandle->bag.def.ncols * i)));
         if (err != BAG_SUCCESS)
             return err;
     }
@@ -133,7 +195,7 @@ bagError bagReadCorrectedDataset(bagHandle bagHandle, bagHandle_opt bagOptHandle
 
 }
 
-bagError bagReadCorrectedRegion (bagHandle bagHandle, bagHandle_opt bagOptHandle,
+bagError bagReadCorrectedRegion (bagHandle bagHandle,
                                  u32 startrow, u32 endrow, u32 startcol, u32 endcol,
                                  u32 corrIndex, u32 surfIndex, f32 *data)
 {
@@ -166,8 +228,8 @@ bagError bagReadCorrectedRegion (bagHandle bagHandle, bagHandle_opt bagOptHandle
             memset (sepData, NULL_GENERIC, sizeof(f32) * endcol-startcol+1);
             
             /*! By row at a time, fill the whole buffer */
-            err = bagReadCorrectedRowBalance (bagHandle,  bagOptHandle,  i, startcol, endcol,
-                                                   corrIndex, surfIndex, sepData);
+            err = bagReadCorrectedRowBalance (bagHandle,  i, startcol, endcol,
+                                              corrIndex, surfIndex, sepData);
             
             if (err != BAG_SUCCESS)
             {
@@ -187,37 +249,33 @@ bagError bagReadCorrectedRegion (bagHandle bagHandle, bagHandle_opt bagOptHandle
     return BAG_SUCCESS;
 }
 
-bagError bagReadCorrectedNode   (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row, u32 col,
+bagError bagReadCorrectedNode   (bagHandle bagHandle, u32 row, u32 col,
                                  u32 corrIndex, u32 surfIndex, f32 *data)
 {
-    return bagReadCorrectedRowBalance (bagHandle,  bagOptHandle,  row, col, col,
+    return bagReadCorrectedRowBalance (bagHandle,  row, col, col,
                                        corrIndex, surfIndex, data);
 }
 
 
-bagError bagReadCorrectedRow (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row,
+bagError bagReadCorrectedRow (bagHandle bagHandle, u32 row,
                               u32 type, u32 surfIndex, f32 *data)
 {
-    return bagReadCorrectedRowBalance ( bagHandle,  bagOptHandle,  row,
+    return bagReadCorrectedRowBalance ( bagHandle,  row,
                                         0, bagHandle->bag.def.ncols-1, type, surfIndex, data);
 }
 
 
-static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt bagOptHandle, u32 row, u32 startcol, u32 endcol,
+static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 startcol, u32 endcol,
                                             u32 type, u32 surfIndex, f32 *data)
 {
     bagError err;
-    u32 j,q,u;
-    f64 xres = 0, yres = 0;
-    f32 * surfbuf;
-    s32 lastP[2] = {-1,-1};
-    bagVerticalCorrector * readbuf, originbuf[4];
     u8 topography;
+    u32 j,q,u;
+    s32 lastP[2] = {-1,-1};
+    bagVerticalCorrectorNode *   readbuf;
+    bagVerticalCorrectorDef      vddef;
 
     if (bagHandle == NULL)
-        return BAG_INVALID_BAG_HANDLE;
-
-    if (bagOptHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
     if (data == NULL ||
@@ -237,44 +295,27 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
 
-    readbuf = (bagVerticalCorrector *)calloc (bagOptHandle->bag.def.ncols, sizeof (bagVerticalCorrector));
-    surfbuf = (f32 *)calloc (bagHandle->bag.def.ncols, sizeof (f32));
+    readbuf = (bagVerticalCorrectorNode *)calloc (bagHandle->bag.opt[Surface_Correction].ncols, sizeof (bagVerticalCorrectorNode));
 
-    if (surfbuf == NULL || readbuf == NULL)
+    if (readbuf == NULL)
     {
         return BAG_MEMORY_ALLOCATION_FAILED;
     }
     
     /*!  Read in this row of the desired surface data being corrected */
-    err = bagReadRow ( bagHandle, row, startcol, endcol, surfIndex, surfbuf);
-    if ( err != BAG_SUCCESS )
+    err = bagReadRow ( bagHandle, row, startcol, endcol, surfIndex, data);
+    if (err != BAG_SUCCESS )
     {
         free (readbuf);
-        free (surfbuf);
         return err;
     }
 
-    topography = bagOptHandle->bag.def.surfaceCorrectionTopography;
+    topography = bagHandle->bag.def.surfaceCorrectionTopography;
 
     if (BAG_SURFACE_GRID_EXTENTS == topography)
     {
-        /*! Calculate the cell resolution between the neighboring points at origin (0,1,1,0) */
-        err = bagReadOptRow ( bagHandle,  bagOptHandle, 0, 0, 1, Surface_Correction, originbuf);
-        if ( err != BAG_SUCCESS )
-        {
-            free (readbuf);
-            free (surfbuf);
-            return err;
-        }
-        xres = originbuf[0].x - originbuf[1].x;
-        err = bagReadOptRow ( bagHandle,  bagOptHandle, 1, 0, 1, Surface_Correction, originbuf+2);
-        if ( err != BAG_SUCCESS )
-        {
-            free (readbuf);
-            free (surfbuf);
-            return err;
-        }
-        yres = originbuf[0].y - originbuf[2].y;
+        /*! Obtain cell resolution and SW origin (0,1,1,0) */
+        bagReadCorrectorDefinition (bagHandle, &vddef);
     }
     else
     {
@@ -286,11 +327,13 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
     {
         f64 nodeXY[2];
         f64 sum_sep = 0.0, sum = 0.0,
-            leastDistSq = FLT_MAX;
+            leastDistSq = DBL_MAX;
         s32 rowRange[2] = {0, 0}, colRange[2] = {0, 0};
         u32 indx = j-startcol;
         u8  zeroDist=0;
 
+        if (data[indx] == NULL_GENERIC || data[indx] == NULL_ELEVATION || data[indx] == NULL_UNCERTAINTY)
+            continue;
 
         /*! determine the XY value of given cell */
         nodeXY[0] = bagHandle->bag.def.swCornerX + j * bagHandle->bag.def.nodeSpacingX;
@@ -302,9 +345,9 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
             if (lastP[0] == -1 || lastP[1] == -1)
             {
                 colRange[0] = 0;
-                colRange[1] = bagOptHandle->bag.def.ncols -1;
+                colRange[1] = bagHandle->bag.opt[Surface_Correction].ncols -1;
                 rowRange[0] = 0;
-                rowRange[1] = bagOptHandle->bag.def.nrows -1;
+                rowRange[1] = bagHandle->bag.opt[Surface_Correction].nrows -1;
             }
             else
             {
@@ -318,35 +361,35 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
         {
 
             /*! An simple calculation for 4 nearest corrector nodes */
-            colRange[0] = (s32)floor ((originbuf[0].x - nodeXY[0]) / xres);
-            colRange[1] = (s32)ceil  ((originbuf[0].x - nodeXY[0]) / xres);
-            rowRange[0] = (s32)floor ((originbuf[0].y - nodeXY[1]) / yres);
-            rowRange[1] = (s32)ceil  ((originbuf[0].y - nodeXY[1]) / yres);
+            colRange[0] = (s32)floor ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX);
+            colRange[1] = (s32)ceil  ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX);
+            rowRange[0] = (s32)floor ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY);
+            rowRange[1] = (s32)ceil  ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY);
         }
 
         /*! Enforce dataset limits */
         if (colRange[0] < 0)
             colRange[0] = 0;
-        if (colRange[0] >= bagOptHandle->bag.def.ncols)
-            colRange[0] = bagOptHandle->bag.def.ncols -1;
+        if (colRange[0] >= bagHandle->bag.opt[Surface_Correction].ncols)
+            colRange[0] = bagHandle->bag.opt[Surface_Correction].ncols -1;
         if (colRange[1] < 0)
             colRange[1] = 0;
-        if (colRange[1] >= bagOptHandle->bag.def.ncols)
-            colRange[1] = bagOptHandle->bag.def.ncols -1;
+        if (colRange[1] >= bagHandle->bag.opt[Surface_Correction].ncols)
+            colRange[1] = bagHandle->bag.opt[Surface_Correction].ncols -1;
         if (rowRange[0] < 0)
             rowRange[0] = 0;
-        if (rowRange[0] >= bagOptHandle->bag.def.nrows)
-            rowRange[0] = bagOptHandle->bag.def.nrows -1;
+        if (rowRange[0] >= bagHandle->bag.opt[Surface_Correction].nrows)
+            rowRange[0] = bagHandle->bag.opt[Surface_Correction].nrows -1;
         if (rowRange[1] < 0)
             rowRange[1] = 0;
-        if (rowRange[1] >= bagOptHandle->bag.def.nrows)
-            rowRange[1] = bagOptHandle->bag.def.nrows -1;
+        if (rowRange[1] >= bagHandle->bag.opt[Surface_Correction].nrows)
+            rowRange[1] = bagHandle->bag.opt[Surface_Correction].nrows -1;
 
         if (colRange[1] == colRange[0])
         {
             if (colRange[0] > 0)
                 colRange[0]--;
-            if ((colRange[1] + 1) < bagOptHandle->bag.def.ncols)
+            if ((colRange[1] + 1) < bagHandle->bag.opt[Surface_Correction].ncols)
                 colRange[1]++;
         }
         if (rowRange[1] == rowRange[0])
@@ -354,12 +397,11 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
 
             if (rowRange[0] > 0)
                 rowRange[0]--;
-            if ((rowRange[1] + 1) < bagOptHandle->bag.def.nrows)
+            if ((rowRange[1] + 1) < bagHandle->bag.opt[Surface_Correction].nrows)
                 rowRange[1]++;
         }
 
-       /*  fprintf(stderr, "RC:   %d  %d  - %d  %d\n", colRange[0], rowRange[0], colRange[1], rowRange[1]); */
-/* fflush(stderr); */
+/*         fprintf(stderr, "INDX: %d Row: %d RC:  %d  / %d\n", indx, row,  rowRange[0], rowRange[1]); */
 
         /*! look through the SEPs and calculate the weighted average between them and this position  */
         for (q=rowRange[0]; q <= rowRange[1]; q++)
@@ -368,88 +410,79 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
                 break;
 
             /*!  now the SEP should be accessed, up to entire row of all columns of Surface_Correction */
-            err = bagReadOptRow ( bagHandle,  bagOptHandle, q, colRange[0], colRange[1], Surface_Correction, readbuf);
+            err = bagReadOptRow ( bagHandle, q, colRange[0], colRange[1], Surface_Correction, readbuf);
             if ( err != BAG_SUCCESS )
             {
-                 free (readbuf);
-                 free (surfbuf);
-                 return err;
+                free (readbuf);
+                return err;
             }
 
             for (u=colRange[0]; u <= colRange[1]; u++)
             {
-                bagVerticalCorrector  *vertCorr;
-                f64 z1, resratio, distSq;
+                bagVerticalCorrectorNode  *vertCorr;
+                f64 x1, y1, z1, resratio, distSq;
 
                 vertCorr =  readbuf + (u - colRange[0]);
-                z1 = vertCorr->z[type-1];
 
-                /*! is a constant SEP with one point? */
-                if (vertCorr->y == NULL_GENERIC && vertCorr->x == NULL_GENERIC)
+                z1 = vertCorr->z[type-1];
+                x1 = vddef.swCornerX + u * vddef.nodeSpacingX;
+                y1 = vddef.swCornerY + q * vddef.nodeSpacingY;
+
+                /*! scaled latitude degrees, si vous plait. */
+                if ( bagHandle->bag.def.coordSys == Geodetic )
                 {
-                  /* skip null points */
-                    if (z1 == NULL_GENERIC)
-                    {
-                        continue;
-                    }
-                    else
-                    {
-                        data[indx] = surfbuf[indx] + (f32)z1;
-                    }
+                    resratio = vddef.nodeSpacingX / vddef.nodeSpacingY;
                 }
                 else
                 {
-                    /*! scaled latitude degrees, si vous plait. */
-                    if ( bagOptHandle->bag.def.coordSys == Geodetic )
-                    {
-                        resratio = bagHandle->bag.def.nodeSpacingX / bagHandle->bag.def.nodeSpacingY;
-                    }
-                    else
-                    {
-                        resratio = 1.0;
-                    }
-
-                    /*! calculate distance weight between nodeXY and y1/x1 */
-                    distSq  = powl ((nodeXY[0] - vertCorr->x), 2.0L) +
-                        powl (resratio * (nodeXY[1] - vertCorr->y), 2.0L);
-
-                    if (distSq == 0)
-                    {
-                        zeroDist = 1;
-                        distSq = 1.0;
-                        data[indx] = surfbuf[indx] + z1;
-                        break;
-                    }
-
-                    if (leastDistSq > distSq)
-                    {
-                        leastDistSq = distSq;
-                        lastP[0] = u;
-                        lastP[1] = q;
-                    }
-                    
-                    /*! inverse distance calculation */
-                    sum_sep += z1  / distSq;
-                    sum     += 1.0 / distSq;
+                    resratio = 1.0;
                 }
+
+
+                /*! calculate distance weight between nodeXY and y1/x1 */
+                distSq  = (f64)pow (fabs((f64)(nodeXY[0] - x1)), 2.0) +
+                    (f64)pow (resratio * fabs((f64)(nodeXY[1] - y1)), 2.0);
+
+                if (distSq == 0)
+                {
+                    zeroDist = 1;
+                    distSq = 1.0;
+                    data[indx] += z1;
+                    break;
+                }
+
+                if (leastDistSq > distSq)
+                {
+                    leastDistSq = distSq;
+                    lastP[0] = u;
+                    lastP[1] = q;
+                }
+                    
+                /*! inverse distance calculation */
+                sum_sep += z1  / distSq;
+                sum     += 1.0 / distSq;
+
     
             } /* for u cols */
 
         } /* for q rows */
         
+/*         fprintf(stderr, "sum sum %f / %f =  %f\n", sum_sep, sum, sum_sep / sum); */
+
+
         /*! is not a constant SEP with one point? */
-        if (sum_sep != 0.0 && sum != 0.0 && surfbuf[indx] != NULL_GENERIC)
+        if (sum_sep != 0.0 && sum != 0.0)
         {
-            data[indx] = surfbuf[indx] + sum_sep / sum;
+            data[indx] += sum_sep / sum;
         }
         else
         {
             data[indx] = NULL_GENERIC;
         }
-    }
+
+    } /* for j cols */
     
     free (readbuf);
-    free (surfbuf);
 
     return BAG_SUCCESS;
 }
@@ -467,7 +500,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, bagHandle_opt b
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  *
  ****************************************************************************************/
-bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u32 type, u8 *datum)
+bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, u32 type, u8 *datum)
 {
     herr_t status;
     hid_t  dataset_id;
@@ -478,7 +511,7 @@ bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u
     for (i = 0 ; i < BAG_SURFACE_CORRECTOR_LIMIT; i++)
         datum_array[i][0] = '\0';
 
-    if (hnd == NULL || hnd_opt == NULL)
+    if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
     if (datum == NULL)
@@ -487,7 +520,7 @@ bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u
     if (type > BAG_SURFACE_CORRECTOR_LIMIT || type < 1)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    dataset_id = hnd_opt->dataset_id;
+    dataset_id = hnd->opt_dataset_id[Surface_Correction];
       
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -530,7 +563,7 @@ bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  *
  ****************************************************************************************/
-bagError bagReadCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u32 type, u8 * datum)
+bagError bagReadCorrectorVerticalDatum (bagHandle hnd, u32 type, u8 * datum)
 {
     herr_t status;
     hid_t  dataset_id;
@@ -541,7 +574,7 @@ bagError bagReadCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u3
     for (i = 0 ; i < BAG_SURFACE_CORRECTOR_LIMIT; i ++)
         memset (d[i], 0, sizeof(u8) *XML_ATTR_MAXSTR );
 
-    if (hnd == NULL || hnd_opt == NULL)
+    if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
     if (datum == NULL)
@@ -550,7 +583,7 @@ bagError bagReadCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u3
     if (type > BAG_SURFACE_CORRECTOR_LIMIT || type < 1)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    dataset_id    = hnd_opt->dataset_id;
+    dataset_id    = hnd->opt_dataset_id[Surface_Correction];
       
     datum[0] = '\0';
     
@@ -579,5 +612,64 @@ bagError bagReadCorrectorVerticalDatum (bagHandle hnd, bagHandle_opt hnd_opt, u3
             return BAG_HDF_ATTRIBUTE_OPEN_FAILURE;
     }
 	
+    return BAG_SUCCESS;
+}
+
+bagError bagWriteCorrectorDefinition (bagHandle hnd,  bagVerticalCorrectorDef *def)
+{
+    herr_t status;
+    hid_t  dataset_id;
+    
+    if (def == NULL)
+        return BAG_INVALID_FUNCTION_ARGUMENT;
+
+    if (hnd == NULL)
+        return BAG_INVALID_BAG_HANDLE;
+    
+    dataset_id = hnd->opt_dataset_id[Surface_Correction];
+    
+    if (dataset_id < 0)
+        return BAG_HDF_DATASET_OPEN_FAILURE; 
+
+    status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWX, &def->swCornerX);
+    check_hdf_status();        
+    status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWY, &def->swCornerY);
+    check_hdf_status();        
+    status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSY, &def->nodeSpacingY);
+    check_hdf_status();        
+    status = bagWriteAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSX, &def->nodeSpacingX);
+    check_hdf_status();
+
+    return BAG_SUCCESS;
+
+}
+
+bagError bagReadCorrectorDefinition (bagHandle hnd,  bagVerticalCorrectorDef *def)
+{
+    herr_t status;
+    hid_t  dataset_id;
+    
+    if (def == NULL)
+        return BAG_INVALID_FUNCTION_ARGUMENT;
+
+    if (hnd == NULL)
+        return BAG_INVALID_BAG_HANDLE;
+    
+    memset (def, 0, sizeof(def));
+
+    dataset_id = hnd->opt_dataset_id[Surface_Correction];
+    
+    if (dataset_id < 0)
+        return BAG_HDF_DATASET_OPEN_FAILURE; 
+
+    status = bagReadAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWX, &def->swCornerX);
+    check_hdf_status();        
+    status = bagReadAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_SWY, &def->swCornerY);
+    check_hdf_status();        
+    status = bagReadAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSY, &def->nodeSpacingY);
+    check_hdf_status();        
+    status = bagReadAttribute (hnd, dataset_id, (u8 *)VERT_DATUM_CORR_NSX, &def->nodeSpacingX);
+    check_hdf_status();
+
     return BAG_SUCCESS;
 }

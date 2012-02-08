@@ -1712,3 +1712,127 @@ bagError bagGetDepthCorrectionType(
     return error;
 }
 
+//************************************************************************
+//      Method name:    bagGetNodeGroupType()
+//
+//      
+//      - Initial implementation
+//        Webb McDonald -- Tue Dec 20 14:21:02 2011
+//
+//************************************************************************
+//! Get the type of node group type in the BAG file.
+/*!
+\param metaData
+    \li The handle to the meta data structure.
+\param nodeGroupType
+    \li Modified to contain the type of node group in this BAG.
+    See BAG_OPT_GROUP_TYPES in bag.h for a complete listing.
+\return
+    \li Error code.
+*/
+//************************************************************************
+bagError bagGetNodeGroupType(
+    bagMetaData metaData,
+    u8 *nodeGroupType
+    )
+{
+    bagError error = BAG_SUCCESS;
+    *nodeGroupType = (u8)0;
+
+    const char * pNodeType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/nodeGroupType";
+    DOMNode *pNodeGroupNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pNodeType);
+
+    if (pNodeGroupNode)
+    {
+        DOMNode *pTmpNode = pNodeGroupNode->getFirstChild();
+        if (pTmpNode)
+        {
+            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+            if (pTmpStr)
+            {
+                // convert the string to data type.
+
+                //  Generic version so we don't need to check for WIN3
+
+                char *lower = new char[strlen (pTmpStr) + 1];
+
+                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
+                lower[strlen (pTmpStr)] = 0;
+
+                if (!strcmp(lower, "cube solution"))
+                    *nodeGroupType = CUBE_Solution;
+                else if (!strcmp(lower, "product solution"))
+                    *nodeGroupType = Product_Solution;
+                else
+                    *nodeGroupType = Unknown_Solution;
+            }
+
+            XMLString::release(&pTmpStr);
+        }
+    }
+
+    return error;
+}
+
+//************************************************************************
+//      Method name:    bagGetElevationSolutionType()
+//
+//      
+//      - Initial implementation
+//        Webb McDonald -- Tue Dec 20 14:21:02 2011
+//
+//************************************************************************
+//! Get the type of elevation solution group type in the BAG file.
+/*!
+\param metaData
+    \li The handle to the meta data structure.
+\param nodeGroupType
+    \li Modified to contain the type of elevation solution group in this BAG.
+    See BAG_OPT_GROUP_TYPES in bag.h for a complete listing.
+\return
+    \li Error code.
+*/
+//************************************************************************
+bagError bagGetElevationSolutionType(
+    bagMetaData metaData,
+    u8 *nodeGroupType
+    )
+{
+    bagError error = BAG_SUCCESS;
+    *nodeGroupType = (u8) 0;
+
+    const char * pNodeType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/elevationSolutionGroupType";
+    DOMNode *pElevationSolutionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pNodeType);
+
+    if (pElevationSolutionNode)
+    {
+        DOMNode *pTmpNode = pElevationSolutionNode->getFirstChild();
+        if (pTmpNode)
+        {
+            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+            if (pTmpStr)
+            {
+                // convert the string to data type.
+
+                //  Generic version so we don't need to check for WIN3
+
+                char *lower = new char[strlen (pTmpStr) + 1];
+
+                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
+                lower[strlen (pTmpStr)] = 0;
+
+                if (!strcmp(lower, "cube solution"))
+                    *nodeGroupType = CUBE_Solution;
+                else if (!strcmp(lower, "product solution"))
+                    *nodeGroupType = Product_Solution;
+                else
+                    *nodeGroupType = Unknown_Solution;
+            }
+
+            XMLString::release(&pTmpStr);
+        }
+    }
+
+    return error;
+}
+
