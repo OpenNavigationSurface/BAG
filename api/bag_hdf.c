@@ -77,7 +77,7 @@
  ********************************************************************/
 bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle) 
 {
-    u32          length;
+    u32          i, length;
     herr_t       status;
     hsize_t      dims[RANK];
     hsize_t      dim_init[1]; 
@@ -138,6 +138,16 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     (* bag_handle)->mta_cparms_id    = 
     (* bag_handle)->elv_datatype_id  = -1;
 
+    for (i=0; i < BAG_OPT_SURFACE_LIMIT; i++)
+    {
+        (* bag_handle)->opt_memspace_id[i]  = 
+        (* bag_handle)->opt_dataset_id [i]  =  
+        (* bag_handle)->opt_filespace_id[i] = 
+        (* bag_handle)->opt_datatype_id[i]  = -1;
+
+        (*bag_handle)->dataArray[i]         = (f32 *) NULL;
+        (*bag_handle)->bag.opt[i].data      = (f32 **) NULL;
+    }
     (*bag_handle)->elevationArray    = NULL;
     (*bag_handle)->uncertaintyArray  = NULL;
     (*bag_handle)->cryptoBlock       = NULL;
@@ -528,7 +538,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
  *
  * Description : 
  *     This function opens a BAG file stored in HDF5.  The library supports 
- *     access for up to 32 separate BAG files at a time.
+ *     access for up to 20 separate BAG files at a time.
  *
  * \param *bag_handle   bag_handle will be set to the allocated \a bagHandle
  *                      private object for subsequent external reference
@@ -545,11 +555,12 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     bagError     status;
     u8           version[BAG_VERSION_LENGTH+16];
     hsize_t      max_dims[RANK];
+    hid_t        plist_id;
 
     /*! chunking data block */
     hsize_t     chunk_dimsr[1];
-    hsize_t	  count[1];
-    s32         rank_chunk;
+    hsize_t	    count[1];
+    s32         i, rank_chunk;
 
     
     *bag_handle = (bagHandle) calloc (1, sizeof (struct _t_bagHandle));
@@ -619,13 +630,23 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     (* bag_handle)->mta_cparms_id    = 
     (* bag_handle)->elv_datatype_id  = -1;
 
+    for (i=0; i < BAG_OPT_SURFACE_LIMIT; i++)
+    {
+        (* bag_handle)->opt_memspace_id[i]  = 
+        (* bag_handle)->opt_dataset_id [i]  =  
+        (* bag_handle)->opt_filespace_id[i] = 
+        (* bag_handle)->opt_datatype_id[i]  = -1;
+
+        (*bag_handle)->dataArray[i]         = (f32 *) NULL;
+        (*bag_handle)->bag.opt[i].data      = (f32 **) NULL;
+    }
     (*bag_handle)->elevationArray    = NULL;
     (*bag_handle)->uncertaintyArray  = NULL;
     (*bag_handle)->cryptoBlock       = NULL;
     (*bag_handle)->bag.elevation     = NULL;
     (*bag_handle)->bag.uncertainty   = NULL;
     (*bag_handle)->bag.tracking_list = NULL;
-    
+
     if (((* bag_handle)->bagGroupID = H5Gopen ((* bag_handle)->file_id, ROOT_PATH)) < 0)
     {
         H5Fclose ((* bag_handle)->file_id);
@@ -691,6 +712,31 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     if ((* bag_handle)->unc_filespace_id < 0)
     {
         return BAG_HDF_DATASPACE_CORRUPTED;
+    }
+
+    (* bag_handle)->bag.compressionLevel = 0;
+    /*! Obtain the compression level from the dataset property list if set */
+    if ((plist_id = H5Dget_create_plist((* bag_handle)->unc_dataset_id)) >= 0)
+    {
+        s32 nfilt = H5Pget_nfilters(plist_id);
+        for (i=0; i < nfilt; i++)
+        {
+            u32 flags;
+            size_t cd_nelmts=10,  name_len=64;
+            u32  cd_values[10];
+            char name[64];
+
+            if (H5Z_FILTER_DEFLATE == H5Pget_filter(plist_id, i, &flags, &cd_nelmts, cd_values, name_len, name ))
+            {
+                if (cd_nelmts >= 1)
+                {
+                    (* bag_handle)->bag.compressionLevel = cd_values[0];
+                }
+                break;
+            }
+        }
+        
+        H5Pclose(plist_id);
     }
 
     /*! Open the Tracking list dataset. */
@@ -770,6 +816,9 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         }
     }
 
+    /*! Diables the HDF5-Diag Error messages once the inital bagFileOpen has completed */
+    H5Eset_auto (NULL, NULL);
+
     return (BAG_SUCCESS);
 }
 
@@ -794,7 +843,14 @@ bagError bagFileClose (bagHandle bag_handle)
     if (bag_handle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    free (bagGetDataPointer(bag_handle)->metadata);
+    /*! close any optional surface structures */
+    if ((status = bagFreeInfoOpt(bag_handle)) != BAG_SUCCESS)
+    {
+        return status;
+    }
+
+    if (bagGetDataPointer(bag_handle)->metadata != NULL)
+        free (bagGetDataPointer(bag_handle)->metadata);
 
     if ((status = H5Gclose (bag_handle->bagGroupID)) < 0)
     {
@@ -887,7 +943,7 @@ bagError bagFileClose (bagHandle bag_handle)
         status = H5Dclose (bag_handle->elv_dataset_id);
         check_hdf_status();
     }
-
+    
     /*! close the main file */
     if ((status = H5Fclose (bag_handle->file_id)) < 0)
     {
