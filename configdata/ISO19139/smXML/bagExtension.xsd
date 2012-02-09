@@ -6,6 +6,8 @@
         <xs:sequence>
           <xs:element name="verticalUncertaintyType" type="smXML:CharacterString_Type" minOccurs="1"/>
           <xs:element name="depthCorrectionType" type="smXML:CharacterString_Type" minOccurs="0"/>
+          <xs:element name="elevationSolutionGroupType" type="smXML:CharacterString_Type" minOccurs="0"/>
+          <xs:element name="nodeGroupType" type="smXML:CharacterString_Type" minOccurs="0"/>
         </xs:sequence>
       </xs:extension>
     </xs:complexContent>
