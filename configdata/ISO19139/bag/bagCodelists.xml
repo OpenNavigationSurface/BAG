@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CT_CodelistCatalogue  xmlns="http://www.isotc211.org/2005/gmx" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml/3.2" xsi:schemaLocation="http://www.isotc211.org/2005/gmx http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/gmx/gmx.xsd">
+	<!--=====Catalogue description=====-->
+	<name>
+		<gco:CharacterString>bagCodelists</gco:CharacterString>
+	</name>
+	<scope>
+		<gco:CharacterString>Codelists for description of BAG metadata datasets</gco:CharacterString>
+	</scope>
+	<fieldOfApplication>
+		<gco:CharacterString>BAG (and imported) namespace</gco:CharacterString>
+	</fieldOfApplication>
+	<versionNumber>
+		<gco:CharacterString>1.0</gco:CharacterString>
+	</versionNumber>
+	<versionDate>
+		<gco:Date>2012-01-31</gco:Date>
+	</versionDate>
+	<!--============================================================================-->
+	<!--============================================================================-->
+	<!--============================= Codelists =======================================-->
+	<!--=== BAG_OptGroupCode ===-->
+	<codelistItem>
+		<CodeListDictionary gml:id="BAG_OptGroupCode">
+			<gml:description>identification of when a given event occurred</gml:description>
+			<gml:identifier codeSpace="ISOTC211/19115">BAG_OptGroupCode</gml:identifier>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_OptGroupCode_cube">
+					<gml:description>CUBE contributed the elevation solution</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">cube</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_OptGroupCode_product">
+					<gml:description>NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures)</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">product</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_OptGroupCode_averageTPE">
+					<gml:description>Average of all of the contributing sounding TPE's within the node</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">averageTPE</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_OptGroupCode_unknown">
+					<gml:description>None, Node and Elevation Solution Groups unused</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">unknown</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+		</CodeListDictionary>
+	</codelistItem>
+	<!--=== BAG_DepthCorrectCode ===-->
+	<codelistItem>
+		<CodeListDictionary gml:id="BAG_DepthCorrectCode">
+			<gml:description>identification of when a given event occurred</gml:description>
+			<gml:identifier codeSpace="ISOTC211/19115">BAG_DepthCorrectCode</gml:identifier>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_DepthCorrectCode_trueDepth">
+					<gml:description>Depth corrected for sound velocity</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">trueDepth</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_DepthCorrectCode_nominalDepthMetre">
+					<gml:description>Depth at assumed sound velocity of 1500m/s</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">nominalDepthMetre</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_DepthCorrectCode_nominalDepthFeet">
+					<gml:description>Depth at assumed sound velocity of 4800ft/s</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">nominalDepthFeet</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_DepthCorrectCode_correctedCarters">
+					<gml:description>Corrected depth using Carter's tables</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">correctedCarters</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_DepthCorrectCode_correctedMatthews">
+					<gml:description>Corrected depth using Matthew's tables</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">correctedMatthews</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_DepthCorrectCode_unknown">
+					<gml:description>Unknown depth correction type or mixture of above types</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">unknown</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+		</CodeListDictionary>
+	</codelistItem>
+	<!--=== BAG_VertUncertCode ===-->
+	<codelistItem>
+		<CodeListDictionary gml:id="BAG_VertUncertCode">
+			<gml:description>identification of when a given event occurred</gml:description>
+			<gml:identifier codeSpace="ISOTC211/19115">BAG_VertUncertCode</gml:identifier>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_VertUncertCode_rawStdDev">
+					<gml:description>Raw standard deviation of soundings the contributed to the node</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">rawStdDev</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_VertUncertCode_cubeStdDev">
+					<gml:description>Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE’s standard output of uncertainty)</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">cubeStdDev</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_VertUncertCode_productUncert">
+					<gml:description>NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures)</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">productUncert</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_VertUncertCode_historicalStdDev">
+					<gml:description>Estimated standard deviation based on historical/archive data</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">historicalStdDev</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
+				<CodeDefinition gml:id="BAG_VertUncertCode_unknown">
+					<gml:description>The uncertainty layer is an unknown type.</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">unknown</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+		</CodeListDictionary>
+	</codelistItem>
+	<!--=== EOF ===-->
+</CT_CodelistCatalogue>
