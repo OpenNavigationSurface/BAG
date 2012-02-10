@@ -45,21 +45,24 @@ extern bagError bagInitMetadata();
  */
 extern bagError bagTermMetadata();
 
-/* Routine:	bagValidateMetadataBuffer
- * Purpose:	Validate the XML data in the supplied memory buffer.
- * Inputs:	*buffer         The memory buffer containing the XML data.
- *          *bufferSize     The size of the memory buffer.
+/* Routine:	bagGetMetadataFile
+ * Purpose:	Retreive the metadata from the specified file.
+ * Inputs:	*fileName       The file containing the metadata.
+ *          *doValidation   true if the metadata should be validated against the schema,
+ *                          false for no validation.
  *          *error          Modified to 0 if the function succeeds, non-zero if
  *                          the function fails.
  * Outputs:	The handle to the valid metaData if the function succeeds, NULL if the
  *          function fails.
  * Comment: 
  */
-extern bagMetaData bagValidateMetadataBuffer(char *buffer, s32 bufferSize, bagError *error);
+extern bagMetaData bagGetMetadataFile(char *fileName, Bool doValidation, bagError *error);
 
-/* Routine:	bagValidateMetadataBuffer
- * Purpose:	Validate the XML data in the supplied memory buffer.
+/* Routine:	bagGetMetadataBuffer
+ * Purpose:	Retreive the metadata from the specified XML memory buffer.
  * Inputs:	*buffer         The memory buffer containing the XML data.
+ *          *doValidation   true if the metadata should be validated against the schema,
+ *                          false for no validation.
  *          *bufferSize     The size of the memory buffer.
  *          *error          Modified to 0 if the function succeeds, non-zero if
  *                          the function fails.
@@ -67,7 +70,7 @@ extern bagMetaData bagValidateMetadataBuffer(char *buffer, s32 bufferSize, bagEr
  *          function fails.
  * Comment: 
  */
-extern bagMetaData bagValidateMetadataFile(char *fileName, bagError *error);
+extern bagMetaData bagGetMetadataBuffer(char *buffer, s32 bufferSize, Bool doValidation, bagError *error);
 
 /* Routine:	bagFreeMetadata
  * Purpose:	Free the memory associated with the given handle.
@@ -79,21 +82,15 @@ extern void bagFreeMetadata(bagMetaData metaData);
 
 /* Accessor routines. */
 extern bagError bagGetXMLBuffer(bagMetaData metaData, char *buffer, u32 *maxBufferSize);
-extern bagError bagGetCellDims(bagMetaData metaData, u32 *nRows, u32 *nCols);
+extern bagError bagGetCellDims(bagMetaData metaData, const char *version, u32 *nRows, u32 *nCols);
 extern bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLat, f64 *urLong);
-extern bagError bagGetProjectedCover(bagMetaData metaData, f64 *llx, f64 *lly, f64 *urx, f64 *ury);
-extern bagError bagGetGridSpacing(bagMetaData metaData, f64 *dx, f64 *dy);
-extern bagError bagGetProjectionParams(bagMetaData metaData, char *projId, size_t projIdLen, 
-                                  s32 *zone, f64 *standrardParallel, f64 *centralMeridian,
-                                    f64 *latitudeOfOrigin, f64 *falseEasting, f64 *falseNorthing,
-                                    f64 *scaleFactAtEq, f64 *heightOfPersPoint, f64 *longOfProjCenter,
-                                    f64 *latOfProjCenter, f64 *scaleAtCenterLine, f64 *vertLongFromPole,
-                                    f64 *scaleAtProjOrigin);
-extern bagError bagGetHorizDatum(bagMetaData metaData, char *buffer, u32 bufferSize);
-extern bagError bagGetVertDatum(bagMetaData metaData, char *buffer, u32 bufferSize);
-extern bagError bagGetEllipsoid(bagMetaData metaData, char *buffer, u32 bufferSize);
-extern bagError bagGetUncertantyType(bagMetaData metaData, u32 *uncrtType);
-extern bagError bagGetDepthCorrectionType(bagMetaData metaData, u32 *depthCorrectionType);
+extern bagError bagGetProjectedCover(bagMetaData metaData, const char *version, f64 *llx, f64 *lly, f64 *urx, f64 *ury);
+extern bagError bagGetGridSpacing(bagMetaData metaData, const char *version, f64 *dx, f64 *dy);
+extern bagError bagGetUncertantyType(bagMetaData metaData, const char *version, u32 *uncrtType);
+extern bagError bagGetDepthCorrectionType(bagMetaData metaData, const char *version, u32 *depthCorrectionType);
+extern bagError bagGetHReferenceSystem(bagMetaData metaData, const char *version, char *buffer, u32 bufferSize);
+extern bagError bagGetVReferenceSystem(bagMetaData metaData, const char *version, char *buffer, u32 bufferSize);
+
 extern bagError bagGetNodeGroupType(bagMetaData metaData, u8 *);
 extern bagError bagGetElevationSolutionType(bagMetaData metaData, u8 *);
 #ifdef __cplusplus

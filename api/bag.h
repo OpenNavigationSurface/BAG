@@ -57,13 +57,37 @@
 #include <float.h>
 #include "stdtypes.h"
 
-/* Get the required HDF5 include files */
-#include <hdf5.h>
+/* This typedef must match the hsize_t type defined in HDF5 */
+typedef unsigned long long HDF_size_t;
 
-#ifdef __cplusplus
-extern          "C"
-{
-#endif
+/* This typedef must match the hid_t type defined in HDF5 */
+typedef int HDF_hid_t;
+
+#if defined(BAG_DLL) && defined(_MSC_VER)
+
+    #ifdef __cplusplus
+        #ifdef BAG_EXPORTS
+            #define BAG_EXTERNAL extern "C" __declspec(dllexport)
+        #else
+            #define BAG_EXTERNAL extern "C" __declspec(dllimport)
+        #endif
+    #else
+        #ifdef BAG_EXPORTS
+            #define BAG_EXTERNAL extern __declspec(dllexport)
+        #else
+            #define BAG_EXTERNAL extern __declspec(dllimport)
+        #endif
+    #endif
+
+#else
+
+    #ifdef __cplusplus
+        #define BAG_EXTERNAL extern "C"
+    #else
+        #define BAG_EXTERNAL extern
+    #endif
+    
+#endif /* BAG_DLL && _MSC_VER */
 
 
 #define BAG_VERSION         "1.5.0"
@@ -74,6 +98,7 @@ extern          "C"
 #define BAG_DEFAULT_COMPRESSION 1
 #define BAG_OPT_SURFACE_LIMIT 10        /* The maximum number of optional surfaces in a single BAG */
 #define BAG_SURFACE_CORRECTOR_LIMIT 10  /* The maximum number of datum correctors per bagVerticalCorrector */
+#define REF_SYS_MAX_LENGTH  2048    /* The maximum length of the reference system definition string */
 
 
 /* General conventions:
@@ -138,6 +163,11 @@ enum BAG_ERRORS {
     BAG_METADTA_UNCRT_MISSING                  = 415, /*!< The 'uncertaintyType' information is missing from the XML structure. */
     BAG_METADTA_BUFFER_EXCEEDED                = 416, /*!< The supplied buffer is to large to be stored in the internal array. */
 	BAG_METADTA_DPTHCORR_MISSING               = 417, /*!< The 'depthCorrectionType' information is missing from the XML structure. */
+    BAG_METADTA_RESOLUTION_MISSING             = 418, /*!< The 'resolution' information is missing from the XML structure. */
+    BAG_METADTA_INVALID_PROJECTION             = 419, /*!< The projection type is not supported. */
+    BAG_METADTA_INVALID_DATUM                  = 420, /*!< The datum is not supported. */
+    BAG_METADTA_INVALID_HREF                   = 421, /*!< The horizontal reference system information is missing from the XML structure. */
+    BAG_METADTA_INVALID_VREF                   = 422, /*!< The vertical reference system information is missing from the XML structure. */
 
     BAG_NOT_HDF5_FILE                          = 602, /*!< HDF Bag is not an HDF5 File */
     BAG_HDF_RANK_INCOMPATIBLE                  = 605, /*!< HDF Bag's rank is incompatible with expected Rank of the Datasets */
@@ -216,6 +246,7 @@ typedef enum
     bagCryptoSignature = 2
 } bagCryptoObject;
 
+/* Legacy BAG datum definition */
 typedef enum bagDatums
 {
         wgs84,
@@ -223,7 +254,7 @@ typedef enum bagDatums
         nad83
 } bagDatum;
 
-/* Coordinate Type Enumeration */
+/* Legacy Coordinate Type Enumeration */
 typedef enum Coordinate_Types
 {
   Geodetic,
@@ -277,9 +308,26 @@ typedef struct t_bagProjectionParameters
         f64 scale_factor;                             /* unitless                   */
         f64 latitude_of_true_scale;                   /* degrees                    */
         f64 longitude_down_from_pole;                 /* degrees                    */
+        f64 latitude_of_centre;                       /* degrees                    */
+        f64 longitude_of_centre;                      /* degrees                    */
         s32 zone;                                     /* utm zone 1-60              */
-        s32 override;                                 /* utm: 0=autozone,1=use zone */
+        s32 utm_override;                             /* utm: 0=autozone,1=use zone */
 } bagProjectionParameters;
+/////////////////////////////// /////////////////////////////// Legacy //////////////////////////////////////////////////////////////// 
+
+/* Reference system definition */
+typedef struct t_bagReferenceSystem
+{
+    u8  horizontalReference[REF_SYS_MAX_LENGTH];    /* horizontal reference system definition */
+    u8  verticalReference[REF_SYS_MAX_LENGTH];      /* vertical reference system definition */
+} bagReferenceSystem;
+
+/* Legacy Reference system definition */
+typedef struct t_bagLegacyReferenceSystem
+{
+    Coordinate_Type coordSys;                         /* either Geodetic or Mercator Transvers_Mercator,etc */
+    bagProjectionParameters geoParameters;            /* Parameters for projection information                        */
+} bagLegacyReferenceSystem;
 
 /* some basic tracking list codes */
 enum bagTrackCode
@@ -312,14 +360,13 @@ typedef struct _t_bag_definition
     f64    nodeSpacingY;                              /* node spacing in y dimension in units defined by coord system */
     f64    swCornerX;                                 /* X coordinate of SW corner of BAG in BAG_COORDINATES          */
     f64    swCornerY;                                 /* Y coordinate of SW corner of BAG in BAG_COORDINATES          */
-    Coordinate_Type coordSys;                         /* either Geodetic or Mercator Transvers_Mercator,etc */
-    bagProjectionParameters geoParameters;            /* Parameters for projection information                        */
     u16    trackingID;                                /* index of the current metadata lineage of tracking list edits */
     u32    uncertType;                                /* The type of Uncertainty encoded in this BAG.                 */
     u32	   depthCorrectionType;	                      /* The type of depth correction */
     u8	   nodeGroupType;    	                      /* The type of optional node group */
     u8	   elevationSolutionGroupType;	              /* The type of optional elevation solution group */
     u8     surfaceCorrectionTopography;               /* The type of topography of the surface correction opt dataset  */
+    bagReferenceSystem referenceSystem;               /* The spatial reference system information.                     */
 } bagDef;
 
 /* Structure to hold an optional dataset being loaded into the bag */
@@ -330,7 +377,7 @@ typedef struct _t_bag_data_opt
     f32    **data;                                /* 2D array of values for each node						      */
     f32      min;								  /* Minimum value in the opt dataset						      */
     f32      max;								  /* Maximum value in the opt dataset    					      */
-	hid_t    datatype;							  /* HDF5 datatype identifier									  */
+	HDF_hid_t    datatype;						  /* HDF5 datatype identifier									  */
 } bagDataOpt;
 
 typedef struct _t_bag_data
@@ -453,7 +500,7 @@ enum BAG_OPEN_MODE {
 /* Function prototypes */
 
 /* bag_hdf.c */  
-extern bagError bagFileOpen(bagHandle *bagHandle, s32 accessMode, const u8 *fileName); 
+BAG_EXTERNAL bagError bagFileOpen(bagHandle *bagHandle, s32 accessMode, const u8 *fileName); 
 /* Description:
  *     This function opens a BAG file stored in HDF5.  The library supports 
  *     access for up to 32 separate BAG files at a time.
@@ -465,7 +512,7 @@ extern bagError bagFileOpen(bagHandle *bagHandle, s32 accessMode, const u8 *file
  */
 
 /* bag_hdf.c */                             
-extern bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle);
+BAG_EXTERNAL bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle);
 /* Description:
  *     This function opens a BAG file stored in HDF5.  The library supports 
  *     access for up to 32 separate BAG files at a time.
@@ -479,7 +526,7 @@ extern bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag
  */                          
 
 /* bag_hdf.c */  
-extern bagError bagFileClose(bagHandle bagHandle);
+BAG_EXTERNAL bagError bagFileClose(bagHandle bagHandle);
 /* Description
  *     This function closes a BAG file previously opened via bagFileOpen.
  *
@@ -493,8 +540,8 @@ extern bagError bagFileClose(bagHandle bagHandle);
 
 /*  bag_surfaces.c */
 /* TBD */
-extern bagError bagReadNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
-extern bagError bagReadNode(bagHandle bagHandle, u32 row, u32 col, s32 type, void *data);
+BAG_EXTERNAL bagError bagReadNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
+BAG_EXTERNAL bagError bagReadNode(bagHandle bagHandle, u32 row, u32 col, s32 type, void *data);
 /* Description:
  *     This function reads one node value from the BAG specified by bagHandle.  
  *     The "type" argument specifies the surface parameter of interest.
@@ -506,7 +553,7 @@ extern bagError bagReadNode(bagHandle bagHandle, u32 row, u32 col, s32 type, voi
  *     and column is returned.  On failure a value of FLOAT_MAX is returned.
  */
 
-extern bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void *data, f64 **x, f64 **y);
+BAG_EXTERNAL bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void *data, f64 **x, f64 **y);
 /* 
  *  Function : bagReadNodePos
  *
@@ -518,8 +565,9 @@ extern bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void 
 
  
 /* TBD */
-extern bagError bagWriteNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
-extern bagError bagWriteOptNode (bagHandle bag, u32 row, u32 col, s32 type, void *data);
+BAG_EXTERNAL bagError bagWriteNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
+BAG_EXTERNAL bagError bagWriteOptNode (bagHandle bag, u32 row, u32 col, s32 type, void *data);
+
 /* Description:
  *     This function writes a value to the specified node in the specified BAG for the optional dataset.
  *     The "type" argument defines which surface parameter is updated.
@@ -530,7 +578,7 @@ extern bagError bagWriteOptNode (bagHandle bag, u32 row, u32 col, s32 type, void
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.
  */
 
-extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, void *data);
+BAG_EXTERNAL bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, void *data);
 /* Description:
  *     This function writes a value to the specified node in the specified BAG.  
  *     The "type" argument defines which surface parameter is updated.  
@@ -541,27 +589,27 @@ extern bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 type, vo
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
 
-extern bagError bagGetOptDatasetInfo(bagHandle *bag_handle_opt, s32 type);
-extern bagError bagFreeInfoOpt  (bagHandle);
+BAG_EXTERNAL bagError bagGetOptDatasetInfo(bagHandle *bag_handle_opt, s32 type);
+BAG_EXTERNAL bagError bagFreeInfoOpt  (bagHandle);
 
-extern bagError bagReadOptRow (bagHandle bagHandle, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
-extern bagError bagReadOptRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 type, 
+BAG_EXTERNAL bagError bagReadOptRow (bagHandle bagHandle, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
+BAG_EXTERNAL bagError bagReadOptRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 type, 
                                   void *data, f64 **x, f64 **y);
-extern bagError bagReadOptNode (bagHandle bagHandle, u32 k, u32 start_col, s32 type, void *data);
+BAG_EXTERNAL bagError bagReadOptNode (bagHandle bagHandle, u32 k, u32 start_col, s32 type, void *data);
 
-extern bagError bagReadCorrectorVerticalDatum  (bagHandle hnd, u32, u8 * datum);
-extern bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, u32, u8 * datum);
-extern bagError bagReadCorrectedDataset(bagHandle bagHandle, u32 corrIndex, u32 surfIndex, f32 *data);
-extern bagError bagReadCorrectedRegion (bagHandle bagHandle, u32 startrow, u32 endrow, u32 startcol, u32 endcol, u32 corrIndex, u32 surfIndex, f32 *data);
-extern bagError bagReadCorrectedRow    (bagHandle bagHandle, u32 row, u32 corrIndex, u32 surfIndex, f32 *data);
-extern bagError bagReadCorrectedNode   (bagHandle bagHandle, u32 row, u32 col, u32 corrIndex, u32 surfIndex, f32 *data);
+BAG_EXTERNAL bagError bagReadCorrectorVerticalDatum  (bagHandle hnd, u32, u8 * datum);
+BAG_EXTERNAL bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, u32, u8 * datum);
+BAG_EXTERNAL bagError bagReadCorrectedDataset(bagHandle bagHandle, u32 corrIndex, u32 surfIndex, f32 *data);
+BAG_EXTERNAL bagError bagReadCorrectedRegion (bagHandle bagHandle, u32 startrow, u32 endrow, u32 startcol, u32 endcol, u32 corrIndex, u32 surfIndex, f32 *data);
+BAG_EXTERNAL bagError bagReadCorrectedRow    (bagHandle bagHandle, u32 row, u32 corrIndex, u32 surfIndex, f32 *data);
+BAG_EXTERNAL bagError bagReadCorrectedNode   (bagHandle bagHandle, u32 row, u32 col, u32 corrIndex, u32 surfIndex, f32 *data);
 
-extern bagError bagGetNumSurfaceCorrectors (bagHandle hnd_opt, u32 *num);
-extern bagError bagGetSurfaceCorrectionTopography(bagHandle hnd, u8 *type);
+BAG_EXTERNAL bagError bagGetNumSurfaceCorrectors (bagHandle hnd_opt, u32 *num);
+BAG_EXTERNAL bagError bagGetSurfaceCorrectionTopography(bagHandle hnd, u8 *type);
 
 
 
-extern bagError bagReadRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
+BAG_EXTERNAL bagError bagReadRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
  *     This function reads one row of values from the BAG specified by bagHandle.  
  *     The "type" argument specifies the surface parameter of interest. The calling 
@@ -574,7 +622,7 @@ extern bagError bagReadRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_
  */
 
 
-extern bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 type, void *data, f64 **x, f64 **y);
+BAG_EXTERNAL bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 type, void *data, f64 **x, f64 **y);
 /* 
  *  Function : bagReadRowPos
  *
@@ -584,7 +632,7 @@ extern bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_co
  */
 
  
-extern bagError bagWriteOptRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
+BAG_EXTERNAL bagError bagWriteOptRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
  *     This function writes the row of data values for the surface parameter
  *     specified by type to the specified optional dataset row for the BAG specified by bagHandle.
@@ -597,7 +645,7 @@ extern bagError bagWriteOptRow(bagHandle bagHandle, u32 row, u32 start_col, u32 
  *     On success, a value of zero is returned.  On failure a value of -1 is returned. 
  */
 
-extern bagError bagWriteRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
+BAG_EXTERNAL bagError bagWriteRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
  *     This function writes the row of data values for the surface parameter 
  *     specified by type to the specified row for the BAG specified by bagHandle.
@@ -610,7 +658,7 @@ extern bagError bagWriteRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
 
-extern bagError bagWriteDataset (bagHandle bagHandle, s32 type);
+BAG_EXTERNAL bagError bagWriteDataset (bagHandle bagHandle, s32 type);
 /* Description:
  *     This function writes an entire buffer of data to a bag surface.
  * 
@@ -622,7 +670,7 @@ extern bagError bagWriteDataset (bagHandle bagHandle, s32 type);
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
 
-extern bagError bagReadDataset  (bagHandle bag, s32 type);
+BAG_EXTERNAL bagError bagReadDataset  (bagHandle bag, s32 type);
 /* Description:
  *     This function reads an entire buffer of data from a bag surface.
  * 
@@ -634,7 +682,7 @@ extern bagError bagReadDataset  (bagHandle bag, s32 type);
  *     On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
 
-extern bagError bagReadDatasetPos (bagHandle bag, s32 type, f64 **x, f64 **y);
+BAG_EXTERNAL bagError bagReadDatasetPos (bagHandle bag, s32 type, f64 **x, f64 **y);
 /* 
  *  Function : bagReadDatasetPos
  *
@@ -642,15 +690,15 @@ extern bagError bagReadDatasetPos (bagHandle bag, s32 type, f64 **x, f64 **y);
  *    Same as bagReadDataset, but also populates x and y with the positions.
  */
 
-extern bagError bagReadRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
+BAG_EXTERNAL bagError bagReadRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                u32 end_row, u32 end_col, s32 type);
-extern bagError bagWriteRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
+BAG_EXTERNAL bagError bagWriteRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                 u32 end_row, u32 end_col, s32 type);
-extern bagError bagReadOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
+BAG_EXTERNAL bagError bagReadOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                u32 end_row, u32 end_col, s32 type);
-extern bagError bagWriteOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
+BAG_EXTERNAL bagError bagWriteOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                 u32 end_row, u32 end_col, s32 type);
-extern bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col, 
+BAG_EXTERNAL bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col, 
                                   u32 end_row, u32 end_col, s32 type, f64 **x, f64 **y);
 /* 
  *  Function : bagReadRegionPos
@@ -660,14 +708,14 @@ extern bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col,
  */
 
 /****************************************************************************************/
-extern bagError bagWriteXMLStream (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagWriteXMLStream (bagHandle bagHandle);
 /*! \brief bagWriteXMLStream stores the string at \a bagDef's metadata field into the Metadata dataset
  *
  * \param bagHandle  External reference to the private \a bagHandle object
  * \return \li On success, \a bagError is set to \a BAG_SUCCESS
  *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  */
-extern bagError bagReadXMLStream  (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagReadXMLStream  (bagHandle bagHandle);
 
 /*! \brief bagReadXMLStream populates the \a bagDef metadata field with a string derived from the Metadata dataset
  *
@@ -676,7 +724,7 @@ extern bagError bagReadXMLStream  (bagHandle bagHandle);
  *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  */
 
-extern bagError bagGetGridDimensions(bagHandle hnd, u32 *rows, u32 *cols);
+BAG_EXTERNAL bagError bagGetGridDimensions(bagHandle hnd, u32 *rows, u32 *cols);
 /* Description:
  *     This function simply stores grid dims into slot at *rows and *cols.
  * 
@@ -698,7 +746,7 @@ extern bagError bagGetGridDimensions(bagHandle hnd, u32 *rows, u32 *cols);
  * Comment: This function opens and validates the XML file specified by fileName
  *          against the ISO19139 schema.
  */
-extern bagError bagInitDefinitionFromFile(bagData *data, char *fileName);
+BAG_EXTERNAL bagError bagInitDefinitionFromFile(bagData *data, char *fileName);
 
 /* Routine:     bagInitDefinitionFromBuffer
  * Purpose:     Populate the bag definition structure from the XML memory buffer.
@@ -709,9 +757,9 @@ extern bagError bagInitDefinitionFromFile(bagData *data, char *fileName);
  * Comment: This function validates the XML data in buffer against the 
  *          ISO19139 schema.
  */
-extern bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize);
+BAG_EXTERNAL bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize);
 
-extern bagError bagInitDefinitionFromBag(bagHandle hnd);
+BAG_EXTERNAL bagError bagInitDefinitionFromBag(bagHandle hnd);
 
 
 /* Routine:	bagComputeMessageDigest
@@ -724,7 +772,7 @@ extern bagError bagInitDefinitionFromBag(bagHandle hnd);
  *			compatible with the ONS Digital Security Scheme.
  */
 
-extern u8 *bagComputeMessageDigest(char *file, u32 signatureID, u32 *nBytes);
+BAG_EXTERNAL u8 *bagComputeMessageDigest(char *file, u32 signatureID, u32 *nBytes);
 
 /* Routine:     bagSignMessageDigest
  * Purpose:     Compute, from a Message Digest and a Secret Key, the Signature sequence
@@ -736,7 +784,7 @@ extern u8 *bagComputeMessageDigest(char *file, u32 signatureID, u32 *nBytes);
  * Comment:     This calls through to ons_sign_digest() and does appropriate error code translation
  */
 
-extern u8 *bagSignMessageDigest(u8 *md, u32 mdLen, u8 *secKey, bagError *errcode);
+BAG_EXTERNAL u8 *bagSignMessageDigest(u8 *md, u32 mdLen, u8 *secKey, bagError *errcode);
 
 /* Routine:     bagReadCertification
  * Purpose:     Read signature stream from file, if it exists
@@ -750,7 +798,7 @@ extern u8 *bagSignMessageDigest(u8 *md, u32 mdLen, u8 *secKey, bagError *errcode
  *                      the block doesn't exist, or doesn't validate, error codes are returned.
  */
 
-extern bagError bagReadCertification(char *file, u8 *sig, u32 nBuffer, u32 *sigID);
+BAG_EXTERNAL bagError bagReadCertification(char *file, u8 *sig, u32 nBuffer, u32 *sigID);
 
 /* Routine:     bagWriteCertification
  * Purpose:     Write signature stream into file, appending if an ONSCrypto block doesn't exist
@@ -762,7 +810,7 @@ extern bagError bagReadCertification(char *file, u8 *sig, u32 nBuffer, u32 *sigI
  *                      file indicated.  If the output file doesn't have the ONSCrypto block, one is appended.
  */
 
-extern bagError bagWriteCertification(char *file, u8 *sig, u32 sigID);
+BAG_EXTERNAL bagError bagWriteCertification(char *file, u8 *sig, u32 sigID);
 
 /* Routine:     bagVerifyCertification
  * Purpose:     Verify that a signature, held internally, is valid
@@ -774,7 +822,7 @@ extern bagError bagWriteCertification(char *file, u8 *sig, u32 sigID);
  * Comment:     -
  */
 
-extern Bool bagVerifyCertification(u8 *sig, u8 *pubKey, u8 *md, u32 mdLen);
+BAG_EXTERNAL Bool bagVerifyCertification(u8 *sig, u8 *pubKey, u8 *md, u32 mdLen);
 
 /* Routine:     bagComputeFileSignature
  * Purpose:     Convenience function to compute a signature given a file and the SA secret key
@@ -787,7 +835,7 @@ extern Bool bagVerifyCertification(u8 *sig, u8 *pubKey, u8 *md, u32 mdLen);
  *                      returns it for the user.
  */
  
-extern u8 *bagComputeFileSignature(char *name, u32 sigID, u8 *secKey);
+BAG_EXTERNAL u8 *bagComputeFileSignature(char *name, u32 sigID, u8 *secKey);
 
 /* Routine:     bagSignFile
  * Purpose:     Convenience function to sequence all of the functions to sign a file ab initio
@@ -799,7 +847,7 @@ extern u8 *bagComputeFileSignature(char *name, u32 sigID, u8 *secKey);
  *                      to sign a file from scratch.
  */
 
-extern Bool bagSignFile(char *name, u8 *secKey, u32 sigID);
+BAG_EXTERNAL Bool bagSignFile(char *name, u8 *secKey, u32 sigID);
 
 /* Routine:     bagVerifyFile
  * Purpose:     Convenience function to sequence all of the functions required to verify a file ab initio
@@ -812,7 +860,7 @@ extern Bool bagSignFile(char *name, u8 *secKey, u32 sigID);
  *                      the MD, the signature and the Public Key all agree.
  */
 
-extern Bool bagVerifyFile(char *name, u8 *pubKey, u32 sigID);
+BAG_EXTERNAL Bool bagVerifyFile(char *name, u8 *pubKey, u32 sigID);
 
 /* Routine:     bagGenerateKeyPair
  * Purpose:     Generate an ONS asymmetric cryptography key pair
@@ -824,7 +872,7 @@ extern Bool bagVerifyFile(char *name, u8 *pubKey, u32 sigID);
  *                      The secret key should, of course, be kept secret and not divulged.
  */
 
-extern bagError bagGenerateKeyPair(u8 **pubKey, u8 **secKey);
+BAG_EXTERNAL bagError bagGenerateKeyPair(u8 **pubKey, u8 **secKey);
 
 /* Routine:     bagConvertCryptoFormat
  * Purpose:     Convert representation format of cryptographic objects (bin <-> ASCII)
@@ -837,22 +885,13 @@ extern bagError bagGenerateKeyPair(u8 **pubKey, u8 **secKey);
  *                      representations.
  */
 
-extern bagError bagConvertCryptoFormat(u8 *object, bagCryptoObject objType, bagConvDir convDir, u8 **converted);
+BAG_EXTERNAL bagError bagConvertCryptoFormat(u8 *object, bagCryptoObject objType, bagConvDir convDir, u8 **converted);
 
 
-extern Coordinate_Type bagCoordsys(char *str);
-extern bagDatum        bagDatumID(char *str);
+BAG_EXTERNAL Coordinate_Type bagCoordsys(char *str);
+BAG_EXTERNAL bagDatum        bagDatumID(char *str);
 
-extern bagData *bagGetDataPointer(bagHandle bag_handle);
-
-/****************************************************************************************
- * The array functions manage private memory within the bagHandle
- * which is used to buffer data from the surface datasets.
- * The user is able to access this data from the bagData's
- * 2D **elevation and **uncertainty pointers.
- ****************************************************************************************/
-extern bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
-extern bagError bagFreeArray (bagHandle hnd, s32 type);
+BAG_EXTERNAL bagData *bagGetDataPointer(bagHandle bag_handle);
 
 /****************************************************************************************
  * The array functions manage private memory within the bagHandle
@@ -860,8 +899,17 @@ extern bagError bagFreeArray (bagHandle hnd, s32 type);
  * The user is able to access this data from the bagData's
  * 2D **elevation and **uncertainty pointers.
  ****************************************************************************************/
-extern bagError bagAllocOptArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
-extern bagError bagFreeOptArray (bagHandle hnd, s32 type);
+BAG_EXTERNAL bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
+BAG_EXTERNAL bagError bagFreeArray (bagHandle hnd, s32 type);
+
+/****************************************************************************************
+ * The array functions manage private memory within the bagHandle
+ * which is used to buffer data from the surface datasets.
+ * The user is able to access this data from the bagData's
+ * 2D **elevation and **uncertainty pointers.
+ ****************************************************************************************/
+BAG_EXTERNAL bagError bagAllocOptArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
+BAG_EXTERNAL bagError bagFreeOptArray (bagHandle hnd, s32 type);
 
 /*
  *  bagFreeXMLMeta ():
@@ -869,13 +917,13 @@ extern bagError bagFreeOptArray (bagHandle hnd, s32 type);
  * Ideally this would be called at the termination handler of whoever has
  * initialized the Bag library.
  */
-extern bagError bagFreeXMLMeta ();
+BAG_EXTERNAL bagError bagFreeXMLMeta ();
 
-extern bagError bagUpdateSurface (bagHandle hnd, u32 type);
-extern bagError bagUpdateOptSurface (bagHandle hnd, u32 type);
-extern bagError bagReadMinMaxNodeGroup (bagHandle hnd,
+BAG_EXTERNAL bagError bagUpdateSurface (bagHandle hnd, u32 type);
+BAG_EXTERNAL bagError bagUpdateOptSurface (bagHandle hnd, u32 type);
+BAG_EXTERNAL bagError bagReadMinMaxNodeGroup (bagHandle hnd,
                                         bagOptNodeGroup *minGroup, bagOptNodeGroup *maxGroup);
-extern bagError bagReadMinMaxElevationSolutionGroup (bagHandle hnd,
+BAG_EXTERNAL bagError bagReadMinMaxElevationSolutionGroup (bagHandle hnd,
                                                      bagOptElevationSolutionGroup *minGroup, bagOptElevationSolutionGroup *maxGroup);
 
 /* 
@@ -890,7 +938,7 @@ extern bagError bagReadMinMaxElevationSolutionGroup (bagHandle hnd,
  * Comment:     BAG_SUCCESS 
  */
 
-extern bagError bagTrackingListLength (bagHandle bagHandle, u32 *len);
+BAG_EXTERNAL bagError bagTrackingListLength (bagHandle bagHandle, u32 *len);
 
 /* 
  * Routine:     bagReadTrackingListNode
@@ -909,7 +957,7 @@ extern bagError bagTrackingListLength (bagHandle bagHandle, u32 *len);
  * Comment:     Caller must free the memory at items if length is greater than 0.
  *              Caller must assign items a NULL value before using this function!
  */
-extern bagError bagReadTrackingListNode(bagHandle bagHandle, u32 row, u32 col, bagTrackingItem **items, u32 *length);
+BAG_EXTERNAL bagError bagReadTrackingListNode(bagHandle bagHandle, u32 row, u32 col, bagTrackingItem **items, u32 *length);
 
 /****************************************************************************************
  * Routine:     bagReadTrackingListCode
@@ -928,7 +976,7 @@ extern bagError bagReadTrackingListNode(bagHandle bagHandle, u32 row, u32 col, b
  * Comment:     Caller must free the memory at items if length is greater than 0.
  *              Caller must assign items a NULL value before using this function!
  ****************************************************************************************/
-extern bagError bagReadTrackingListCode(bagHandle bagHandle, u8 code, bagTrackingItem **items, u32 *length);
+BAG_EXTERNAL bagError bagReadTrackingListCode(bagHandle bagHandle, u8 code, bagTrackingItem **items, u32 *length);
 
 /* Routine:     bagReadTrackingListSeries
  * Purpose:     Read all tracking list items from a specific list series index.
@@ -949,7 +997,7 @@ extern bagError bagReadTrackingListCode(bagHandle bagHandle, u8 code, bagTrackin
  *                   lineage will be maintained in the Bag's metadata.
  *              Caller must assign items a NULL value before using this function!
  */
-extern bagError bagReadTrackingListSeries(bagHandle bagHandle, u16 index, bagTrackingItem **items, u32 *length);
+BAG_EXTERNAL bagError bagReadTrackingListSeries(bagHandle bagHandle, u16 index, bagTrackingItem **items, u32 *length);
 
 /* Routine:     bagReadTrackingListIndex
  * Purpose:     Read the one list item at the index provided. 
@@ -963,7 +1011,7 @@ extern bagError bagReadTrackingListSeries(bagHandle bagHandle, u16 index, bagTra
  *                           bagHandle or its tracking_list dataset
  * Comment:    
  */
-extern bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingItem *item);
+BAG_EXTERNAL bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingItem *item);
 
 /* Routine:     bagWriteTrackingListItem
  * Purpose:     Write a single bagTrackingItem into the tracking_list dataset.
@@ -973,7 +1021,7 @@ extern bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTra
  *                           bagHandle, or if item is NULL
  * Comment:     BAG_SUCCESS 
  */
-extern bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item);
+BAG_EXTERNAL bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item);
 
 
 /****************************************************************************************
@@ -992,7 +1040,7 @@ extern bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *i
  *              offered for assistance and speed of future access.
  *
  ****************************************************************************************/
-extern bagError bagSortTrackingListByNode (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagSortTrackingListByNode (bagHandle bagHandle);
 
 /****************************************************************************************
  * Routine:     bagSortTrackingList
@@ -1009,8 +1057,8 @@ extern bagError bagSortTrackingListByNode (bagHandle bagHandle);
  *              offered for assistance and speed of future access.
  *
  ****************************************************************************************/
-extern bagError bagSortTrackingListBySeries (bagHandle bagHandle);
-extern bagError bagSortTrackingListByCode (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagSortTrackingListBySeries (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagSortTrackingListByCode (bagHandle bagHandle);
 
 /* Description:
  *     This function provides a short text description for the last error that 
@@ -1028,7 +1076,7 @@ extern bagError bagSortTrackingListByCode (bagHandle bagHandle);
  *     original call to bagGetErrorString.
  */
 
-extern bagError bagGetErrorString(bagError code, u8 **error);
+BAG_EXTERNAL bagError bagGetErrorString(bagError code, u8 **error);
 
 /*! \brief  bagReadSurfaceDims
  * Description:
@@ -1043,7 +1091,7 @@ extern bagError bagGetErrorString(bagError code, u8 **error);
  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
-extern bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims);
+BAG_EXTERNAL bagError bagReadSurfaceDims (bagHandle hnd, HDF_size_t *max_dims);
 
 
 /*! \brief  bagCreateOptionalDataset
@@ -1056,20 +1104,46 @@ extern bagError bagReadSurfaceDims (bagHandle hnd, hsize_t *max_dims);
  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
-extern bagError bagCreateOptionalDataset  (bagHandle bagHandle, bagData *data,  s32 type);
-extern bagError bagCreateNodeGroup  (bagHandle hnd, bagData *opt_data);
-extern bagError bagCreateElevationSolutionGroup (bagHandle hnd, bagData *opt_data);
-extern bagError bagCreateCorrectorDataset   (bagHandle hnd, bagData *opt_data, u32 numCorrectors, u8 type);
-extern bagError bagWriteCorrectorDefinition (bagHandle hnd, bagVerticalCorrectorDef *def);
-extern bagError bagReadCorrectorDefinition  (bagHandle hnd, bagVerticalCorrectorDef *def);
-extern bagError bagGetOptDatasets(bagHandle *bag_handle, s32 *num_opt_datasets, int opt_dataset_names[BAG_OPT_SURFACE_LIMIT]);
+BAG_EXTERNAL bagError bagCreateOptionalDataset  (bagHandle bagHandle, bagData *data,  s32 type);
+BAG_EXTERNAL bagError bagCreateNodeGroup  (bagHandle hnd, bagData *opt_data);
+BAG_EXTERNAL bagError bagCreateElevationSolutionGroup (bagHandle hnd, bagData *opt_data);
+BAG_EXTERNAL bagError bagCreateCorrectorDataset   (bagHandle hnd, bagData *opt_data, u32 numCorrectors, u8 type);
+BAG_EXTERNAL bagError bagWriteCorrectorDefinition (bagHandle hnd, bagVerticalCorrectorDef *def);
+BAG_EXTERNAL bagError bagReadCorrectorDefinition  (bagHandle hnd, bagVerticalCorrectorDef *def);
+BAG_EXTERNAL bagError bagGetOptDatasets(bagHandle *bag_handle, s32 *num_opt_datasets, int opt_dataset_names[BAG_OPT_SURFACE_LIMIT]);
 
 
+/*! \brief  bagLegacyToWkt
+ * Description:
+ *     Utility function used to convert the old reference system definition structures
+ *     into a WKT (Well Known Text) string.
+ * 
+ *  \param    coordType		The reference system type.
+ *  \param	  parameters	The projection parameters.
+ *  \param	  hBuffer   	Modified to contain the horizontal reference system definition as WKT.
+ *	\param	  hBuffer_size	The size of the	horizontal definition buffer passed in.
+ *  \param	  vBuffer   	Modified to contain the vertical reference system definition as WKT.
+ *	\param	  vBuffer_size	The size of the	vertical definition buffer passed in.
+ *
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
+BAG_EXTERNAL bagError bagLegacyToWkt(const bagLegacyReferenceSystem system,
+                                     char *hBuffer, u32 hBuffer_size, char *vBuffer, u32 vBuffer_size);
 
-
-#ifdef __cplusplus
-
-}
-#endif
+/*! \brief  bagWktToLegacy
+ * Description:
+ *     Utility function used to convert a WKT (Well Known Text) reference system definition
+ *     into the old reference system defiition structures.
+ *
+ *     Some WKT definitions can not be converted into the old structures.
+ * 
+ *  \param    horiz_wkt     String buffer containing the horizontal WKT reference system definition.
+ *  \param    vert_wkt      String buffer containing the vertical WKT reference system definition.
+ *  \param	  coordType	    Modified to contain the reference system type.
+ *	\param	  parameters	Modified to contain the projection parameters.
+ *
+ * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
+ */
+BAG_EXTERNAL bagError bagWktToLegacy(const char *horiz_wkt, const char *vert_wkt, bagLegacyReferenceSystem *system);
 
 #endif

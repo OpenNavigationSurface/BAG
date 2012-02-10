@@ -428,16 +428,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
                 x1 = vddef.swCornerX + u * vddef.nodeSpacingX;
                 y1 = vddef.swCornerY + q * vddef.nodeSpacingY;
 
-                /*! scaled latitude degrees, si vous plait. */
-                if ( bagHandle->bag.def.coordSys == Geodetic )
-                {
-                    resratio = vddef.nodeSpacingX / vddef.nodeSpacingY;
-                }
-                else
-                {
-                    resratio = 1.0;
-                }
-
+                resratio = vddef.nodeSpacingX / vddef.nodeSpacingY;
 
                 /*! calculate distance weight between nodeXY and y1/x1 */
                 distSq  = (f64)pow (fabs((f64)(nodeXY[0] - x1)), 2.0) +

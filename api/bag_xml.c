@@ -161,55 +161,32 @@ bagError bagFreeXMLMeta ()
 /* Routine:     bagInitDefinition
  * Purpose:     Populate the bag definition structure from the meta data file.
  * Inputs:      *definition     The definition structure to be populated.
- *          metaData        The hanlde to the metadata.
+ *              metaData        The hanlde to the metadata.
+ *              version         The version of the BAG being initialized.
  * Outputs:     Returns 0 if the function succeeds, non-zerof if the function fails.
  * Comment:
  */
- 
-
 bagError bagInitDefinition(
     bagDef *definition,
-    bagMetaData metaData
+    bagMetaData metaData,
+    const char *version
     )
 {
     bagError error = 0;
     f64 urx, ury, longOfProjCenter;
-    f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint; /* dhf */
-    char projectionId[XML_ATTR_MAXSTR];
-    char datumId[XML_ATTR_MAXSTR];
-    Coordinate_Type coordType; 
-
 
     /* read the grid spacing */
-    error = bagGetGridSpacing(metaData, &definition->nodeSpacingX, &definition->nodeSpacingY);
+    error = bagGetGridSpacing(metaData, version, &definition->nodeSpacingX, &definition->nodeSpacingY);
     if (error)
         return error;
 
     /* read the cell dimensions (rows and columns) */
-    error = bagGetCellDims(metaData, &definition->nrows, &definition->ncols);
-    if (error)
-        return error;
-
-    /* read the projection information */
-
-    error = bagGetProjectionParams(metaData, projectionId, XML_ATTR_MAXSTR,
-        &definition->geoParameters.zone, &definition->geoParameters.std_parallel_1,
-        &definition->geoParameters.central_meridian, &definition->geoParameters.origin_latitude, 
-        &definition->geoParameters.false_easting, &definition->geoParameters.false_northing,
-        &scaleFactAtEq,                   /* dhf - used if Mercator coord sys */
-        &heightOfPersPoint,               /* dhf - for space oblique mercator (not in bag) */
-        &longOfProjCenter,                /* dhf - for oblique conformal conic (not in bag) */
-        &definition->geoParameters.std_parallel_2, 
-        &scaleAtCenterLine,               /* dhf - used if oblique mercator (not bag implemented) */
-        &definition->geoParameters.longitude_down_from_pole,
-        &scaleAtProjOrigin                /* used for polar stereographic & transverse mercator */
-	);
-
+    error = bagGetCellDims(metaData, version, &definition->nrows, &definition->ncols);
     if (error)
         return error;
 
     /* read vertical uncertainty type, if possible */
-    error = bagGetUncertantyType(metaData, &definition->uncertType);
+    error = bagGetUncertantyType(metaData, version, &definition->uncertType);
     if (error != BAG_SUCCESS)
     {
         char *errstr;
@@ -226,7 +203,7 @@ bagError bagInitDefinition(
     error = bagGetElevationSolutionType(metaData, &definition->elevationSolutionGroupType);
 
     /* retrieve the depth correction type */
-	error = bagGetDepthCorrectionType(metaData, &definition->depthCorrectionType);
+	error = bagGetDepthCorrectionType(metaData, version, &definition->depthCorrectionType);
     if (error == BAG_METADTA_DPTHCORR_MISSING)
 	{
 		/* bag made pre-addition of the depthCorrectionType */
@@ -243,45 +220,22 @@ bagError bagInitDefinition(
         return error;
     }
 
-    /* retrieve the ellipsoid */
-    error = bagGetEllipsoid(metaData, (char *)definition->geoParameters.ellipsoid, XML_ATTR_MAXSTR);
+    /* retrieve the horizontal reference system */
+    error = bagGetHReferenceSystem(metaData, version, definition->referenceSystem.horizontalReference, REF_SYS_MAX_LENGTH);
     if (error)
         return error;
 
-    /* retrieve the horizontal datum */
-    error = bagGetHorizDatum(metaData, datumId, XML_ATTR_MAXSTR);
+    /* retrieve the vertical reference system */
+    error = bagGetVReferenceSystem(metaData, version, definition->referenceSystem.verticalReference, REF_SYS_MAX_LENGTH);
     if (error)
         return error;
-
-    /* retrieve the vertical datum */
-    error = bagGetVertDatum(metaData, (char *)definition->geoParameters.vertical_datum, XML_ATTR_MAXSTR);
-    if (error)
-        return error;
-
-    /*convert the projection id to a supported type */
-    coordType = bagCoordsys(projectionId);
-
-    definition->coordSys = coordType;
     
     /* read the cover information */
-    error = bagGetProjectedCover (metaData, &definition->swCornerX, 
+    error = bagGetProjectedCover (metaData, version, &definition->swCornerX, 
                                   &definition->swCornerY, &urx, &ury);
 
     if (error)
         return error;
-
-    /* dhf */
-    /* scaleFactAtEq - for mercator */
-    /* scaleAtCenterLine - for oblique mercator (not supported) */
-    /* scaleAtProjOrigin - for polar stereographic & transverse mercator */
-
-    if ( coordType == Mercator )
-    	definition->geoParameters.scale_factor = scaleFactAtEq;
-    if ( coordType == Transverse_Mercator || coordType == Polar_Stereo )
-    	definition->geoParameters.scale_factor = scaleAtProjOrigin;
-
-    /* convert the datum type */
-    definition->geoParameters.datum = bagDatumID(datumId);  
 
     return error;
 }
@@ -305,19 +259,23 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
         return error;
     }
 
+    //We need to assume that a new BAG file is being created, so set the
+    //correct version on the bagData so we can correctly decode the
+    //metadata.
+    strcpy(data->version, BAG_VERSION);
+
     /* initialize the metadata module */
     error = bagInitMetadata();
     if (error)
         return error;
 
     /* open and validate the XML file. */
-	metaData = bagValidateMetadataFile(fileName, &error);
-
+	metaData = bagGetMetadataFile(fileName, True, &error);
     if (error)
         return error;
 
     /* retrieve the necessary parameters */
-    error = bagInitDefinition(&data->def, metaData);
+    error = bagInitDefinition(&data->def, metaData, data->version);
     if (error)
     {
         /* free the meta data */
@@ -349,16 +307,17 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
     return error;
 }
 
-/* Routine:     bagInitDefinitionFromBuffer
+/* Routine:     bagInitAndValidateDefinition
  * Purpose:     Populate the bag definition structure from the XML memory buffer.
  * Inputs:      *data     The bag data structure to be populated.
- *          *buffer   The memory buffer containing the XML data.
- *          bufferSize  The size of buffer in bytes.
+ *              *buffer   The memory buffer containing the XML data.
+ *              bufferSize  The size of buffer in bytes.
+ *              validateXML True if the xml should be validated, else false.
  * Outputs:     Returns 0 if the function succeeds, non-zero if the function fails.
  * Comment: This function validates the XML data in buffer against the 
  *          ISO19139 schema.
  */
-bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
+bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize, Bool validateXML)
 {
     u32 i=0;
     bagError error = BAG_SUCCESS;
@@ -424,7 +383,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     if (chng)
     {
         /* open and validate the XML file. */
-      metadataCache[i] = (bagMetaData *) bagValidateMetadataBuffer(cacheString[i], bufferSize, &error);
+      metadataCache[i] = (bagMetaData *) bagGetMetadataBuffer(cacheString[i], bufferSize, validateXML, &error);
     }
 
 
@@ -432,7 +391,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
         return error;
 
     /* retrieve the necessary parameters */
-    error = bagInitDefinition(&data->def, (bagMetaData) metadataCache[i]);
+    error = bagInitDefinition(&data->def, (bagMetaData) metadataCache[i], data->version);
     if (error)
     {
         /* free the meta data */
@@ -450,10 +409,30 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
         else
             return BAG_MEMORY_ALLOCATION_FAILED;
         strncpy((char *)data->metadata, (char *)buffer, bufferLen-1);
-        /*error = bagGetXMLBuffer(metadataCache[i], data->metadata, &bufferLen);*/
     }
+
     return error;
 }
+
+/* Routine:     bagInitDefinitionFromBuffer
+ * Purpose:     Populate the bag definition structure from the XML memory buffer.
+ * Inputs:      *data     The bag data structure to be populated.
+ *          *buffer   The memory buffer containing the XML data.
+ *          bufferSize  The size of buffer in bytes.
+ * Outputs:     Returns 0 if the function succeeds, non-zero if the function fails.
+ * Comment: This function validates the XML data in buffer against the 
+ *          ISO19139 schema.
+ */
+bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
+{
+    //We need to assume that a new BAG file is being created, so set the
+    //correct version on the bagData so we can correctly decode the
+    //metadata.
+    strcpy(data->version, BAG_VERSION);
+
+    return bagInitAndValidateDefinition(data, buffer, bufferSize, True);
+}
+
 /* Routine:     bagInitDefinitionFromBag
  * Purpose:     Populate the bag definition structure from yer own metadata.
  * Inputs:      bagHandle pointer to a BagHandle
@@ -468,7 +447,7 @@ bagError bagInitDefinitionFromBag(bagHandle hnd)
     if ((stat = bagReadXMLStream(hnd)) == BAG_SUCCESS)
     {
         pData = bagGetDataPointer(hnd);
-        stat = bagInitDefinitionFromBuffer(pData, pData->metadata, strlen((char *)pData->metadata));
+        stat = bagInitAndValidateDefinition(pData, pData->metadata, strlen((char *)pData->metadata), False);
     }
     return stat;
 }

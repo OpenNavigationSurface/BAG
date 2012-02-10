@@ -15,6 +15,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <float.h>
+#include <string>
+#include <sstream>
+#include <algorithm>
 
 // XERCES includes.
 #include <xercesc/util/PlatformUtils.hpp>
@@ -31,10 +34,12 @@
 #include <xercesc/util/OutOfMemoryException.hpp>
 #include <xercesc/sax/SAXParseException.hpp>
 
+namespace
+{
 
 // constant locations/names.
-static const char *ons_schema_location = "ISO19139/smXML/metadataEntity.xsd";
-static const char *ons_schema_nameSpace = "http://metadata.dgiwg.org/smXML";
+static const char *ons_schema_location = "ISO19139/bag/bag.xsd";
+static const char *ons_schema_nameSpace = "http://www.opennavsurf.org/schema/bag";
 
 // flag used to force the validation to succeed when parsing a BAG XML file or mem buffer.
 // Bill Lamey July 21, 2005 - This is set to false temoporarily as there are some problems validating the 
@@ -44,6 +49,55 @@ static const char *ons_schema_nameSpace = "http://metadata.dgiwg.org/smXML";
 //          the validation errors have been resolved, this falg should be removed.  That is,
 //          the library should ALWAYS force the validation of the 19115 schema.
 static bool ons_force_schema_validation = true;
+
+//************************************************************************
+/*!
+\brief Retrieve the value from the given node.
+
+\param node
+    \li The node to retrieve the value from.
+\return
+    \li String containing the value of the given node.
+*/
+//************************************************************************
+std::string getValueFromNode(DOMNode &node)
+{
+    DOMNode *pChildNode = node.getFirstChild();
+    if (pChildNode == NULL)
+        return std::string();
+
+    char *pTmpStr = XMLString::transcode(pChildNode->getNodeValue());
+    std::string retStr(pTmpStr);
+    XMLString::release(&pTmpStr);
+
+    return retStr;
+}
+
+//************************************************************************
+/*!
+\brief Retrieve the metadata version.
+
+    Currently we only have two metadata versions. The first was used
+    upto and including version 1.4.0 of the library. The second is used
+    for 1.5.0 and above.
+
+\param version
+    \li The BAG version string.
+\return
+    \li The metadata version.
+*/
+//************************************************************************
+int getMetadataVersion(const char *version)
+{
+    const double verNum = atof(version);
+
+    if (verNum < 1.5)
+        return 1;
+
+    return 2;
+}
+
+}   //namespace
 
 //! Structure used to hold the XML parser and error handler.
 struct bagXMLHandle
@@ -56,8 +110,11 @@ struct bagXMLHandle
 
     ~bagXMLHandle()
     {
-        delete parser;
-        delete errHandler;
+        if (parser != NULL)
+            delete parser;
+
+        if (errHandler != NULL)
+            delete errHandler;
     }
 
     //! Pointer to the current document parser.
@@ -273,10 +330,11 @@ DOMNode *bagGetXMLNodeByName(
             const XMLCh *pCurrNodeName = pChild->getNodeName();
             if (XMLString::compareString(pNodeName, pCurrNodeName) == 0)
             {
-                // release the string 
-                XMLString::release(&pNodeName);
                 if (endPos == NULL)
                 {
+                    // release the string 
+                    XMLString::release(&pNodeName);
+
                     // if we are at the end, return the node.
                     return pChild;
                 }
@@ -285,26 +343,32 @@ DOMNode *bagGetXMLNodeByName(
                     // recurse.
                     DOMNode *pRet = bagGetXMLNodeByName(pChild, endPos + 1);
                     if (pRet)
+                    {
+                        // release the string 
+                        XMLString::release(&pNodeName);
+
                         return pRet;
+                    }
                 }
             }
         }
-
     }
+
+    // release the string 
+    XMLString::release(&pNodeName);
 
     // not found.
     return NULL;
 }
 
 //************************************************************************
-//      Method name:    bagValidateMetadata()
+//      Method name:    bagGetMetadata()
 //
-//      
 //      - Initial implementation
-//        Bill Lamey, 7/20/2005
+//        Mike Van Duzee, 1/26/2012
 //
 //************************************************************************
-//! Validate the input XML file against the BAG schema.
+//! Retrieve the bagMetaData from the given source.
 /*!
 \param source
     \li The input source object to be parsed.
@@ -316,8 +380,9 @@ DOMNode *bagGetXMLNodeByName(
         fails, the value of error will be non-zero.
 */
 //************************************************************************
-bagMetaData bagValidateMetadata(
+bagMetaData bagGetMetadata(
     const InputSource &source,
+    Bool doValidation,
     bagError *error
     )
 {
@@ -326,90 +391,99 @@ bagMetaData bagValidateMetadata(
 
     bagMetaData metaData = NULL;
 
-    // Check environment.
-    char *onsHome = getenv("BAG_HOME");
-
-    if (onsHome == NULL)
-    {
-        *error = BAG_METADTA_NO_HOME;
-        return  metaData;
-    }
-
-    // create the name of the schema file.
-    size_t totalLen = strlen(onsHome) + strlen(ons_schema_location) + 2;
-    char *schemaFile = new char [totalLen];
-    sprintf(schemaFile, "%s/%s", onsHome, ons_schema_location);
-
-    // make sure the main schema file exists.
-    struct stat fStat;
-    if (stat(schemaFile, &fStat))
-    {
-        delete [] schemaFile;
-        *error = BAG_METADTA_SCHEMA_FILE_MISSING;
-        return NULL;
-    }
-
-    // make sure that any spaces in the file name are replaced with %20 so that Xerces will parse correctly.
-    size_t i, idx = 0, numSpaces = 0;
-    size_t length = strlen(schemaFile);
-
-    // count the number of spaces in the string.
-    for (i = 0; i < length; i++)
-    {
-        if (schemaFile[i] == ' ')
-            numSpaces++;
-    }
-
-    // create the buffer for the new file name (with spaces replaced with %20)
-    char *newFileName = new char[strlen(schemaFile) + numSpaces * 3 + 1];
-
-    // replace spaces.
-    for (i = 0; i < length; i++)
-    {
-        if (schemaFile[i] == ' ')
-        {
-            newFileName[idx++] = '%';
-            newFileName[idx++] = '2';
-            newFileName[idx++] = '0';
-        }
-        else
-            newFileName[idx++] = schemaFile[i];
-    }
-
-    // terminate the string.
-    newFileName[idx] = '\0';
-
-    totalLen = strlen(newFileName) + strlen(ons_schema_location) + 2;
-    char *schemaEntry = new char[strlen(ons_schema_nameSpace) + totalLen + 2];
-
-    sprintf(schemaEntry, "%s %s", ons_schema_nameSpace, newFileName);
-    delete [] newFileName;
-
     //  Create our parser, then attach an error handler to the parser.
     //  The parser will call back to methods of the ErrorHandler if it
     //  discovers errors during the course of parsing the XML document.
     metaData = new bagXMLHandle;
     metaData->parser = new XercesDOMParser;
-    metaData->parser->setValidationScheme(XercesDOMParser::Val_Always);
     metaData->parser->setDoNamespaces(true);
-    metaData->parser->setDoSchema(ons_force_schema_validation);
     metaData->parser->setValidationSchemaFullChecking(false);
     metaData->parser->setCreateEntityReferenceNodes(false);
-    metaData->parser->setExternalSchemaLocation(schemaEntry);
     metaData->parser->setIncludeIgnorableWhitespace(false);
-
-    // clean up srings;
-    delete [] schemaEntry;
-    delete [] schemaFile;
-
+    metaData->parser->setValidationScheme(XercesDOMParser::Val_Never);
     metaData->errHandler = new BAGMetaDataErrorHandler();
     metaData->parser->setErrorHandler(metaData->errHandler);
+
+    if (doValidation == True)
+    {
+        // Check environment.
+        const char *onsHome = getenv("BAG_HOME");
+        if (onsHome == NULL)
+        {
+            delete metaData;
+         
+            *error = BAG_METADTA_NO_HOME;
+            return NULL;
+        }
+
+        //Build the full path to the schema location.
+        std::string schemaFile(onsHome);
+        schemaFile += "/";
+        schemaFile += ons_schema_location;
+
+        // make sure the main schema file exists.
+        struct stat fStat;
+        if (stat(schemaFile.c_str(), &fStat))
+        {
+            delete metaData;
+         
+            *error = BAG_METADTA_SCHEMA_FILE_MISSING;
+            return NULL;
+        }
+
+        // make sure that any spaces in the file name are replaced with %20 so that Xerces will parse correctly.
+        size_t pos = 0;
+        while((pos = schemaFile.find(" ", pos)) != std::string::npos)
+        {
+            schemaFile.replace(pos, 1, "%20");
+            pos += 3;
+        }
+
+        //Format the schema entry.
+        std::string schemaEntry(ons_schema_nameSpace);
+        schemaEntry += " ";
+        schemaEntry += schemaFile;
+
+        //  Create our parser, then attach an error handler to the parser.
+        //  The parser will call back to methods of the ErrorHandler if it
+        //  discovers errors during the course of parsing the XML document.
+        metaData->parser->setValidationScheme(XercesDOMParser::Val_Always);
+        metaData->parser->setDoSchema(ons_force_schema_validation);
+        metaData->parser->setExternalSchemaLocation(schemaEntry.c_str());
+    }
 
     //  Parse the XML file, catching any XML exceptions that might propogate
     //  out of it.
     try
     {
         metaData->parser->parse(source);
+
+        if (doValidation == True)
+        {
+            DOMDocument* xmlDoc = metaData->parser->getDocument();
+        
+            // The schema validation will pass even if the MD_DataIdentification element was
+            // used, so lets verify that we have the correct bag version.
+            DOMNodeList* nodeList = xmlDoc->getElementsByTagName(L"bag:BAG_DataIdentification");
+            if (nodeList == NULL || nodeList->getLength() == 0)
+            {
+                delete metaData;
+
+                *error = BAG_METADTA_VALIDATE_FAILED;
+                return NULL;
+            }
+
+            // The schema validation will pass even if the LI_ProcessStep element was
+            // used, so lets verify that we have the correct bag version.
+            nodeList = xmlDoc->getElementsByTagName(L"bag:BAG_ProcessStep");
+            if (nodeList == NULL || nodeList->getLength() == 0)
+            {
+                delete metaData;
+
+                *error = BAG_METADTA_VALIDATE_FAILED;
+                return NULL;
+            }
+        }
     }
     catch (const OutOfMemoryException&)
     {
@@ -441,7 +515,7 @@ bagMetaData bagValidateMetadata(
     }
 
     // Check for validation errors if the parse was successful.
-    if (*error == 0)
+    if (*error == 0 && doValidation == True)
     {
         // determine if there were any validation errors.
         bool validateErrors = metaData->errHandler->getSawErrors();
@@ -477,7 +551,7 @@ bagMetaData bagValidateMetadata(
 //! Free the memory associated with the specified handle and the handle itself.
 /*!
 \param metaData
-    \li 
+    \li The metadata to free.
 */
 //************************************************************************
 void bagFreeMetadata(
@@ -504,25 +578,18 @@ void bagFreeMetadata(
     \li 0 if the function is successful, non-zero if the function fails.
 */
 //************************************************************************
-bagError bagInitMetadata(
-    )
+bagError bagInitMetadata()
+try
 {
-    // Initialize the XML4C2 system
-    try
-    {
-        XMLPlatformUtils::Initialize();
-    }
-
-    catch(const XMLException &toCatch)
-    {
-        XERCES_STD_QUALIFIER cerr << "Error during Xerces-c Initialization.\n"
-             << "  Exception message:"
-             << StrX(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
-        return BAG_METADTA_INIT_FAILED;
-    }
-
-
+    XMLPlatformUtils::Initialize();
     return 0;
+}
+catch(const XMLException &toCatch)
+{
+    XERCES_STD_QUALIFIER cerr << "Error during Xerces-c Initialization.\n"
+         << "  Exception message:"
+         << StrX(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
+    return BAG_METADTA_INIT_FAILED;
 }
 
 //************************************************************************
@@ -542,27 +609,28 @@ bagError bagInitMetadata(
     \li 0 if the function is successful, non-zero if the function fails.
 */
 //************************************************************************
-bagError bagTermMetadata(
-    )
+bagError bagTermMetadata()
 {
     XMLPlatformUtils::Terminate();
     return 0;
 }
 
 //************************************************************************
-//      Method name:    bagValidateMetadataBuffer()
+//      Method name:    bagGetMetadataBuffer()
 //
-//      
 //      - Initial implementation
-//        Bill Lamey, 7/19/2005
+//        Mike Van Duzee, 1/26/2012
 //
 //************************************************************************
-//! Validate the input XML memory buffer against the BAG schema.
+//! Retrieve the bagMetaData from the input XML buffer.
 /*!
 \param buffer
     \li The character buffer to be parsed.
 \param bufferSize
     \li The size of the input buffer.
+\param doValidation
+    \li true if the metadata should be validated against the schema,
+    false for no validation.
 \param error
     \li Modified to contain a non-zero value if the funtion fails, modified
     to contain zero if the function succeeds.
@@ -571,32 +639,30 @@ bagError bagTermMetadata(
         fails, the value of error will be non-zero.
 */
 //************************************************************************
-bagMetaData bagValidateMetadataBuffer(
-    char *buffer,
-    s32 bufferSize,
-    bagError *error
-    )
+bagMetaData bagGetMetadataBuffer(char *buffer, s32 bufferSize, Bool doValidation, bagError *error)
 {
     // generate the input source.
     const char *bufferid = "BAG Meta Data";
     MemBufInputSource memSource((const XMLByte *)buffer, bufferSize, bufferid);
 
     // call the validation routine.
-    return bagValidateMetadata(memSource, error);
+    return bagGetMetadata(memSource, doValidation, error);
 }
 
 //************************************************************************
-//      Method name:    bagValidateMetadataFile()
+//      Method name:    bagGetMetadataFile()
 //
-//      
 //      - Initial implementation
-//        Bill Lamey, 7/19/2005
+//        Mike Van Duzee, 1/26/2012
 //
 //************************************************************************
-//! Validate the input XML file against the BAG schema.
+//! Retrieve the bagMetaData from the input file.
 /*!
 \param fileName
     \li The full path and file name of the file to be parsed.
+\param doValidation
+    \li true if the metadata should be validated against the schema,
+    false for no validation.
 \param error
     \li Modified to contain a non-zero value if the funtion fails, modified
     to contain zero if the function succeeds.
@@ -605,7 +671,7 @@ bagMetaData bagValidateMetadataBuffer(
         fails, the value of error will be non-zero.
 */
 //************************************************************************
-bagMetaData bagValidateMetadataFile(char *fileName, bagError *error)
+bagMetaData bagGetMetadataFile(char *fileName, Bool doValidation, bagError *error)
 {
     // generate the input source.
     XMLCh *fName = XMLString::transcode(fileName);
@@ -613,7 +679,7 @@ bagMetaData bagValidateMetadataFile(char *fileName, bagError *error)
     XMLString::release(&fName);
 
     // call the validation routine.
-    return bagValidateMetadata(fileSource, error);
+    return bagGetMetadata(fileSource, doValidation, error);
 }
 
 //************************************************************************
@@ -628,6 +694,8 @@ bagMetaData bagValidateMetadataFile(char *fileName, bagError *error)
 /*!
 \param metaData
     \li The input meta data handle.
+\param version  
+    \li The bag dataset version number.
 \param nRows
     \li Modified to contain the number of rows in the metadata.
 \param nCols
@@ -638,6 +706,7 @@ bagMetaData bagValidateMetadataFile(char *fileName, bagError *error)
 //************************************************************************
 bagError bagGetCellDims(
     bagMetaData metaData,
+    const char *version,
     u32 *nRows,
     u32 *nCols
     )
@@ -645,20 +714,20 @@ bagError bagGetCellDims(
     if (metaData == NULL)
         return BAG_METADTA_INVALID_HANDLE;
 
+    //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
 
     // get the number of dimensions.
-    const char *pDimensions = "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/numberOfDimensions";
-    DOMNode *pDimNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pDimensions);
+    const std::string dimensionStr = (metaVer == 1) ?
+        "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/numberOfDimensions" :
+        "gmi:MI_Metadata/gmd:spatialRepresentationInfo/gmd:MD_Georectified/gmd:numberOfDimensions/gco:Integer";
 
-    s32 numDims = 0;
-    DOMNode *pChildNode = pDimNode->getFirstChild();
-    if (pChildNode)
-    {
-        const XMLCh *pStr = pChildNode->getNodeValue();
-        char *numDimStr = XMLString::transcode(pStr);
-        numDims = atoi(numDimStr);
-        XMLString::release(&numDimStr);
-    }
+    DOMNode *pDimNode = bagGetXMLNodeByName(metaData->parser->getDocument(), dimensionStr.c_str());
+    if (pDimNode == NULL)
+        return BAG_METADTA_INVLID_DIMENSIONS;
+
+    const std::string value = getValueFromNode(*pDimNode);
+    const s32 numDims = atoi(value.c_str());
 
     // validate the number of dimensions.
     if (numDims != 2)
@@ -667,71 +736,44 @@ bagError bagGetCellDims(
     *nRows = 0;
     *nCols = 0;
 
-    // get the root node.
-    XMLCh *pDimName = XMLString::transcode("dimensionName");
-    XMLCh *pDimSize = XMLString::transcode("dimensionSize");
-    XMLCh *pRow = XMLString::transcode("row");
-    XMLCh *pCol = XMLString::transcode("column");
+    const char rowStr[] = "row";
+    const char colStr[] = "column";
 
-    DOMNodeList *pChild = metaData->parser->getDocument()->getElementsByTagName(pDimName);
-    for (u32 i = 0; i < pChild->getLength(); i++)
+    const std::wstring dimStr = (metaVer == 1) ?
+        L"smXML:MD_Dimension" : L"gmd:MD_Dimension";
+
+    const std::string dimNameStr = (metaVer == 1) ?
+        "dimensionName" : "gmd:dimensionName/gmd:MD_DimensionNameTypeCode";
+
+    const std::string dimSizeStr = (metaVer == 1) ?
+        "dimensionSize" : "gmd:dimensionSize/gco:Integer";
+
+    //Find all of the dimension nodes.
+    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(dimStr.c_str());
+    for (XMLSize_t i = 0; i < pNodeList->getLength(); i++)
     {
-        DOMNode *pNode = pChild->item(i);
-     
-        if (pNode)
-        {
-            DOMNodeList *pChildList2 = pNode->getChildNodes();
+        DOMNode *pNode = pNodeList->item(i);
+        if (pNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
 
-            for (u32 j = 0; j < pChildList2->getLength(); j++)
-            {
-                DOMNode *pChildNode = pChildList2->item(j);
+        //Get the dimension name node.
+        DOMNode *pNameNode = bagGetXMLNodeByName(pNode, dimNameStr.c_str());
+        if (pNameNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
 
-                const XMLCh *pStr = pChildNode->getNodeValue();
+        //Get the dimension size node.
+        DOMNode *pSizeNode = bagGetXMLNodeByName(pNode, dimSizeStr.c_str());
+        if (pSizeNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
 
-                // get the next sibling from our parent.
-                DOMNode *pSibling = pNode->getNextSibling();
+        const std::string name = getValueFromNode(*pNameNode);
+        const std::string size = getValueFromNode(*pSizeNode);
 
-                u32 dim = 0;
-                bool foundDim = false;
-                while (pSibling != NULL)
-                {
-                    // is this the dimension node....
-                    if (XMLString::compareString(pSibling->getNodeName(), pDimSize) == 0)
-                    {
-                        // should only be 1 child with the dimension value.
-                        DOMNode *pDimNode = pSibling->getFirstChild();
-                        if (pDimNode)
-                        {
-                            char *nRowsStr = XMLString::transcode(pDimNode->getNodeValue());
-                            dim = atoi(nRowsStr);
-                            XMLString::release(&nRowsStr);
-                            foundDim = true;
-                        }
-                        // terminate the loop.
-                        pSibling = NULL;
-                    }
-                    else
-                        pSibling = pSibling->getNextSibling();
-
-                }
-
-                if (foundDim)
-                {
-                    // check the name.
-                    if (XMLString::compareString(pStr, pRow) == 0)
-                        *nRows = dim;
-                    else if (XMLString::compareString(pStr, pCol) == 0)
-                        *nCols = dim;
-                }
-            }
-        }
+        if (strcmp(name.c_str(), rowStr) == 0)
+            *nRows = atoi(size.c_str());
+        else if (strcmp(name.c_str(), colStr) == 0)
+            *nCols = atoi(size.c_str());
     }
-
-    // release strings.
-    XMLString::release(&pDimSize);
-    XMLString::release(&pDimName);
-    XMLString::release(&pRow);
-    XMLString::release(&pCol);
 
     return 0;
 }
@@ -774,10 +816,10 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
     const char * pGeoBox = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox";
 
     // define the needed strings.
-    XMLCh *pllx = XMLString::transcode("westBoundLongitude");
-    XMLCh *purx = XMLString::transcode("eastBoundLongitude");
-    XMLCh *plly = XMLString::transcode("southBoundLatitude");
-    XMLCh *pury = XMLString::transcode("northBoundLatitude");
+    const XMLCh pllx[] = L"westBoundLongitude";
+    const XMLCh purx[] = L"eastBoundLongitude";
+    const XMLCh plly[] = L"southBoundLatitude";
+    const XMLCh pury[] = L"northBoundLatitude";
 
     // get the nodes in turn.
     DOMNode *pGeoNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pGeoBox);
@@ -794,47 +836,23 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
         {
             if (XMLString::compareString(pGeoNode->getNodeName(), pllx) == 0)
             {
-                // should only be 1 child with the dimension value.
-                DOMNode *pTmpNode = pGeoNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    lngW = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                }
+                const std::string value = getValueFromNode(*pGeoNode);
+                lngW = atof(value.c_str());
             }
             else if (XMLString::compareString(pGeoNode->getNodeName(), plly) == 0)
             {
-                // should only be 1 child with the dimension value.
-                DOMNode *pTmpNode = pGeoNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    latS = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                }
+                const std::string value = getValueFromNode(*pGeoNode);
+                latS = atof(value.c_str());
             }
             else if (XMLString::compareString(pGeoNode->getNodeName(), purx) == 0)
             {
-                // should only be 1 child with the dimension value.
-                DOMNode *pTmpNode = pGeoNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    lngE = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                }
+                const std::string value = getValueFromNode(*pGeoNode);
+                lngE = atof(value.c_str());
             }
             else if (XMLString::compareString(pGeoNode->getNodeName(), pury) == 0)
             {
-                // should only be 1 child with the dimension value.
-                DOMNode *pTmpNode = pGeoNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    latN = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                }
+                const std::string value = getValueFromNode(*pGeoNode);
+                latN = atof(value.c_str());
             }
         }
     }
@@ -848,12 +866,6 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
     *llLong = lngW;
     *urLat = latN;
     *urLong = lngE;
-
-    // release strings.
-    XMLString::release(&pllx);
-    XMLString::release(&purx);
-    XMLString::release(&plly);
-    XMLString::release(&pury);
 
     return 0;
 }
@@ -870,6 +882,8 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
 /*!
 \param metaData
     \li The input meta data handle.
+\param version  
+    \li The bag dataset version number.
 \param llx
     \li Modified to contain the lower left X coordinate in projected units.
 \param lly
@@ -884,6 +898,7 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
 //************************************************************************
 bagError bagGetProjectedCover(
     bagMetaData metaData,
+    const char *version,
     f64 *llx,
     f64 *lly,
     f64 *urx,
@@ -893,34 +908,29 @@ bagError bagGetProjectedCover(
     if (metaData == NULL)
         return BAG_METADTA_INVALID_HANDLE;
 
+    //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
     f64 lx = DBL_MAX, ly = DBL_MAX, rx = DBL_MAX, ry = DBL_MAX;
 
-    const char * pGeoBox = "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/cornerPoints/gml:Point/gml:coordinates";
+    const std::string geoBoxStr = (metaVer == 1) ?
+        "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/cornerPoints/gml:Point/gml:coordinates" :
+        "gmi:MI_Metadata/gmd:spatialRepresentationInfo/gmd:MD_Georectified/gmd:cornerPoints/gml:Point/gml:coordinates";
 
-    DOMNode *pGMLCoord = bagGetXMLNodeByName(metaData->parser->getDocument(), pGeoBox);
-
+    DOMNode *pGMLCoord = bagGetXMLNodeByName(metaData->parser->getDocument(), geoBoxStr.c_str());
     if (pGMLCoord == NULL)
         return BAG_METADTA_INCOMPLETE_COVER;
 
-    DOMNode *pValue = pGMLCoord->getFirstChild();
-    if (pValue)
-    {
-        const XMLCh *pTmpStr = pValue->getNodeValue();
-        if (pTmpStr)
-        {
-            char *pPointStr = XMLString::transcode(pTmpStr);
+    const std::string value = getValueFromNode(*pGMLCoord);
 
-            // the string is 2 item tuples seperated by spaces.
-            lx = atof(pPointStr);
-            char *tmpPos = strchr(pPointStr, ',');
-            ly = atof(tmpPos+1);
-            tmpPos = strchr(tmpPos+1, ' ');
-            rx = atof(tmpPos+1);
-            tmpPos = strchr(tmpPos, ',');
-            ry = atof(tmpPos+1);
-            XMLString::release(&pPointStr);
-        }
-    }
+    // the string is 2 item tuples seperated by spaces.
+    lx = atof(value.c_str());
+    const char *tmpPos = strchr(value.c_str(), ',');
+    ly = atof(tmpPos+1);
+    tmpPos = strchr(tmpPos+1, ' ');
+    rx = atof(tmpPos+1);
+    tmpPos = strchr(tmpPos, ',');
+    ry = atof(tmpPos+1);
 
     if (lx == DBL_MAX || ly == DBL_MAX || rx == DBL_MAX || ry == DBL_MAX)
         return BAG_METADTA_INCOMPLETE_COVER;
@@ -945,6 +955,8 @@ bagError bagGetProjectedCover(
 /*!
 \param metaData
     \li The handle to the metadata.
+\param version  
+    \li The bag dataset version number.
 \param dx
     \li Modified to contain the node spacing along the X axis.
 \param dy
@@ -955,6 +967,7 @@ bagError bagGetProjectedCover(
 //************************************************************************
 bagError bagGetGridSpacing(
     bagMetaData metaData,
+    const char *version,
     f64 *dx,
     f64 *dy
     )
@@ -965,391 +978,52 @@ bagError bagGetGridSpacing(
     *dx = 0.0;
     *dy = 0.0;
 
-    // get the root node.
-    XMLCh *pDimName = XMLString::transcode("dimensionName");
-    XMLCh *pRow = XMLString::transcode("row");
-    XMLCh *pCol = XMLString::transcode("column");
-    XMLCh *pRes = XMLString::transcode("resolution");
+    //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
 
-    DOMNodeList *pChild = metaData->parser->getDocument()->getElementsByTagName(pDimName);
-    for (u32 i = 0; i < pChild->getLength(); i++)
+    const char rowStr[] = "row";
+    const char colStr[] = "column";
+
+    const std::wstring dimStr = (metaVer == 1) ?
+        L"smXML:MD_Dimension" : L"gmd:MD_Dimension";
+
+    const std::string dimNameStr = (metaVer == 1) ?
+        "dimensionName" : "gmd:dimensionName/gmd:MD_DimensionNameTypeCode";
+
+    const std::string resolutionStr = (metaVer == 1) ?
+        "resolution/smXML:Measure/smXML:value" : "gmd:resolution/gco:Measure";
+
+    //Find all of the dimension nodes.
+    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(dimStr.c_str());
+    for (XMLSize_t i = 0; i < pNodeList->getLength(); i++)
     {
-        DOMNode *pNode = pChild->item(i);
-     
-        if (pNode)
-        {
-            DOMNodeList *pChildList2 = pNode->getChildNodes();
+        DOMNode *pNode = pNodeList->item(i);
+        if (pNode == NULL)
+            return BAG_METADTA_RESOLUTION_MISSING;
 
-            for (u32 j = 0; j < pChildList2->getLength(); j++)
-            {
-                DOMNode *pChildNode = pChildList2->item(j);
+        //Get the dimension name node.
+        DOMNode *pNameNode = bagGetXMLNodeByName(pNode, dimNameStr.c_str());
+        if (pNameNode == NULL)
+            return BAG_METADTA_RESOLUTION_MISSING;
 
-                const XMLCh *pStr = pChildNode->getNodeValue();
+        //Get the resolution node.
+        DOMNode *pResNode = bagGetXMLNodeByName(pNode, resolutionStr.c_str());
+        if (pResNode == NULL)
+            return BAG_METADTA_RESOLUTION_MISSING;
 
-                // get the next sibling from our parent.
-                DOMNode *pSibling = pNode->getNextSibling();
+        const std::string name = getValueFromNode(*pNameNode);
+        const std::string resolution = getValueFromNode(*pResNode);
 
-                f64 res = 0.0;
-                bool found = false;
-                while (pSibling != NULL)
-                {
-                    // is this the dimension node....
-                    if (XMLString::compareString(pSibling->getNodeName(), pRes) == 0)
-                    {
-                        // should only be 1 child with the dimension value.
-                        DOMNode *pSMLRes = pSibling->getFirstChild();
-                        if (pSMLRes)
-                        {
-                            DOMNode *pValue = pSMLRes->getFirstChild();
-
-                            if (pValue)
-                            {
-                                pValue = pValue->getFirstChild();
-
-                                if (pValue)
-                                {
-                                    char *valStr = XMLString::transcode(pValue->getNodeValue());
-                                    res = atof(valStr);
-                                    XMLString::release(&valStr);
-                                    found = true;
-                                }
-                            }
-                        }
-                        // terminate the loop.
-                        pSibling = NULL;
-                    }
-                    else
-                        pSibling = pSibling->getNextSibling();
-
-                }
-
-                if (found)
-                {
-                    // check the name.
-                    if (XMLString::compareString(pStr, pRow) == 0)
-                        *dy = res;
-                    else if (XMLString::compareString(pStr, pCol) == 0)
-                        *dx = res;
-                }
-            }
-        }
+        if (strcmp(name.c_str(), rowStr) == 0)
+            *dy = atof(resolution.c_str());
+        else if (strcmp(name.c_str(), colStr) == 0)
+            *dx = atof(resolution.c_str());
     }
 
-    // release strings.
-    XMLString::release(&pRes);
-    XMLString::release(&pDimName);
-    XMLString::release(&pRow);
-    XMLString::release(&pCol);
+    if (*dx == 0.0 || *dy == 0.0)
+        return BAG_METADTA_RESOLUTION_MISSING;
 
     return 0;
-}
-
-//************************************************************************
-//      Method name:    bagGetProjectionParams()
-//
-//      
-//      - Initial implementation
-//        Bill Lamey, 7/20/2005
-//
-//************************************************************************
-//! Get the projection parameters from the metadata.
-/*!
-        This function will retrieve all of the projection information stored in
-        the metadata.
-
-\param metaData
-    \li The input metadata hanlde to extract the information from.
-\param projId
-    \li Modified to contain the projection identifier.  Buffer must be at least 5 characters long.  May not be NULL.
-\param projIdLen
-    \li The size of the projId buffer.
-\param zone
-    \li Modified to contain the UTM zone number if applicable.  May not be NULL.
-\param standrardParallel
-    \li 
-\param centralMeridian
-    \li 
-\param latitudeOfOrigin
-    \li 
-\param falseEasting
-    \li 
-\param falseNorthing
-    \li 
-\param scaleFactAtEq
-    \li 
-\param heightOfPersPoint
-    \li 
-\param longOfProjCenter
-    \li 
-\param latOfProjCenter
-    \li 
-\param scaleAtCenterLine
-    \li 
-\param vertLongFromPole
-    \li 
-\param scaleAtProjOrigin
-    \li 
-\return
-    \li 0 if the function is successful, non-zero if the function fails.
-*/
-//************************************************************************
-bagError bagGetProjectionParams(
-    bagMetaData metaData,
-    char *projId,
-    size_t projIdLen,
-    s32 *zone,
-    f64 *standrardParallel,
-    f64 *centralMeridian,
-    f64 *latitudeOfOrigin,
-    f64 *falseEasting,
-    f64 *falseNorthing,
-    f64 *scaleFactAtEq,
-    f64 *heightOfPersPoint,
-    f64 *longOfProjCenter,
-    f64 *latOfProjCenter,
-    f64 *scaleAtCenterLine,
-    f64 *vertLongFromPole,
-    f64 *scaleAtProjOrigin
-    )
-{
-    if (metaData == NULL)
-        return BAG_METADTA_INVALID_HANDLE;
-
-    const char * pProjIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projection/smXML:RS_Identifier/code";
-    const char * pProjLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projectionParameters/smXML:MD_ProjectionParameters";
-
-    // Needed strings.
-    XMLCh *pZone = XMLString::transcode("zone");
-    XMLCh *pStdPar = XMLString::transcode("standardParallel");
-    XMLCh *pCenterMer = XMLString::transcode("longitudeOfCentralMeridian");
-    XMLCh *pLatProjOrig = XMLString::transcode("latitudeOfProjectionOrigin");
-    XMLCh *pFalseEast = XMLString::transcode("falseEasting");
-    XMLCh *pFalseNorth = XMLString::transcode("falseNorthing");
-    XMLCh *pScaleFactAtEq = XMLString::transcode("scaleFactorAtEquator");
-    XMLCh *pHeightOfPers = XMLString::transcode("heightOfProspectivePointAboveSurface");
-    XMLCh *pLongProjCenter = XMLString::transcode("longitudeOfProjectionCenter");
-    XMLCh *pLatProjCenter = XMLString::transcode("latitudeOfProjectionCenter");
-    XMLCh *pScaleFactAtCenterLine = XMLString::transcode("scaleFactorAtCenterLine");
-    XMLCh *pStVertLongFromPole = XMLString::transcode("straightVerticalLongitudeFromPole");
-    XMLCh *pScaleFactAtProjOrig = XMLString::transcode("scaleFactorAtProjectionOrigin");
-
-    bool valuesFound = false;
-
-    DOMNode *pProjIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pProjIdLocation);
-
-    if (pProjIdNode)
-    {
-        DOMNode *pTmpNode = pProjIdNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-
-            if (strlen(pTmpStr) > projIdLen)
-            {
-                strncpy(projId, pTmpStr, sizeof(char) * projIdLen);
-                projId[projIdLen - 1] = '\0';
-            }
-            else
-            {
-                strcpy(projId, pTmpStr);
-            }
-
-            XMLString::release(&pTmpStr);
-            valuesFound = true;
-        }
-    }
-
-    // get all of the projection parameters.
-    DOMNode *pProjNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pProjLocation);
-    if (pProjNode)
-    {
-        DOMNodeList *pParamList = pProjNode->getChildNodes();
-        for (u32 j = 0; j < pParamList->getLength(); j++)
-        {
-            // check the string.
-            DOMNode *pParamNode = pParamList->item(j);
-
-            const XMLCh *pStr = pParamNode->getNodeName();
-
-            if (XMLString::compareString(pStr, pZone) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *zone = atoi(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pStdPar) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *standrardParallel = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pCenterMer) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *centralMeridian = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pLatProjOrig) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *latitudeOfOrigin = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pFalseEast) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *falseEasting = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pFalseNorth) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *falseNorthing = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pScaleFactAtEq) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *scaleFactAtEq = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pHeightOfPers) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *heightOfPersPoint = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pLongProjCenter) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *longOfProjCenter = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pLatProjCenter) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *latOfProjCenter = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pScaleFactAtCenterLine) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *scaleAtCenterLine = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pStVertLongFromPole) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *vertLongFromPole = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-            else if (XMLString::compareString(pStr, pScaleFactAtProjOrig) == 0)
-            {
-                // should only be 1 child with the value.
-                DOMNode *pTmpNode = pParamNode->getFirstChild();
-                if (pTmpNode)
-                {
-                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-                    *scaleAtProjOrigin = atof(pTmpStr);
-                    XMLString::release(&pTmpStr);
-                    valuesFound = true;
-                }
-            }
-        }
-    }
-
-    // releae all the strings.
-    XMLString::release(&pZone);
-    XMLString::release(&pStdPar);
-    XMLString::release(&pCenterMer);
-    XMLString::release(&pLatProjOrig);
-    XMLString::release(&pFalseEast);
-    XMLString::release(&pFalseNorth);
-    XMLString::release(&pScaleFactAtEq);
-    XMLString::release(&pHeightOfPers);
-    XMLString::release(&pLongProjCenter);
-    XMLString::release(&pLatProjCenter);
-    XMLString::release(&pScaleFactAtCenterLine);
-    XMLString::release(&pStVertLongFromPole);
-    XMLString::release(&pScaleFactAtProjOrig);
-
-    bagError error = 0;
-    if (!valuesFound)
-        error = BAG_METADTA_NO_PROJECTION_INFO;
-
-    return error;
 }
 
 //************************************************************************
@@ -1412,6 +1086,418 @@ bagError bagGetXMLBuffer(
 }
 
 //************************************************************************
+//      Method name:    bagGetVertDatum()
+//
+//      
+//      - Initial implementation
+//        Webb McDonald -- Fri Jul 30 12:01:41 2010
+//
+//************************************************************************
+//! Get the vertical datum identifier from the meta data.
+/*!
+\param metaData
+    \li The meta data to be searched.
+\param buffer
+    \li Modified to contain the horizontal datum id from the meta data.
+\param bufferSize
+    \li The maximum size of buffer.
+\return
+    \li 0 if the function succeeds, non-zero if the function fails.
+*/
+//************************************************************************
+bagError bagGetVertDatum(
+    bagMetaData metaData,
+    char *buffer,
+    u32 bufferSize
+    )
+{
+    buffer[0] = '\0';
+
+    //First try the custom vertical datum location.
+    const char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/verticalDatum/smXML:RS_Identifier/code";
+
+    DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
+    if (pEllipIdNode)
+    {
+        std::string vDatumName = getValueFromNode(*pEllipIdNode);
+        if (vDatumName.size() > bufferSize)
+            vDatumName.resize(bufferSize);
+
+        strcpy(buffer, vDatumName.c_str());
+    }
+
+    //If we did not find it, then try the more standard location.
+    if (strlen(buffer) == 0)
+    {
+        const char codeLoc[] = "datum/smXML:RS_Identifier/code";
+
+        DOMNodeList* nodeList = metaData->parser->getDocument()->getElementsByTagName(L"smXML:MD_CRS");
+        if (nodeList == NULL)
+            return BAG_SUCCESS;
+
+        //The first reference system node will be horizontal, and the second will be vertical.
+        //So if we don't have 2, we must not have a vertical system.
+        if (nodeList->getLength() < 2)
+            return BAG_SUCCESS;
+
+        DOMNode *pVerticalNode = nodeList->item(1);
+        if (pVerticalNode == NULL)
+            return BAG_SUCCESS;
+
+        //Find the code node.
+        DOMNode *pCodeNode = bagGetXMLNodeByName(pVerticalNode, codeLoc);
+        if (pCodeNode == NULL)
+            return BAG_SUCCESS;
+
+        //Get the vertical datum name from the node.
+        std::string vDatumName = getValueFromNode(*pCodeNode);
+        if (vDatumName.size() > bufferSize)
+            vDatumName.resize(bufferSize);
+
+        strcpy(buffer, vDatumName.c_str());
+    }
+
+    return BAG_SUCCESS;
+}
+
+//************************************************************************
+//      Method name:    bagGetUncertantyType()
+//
+//      
+//      - Initial implementation
+//        Bill Lamey, 20/01/2006
+//
+//************************************************************************
+//! Get the type of uncertainty represented by the Uncertainty layer in the BAG file.
+/*!
+\param metaData
+    \li The handle to the meta data structure.
+\param version  
+    \li The bag dataset version number.
+\param uncrtType
+    \li Modified to contain the type of uncertainty represented in this BAG.
+    See BAG_UNCERT_TYPE in bag.h for a complete listing.
+\return
+    \li Error code.
+*/
+//************************************************************************
+bagError bagGetUncertantyType(
+    bagMetaData metaData,
+    const char *version,
+    u32 *uncrtType
+    )
+{
+    bagError error = BAG_SUCCESS;
+    *uncrtType = Unknown_Uncert;
+
+    //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+    const std::string uncertStr = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/verticalUncertaintyType" :
+        "gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:verticalUncertaintyType/bag:BAG_VertUncertCode";
+
+    DOMNode *pUncrtNode = bagGetXMLNodeByName(metaData->parser->getDocument(), uncertStr.c_str());
+    if (pUncrtNode == NULL)
+        return BAG_METADTA_UNCRT_MISSING;
+
+    std::string value = getValueFromNode(*pUncrtNode);
+    if (value.empty())
+        return BAG_METADTA_UNCRT_MISSING;
+
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+    if (!strcmp(value.c_str(), "raw std dev") || !strcmp(value.c_str(), "rawStdDev"))
+        *uncrtType = Raw_Std_Dev;
+    else if (!strcmp(value.c_str(), "cube std dev") || !strcmp(value.c_str(), "cubeStdDev"))
+        *uncrtType = CUBE_Std_Dev;
+    else if (!strcmp(value.c_str(), "product uncert") || !strcmp(value.c_str(), "productUncert"))
+        *uncrtType = Product_Uncert;
+    else if (!strcmp(value.c_str(), "historical std dev") || !strcmp(value.c_str(), "historicalStdDev"))
+        *uncrtType = Historical_Std_Dev;
+
+    return 0;
+}
+
+//************************************************************************
+//      Method name:    bagGetDepthCorrectionType()
+//
+//      
+//      - Initial implementation
+//        NAVOCEANO, 06/06/2008
+//
+//************************************************************************
+//! Get the type of depth correction type represented by the depth layer in the BAG file.
+/*!
+\param metaData
+    \li The handle to the meta data structure.
+\param version  
+    \li The bag dataset version number.
+\param depthCorrectionType
+    \li Modified to contain the type of depth correction represented in this BAG.
+    See BAG_DEPTH_CORRECTION_TYPES in bag.h for a complete listing.
+\return
+    \li Error code.
+*/
+//************************************************************************
+bagError bagGetDepthCorrectionType(
+    bagMetaData metaData,
+    const char *version,
+    u32 *depthCorrectionType
+    )
+{
+    *depthCorrectionType = (unsigned int) NULL_GENERIC;
+
+    //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+    const std::string depthCorrectStr = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/depthCorrectionType" :
+        "gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:depthCorrectionType/bag:BAG_DepthCorrectCode";
+
+    DOMNode *pDepthCorrectionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), depthCorrectStr.c_str());
+    if (pDepthCorrectionNode == NULL)
+        return BAG_METADTA_DPTHCORR_MISSING;
+
+    std::string value = getValueFromNode(*pDepthCorrectionNode);
+    std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+
+    if (!strcmp(value.c_str(), "true depth") || !strcmp(value.c_str(), "trueDepth"))
+        *depthCorrectionType = True_Depth;
+    else if (!strcmp(value.c_str(), "nominal at 1500 m/s") || !strcmp(value.c_str(), "nominalDepthMetre"))
+        *depthCorrectionType = Nominal_Depth_Meters;
+    else if (!strcmp(value.c_str(), "nominal at 4800 ft/s") || !strcmp(value.c_str(), "nominalDepthFeet"))
+        *depthCorrectionType = Nominal_Depth_Feet;
+    else if (!strcmp(value.c_str(), "corrected via carter's tables") || !strcmp(value.c_str(), "correctedCarters"))
+        *depthCorrectionType = Corrected_Carters;
+    else if (!strcmp(value.c_str(), "corrected via matthew's tables") || !strcmp(value.c_str(), "correctedMatthews"))
+        *depthCorrectionType = Corrected_Matthews;
+    else if (!strcmp(value.c_str(), "unknown"))
+        *depthCorrectionType = Unknown_Correction;
+            
+    return 0;
+}
+
+//************************************************************************
+//      Method name:    bagGetProjectionParams()
+//
+//      
+//      - Initial implementation
+//        Bill Lamey, 7/20/2005
+//
+//************************************************************************
+//! Get the projection parameters from the metadata.
+/*!
+        This function will retrieve all of the projection information stored in
+        the metadata.
+
+\param metaData
+    \li The input metadata hanlde to extract the information from.
+\param projId
+    \li Modified to contain the projection identifier.  Buffer must be at least 5 characters long.  May not be NULL.
+\param projIdLen
+    \li The size of the projId buffer.
+\param zone
+    \li Modified to contain the UTM zone number if applicable.  May not be NULL.
+\param standrardParallel
+    \li 
+\param standrardParallel2
+    \li
+\param centralMeridian
+    \li 
+\param latitudeOfOrigin
+    \li 
+\param falseEasting
+    \li 
+\param falseNorthing
+    \li 
+\param scaleFactAtEq
+    \li 
+\param heightOfPersPoint
+    \li 
+\param longOfProjCenter
+    \li 
+\param latOfProjCenter
+    \li 
+\param scaleAtCenterLine
+    \li 
+\param vertLongFromPole
+    \li 
+\param scaleAtProjOrigin
+    \li 
+\return
+    \li 0 if the function is successful, non-zero if the function fails.
+*/
+//************************************************************************
+bagError bagGetProjectionParams(
+    bagMetaData metaData,
+    char *projId,
+    size_t projIdLen,
+    s32 *zone,
+    f64 *standrardParallel,
+    f64 *standrardParallel2,
+    f64 *centralMeridian,
+    f64 *latitudeOfOrigin,
+    f64 *falseEasting,
+    f64 *falseNorthing,
+    f64 *scaleFactAtEq,
+    f64 *heightOfPersPoint,
+    f64 *longOfProjCenter,
+    f64 *latOfProjCenter,
+    f64 *scaleAtCenterLine,
+    f64 *vertLongFromPole,
+    f64 *scaleAtProjOrigin
+    )
+{
+    if (metaData == NULL)
+        return BAG_METADTA_INVALID_HANDLE;
+
+    const char * pProjIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projection/smXML:RS_Identifier/code";
+    const char * pProjLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projectionParameters/smXML:MD_ProjectionParameters";
+
+    // Needed strings.
+    const XMLCh zoneStr[] = L"zone";
+    const XMLCh stdParStr[] = L"standardParallel";
+    const XMLCh centerMerStr[] = L"longitudeOfCentralMeridian";
+    const XMLCh latProjOrigStr[] = L"latitudeOfProjectionOrigin";
+    const XMLCh falseEastStr[] = L"falseEasting";
+    const XMLCh falseNorthStr[] = L"falseNorthing";
+    const XMLCh scaleFactAtEqStr[] = L"scaleFactorAtEquator";
+    const XMLCh heightOfPersStr[] = L"heightOfProspectivePointAboveSurface";
+    const XMLCh longProjCenterStr[] = L"longitudeOfProjectionCenter";
+    const XMLCh latProjCenterStr[] = L"latitudeOfProjectionCenter";
+    const XMLCh scaleFactAtCenterLineStr[] = L"scaleFactorAtCenterLine";
+    const XMLCh stVertLongFromPoleStr[] = L"straightVerticalLongitudeFromPole";
+    const XMLCh scaleFactAtProjOrigStr[] = L"scaleFactorAtProjectionOrigin";
+
+    bool valuesFound = false;
+
+    DOMNode *pProjIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pProjIdLocation);
+    if (pProjIdNode)
+    {
+        std::string value = getValueFromNode(*pProjIdNode);
+        if (value.size() > projIdLen)
+            value.resize(projIdLen);
+
+        strcpy(projId, value.c_str());
+        valuesFound = true;
+    }
+
+    // get all of the projection parameters.
+    DOMNode *pProjNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pProjLocation);
+    if (pProjNode)
+    {
+        DOMNodeList *pParamList = pProjNode->getChildNodes();
+        for (u32 j = 0; j < pParamList->getLength(); j++)
+        {
+            // check the string.
+            DOMNode *pParamNode = pParamList->item(j);
+
+            const XMLCh *pStr = pParamNode->getNodeName();
+
+            if (XMLString::compareString(pStr, zoneStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *zone = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, stdParStr) == 0)
+            {
+                // may be 1 or 2 children for this value.
+                DOMNode *pTmpNode = pParamNode->getFirstChild();
+                if (pTmpNode)
+                {
+                    char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+                    *standrardParallel = atof(pTmpStr);
+                    XMLString::release(&pTmpStr);
+                    valuesFound = true;
+
+                    DOMNode *pTmpNode2 = pTmpNode->getNextSibling();
+                    if (pTmpNode2 != NULL)
+                    {
+                        char *pTmpStr2 = XMLString::transcode(pTmpNode2->getNodeValue());
+                        *standrardParallel2 = atof(pTmpStr2);
+                        XMLString::release(&pTmpStr2);
+                    }
+                }
+            }
+            else if (XMLString::compareString(pStr, centerMerStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *centralMeridian = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, latProjOrigStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *latitudeOfOrigin = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, falseEastStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *falseEasting = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, falseNorthStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *falseNorthing = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, scaleFactAtEqStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *scaleFactAtEq = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, heightOfPersStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *heightOfPersPoint = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, longProjCenterStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *longOfProjCenter = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, latProjCenterStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *latOfProjCenter = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, scaleFactAtCenterLineStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *scaleAtCenterLine = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, stVertLongFromPoleStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *vertLongFromPole = atof(value.c_str());
+                valuesFound = true;
+            }
+            else if (XMLString::compareString(pStr, scaleFactAtProjOrigStr) == 0)
+            {
+                std::string value = getValueFromNode(*pParamNode);
+                *scaleAtProjOrigin = atof(value.c_str());
+                valuesFound = true;
+            }
+        }
+    }
+
+    bagError error = 0;
+    if (!valuesFound)
+        error = BAG_METADTA_NO_PROJECTION_INFO;
+
+    return error;
+}
+
+//************************************************************************
 //      Method name:    bagGetHorizDatum()
 //
 //      
@@ -1440,85 +1526,16 @@ bagError bagGetHorizDatum(
     const char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/datum/smXML:RS_Identifier/code";
 
     DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
-
-    bagError error = 0;
     if (pEllipIdNode)
     {
-        DOMNode *pTmpNode = pEllipIdNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+        std::string value = getValueFromNode(*pEllipIdNode);
+        if (value.size() > bufferSize)
+            value.resize(bufferSize);
 
-            if (strlen(pTmpStr) > bufferSize)
-            {
-                strncpy(buffer, pTmpStr, sizeof(char) * bufferSize);
-                buffer[bufferSize - 1] = '\0';
-            }
-            else
-            {
-                strcpy(buffer, pTmpStr);
-            }
-
-            XMLString::release(&pTmpStr);
-        }
+        strcpy(buffer, value.c_str());
     }
 
-    return error;
-}
-
-//************************************************************************
-//      Method name:    bagGetVertDatum()
-//
-//      
-//      - Initial implementation
-//        Webb McDonald -- Fri Jul 30 12:01:41 2010
-//
-//************************************************************************
-//! Get the vertical datum identifier from the meta data.
-/*!
-\param metaData
-    \li The meta data to be searched.
-\param buffer
-    \li Modified to contain the horizontal datum id from the meta data.
-\param bufferSize
-    \li The maximum size of buffer.
-\return
-    \li 0 if the function succeeds, non-zero if the function fails.
-*/
-//************************************************************************
-bagError bagGetVertDatum(
-    bagMetaData metaData,
-    char *buffer,
-    u32 bufferSize
-    )
-{
-    const char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/verticalDatum/smXML:RS_Identifier/code";
-
-    DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
-
-    bagError error = 0;
-    if (pEllipIdNode)
-    {
-        DOMNode *pTmpNode = pEllipIdNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-
-            if (strlen(pTmpStr) > bufferSize)
-            {
-                strncpy(buffer, pTmpStr, sizeof(char) * bufferSize);
-                buffer[bufferSize - 1] = '\0';
-            }
-            else
-            {
-                strcpy(buffer, pTmpStr);
-            }
-
-            XMLString::release(&pTmpStr);
-        }
-    }
-
-    return error;
+    return 0;
 }
 
 //************************************************************************
@@ -1550,166 +1567,16 @@ bagError bagGetEllipsoid(
     const char * pEllipIdLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/ellipsoid/smXML:RS_Identifier/code";
 
     DOMNode *pEllipIdNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pEllipIdLocation);
-
-    bagError error = 0;
     if (pEllipIdNode)
     {
-        DOMNode *pTmpNode = pEllipIdNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
+        std::string value = getValueFromNode(*pEllipIdNode);
+        if (value.size() > bufferSize)
+            value.resize(bufferSize);
 
-            if (strlen(pTmpStr) > bufferSize)
-            {
-                strncpy(buffer, pTmpStr, sizeof(char) * bufferSize);
-                buffer[bufferSize - 1] = '\0';
-            }
-            else
-            {
-                strcpy(buffer, pTmpStr);
-            }
-
-            XMLString::release(&pTmpStr);
-        }
+        strcpy(buffer, value.c_str());
     }
 
-    return error;
-}
-
-//************************************************************************
-//      Method name:    bagGetUncertantyType()
-//
-//      
-//      - Initial implementation
-//        Bill Lamey, 20/01/2006
-//
-//************************************************************************
-//! Get the type of uncertainty represented by the Uncertainty layer in the BAG file.
-/*!
-\param metaData
-    \li The handle to the meta data structure.
-\param uncrtType
-    \li Modified to contain the type of uncertainty represented in this BAG.
-    See BAG_UNCERT_TYPE in bag.h for a complete listing.
-\return
-    \li Error code.
-*/
-//************************************************************************
-bagError bagGetUncertantyType(
-    bagMetaData metaData,
-    u32 *uncrtType
-    )
-{
-    bagError error = BAG_SUCCESS;
-    *uncrtType = Unknown_Uncert;
-
-    const char * pUncrtType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/verticalUncertaintyType";
-    DOMNode *pUncrtNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pUncrtType);
-
-    if (pUncrtNode)
-    {
-        DOMNode *pTmpNode = pUncrtNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-            if (pTmpStr)
-            {
-                // convert the string to data type.
-
-                //  Generic version so we don't need to check for WIN32
-
-                char *lower = new char[strlen (pTmpStr) + 1];
-
-                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
-                lower[strlen (pTmpStr)] = 0;
-
-                if (!strcmp(lower, "raw std dev"))
-                    *uncrtType = Raw_Std_Dev;
-                else if (!strcmp(lower, "cube std dev"))
-                    *uncrtType = CUBE_Std_Dev;
-                else if (!strcmp(lower, "product uncert"))
-                    *uncrtType = Product_Uncert;
-                else if (!strcmp(lower, "historical std dev"))
-                    *uncrtType = Historical_Std_Dev;
-            }
-
-            XMLString::release(&pTmpStr);
-        }
-    }
-    else
-        error = BAG_METADTA_UNCRT_MISSING;
-
-    return error;
-}
-
-//************************************************************************
-//      Method name:    bagGetDepthCorrectionType()
-//
-//      
-//      - Initial implementation
-//        NAVOCEANO, 06/06/2008
-//
-//************************************************************************
-//! Get the type of depth correction type represented by the depth layer in the BAG file.
-/*!
-\param metaData
-    \li The handle to the meta data structure.
-\param depthCorrectionType
-    \li Modified to contain the type of depth correction represented in this BAG.
-    See BAG_DEPTH_CORRECTION_TYPES in bag.h for a complete listing.
-\return
-    \li Error code.
-*/
-//************************************************************************
-bagError bagGetDepthCorrectionType(
-    bagMetaData metaData,
-    u32 *depthCorrectionType
-    )
-{
-    bagError error = BAG_SUCCESS;
-    *depthCorrectionType = (unsigned int) NULL_GENERIC;
-
-    const char * pDepthCorrectionType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/depthCorrectionType";
-    DOMNode *pDepthCorrectionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pDepthCorrectionType);
-
-    if (pDepthCorrectionNode)
-    {
-        DOMNode *pTmpNode = pDepthCorrectionNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-            if (pTmpStr)
-            {
-                // convert the string to data type.
-
-                //  Generic version so we don't need to check for WIN3
-
-                char *lower = new char[strlen (pTmpStr) + 1];
-
-                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
-                lower[strlen (pTmpStr)] = 0;
-
-                if (!strcmp(lower, "true depth"))
-                    *depthCorrectionType = True_Depth;
-                else if (!strcmp(lower, "nominal at 1500 m/s"))
-                    *depthCorrectionType = Nominal_Depth_Meters;
-                else if (!strcmp(lower, "nominal at 4800 ft/s"))
-                    *depthCorrectionType = Nominal_Depth_Feet;
-                else if (!strcmp(lower, "corrected via carter's tables"))
-                    *depthCorrectionType = Corrected_Carters;
-                else if (!strcmp(lower, "corrected via matthew's tables"))
-                    *depthCorrectionType = Corrected_Matthews;
-                else if (!strcmp(lower, "unknown"))
-                    *depthCorrectionType = Unknown_Correction;
-            }
-
-            XMLString::release(&pTmpStr);
-        }
-    }
-    else
-        error = BAG_METADTA_DPTHCORR_MISSING;
-
-    return error;
+    return 0;
 }
 
 //************************************************************************
@@ -1736,42 +1603,25 @@ bagError bagGetNodeGroupType(
     u8 *nodeGroupType
     )
 {
-    bagError error = BAG_SUCCESS;
-    *nodeGroupType = (u8)0;
+    *nodeGroupType = (u8) 0;
 
-    const char * pNodeType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/nodeGroupType";
+    const char * pNodeType = "gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:nodeGroupType/bag:BAG_OptGroupCode";
     DOMNode *pNodeGroupNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pNodeType);
-
-    if (pNodeGroupNode)
+    
+    if (pNodeGroupNode != NULL)
     {
-        DOMNode *pTmpNode = pNodeGroupNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-            if (pTmpStr)
-            {
-                // convert the string to data type.
-
-                //  Generic version so we don't need to check for WIN3
-
-                char *lower = new char[strlen (pTmpStr) + 1];
-
-                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
-                lower[strlen (pTmpStr)] = 0;
-
-                if (!strcmp(lower, "cube solution"))
-                    *nodeGroupType = CUBE_Solution;
-                else if (!strcmp(lower, "product solution"))
-                    *nodeGroupType = Product_Solution;
-                else
-                    *nodeGroupType = Unknown_Solution;
-            }
-
-            XMLString::release(&pTmpStr);
-        }
+        std::string value = getValueFromNode(*pNodeGroupNode);
+        std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+    
+        if (!strcmp(value.c_str(), "cube"))
+            *nodeGroupType = CUBE_Solution;
+        else if (!strcmp(value.c_str(), "product"))
+            *nodeGroupType = Product_Solution;
+        else
+            *nodeGroupType = Unknown_Solution;
     }
-
-    return error;
+    
+    return BAG_SUCCESS;
 }
 
 //************************************************************************
@@ -1798,41 +1648,416 @@ bagError bagGetElevationSolutionType(
     u8 *nodeGroupType
     )
 {
-    bagError error = BAG_SUCCESS;
     *nodeGroupType = (u8) 0;
 
-    const char * pNodeType = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/elevationSolutionGroupType";
+    const char * pNodeType = "gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:elevationSolutionGroupType/bag:BAG_OptGroupCode";
     DOMNode *pElevationSolutionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pNodeType);
-
-    if (pElevationSolutionNode)
+    
+    if (pElevationSolutionNode != NULL)
     {
-        DOMNode *pTmpNode = pElevationSolutionNode->getFirstChild();
-        if (pTmpNode)
-        {
-            char *pTmpStr = XMLString::transcode(pTmpNode->getNodeValue());
-            if (pTmpStr)
-            {
-                // convert the string to data type.
-
-                //  Generic version so we don't need to check for WIN3
-
-                char *lower = new char[strlen (pTmpStr) + 1];
-
-                for (unsigned int i = 0 ; i < strlen (pTmpStr) ; i++) lower[i] = tolower (pTmpStr[i]);
-                lower[strlen (pTmpStr)] = 0;
-
-                if (!strcmp(lower, "cube solution"))
-                    *nodeGroupType = CUBE_Solution;
-                else if (!strcmp(lower, "product solution"))
-                    *nodeGroupType = Product_Solution;
-                else
-                    *nodeGroupType = Unknown_Solution;
-            }
-
-            XMLString::release(&pTmpStr);
-        }
+        std::string value = getValueFromNode(*pElevationSolutionNode);
+        std::transform(value.begin(), value.end(), value.begin(), ::tolower);
+    
+        if (!strcmp(value.c_str(), "cube"))
+            *nodeGroupType = CUBE_Solution;
+        else if (!strcmp(value.c_str(), "product"))
+            *nodeGroupType = Product_Solution;
+        else
+            *nodeGroupType = Unknown_Solution;
     }
-
-    return error;
+    
+    return BAG_SUCCESS;
 }
 
+//******************************************************************************
+//      Method name:    bagHGetReferenceSystemV2()
+//
+//      - Initial implementation
+//        Mike Van Duzee, 1/26/2012
+//
+//******************************************************************************
+//! Retrieve the BAG's version 2 horizontal reference system. 
+/*!
+    The version 2 reference system is either an EPSG number or WKT (Well Known Text)
+    definition.
+
+    The output buffer will contain either a WKT definition, or an EPSG number. 
+    If the output is EPSG the buffer will be in the following format:
+    "EPSG:<number>"
+
+\param metaData
+    \li The handle to the meta data structure.
+\param buffer
+    \li Modified to contain the reference's system definition.
+\param bufferSize
+    \li The size of the	definition buffer passed in.
+\return
+    \li On success, a value of zero is returned. On failure an error code is returned.
+*/
+//******************************************************************************
+bagError bagGetHReferenceSystemV2(
+    bagMetaData metaData,
+    char *buffer,
+    u32 bufferSize
+    )
+{
+    const char referenceLoc[] = "gmi:MI_Metadata/gmd:referenceSystemInfo/gmd:MD_ReferenceSystem/gmd:referenceSystemIdentifier/gmd:RS_Identifier";
+    const char codeLoc[] = "gmd:code/gco:CharacterString";
+    const char codePageLoc[] = "gmd:codeSpace/gco:CharacterString";
+
+    //Find the reference node.
+    DOMNode *pRefNode = bagGetXMLNodeByName(metaData->parser->getDocument(), referenceLoc);
+    if (pRefNode == NULL)
+        return BAG_METADTA_INVALID_HREF;
+
+    //Find the code node.
+    DOMNode *pCodeNode = bagGetXMLNodeByName(pRefNode, codeLoc);
+    if (pCodeNode == NULL)
+        return BAG_METADTA_INVALID_HREF;
+
+    //Find the code page node.
+    DOMNode *pCodePageNode = bagGetXMLNodeByName(pRefNode, codePageLoc);
+    if (pCodePageNode == NULL)
+        return BAG_METADTA_INVALID_HREF;
+
+    //Get the code and code page values.
+    std::string codeValue = getValueFromNode(*pCodeNode);
+    std::string codePageValue = getValueFromNode(*pCodePageNode);
+
+    //Make sure the codepage is all upper case.
+    std::transform(codePageValue.begin(), codePageValue.end(), codePageValue.begin(), ::toupper);
+
+    std::string defString;
+
+    //If the code page is WKT then...
+    if (strcmp(codePageValue.c_str(), "WKT") != 0)
+    {
+        defString = codePageValue;
+        defString += ":";
+    }
+
+    defString += codeValue;
+
+    //Make sure our string is not too large.
+    if (defString.size() > bufferSize)
+        defString.resize(bufferSize);
+
+    strcpy(buffer, defString.c_str());
+
+    return BAG_SUCCESS;
+}
+
+//******************************************************************************
+//      Method name:    bagGetHReferenceSystemV1()
+//
+//      - Initial implementation
+//        Mike Van Duzee, 1/26/2012
+//
+//******************************************************************************
+//! Retrieve the BAG's version 1 horizontal reference system. 
+/*!
+    The version 1 reference system contains all of the individual projection
+    parameters.
+
+    The output buffer will contain a WKT definition.
+
+\param metaData
+    \li The handle to the meta data structure.
+\param buffer
+    \li Modified to contain the reference's system definition.
+\param bufferSize
+    \li The size of the	definition buffer passed in.
+\return
+    \li On success, a value of zero is returned. On failure an error code is returned.
+*/
+//******************************************************************************
+bagError bagGetHReferenceSystemV1(bagMetaData metaData, char *buffer, u32 bufferSize)
+{
+    f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint, latitudeOfProjectionCenter;
+    char projectionId[XML_ATTR_MAXSTR];
+    char datumId[XML_ATTR_MAXSTR];
+
+    bagLegacyReferenceSystem v1Def;
+    memset(&v1Def, 0, sizeof(bagLegacyReferenceSystem));
+
+    /* read the projection information */
+    bagError error = bagGetProjectionParams(metaData, projectionId, XML_ATTR_MAXSTR,
+        &v1Def.geoParameters.zone,
+        &v1Def.geoParameters.std_parallel_1,
+        &v1Def.geoParameters.std_parallel_2, 
+        &v1Def.geoParameters.central_meridian,
+        &v1Def.geoParameters.origin_latitude, 
+        &v1Def.geoParameters.false_easting,
+        &v1Def.geoParameters.false_northing,
+        &scaleFactAtEq,                   /* dhf - used if Mercator coord sys */
+        &heightOfPersPoint,               /* dhf - for space oblique mercator (not in bag) */
+        &v1Def.geoParameters.longitude_of_centre,
+        &v1Def.geoParameters.latitude_of_centre,
+        &scaleAtCenterLine,               /* dhf - used if oblique mercator (not bag implemented) */
+        &v1Def.geoParameters.longitude_down_from_pole,
+        &scaleAtProjOrigin                /* used for polar stereographic & transverse mercator */
+	);
+    if (error)
+        return error;
+
+    /* retrieve the ellipsoid */
+    error = bagGetEllipsoid(metaData, (char *)v1Def.geoParameters.ellipsoid, XML_ATTR_MAXSTR);
+    if (error)
+        return error;
+
+    /* retrieve the horizontal datum */
+    error = bagGetHorizDatum(metaData, datumId, XML_ATTR_MAXSTR);
+    if (error)
+        return error;
+
+    /*convert the projection id to a supported type */
+    v1Def.coordSys = bagCoordsys(projectionId);
+
+    /* retrieve the vertical datum */
+    error = bagGetEllipsoid(metaData, (char *)v1Def.geoParameters.vertical_datum, XML_ATTR_MAXSTR);
+    if (error)
+        return error;
+
+    /* dhf */
+    /* scaleFactAtEq - for mercator */
+    /* scaleAtCenterLine - for oblique mercator (not supported) */
+    /* scaleAtProjOrigin - for polar stereographic & transverse mercator */
+
+    if ( v1Def.coordSys == Mercator )
+    	v1Def.geoParameters.scale_factor = scaleFactAtEq;
+    if ( v1Def.coordSys == Transverse_Mercator || v1Def.coordSys == Polar_Stereo )
+    	v1Def.geoParameters.scale_factor = scaleAtProjOrigin;
+
+    /* convert the datum type */
+    v1Def.geoParameters.datum = bagDatumID(datumId);  
+
+    error = bagLegacyToWkt(v1Def, buffer, bufferSize, NULL, 0);
+    if (error)
+        return error;
+
+    return BAG_SUCCESS;
+}
+
+//******************************************************************************
+//      Method name:    bagGetHReferenceSystem()
+//
+//      - Initial implementation
+//        Mike Van Duzee, 1/26/2012
+//
+//******************************************************************************
+//! Retrieve the BAG's horizontal reference system. 
+/*!
+
+    The output buffer will contain either a WKT definition, or an EPSG number. 
+    If the output is EPSG the buffer will be in the following format:
+    "EPSG:<number>"
+
+\param metaData
+    \li The handle to the meta data structure.
+\param version  
+    \li The bag dataset version number.
+\param buffer
+    \li Modified to contain the reference's system definition.
+\param bufferSize
+    \li The size of the	definition buffer passed in.
+\return
+    \li On success, a value of zero is returned. On failure an error code is returned.
+*/
+//******************************************************************************
+bagError bagGetHReferenceSystem(
+    bagMetaData metaData,
+    const char *version,
+    char *buffer,
+    u32 bufferSize
+    )
+{
+    bagError err = 0;
+
+    //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+    if (metaVer == 1)
+        err = bagGetHReferenceSystemV1(metaData, buffer, bufferSize);
+    else
+        err = bagGetHReferenceSystemV2(metaData, buffer, bufferSize);
+
+    return err;
+}
+
+//******************************************************************************
+//      Method name:    bagGetVReferenceSystemV2()
+//
+//      - Initial implementation
+//        Mike Van Duzee, 1/26/2012
+//
+//******************************************************************************
+//! Retrieve the BAG's version 2 vertical reference system. 
+/*!
+    The version 2 reference system is either an EPSG number or WKT (Well Known Text)
+    definition.
+
+    The output buffer will contain either a WKT definition, or an EPSG number. 
+    If the output is EPSG the buffer will be in the following format:
+    "EPSG:<number>"
+
+\param metaData
+    \li The handle to the meta data structure.
+\param buffer
+    \li Modified to contain the vertical reference's system definition.
+\param bufferSize
+    \li The size of the	definition buffer passed in.
+\return
+    \li On success, a value of zero is returned. On failure an error code is returned.
+*/
+//******************************************************************************
+bagError bagGetVReferenceSystemV2(bagMetaData metaData, char *buffer, u32 bufferSize)
+{
+    const char codeLoc[] = "gmd:referenceSystemIdentifier/gmd:RS_Identifier/gmd:code/gco:CharacterString";
+    const char codePageLoc[] = "gmd:referenceSystemIdentifier/gmd:RS_Identifier/gmd:codeSpace/gco:CharacterString";
+
+    //Lets find the reference system nodes.
+    XMLCh *pDataIdent = XMLString::transcode("gmd:MD_ReferenceSystem");
+    DOMNodeList* nodeList = metaData->parser->getDocument()->getElementsByTagName(pDataIdent);
+    XMLString::release(&pDataIdent);
+    if (nodeList == NULL)
+    {
+        buffer[0] = '\0';
+        return BAG_SUCCESS;
+    }
+
+    //The first reference system node will be horizontal, and the second will be vertical.
+    //So if we don't have 2, we must not have a vertical system.
+    if (nodeList->getLength() < 2)
+    {
+        buffer[0] = '\0';
+        return BAG_SUCCESS;
+    }
+
+    DOMNode *pVerticalNode = nodeList->item(1);
+    if (pVerticalNode == NULL)
+    {
+        buffer[0] = '\0';
+        return BAG_SUCCESS;
+    }
+
+    //Find the code node.
+    DOMNode *pCodeNode = bagGetXMLNodeByName(pVerticalNode, codeLoc);
+    if (pCodeNode == NULL)
+        return BAG_METADTA_INVALID_VREF;
+
+    //Find the code page node.
+    DOMNode *pCodePageNode = bagGetXMLNodeByName(pVerticalNode, codePageLoc);
+    if (pCodePageNode == NULL)
+        return BAG_METADTA_INVALID_VREF;
+
+    //Get the code and code page values.
+    std::string codeValue = getValueFromNode(*pCodeNode);
+    std::string codePageValue = getValueFromNode(*pCodePageNode);
+
+    //Make sure the codepage is all upper case.
+    std::transform(codePageValue.begin(), codePageValue.end(), codePageValue.begin(), ::toupper);
+
+    std::string defString;
+
+    //If the code page is WKT then...
+    if (strcmp(codePageValue.c_str(), "WKT") != 0)
+    {
+        defString = codePageValue;
+        defString += ":";
+    }
+
+    defString += codeValue;
+
+    //Make sure our string is not too large.
+    if (defString.size() > bufferSize)
+        defString.resize(bufferSize);
+
+    strcpy(buffer, defString.c_str());
+
+    return BAG_SUCCESS;
+}
+
+//******************************************************************************
+//      Method name:    bagGetVReferenceSystemV1()
+//
+//      - Initial implementation
+//        Mike Van Duzee, 1/26/2012
+//
+//******************************************************************************
+//! Retrieve the BAG's version 1 vertical reference system. 
+/*!
+    The version 1 reference system contains simply contains the vertical
+    datum name.
+
+    If the vertical datum's name is "v_datum_1" the output definition
+    will be in the following form:
+
+    VERT_CS["v_datum_1",
+        VERT_DATUM[v_datum_1, 2000]]
+
+\param metaData
+    \li The handle to the meta data structure.
+\param buffer
+    \li Modified to contain the vertical reference's system definition.
+\param bufferSize
+    \li The size of the	definition buffer passed in.
+\return
+    \li On success, a value of zero is returned. On failure an error code is returned.
+*/
+//******************************************************************************
+bagError bagGetVReferenceSystemV1(bagMetaData metaData, char *buffer, u32 bufferSize)
+{
+    //First try to retrieve the custom 'verticalDatum' node value.
+    bagLegacyReferenceSystem system;
+    bagError error = bagGetVertDatum(metaData, (char *)system.geoParameters.vertical_datum, XML_ATTR_MAXSTR);
+    if (error)
+        return error;
+
+    return bagLegacyToWkt(system, NULL, 0, buffer, bufferSize);
+}
+
+//******************************************************************************
+//      Method name:    bagGetVReferenceSystem()
+//
+//      - Initial implementation
+//        Mike Van Duzee, 1/26/2012
+//
+//******************************************************************************
+//! Retrieve the BAG's vertical reference system. 
+/*!
+
+    The output buffer will contain either a WKT definition, or an EPSG number. 
+    If the output is EPSG the buffer will be in the following format:
+    "EPSG:<number>"
+
+\param metaData
+    \li The handle to the meta data structure.
+\param version  
+    \li The bag dataset version number.
+\param buffer
+    \li Modified to contain the reference's system definition.
+\param bufferSize
+    \li The size of the	definition buffer passed in.
+\return
+    \li On success, a value of zero is returned. On failure an error code is returned.
+*/
+//******************************************************************************
+bagError bagGetVReferenceSystem(
+    bagMetaData metaData,
+    const char *version,
+    char *buffer,
+    u32 bufferSize
+    )
+{
+    bagError err = 0;
+
+    //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+    if (metaVer == 1)
+        err = bagGetVReferenceSystemV1(metaData, buffer, bufferSize);
+    else 
+        err = bagGetVReferenceSystemV2(metaData, buffer, bufferSize);
+
+    return err;
+}
