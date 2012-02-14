@@ -142,7 +142,7 @@ private:
     // -----------------------------------------------------------------------
     //  Data members
     // -----------------------------------------------------------------------
-    unsigned short  fAxisType;
+	wchar_t			fAxisType;
     XercesNodeTest* fNodeTest;
 };
 
