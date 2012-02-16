@@ -123,21 +123,21 @@ struct bagXMLHandle
     BAGMetaDataErrorHandler *errHandler;
 };
 
-//! This is a simple class that lets us do easy (though not terribly efficient) transcoding of XMLCh data to local code page for display.
-class StrX
+//! This a simpe class to allow transcoding of a wide character buffer to an ascii buffer.
+class wideString
 {
 public :
 //Construction/Destruction
-    StrX(const XMLCh* const toTranscode)
+    wideString(const XMLCh* const toTranscode)
     {
         // Call the private transcoding method
         fLocalForm = XMLString::transcode(toTranscode);
     }
-    ~StrX()
+
+    ~wideString()
     {
         XMLString::release(&fLocalForm);
     }
-
 
 //Methods
     const char* localForm() const
@@ -148,6 +148,58 @@ public :
 private :
     //! This is the local code page form of the string.
     char*   fLocalForm;
+};
+
+//! This a simpe class to allow transcoding of an ascii buffer to wide character buffer.
+class asciiString
+{
+public:
+    //! Constructor
+    asciiString()
+    : m_wBuffer(NULL)
+    {
+    }
+
+    //! Constructor
+    asciiString(const char *buffer)
+    : m_wBuffer(NULL)
+    {
+        if (buffer != NULL)
+            m_wBuffer = XMLString::transcode(buffer);
+    }
+
+    //! Destructor
+    ~asciiString()
+    {
+        if (m_wBuffer != NULL)
+            XMLString::release(&m_wBuffer);
+    }
+
+    //! Cast type operator.
+    operator XMLCh*() const
+    {
+        return m_wBuffer;
+    }
+
+    //! Assignment operator.
+    asciiString & operator=(const char *buffer)
+    {
+        if (m_wBuffer != NULL)
+        {
+            XMLString::release(&m_wBuffer);
+            m_wBuffer = NULL;
+        }
+
+        if (buffer != NULL)
+            m_wBuffer = XMLString::transcode(buffer);
+
+        return *this;
+    }
+
+private:
+
+    //! The wide character buffer.
+    XMLCh *m_wBuffer;
 };
 
 //************************************************************************
@@ -170,7 +222,7 @@ private :
 //************************************************************************
 inline XERCES_STD_QUALIFIER ostream& operator<<(
     XERCES_STD_QUALIFIER ostream& target,
-    const StrX& toDump
+    const wideString& toDump
     )
 {
     target << toDump.localForm();
@@ -198,10 +250,10 @@ void BAGMetaDataErrorHandler::warning(
     const SAXParseException& toCatch
     )
 {
-    XERCES_STD_QUALIFIER cerr << "Warning at file \"" << StrX(toCatch.getSystemId())
+    XERCES_STD_QUALIFIER cerr << "Warning at file \"" << wideString(toCatch.getSystemId())
 		 << "\", line " << toCatch.getLineNumber()
 		 << ", column " << toCatch.getColumnNumber()
-         << "\n   Message: " << StrX(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
+         << "\n   Message: " << wideString(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
 }
 
 //************************************************************************
@@ -223,10 +275,10 @@ void BAGMetaDataErrorHandler::error(
     )
 {
     fSawErrors = true;
-    XERCES_STD_QUALIFIER cerr << "Error at file \"" << StrX(toCatch.getSystemId())
+    XERCES_STD_QUALIFIER cerr << "Error at file \"" << wideString(toCatch.getSystemId())
 		 << "\", line " << toCatch.getLineNumber()
 		 << ", column " << toCatch.getColumnNumber()
-         << "\n   Message: " << StrX(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
+         << "\n   Message: " << wideString(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
 }
 
 //************************************************************************
@@ -249,10 +301,10 @@ void BAGMetaDataErrorHandler::fatalError(
 {
     fSawErrors = true;
     fSawFatals = true;
-    XERCES_STD_QUALIFIER cerr << "Fatal Error at file \"" << StrX(toCatch.getSystemId())
+    XERCES_STD_QUALIFIER cerr << "Fatal Error at file \"" << wideString(toCatch.getSystemId())
 		 << "\", line " << toCatch.getLineNumber()
 		 << ", column " << toCatch.getColumnNumber()
-         << "\n   Message: " << StrX(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
+         << "\n   Message: " << wideString(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
 }
 
 //************************************************************************
@@ -307,17 +359,18 @@ DOMNode *bagGetXMLNodeByName(
     // stip out the first section of the path.
     const char *endPos = strchr(pathName, '/');
 
-    XMLCh *pNodeName = NULL;
+    asciiString nodeName;
     if (endPos)
     {
-        char nodeName[256];
+        char nodeNameBuffer[256];
         size_t len = endPos - pathName;
-        strncpy(nodeName, pathName, len);
-        nodeName[len] = '\0';
-        pNodeName = XMLString::transcode(nodeName);
+        strncpy(nodeNameBuffer, pathName, len);
+        nodeNameBuffer[len] = '\0';
+
+        nodeName = nodeNameBuffer;
     }
     else
-        pNodeName = XMLString::transcode(pathName);
+        nodeName = pathName;
 
     DOMNodeList *pList = parent->getChildNodes();
 
@@ -328,13 +381,10 @@ DOMNode *bagGetXMLNodeByName(
         if (pChild)
         {
             const XMLCh *pCurrNodeName = pChild->getNodeName();
-            if (XMLString::compareString(pNodeName, pCurrNodeName) == 0)
+            if (XMLString::compareString(nodeName, pCurrNodeName) == 0)
             {
                 if (endPos == NULL)
                 {
-                    // release the string 
-                    XMLString::release(&pNodeName);
-
                     // if we are at the end, return the node.
                     return pChild;
                 }
@@ -344,18 +394,12 @@ DOMNode *bagGetXMLNodeByName(
                     DOMNode *pRet = bagGetXMLNodeByName(pChild, endPos + 1);
                     if (pRet)
                     {
-                        // release the string 
-                        XMLString::release(&pNodeName);
-
                         return pRet;
                     }
                 }
             }
         }
     }
-
-    // release the string 
-    XMLString::release(&pNodeName);
 
     // not found.
     return NULL;
@@ -493,7 +537,7 @@ bagMetaData bagGetMetadata(
     catch (const XMLException& e)
     {
         XERCES_STD_QUALIFIER cerr << "An error occurred during parsing\n   Message: "
-             << StrX(e.getMessage()) << XERCES_STD_QUALIFIER endl;
+             << wideString(e.getMessage()) << XERCES_STD_QUALIFIER endl;
         *error = BAG_METADTA_PARSE_EXCEPTION;
     }
     catch (const DOMException& e)
@@ -501,11 +545,11 @@ bagMetaData bagGetMetadata(
         const u32 maxChars = 2047;
         XMLCh errText[maxChars + 1];
 
-        XERCES_STD_QUALIFIER cerr << "\nDOM Error parsing " << StrX(source.getSystemId()) << XERCES_STD_QUALIFIER endl
+        XERCES_STD_QUALIFIER cerr << "\nDOM Error parsing " << wideString(source.getSystemId()) << XERCES_STD_QUALIFIER endl
              << "DOMException code is:  " << e.code << XERCES_STD_QUALIFIER endl;
 
         if (DOMImplementation::loadDOMExceptionMsg(e.code, errText, maxChars))
-             XERCES_STD_QUALIFIER cerr << "Message is: " << StrX(errText) << XERCES_STD_QUALIFIER endl;
+             XERCES_STD_QUALIFIER cerr << "Message is: " << wideString(errText) << XERCES_STD_QUALIFIER endl;
         *error = BAG_METADTA_PARSE_DOM_EXCEPTION;
     }
     catch (...)
@@ -588,7 +632,7 @@ catch(const XMLException &toCatch)
 {
     XERCES_STD_QUALIFIER cerr << "Error during Xerces-c Initialization.\n"
          << "  Exception message:"
-         << StrX(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
+         << wideString(toCatch.getMessage()) << XERCES_STD_QUALIFIER endl;
     return BAG_METADTA_INIT_FAILED;
 }
 
@@ -674,9 +718,8 @@ bagMetaData bagGetMetadataBuffer(char *buffer, s32 bufferSize, Bool doValidation
 bagMetaData bagGetMetadataFile(char *fileName, Bool doValidation, bagError *error)
 {
     // generate the input source.
-    XMLCh *fName = XMLString::transcode(fileName);
+    asciiString fName(fileName);
     LocalFileInputSource  fileSource(fName);
-    XMLString::release(&fName);
 
     // call the validation routine.
     return bagGetMetadata(fileSource, doValidation, error);
@@ -739,8 +782,8 @@ bagError bagGetCellDims(
     const char rowStr[] = "row";
     const char colStr[] = "column";
 
-    const std::wstring dimStr = (metaVer == 1) ?
-        L"smXML:MD_Dimension" : L"gmd:MD_Dimension";
+    const asciiString dimStr = (metaVer == 1) ?
+        "smXML:MD_Dimension" : "gmd:MD_Dimension";
 
     const std::string dimNameStr = (metaVer == 1) ?
         "dimensionName" : "gmd:dimensionName/gmd:MD_DimensionNameTypeCode";
@@ -749,7 +792,7 @@ bagError bagGetCellDims(
         "dimensionSize" : "gmd:dimensionSize/gco:Integer";
 
     //Find all of the dimension nodes.
-    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(dimStr.c_str());
+    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(dimStr);
     for (XMLSize_t i = 0; i < pNodeList->getLength(); i++)
     {
         DOMNode *pNode = pNodeList->item(i);
@@ -816,10 +859,10 @@ bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLa
     const char * pGeoBox = "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox";
 
     // define the needed strings.
-    const XMLCh pllx[] = L"westBoundLongitude";
-    const XMLCh purx[] = L"eastBoundLongitude";
-    const XMLCh plly[] = L"southBoundLatitude";
-    const XMLCh pury[] = L"northBoundLatitude";
+    const asciiString pllx("westBoundLongitude");
+    const asciiString purx("eastBoundLongitude");
+    const asciiString plly("southBoundLatitude");
+    const asciiString pury("northBoundLatitude");
 
     // get the nodes in turn.
     DOMNode *pGeoNode = bagGetXMLNodeByName(metaData->parser->getDocument(), pGeoBox);
@@ -984,8 +1027,8 @@ bagError bagGetGridSpacing(
     const char rowStr[] = "row";
     const char colStr[] = "column";
 
-    const std::wstring dimStr = (metaVer == 1) ?
-        L"smXML:MD_Dimension" : L"gmd:MD_Dimension";
+    const asciiString dimStr = (metaVer == 1) ?
+        "smXML:MD_Dimension" : "gmd:MD_Dimension";
 
     const std::string dimNameStr = (metaVer == 1) ?
         "dimensionName" : "gmd:dimensionName/gmd:MD_DimensionNameTypeCode";
@@ -994,7 +1037,7 @@ bagError bagGetGridSpacing(
         "resolution/smXML:Measure/smXML:value" : "gmd:resolution/gco:Measure";
 
     //Find all of the dimension nodes.
-    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(dimStr.c_str());
+    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(dimStr);
     for (XMLSize_t i = 0; i < pNodeList->getLength(); i++)
     {
         DOMNode *pNode = pNodeList->item(i);
@@ -1356,19 +1399,19 @@ bagError bagGetProjectionParams(
     const char * pProjLocation = "smXML:MD_Metadata/referenceSystemInfo/smXML:MD_CRS/projectionParameters/smXML:MD_ProjectionParameters";
 
     // Needed strings.
-    const XMLCh zoneStr[] = L"zone";
-    const XMLCh stdParStr[] = L"standardParallel";
-    const XMLCh centerMerStr[] = L"longitudeOfCentralMeridian";
-    const XMLCh latProjOrigStr[] = L"latitudeOfProjectionOrigin";
-    const XMLCh falseEastStr[] = L"falseEasting";
-    const XMLCh falseNorthStr[] = L"falseNorthing";
-    const XMLCh scaleFactAtEqStr[] = L"scaleFactorAtEquator";
-    const XMLCh heightOfPersStr[] = L"heightOfProspectivePointAboveSurface";
-    const XMLCh longProjCenterStr[] = L"longitudeOfProjectionCenter";
-    const XMLCh latProjCenterStr[] = L"latitudeOfProjectionCenter";
-    const XMLCh scaleFactAtCenterLineStr[] = L"scaleFactorAtCenterLine";
-    const XMLCh stVertLongFromPoleStr[] = L"straightVerticalLongitudeFromPole";
-    const XMLCh scaleFactAtProjOrigStr[] = L"scaleFactorAtProjectionOrigin";
+    const asciiString zoneStr("zone");
+    const asciiString stdParStr("standardParallel");
+    const asciiString centerMerStr("longitudeOfCentralMeridian");
+    const asciiString latProjOrigStr("latitudeOfProjectionOrigin");
+    const asciiString falseEastStr("falseEasting");
+    const asciiString falseNorthStr("falseNorthing");
+    const asciiString scaleFactAtEqStr("scaleFactorAtEquator");
+    const asciiString heightOfPersStr("heightOfProspectivePointAboveSurface");
+    const asciiString longProjCenterStr("longitudeOfProjectionCenter");
+    const asciiString latProjCenterStr("latitudeOfProjectionCenter");
+    const asciiString scaleFactAtCenterLineStr("scaleFactorAtCenterLine");
+    const asciiString stVertLongFromPoleStr("straightVerticalLongitudeFromPole");
+    const asciiString scaleFactAtProjOrigStr("scaleFactorAtProjectionOrigin");
 
     bool valuesFound = false;
 
@@ -1916,9 +1959,8 @@ bagError bagGetVReferenceSystemV2(bagMetaData metaData, char *buffer, u32 buffer
     const char codePageLoc[] = "gmd:referenceSystemIdentifier/gmd:RS_Identifier/gmd:codeSpace/gco:CharacterString";
 
     //Lets find the reference system nodes.
-    XMLCh *pDataIdent = XMLString::transcode("gmd:MD_ReferenceSystem");
-    DOMNodeList* nodeList = metaData->parser->getDocument()->getElementsByTagName(pDataIdent);
-    XMLString::release(&pDataIdent);
+    asciiString dataIdent("gmd:MD_ReferenceSystem");
+    DOMNodeList* nodeList = metaData->parser->getDocument()->getElementsByTagName(dataIdent);
     if (nodeList == NULL)
     {
         buffer[0] = '\0';
