@@ -1091,6 +1091,21 @@ bagError bagGetErrorString(bagError code, u8 **error)
     case BAG_METADTA_BUFFER_EXCEEDED:
         strncpy (str, "Metadata supplied buffer is too large to be stored in the internal array", MAX_STR-1);
         break;
+    case BAG_METADTA_RESOLUTION_MISSING:
+        strncpy (str, "Metadata resolution information is missing from the XML structure", MAX_STR-1);
+        break;
+    case BAG_METADTA_INVALID_PROJECTION:
+        strncpy (str, "Metadata unsupported projection being used", MAX_STR-1);
+        break;
+    case BAG_METADTA_INVALID_DATUM:
+        strncpy (str, "Metadata unsupported datum being used", MAX_STR-1);
+        break;
+    case BAG_METADTA_INVALID_HREF:
+        strncpy (str, "Metadata horizontal reference system is invalid", MAX_STR-1);
+        break;
+    case BAG_METADTA_INVALID_VREF:
+        strncpy (str, "Metadata vertical reference system is invalid", MAX_STR-1);
+        break;
     case BAG_NOT_HDF5_FILE:
         strncpy (str, "HDF Bag is not an HDF5 File", MAX_STR-1);
         break;
