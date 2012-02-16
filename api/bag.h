@@ -313,7 +313,7 @@ typedef struct t_bagProjectionParameters
         s32 zone;                                     /* utm zone 1-60              */
         s32 utm_override;                             /* utm: 0=autozone,1=use zone */
 } bagProjectionParameters;
-/////////////////////////////// /////////////////////////////// Legacy //////////////////////////////////////////////////////////////// 
+/*///////////////////////////// /////////////////////////////// Legacy //////////////////////////////////////////////////////////////*/ 
 
 /* Reference system definition */
 typedef struct t_bagReferenceSystem

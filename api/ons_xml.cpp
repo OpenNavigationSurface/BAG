@@ -508,7 +508,7 @@ bagMetaData bagGetMetadata(
         
             // The schema validation will pass even if the MD_DataIdentification element was
             // used, so lets verify that we have the correct bag version.
-            DOMNodeList* nodeList = xmlDoc->getElementsByTagName(L"bag:BAG_DataIdentification");
+            DOMNodeList* nodeList = xmlDoc->getElementsByTagName((XMLCh *)"bag:BAG_DataIdentification");
             if (nodeList == NULL || nodeList->getLength() == 0)
             {
                 delete metaData;
@@ -519,7 +519,7 @@ bagMetaData bagGetMetadata(
 
             // The schema validation will pass even if the LI_ProcessStep element was
             // used, so lets verify that we have the correct bag version.
-            nodeList = xmlDoc->getElementsByTagName(L"bag:BAG_ProcessStep");
+            nodeList = xmlDoc->getElementsByTagName((XMLCh *)"bag:BAG_ProcessStep");
             if (nodeList == NULL || nodeList->getLength() == 0)
             {
                 delete metaData;
@@ -1174,7 +1174,7 @@ bagError bagGetVertDatum(
     {
         const char codeLoc[] = "datum/smXML:RS_Identifier/code";
 
-        DOMNodeList* nodeList = metaData->parser->getDocument()->getElementsByTagName(L"smXML:MD_CRS");
+        DOMNodeList* nodeList = metaData->parser->getDocument()->getElementsByTagName((XMLCh *)"smXML:MD_CRS");
         if (nodeList == NULL)
             return BAG_SUCCESS;
 

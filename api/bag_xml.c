@@ -259,9 +259,9 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
         return error;
     }
 
-    //We need to assume that a new BAG file is being created, so set the
-    //correct version on the bagData so we can correctly decode the
-    //metadata.
+    /*We need to assume that a new BAG file is being created, so set the
+      correct version on the bagData so we can correctly decode the
+      metadata.  */
     strcpy(data->version, BAG_VERSION);
 
     /* initialize the metadata module */
@@ -425,9 +425,9 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
  */
 bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
 {
-    //We need to assume that a new BAG file is being created, so set the
-    //correct version on the bagData so we can correctly decode the
-    //metadata.
+    /*We need to assume that a new BAG file is being created, so set the
+      correct version on the bagData so we can correctly decode the
+      metadata.  */
     strcpy(data->version, BAG_VERSION);
 
     return bagInitAndValidateDefinition(data, buffer, bufferSize, True);
