@@ -136,6 +136,7 @@ bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type, void *data, 
  ****************************************************************************************/
 bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *data, s32 read_or_write)
 {
+    u32            srow, scol;
     herr_t         status;
     hsize_t        snode[2] = {1,1};
     hssize_t	     offset[1][2];
@@ -148,11 +149,25 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
+    if (type >= BAG_OPT_SURFACE_LIMIT)
+        return  BAG_INVALID_FUNCTION_ARGUMENT;
+
+    if (type > Uncertainty)
+    {
+        srow=bagHandle->bag.opt[type].nrows;
+        scol=bagHandle->bag.opt[type].ncols;
+    }
+    else
+    {
+        srow=bagHandle->bag.def.nrows;
+        scol=bagHandle->bag.def.ncols;
+    }
+
     /*! some error checking on surfaces extents */
-    if (row >= bagHandle->bag.def.nrows || col >= bagHandle->bag.def.ncols)
+    if (row >= srow || col >= scol)
     {
         fprintf(stderr, "Fail to access out of bounds row/col = %d/%d out of possible size: %d/%d. Aborting\n",
-                row, col, bagHandle->bag.def.nrows, bagHandle->bag.def.ncols);
+                row, col, srow, scol);
         fflush(stderr);
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
@@ -228,7 +243,36 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         filespace_id = bagHandle->unc_filespace_id;
         dataset_id   = bagHandle->unc_dataset_id;
         break;
-	
+	case Nominal_Elevation:
+	case Surface_Correction:
+	case Node_Group:
+	case Elevation_Solution_Group:
+        if (bagHandle->opt_memspace_id[type] >= 0)
+        {
+            nct = (u32)H5Sget_select_npoints (bagHandle->opt_memspace_id[type]);
+        }
+
+        if (bagHandle->opt_memspace_id[type] < 0 || nct != snode[1])
+        {
+            if (bagHandle->opt_memspace_id[type] >= 0)
+            {
+                 status = H5Sclose (bagHandle->opt_memspace_id[type]);
+                 check_hdf_status();
+            }
+
+            /*! Create space in memory */
+            bagHandle->opt_memspace_id[type] = H5Screate_simple(RANK, snode, NULL);
+            if (bagHandle->opt_memspace_id < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+        }
+
+        datatype_id  = bagHandle->opt_datatype_id[type];
+        memspace_id  = bagHandle->opt_memspace_id[type];
+        filespace_id = bagHandle->opt_filespace_id[type];
+        dataset_id   = bagHandle->opt_dataset_id[type];
+        break;
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -344,11 +388,12 @@ bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 
 bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col, 
                       u32 end_col, s32 type, s32 read_or_write, void *data)
 {
+    u32         srow, scol;
     herr_t      status = 0;
 
     /* hyperslab selection parameters */
-    hsize_t	  count[10];
-    hssize_t	  offset[10];
+    hsize_t	  count[RANK];
+    hssize_t	  offset[RANK];
     hid_t       memspace_id, 
                 datatype_id,
                 dataset_id,
@@ -358,13 +403,27 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (end_col >= bagHandle->bag.def.ncols ||
-        row >= bagHandle->bag.def.nrows ||
+    if (type >= BAG_OPT_SURFACE_LIMIT)
+        return  BAG_INVALID_FUNCTION_ARGUMENT;
+
+    if (type > Uncertainty)
+    {
+        srow=bagHandle->bag.opt[type].nrows;
+        scol=bagHandle->bag.opt[type].ncols;
+    }
+    else
+    {
+        srow=bagHandle->bag.def.nrows;
+        scol=bagHandle->bag.def.ncols;
+    }
+
+    if (end_col >= scol ||
+        row >= srow ||
         start_col > end_col)
     {
         fprintf(stderr, "Internal error, bad parameters given to access surface extents! Aborting...\n");
         fprintf(stderr, "\tCannot access region, %d-%d / %d-%d, with surface extents 0-%d / 0-%d\n",
-                row, start_col, row, end_col, bagHandle->bag.def.nrows, bagHandle->bag.def.ncols);
+                row, start_col, row, end_col, srow, scol);
         fflush(stderr);
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
@@ -435,6 +494,34 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         dataset_id   = bagHandle->unc_dataset_id;
         break;
 	
+	case Nominal_Elevation: 
+	case Surface_Correction: 
+	case Node_Group:
+	case Elevation_Solution_Group:
+        if (bagHandle->opt_memspace_id[type] >= 0)
+        {
+            nct = (u32) H5Sget_select_npoints (bagHandle->opt_memspace_id[type]);
+        }
+        
+        if (bagHandle->opt_memspace_id[type] < 0 || nct != count[1])
+        {
+            if (bagHandle->opt_memspace_id[type] >= 0)
+            {
+                status = H5Sclose (bagHandle->opt_memspace_id[type]);
+                check_hdf_status();
+            }
+            
+            /*! Create space in memory */
+            bagHandle->opt_memspace_id[type] = H5Screate_simple(RANK, count, NULL);
+            if (bagHandle->opt_memspace_id[type] < 0)
+                return BAG_HDF_DATASPACE_CORRUPTED;
+        }
+        
+        datatype_id  = bagHandle->opt_datatype_id[type];
+        memspace_id  = bagHandle->opt_memspace_id[type];
+        filespace_id = bagHandle->opt_filespace_id[type];
+        dataset_id   = bagHandle->opt_dataset_id[type];
+        break;
        
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
@@ -616,11 +703,12 @@ bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col,
 bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                     u32 end_row, u32 end_col, s32 type, s32 read_or_write, hid_t xfer)
 {
+    u32         srow, scol;
     herr_t      status = 0;
 
     /* hyperslab selection parameters */
-    hsize_t	  count[10];
-    hssize_t	  offset[10];
+    hsize_t	  count[RANK];
+    hssize_t	  offset[RANK];
     hid_t       memspace_id, 
                 datatype_id,
                 dataset_id,
@@ -637,14 +725,25 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
     if (bagHandle == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (end_col >= bagHandle->bag.def.ncols ||
-        end_row >= bagHandle->bag.def.nrows ||
+    if (type > Uncertainty)
+    {
+        srow=bagHandle->bag.opt[type].nrows;
+        scol=bagHandle->bag.opt[type].ncols;
+    }
+    else
+    {
+        srow=bagHandle->bag.def.nrows;
+        scol=bagHandle->bag.def.ncols;
+    }
+
+    if (end_col >= scol ||
+        end_row >= srow ||
         start_row > end_row || 
         start_col > end_col)
     {
         fprintf(stderr, "Internal error, bad parameters given to access surface extents! Aborting...\n");
         fprintf(stderr, "\tCannot access region, %d-%d / %d-%d, with surface extents 0-%d / 0-%d\n",
-                start_row, start_col, end_row, end_col, bagHandle->bag.def.nrows, bagHandle->bag.def.ncols);
+                start_row, start_col, end_row, end_col, srow, scol);
         fflush(stderr);
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
@@ -736,6 +835,43 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         dataset_id   = bagHandle->unc_dataset_id;
         break;
 	
+    case Nominal_Elevation:
+	case Surface_Correction:
+	case Node_Group:
+	case Elevation_Solution_Group:
+        if (read_or_write == READ_BAG)
+        {
+            if (bagAllocArray (bagHandle,  start_row,  start_col, 
+                               end_row,  end_col, type) != BAG_SUCCESS)
+                data = NULL;
+            else
+                data = bagHandle->dataArray[type];
+        }
+        else
+            data = bagHandle->dataArray[type];
+
+        if (bagHandle->opt_memspace_id[type] >= 0)
+            nct = (u32) H5Sget_select_npoints (bagHandle->opt_memspace_id[type]);
+
+        if (bagHandle->opt_memspace_id[type] < 0 || nct != (count[0] * count[1]))
+        {
+            if (bagHandle->opt_memspace_id[type] >= 0)
+            {
+                status = H5Sclose (bagHandle->opt_memspace_id[type]);
+                check_hdf_status();
+            }
+            
+            /*! Prepare the dataspaces */
+            bagHandle->opt_memspace_id[type] = H5Screate_simple(RANK, count, NULL);
+            if (bagHandle->opt_memspace_id[type] < 0)
+                return BAG_HDF_DATASPACE_CORRUPTED;
+        }
+
+        datatype_id  = bagHandle->opt_datatype_id[type];
+        memspace_id  = bagHandle->opt_memspace_id[type];
+        filespace_id = bagHandle->opt_filespace_id[type];
+        dataset_id   = bagHandle->opt_dataset_id[type];
+        break;
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -817,20 +953,34 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
 bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, 
                         u32 end_row, u32 end_col, s32 type)
 {
-    u32 i;
+    u32 i, srow, scol;
     bagError status;
 
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (end_col >= hnd->bag.def.ncols ||
-        end_row >= hnd->bag.def.nrows ||
+    if (type >= BAG_OPT_SURFACE_LIMIT)
+        return  BAG_INVALID_FUNCTION_ARGUMENT;
+
+    if (type > Uncertainty)
+    {
+        srow=hnd->bag.opt[type].nrows;
+        scol=hnd->bag.opt[type].ncols;
+    }
+    else
+    {
+        srow=hnd->bag.def.nrows;
+        scol=hnd->bag.def.ncols;
+    }
+
+    if (end_col >= scol ||
+        end_row >= srow ||
         start_row > end_row || 
         start_col > end_col)
     {
         fprintf(stderr, "Internal error, bad parameters given to access surface extents! Aborting...\n");
         fprintf(stderr, "\tCannot access region, %d-%d / %d-%d, with surface extents 0-%d / 0-%d\n",
-                start_row, start_col, end_row, end_col, hnd->bag.def.nrows, hnd->bag.def.ncols);
+                start_row, start_col, end_row, end_col, srow, scol);
         fflush(stderr);
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
@@ -895,7 +1045,28 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
         break;
 
     default:
-        return BAG_HDF_TYPE_NOT_FOUND;
+        /* alloc the contiguous 1d array */
+        hnd->dataArray[type] = (f32 *)calloc ((end_col-start_col+1)*(end_row-start_row+1), sizeof(f32));
+        if (hnd->dataArray[type] == NULL)
+            return BAG_MEMORY_ALLOCATION_FAILED;
+
+        /*! alloc the array of pointers to floats */
+        hnd->bag.opt[type].data = (f32 **)calloc ((end_row-start_row+1), sizeof (f32 *));
+        if (hnd->bag.opt[type].data == NULL)
+            return BAG_MEMORY_ALLOCATION_FAILED;
+
+        /*! now the 2d is tied to the contiguous 1d */
+        hnd->bag.opt[type].data[0] = hnd->dataArray[type];
+
+        /*! set the rest of the pointers */
+        for (i=1; i < (end_row-start_row+1); i++)
+        {
+            hnd->bag.opt[type].data[i] = hnd->bag.opt[type].data[i-1] + (end_col-start_col+1);
+        }
+
+        /*! init data to NULL values */
+        for (i=0; i < ((end_col-start_col+1)*(end_row-start_row+1)); i++)
+            hnd->dataArray[type] [i] = NULL_ELEVATION;
         break;
     }
     
@@ -916,6 +1087,9 @@ bagError bagFreeArray (bagHandle hnd, s32 type)
 {
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
+
+    if (type >= BAG_OPT_SURFACE_LIMIT)
+        return  BAG_INVALID_FUNCTION_ARGUMENT;
 
     switch (type) 
     {
@@ -942,7 +1116,15 @@ bagError bagFreeArray (bagHandle hnd, s32 type)
         break;
 
     default:
-        return BAG_HDF_TYPE_NOT_FOUND;
+        if (hnd->bag.opt[type].data != NULL)
+        {
+            free (hnd->bag.opt[type].data);
+            hnd->bag.opt[type].data = NULL;
+        
+            free (hnd->dataArray[type]);
+            hnd->dataArray[type] = NULL;
+        }
+        break;
     }
 
     return BAG_SUCCESS;
