@@ -401,7 +401,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
                 rowRange[1]++;
         }
 
-/*         fprintf(stderr, "INDX: %d Row: %d RC:  %d  / %d\n", indx, row,  rowRange[0], rowRange[1]); */
+       /*  fprintf(stderr, "INDX: %d Row: %d RC:  %d  / %d\n", indx, row,  rowRange[0], rowRange[1]); */
 
         /*! look through the SEPs and calculate the weighted average between them and this position  */
         for (q=rowRange[0]; q <= rowRange[1]; q++)
@@ -410,7 +410,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
                 break;
 
             /*!  now the SEP should be accessed, up to entire row of all columns of Surface_Correction */
-            err = bagReadOptRow ( bagHandle, q, colRange[0], colRange[1], Surface_Correction, readbuf);
+            err = bagReadRow ( bagHandle, q, colRange[0], colRange[1], Surface_Correction, readbuf);
             if ( err != BAG_SUCCESS )
             {
                 free (readbuf);
@@ -458,7 +458,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
 
         } /* for q rows */
         
-/*         fprintf(stderr, "sum sum %f / %f =  %f\n", sum_sep, sum, sum_sep / sum); */
+       /*  fprintf(stderr, "sum sum %f / %f =  %f\n", sum_sep, sum, sum_sep / sum);  */
 
 
         /*! is not a constant SEP with one point? */
