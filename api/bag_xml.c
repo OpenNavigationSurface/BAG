@@ -336,6 +336,10 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
 
     /* retrieve the necessary parameters */
     error = bagInitDefinition(&data->def, locmeta, data->version);
+
+    /* free the meta data */
+    bagFreeMetadata(locmeta);
+
     if (error)
     {
         /* free the meta data */
