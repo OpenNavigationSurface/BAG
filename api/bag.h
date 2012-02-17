@@ -566,7 +566,6 @@ BAG_EXTERNAL bagError bagReadNodePos (bagHandle bag, u32 row, u32 col, s32 type,
  
 /* TBD */
 BAG_EXTERNAL bagError bagWriteNodeLL(bagHandle bagHandle, f64 x, f64 y, s32 type, void *data);
-BAG_EXTERNAL bagError bagWriteOptNode (bagHandle bag, u32 row, u32 col, s32 type, void *data);
 
 /* Description:
  *     This function writes a value to the specified node in the specified BAG for the optional dataset.
@@ -592,10 +591,6 @@ BAG_EXTERNAL bagError bagWriteNode(bagHandle bagHandle, u32 row, u32 col, s32 ty
 BAG_EXTERNAL bagError bagGetOptDatasetInfo(bagHandle *bag_handle_opt, s32 type);
 BAG_EXTERNAL bagError bagFreeInfoOpt  (bagHandle);
 
-BAG_EXTERNAL bagError bagReadOptRow (bagHandle bagHandle, u32 k, u32 start_col, u32 end_col, s32 type, void *data);
-BAG_EXTERNAL bagError bagReadOptRowPos (bagHandle bag, u32 row, u32 start_col, u32 end_col, s32 type, 
-                                  void *data, f64 **x, f64 **y);
-BAG_EXTERNAL bagError bagReadOptNode (bagHandle bagHandle, u32 k, u32 start_col, s32 type, void *data);
 
 BAG_EXTERNAL bagError bagReadCorrectorVerticalDatum  (bagHandle hnd, u32, u8 * datum);
 BAG_EXTERNAL bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, u32, u8 * datum);
@@ -632,18 +627,7 @@ BAG_EXTERNAL bagError bagReadRowPos (bagHandle bag, u32 row, u32 start_col, u32 
  */
 
  
-BAG_EXTERNAL bagError bagWriteOptRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
-/* Description:
- *     This function writes the row of data values for the surface parameter
- *     specified by type to the specified optional dataset row for the BAG specified by bagHandle.
- *     The intended usage of this function is for initial load of data into a BAG
- *     The tracking list is not updated for this operation.
- *
- * Arguments:
- *
- * Return value:
- *     On success, a value of zero is returned.  On failure a value of -1 is returned. 
- */
+
 
 BAG_EXTERNAL bagError bagWriteRow(bagHandle bagHandle, u32 row, u32 start_col, u32 end_col, s32 type, void *data);
 /* Description:
@@ -693,10 +677,6 @@ BAG_EXTERNAL bagError bagReadDatasetPos (bagHandle bag, s32 type, f64 **x, f64 *
 BAG_EXTERNAL bagError bagReadRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                u32 end_row, u32 end_col, s32 type);
 BAG_EXTERNAL bagError bagWriteRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
-                                u32 end_row, u32 end_col, s32 type);
-BAG_EXTERNAL bagError bagReadOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
-                               u32 end_row, u32 end_col, s32 type);
-BAG_EXTERNAL bagError bagWriteOptRegion (bagHandle bagHandle, u32 start_row, u32 start_col, 
                                 u32 end_row, u32 end_col, s32 type);
 BAG_EXTERNAL bagError bagReadRegionPos (bagHandle bag, u32 start_row, u32 start_col, 
                                   u32 end_row, u32 end_col, s32 type, f64 **x, f64 **y);
@@ -901,15 +881,6 @@ BAG_EXTERNAL bagData *bagGetDataPointer(bagHandle bag_handle);
  ****************************************************************************************/
 BAG_EXTERNAL bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
 BAG_EXTERNAL bagError bagFreeArray (bagHandle hnd, s32 type);
-
-/****************************************************************************************
- * The array functions manage private memory within the bagHandle
- * which is used to buffer data from the surface datasets.
- * The user is able to access this data from the bagData's
- * 2D **elevation and **uncertainty pointers.
- ****************************************************************************************/
-BAG_EXTERNAL bagError bagAllocOptArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
-BAG_EXTERNAL bagError bagFreeOptArray (bagHandle hnd, s32 type);
 
 /*
  *  bagFreeXMLMeta ():
