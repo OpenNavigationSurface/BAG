@@ -29,6 +29,10 @@
  * Change Descriptions :
  * who when      what
  * --- ----      ----
+ * 
+ * Webb McDonald -- Thu Feb 16 16:15:04 2012
+ *   -Removed the 20 grid caching since metadata is no longer validated on open.
+ *
  * Mike Van Duzee -- Wed Aug 3 15:48:50 2011
  *   -The bagFreeXMLMeta() function would cause a crash if called more than once.
  *
@@ -48,7 +52,6 @@
 #include "bag.h"
 #include "ons_xml.h"
 
-#define MAX_GRIDS 20
 #define MAX_NCOORD_SYS 32
 #define MAX_DATUMS 3
 
@@ -56,9 +59,6 @@
 #define COORD_SYS_NAME(k) COORDINATE_SYS_LIST[k].name
 
 
-bagMetaData **metadataCache = NULL;
-char cacheString [MAX_GRIDS] [XML_METADATA_MAX_LENGTH];
-int  cacheStringInit = 1;
 
 struct COORDINATE_SYS_TYPE
 {
@@ -140,19 +140,7 @@ bagDatum bagDatumID( char *str )
 
 bagError bagFreeXMLMeta ()
 {
-    if (metadataCache != NULL)
-    {
-        u32 i;
-        for (i=0; i < MAX_GRIDS; i++)
-        {
-            if (metadataCache[i] != NULL)
-              bagFreeMetadata((bagMetaData) metadataCache[i]);
-        }
-
-        free (metadataCache);
-        metadataCache = NULL;
-    }
-    /* terminate the support. */
+   /* terminate the support. */
     bagTermMetadata();
     
     return BAG_SUCCESS;
@@ -319,10 +307,11 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
  */
 bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize, Bool validateXML)
 {
-    u32 i=0;
+    char cacheString[XML_METADATA_MAX_LENGTH];
     bagError error = BAG_SUCCESS;
     u32 bufferLen = XML_METADATA_MAX_LENGTH-1;
-    u32 chng      = 0;
+    bagMetaData  *locmeta;
+    void *tmp;
 
     if (data == NULL || buffer == NULL)
         return BAG_METADTA_INSUFFICIENT_BUFFER;
@@ -330,68 +319,23 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
     /* check the size of the input buffer */
     if (bufferSize >= XML_METADATA_MAX_LENGTH)
         return BAG_METADTA_BUFFER_EXCEEDED;
-
-    /* either grab a previously loaded metadata buffer, or create a new one */
-    if (cacheStringInit || metadataCache == NULL)
-    {
-        if (metadataCache == NULL)
-            metadataCache = (bagMetaData **) calloc (MAX_GRIDS, sizeof(bagMetaData *));
-        for (i=0; i < MAX_GRIDS; i++)
-        {
-            metadataCache[i] = NULL;
-            strcpy (cacheString[i], "");
-        }
-        chng = 1;
-        cacheStringInit = 0;
-        i=0;
-    } else {
-        for (i=0; i < MAX_GRIDS; i++)
-        {
-            chng = (metadataCache[i] == NULL || strlen((char *)cacheString[i]) == 0);
-            /* use empty slot, or we've matched */
-            /* terminate loop with i set to proper buffer */
-            if (chng || strncmp ((char *)cacheString[i], (char *)buffer, XML_METADATA_MAX_LENGTH) == 0)
-                break;
-        }
-        /* if too many grids are loaded, then bump off the 0th */
-        if (i >= MAX_GRIDS)
-        {
-            chng = 1;
-            i=0;
-        }
-    }
-
-    /* we will recycle cacheString and metadataCache if buffer has not changed */
-    if (chng)
-    {
-        if (metadataCache[i] != NULL)
-        {
-          bagFreeMetadata ((bagMetaData) metadataCache[i]);
-            metadataCache[i] = NULL;
-        }
-
-        strncpy (cacheString[i], (char *)buffer, bufferLen-1);
-
-        /* need to make sure that the buffer is NULL terminated. */
-        cacheString[i][bufferLen] = '\0';
-        
-    }
-
+   
     /* initialize the metadata module */
     bagInitMetadata();
 
-    if (chng)
-    {
-        /* open and validate the XML file. */
-      metadataCache[i] = (bagMetaData *) bagGetMetadataBuffer(cacheString[i], bufferSize, validateXML, &error);
-    }
+    strncpy (cacheString, (char *)buffer, bufferLen-1);
 
+    /* need to make sure that the buffer is NULL terminated. */
+    cacheString[bufferLen] = '\0';
 
+    /* open and validate the XML file. */
+    locmeta = (bagMetaData *) bagGetMetadataBuffer(cacheString, bufferSize, validateXML, &error);
+    
     if (error)
         return error;
 
     /* retrieve the necessary parameters */
-    error = bagInitDefinition(&data->def, (bagMetaData) metadataCache[i], data->version);
+    error = bagInitDefinition(&data->def, locmeta, data->version);
     if (error)
     {
         /* free the meta data */
@@ -399,18 +343,15 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
         return error;
     }
 
-    if (chng)
-    {
-        void *tmp;
-        /* attach the XML stream to the structure */
-        tmp = realloc(data->metadata, sizeof(u8) * bufferLen);
-        if (tmp != NULL)
-            data->metadata = tmp;
-        else
-            return BAG_MEMORY_ALLOCATION_FAILED;
-        strncpy((char *)data->metadata, (char *)buffer, bufferLen-1);
-    }
-
+    
+    /* attach the XML stream to the structure */
+    tmp = realloc(data->metadata, sizeof(u8) * bufferLen);
+    if (tmp != NULL)
+        data->metadata = tmp;
+    else
+        return BAG_MEMORY_ALLOCATION_FAILED;
+    strncpy((char *)data->metadata, (char *)buffer, bufferLen-1);
+    
     return error;
 }
 
