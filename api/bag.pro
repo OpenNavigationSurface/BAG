@@ -15,10 +15,14 @@ INCLUDEPATH += $$INC_OPENNSALL
 ###                  LIBRARY SPECIFIC SECTION (Edit Here)                          
 #
 
+TARGET = libbag
+
 CONFIG -= qt
 CONFIG += 
 
-VERSION=1.5.0
+unix {
+         VERSION=1.5.0
+}
 
 QMAKE_CFLAGS_DEBUG = 
 QMAKE_CXXFLAGS_DEBUG = $$QMAKE_CFLAGS_DEBUG
@@ -37,6 +41,7 @@ SOURCES += crc32.c \
         bag_attr.c \
         bag_crypto.c \
         bag_surface_correct.c \
+        bag_reference_system.cpp \
         bag_hdf.c  \
         bag_epsg.c  \
         bag_surfaces.c \

@@ -152,7 +152,8 @@ std::string ellipsoidToWkt(const u8 *ellipsoid)
             continue;
 
         std::vector<std::string> elements;
-        char *buffer = strdup(line.c_str());
+        char *buffer = (char *)calloc (line.size(), sizeof (char));
+        strncpy (buffer, line.c_str(), line.size());
 
         //Decode all of the pieces.
         char *token = strtok(buffer, " ");
