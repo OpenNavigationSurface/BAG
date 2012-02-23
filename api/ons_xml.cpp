@@ -1251,13 +1251,13 @@ bagError bagGetUncertantyType(
 
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
-    if (!strcmp(value.c_str(), "raw std dev") || !strcmp(value.c_str(), "rawStdDev"))
+    if (!strcmp(value.c_str(), "raw std dev") || !strcmp(value.c_str(), "rawstddev"))
         *uncrtType = Raw_Std_Dev;
-    else if (!strcmp(value.c_str(), "cube std dev") || !strcmp(value.c_str(), "cubeStdDev"))
+    else if (!strcmp(value.c_str(), "cube std dev") || !strcmp(value.c_str(), "cubestddev"))
         *uncrtType = CUBE_Std_Dev;
-    else if (!strcmp(value.c_str(), "product uncert") || !strcmp(value.c_str(), "productUncert"))
+    else if (!strcmp(value.c_str(), "product uncert") || !strcmp(value.c_str(), "productuncert"))
         *uncrtType = Product_Uncert;
-    else if (!strcmp(value.c_str(), "historical std dev") || !strcmp(value.c_str(), "historicalStdDev"))
+    else if (!strcmp(value.c_str(), "historical std dev") || !strcmp(value.c_str(), "historicalstddev"))
         *uncrtType = Historical_Std_Dev;
 
     return 0;
@@ -1306,15 +1306,15 @@ bagError bagGetDepthCorrectionType(
     std::string value = getValueFromNode(*pDepthCorrectionNode);
     std::transform(value.begin(), value.end(), value.begin(), ::tolower);
 
-    if (!strcmp(value.c_str(), "true depth") || !strcmp(value.c_str(), "trueDepth"))
+    if (!strcmp(value.c_str(), "true depth") || !strcmp(value.c_str(), "truedepth"))
         *depthCorrectionType = True_Depth;
-    else if (!strcmp(value.c_str(), "nominal at 1500 m/s") || !strcmp(value.c_str(), "nominalDepthMetre"))
+    else if (!strcmp(value.c_str(), "nominal at 1500 m/s") || !strcmp(value.c_str(), "nominaldepthmetre"))
         *depthCorrectionType = Nominal_Depth_Meters;
-    else if (!strcmp(value.c_str(), "nominal at 4800 ft/s") || !strcmp(value.c_str(), "nominalDepthFeet"))
+    else if (!strcmp(value.c_str(), "nominal at 4800 ft/s") || !strcmp(value.c_str(), "nominaldepthfeet"))
         *depthCorrectionType = Nominal_Depth_Feet;
-    else if (!strcmp(value.c_str(), "corrected via carter's tables") || !strcmp(value.c_str(), "correctedCarters"))
+    else if (!strcmp(value.c_str(), "corrected via carter's tables") || !strcmp(value.c_str(), "correctedcarters"))
         *depthCorrectionType = Corrected_Carters;
-    else if (!strcmp(value.c_str(), "corrected via matthew's tables") || !strcmp(value.c_str(), "correctedMatthews"))
+    else if (!strcmp(value.c_str(), "corrected via matthew's tables") || !strcmp(value.c_str(), "correctedmatthews"))
         *depthCorrectionType = Corrected_Matthews;
     else if (!strcmp(value.c_str(), "unknown"))
         *depthCorrectionType = Unknown_Correction;
@@ -1661,6 +1661,8 @@ bagError bagGetNodeGroupType(
             *nodeGroupType = CUBE_Solution;
         else if (!strcmp(value.c_str(), "product"))
             *nodeGroupType = Product_Solution;
+        else if (!strcmp(value.c_str(), "average"))
+            *nodeGroupType = Average_TPE_Solution;
         else
             *nodeGroupType = Unknown_Solution;
     }
@@ -1706,6 +1708,8 @@ bagError bagGetElevationSolutionType(
             *nodeGroupType = CUBE_Solution;
         else if (!strcmp(value.c_str(), "product"))
             *nodeGroupType = Product_Solution;
+        else if (!strcmp(value.c_str(), "average"))
+            *nodeGroupType = Average_TPE_Solution;
         else
             *nodeGroupType = Unknown_Solution;
     }
