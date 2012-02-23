@@ -361,13 +361,19 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
         {
 
             /*! An simple calculation for 4 nearest corrector nodes */
-            colRange[0] = (s32)floor ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX);
-            colRange[1] = (s32)ceil  ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX);
-            rowRange[0] = (s32)floor ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY);
-            rowRange[1] = (s32)ceil  ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY);
+            colRange[0] = (s32)fabs(floor ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX));
+            colRange[1] = (s32)fabs(ceil  ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX));
+            rowRange[0] = (s32)fabs(floor ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY));
+            rowRange[1] = (s32)fabs(ceil  ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY));
         }
 
         /*! Enforce dataset limits */
+        if (colRange[0] > colRange[1])
+        {
+            s32 c = colRange[0];
+            colRange[0] = colRange[1];
+            colRange[1] = c;
+        }
         if (colRange[0] < 0)
             colRange[0] = 0;
         if (colRange[0] >= bagHandle->bag.opt[Surface_Correction].ncols)
@@ -376,6 +382,12 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
             colRange[1] = 0;
         if (colRange[1] >= bagHandle->bag.opt[Surface_Correction].ncols)
             colRange[1] = bagHandle->bag.opt[Surface_Correction].ncols -1;
+        if (rowRange[0] > rowRange[1])
+        {
+            s32 c = rowRange[0];
+            rowRange[0] = rowRange[1];
+            rowRange[1] = c;
+        }
         if (rowRange[0] < 0)
             rowRange[0] = 0;
         if (rowRange[0] >= bagHandle->bag.opt[Surface_Correction].nrows)
@@ -401,7 +413,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
                 rowRange[1]++;
         }
 
-       /*  fprintf(stderr, "INDX: %d Row: %d RC:  %d  / %d\n", indx, row,  rowRange[0], rowRange[1]); */
+/*         fprintf(stderr, "INDX: %d Row: %d RC:  %d  / %d\n", indx, row,  rowRange[0], rowRange[1]); */
 
         /*! look through the SEPs and calculate the weighted average between them and this position  */
         for (q=rowRange[0]; q <= rowRange[1]; q++)
@@ -430,16 +442,18 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
 
                 resratio = vddef.nodeSpacingX / vddef.nodeSpacingY;
 
-                /*! calculate distance weight between nodeXY and y1/x1 */
-                distSq  = (f64)pow (fabs((f64)(nodeXY[0] - x1)), 2.0) +
-                    (f64)pow (resratio * fabs((f64)(nodeXY[1] - y1)), 2.0);
-
-                if (distSq == 0)
+                if (nodeXY[0] ==  x1 && nodeXY[1] == y1)
                 {
                     zeroDist = 1;
                     distSq = 1.0;
                     data[indx] += z1;
                     break;
+                }
+                else
+                {
+                    /*! calculate distance weight between nodeXY and y1/x1 */
+                    distSq  = (f64)pow (fabs((f64)(nodeXY[0] - x1)), 2.0) +
+                        (f64)pow (resratio * fabs((f64)(nodeXY[1] - y1)), 2.0);
                 }
 
                 if (leastDistSq > distSq)
@@ -453,20 +467,19 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
                 sum_sep += z1  / distSq;
                 sum     += 1.0 / distSq;
 
-    
+
             } /* for u cols */
 
         } /* for q rows */
         
-       /*  fprintf(stderr, "sum sum %f / %f =  %f\n", sum_sep, sum, sum_sep / sum);  */
-
+        /*  fprintf(stderr, "sum sum %f / %f =  %f\n", sum_sep, sum, sum_sep / sum);  */
 
         /*! is not a constant SEP with one point? */
         if (sum_sep != 0.0 && sum != 0.0)
         {
             data[indx] += sum_sep / sum;
         }
-        else
+        else if (!zeroDist)
         {
             data[indx] = NULL_GENERIC;
         }
