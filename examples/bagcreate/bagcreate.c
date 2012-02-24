@@ -12,6 +12,7 @@
 #include <stdio.h>
 
 #include "bag.h"
+#include "hdf5.h"
 
 #define GRD_SIZE 1200
 #define SEP_SIZE 3
@@ -35,11 +36,7 @@ int main (int argc, char *argv[])
     int        j;
     bagError   err;
     bagData    data;
-	bagDataOpt opt_data_nominal;
-	bagDataOpt opt_data_sep;
     bagHandle  bagHandle;       /* Primary Pointer to BAG object */
-	bagHandle_opt  bagHandle_nominal; /* pointer to the optional BAG dataset */
-	bagHandle_opt  bagHandle_sep; /* pointer to the optional BAG dataset */
     char       outFileName[256];
     char       xmlFileName[256];   
     FILE *xmlF;
@@ -56,8 +53,7 @@ int main (int argc, char *argv[])
     strncpy( outFileName, argv[2], 255 );   /* Store the BAG fileName to write */
      
     memset (&data, 0, sizeof(data));
-	memset (&opt_data_nominal, 0, sizeof(opt_data_nominal));
-	memset (&opt_data_sep, 0, sizeof(opt_data_sep));
+
 
     /* for (i=0; i<GRD_SIZE; i++) */
 /*     { */
@@ -131,9 +127,7 @@ int main (int argc, char *argv[])
         }
     }
 
-    opt_data_nominal.compressionLevel = 
-        opt_data_sep.compressionLevel = 
-        data.compressionLevel = 1;
+    data.compressionLevel = 1;
 
     err = bagFileCreate( outFileName, &data, &bagHandle);
     if( err != BAG_SUCCESS )
@@ -193,14 +187,15 @@ int main (int argc, char *argv[])
         }
     }
 
-
 	/* adding optional nominal elevation dataset */
-	opt_data_nominal.def = data.def;
-	opt_data_nominal.datatype = H5T_NATIVE_FLOAT; 
-	err = bagCreateOptionalDataset (bagHandle, &bagHandle_nominal, &opt_data_nominal, Nominal_Elevation);
+    bagGetDataPointer(bagHandle)->opt[Nominal_Elevation].datatype = H5T_NATIVE_FLOAT; 
+    bagGetDataPointer(bagHandle)->opt[Nominal_Elevation].nrows = GRD_SIZE;
+    bagGetDataPointer(bagHandle)->opt[Nominal_Elevation].ncols = GRD_SIZE;
+            
+	err = bagCreateOptionalDataset (bagHandle, bagGetDataPointer(bagHandle), Nominal_Elevation);
 
-	bagAllocOptArray (bagHandle_nominal, 0, 0, 
-                        GRD_SIZE-1, GRD_SIZE-1);
+	bagAllocArray (bagHandle, 0, 0,
+                   GRD_SIZE-1, GRD_SIZE-1, Nominal_Elevation);
 	
 	for( i=0; i < GRD_SIZE; i++ )
     {
@@ -212,11 +207,11 @@ int main (int argc, char *argv[])
                 nominal_depth[j] = 0;
 
         }
-        err = bagWriteOptRow( bagHandle, bagHandle_nominal, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth );
+        err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth );
 		
     }
 
-	err = bagUpdateOptSurface (bagHandle, bagHandle_nominal, Nominal_Elevation);
+	err = bagUpdateOptSurface (bagHandle, Nominal_Elevation);
     if( err != BAG_SUCCESS )
     {
         char *errstr;
@@ -225,15 +220,13 @@ int main (int argc, char *argv[])
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
     }
-    bagFreeOptArray (bagHandle_nominal);
-    bagFreeInfoOpt  (bagHandle_nominal);
+    bagFreeArray (bagHandle, Nominal_Elevation);
 
     /* adding optional sep elevation dataset */
-	opt_data_sep.def = data.def;
-    opt_data_sep.def.ncols = SEP_SIZE;
-    opt_data_sep.def.nrows = SEP_SIZE;
+    bagGetDataPointer(bagHandle)->opt[Surface_Correction].nrows = SEP_SIZE;
+    bagGetDataPointer(bagHandle)->opt[Surface_Correction].ncols = SEP_SIZE;
 
-	err = bagCreateCorrectorDataset (bagHandle, &bagHandle_sep, &opt_data_sep, 2, BAG_SURFACE_IRREGULARLY_SPACED);
+	err = bagCreateCorrectorDataset (bagHandle, bagGetDataPointer(bagHandle), 2, BAG_SURFACE_IRREGULARLY_SPACED);
     if( err != BAG_SUCCESS )
     {
         char *errstr;
@@ -245,11 +238,9 @@ int main (int argc, char *argv[])
 
 	for( i=0; i < SEP_SIZE; i++ )
     {
-        err = bagWriteOptRow( bagHandle, bagHandle_sep, i, 0, SEP_SIZE-1, Surface_Correction, (void *)sep_depth[i] );
+        err = bagWriteRow( bagHandle, i, 0, SEP_SIZE-1, Surface_Correction, (void *)sep_depth[i] );
 		
     }
-
-    bagFreeInfoOpt  (bagHandle_sep);
 
     err = bagFileClose( bagHandle );   
     if( err != BAG_SUCCESS )
