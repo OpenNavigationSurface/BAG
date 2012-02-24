@@ -22,7 +22,6 @@ int ProcessCommandInput( int argc, char **argv, char *gisFile, char *xmlFile, ch
 int main( int argc, char **argv )
 {
     bagHandle hnd;
-	bagHandle_opt hnd_opt;
     u32 i, j, k;
     bagError stat;
     f32 *data = NULL;
@@ -71,7 +70,8 @@ int main( int argc, char **argv )
     }
     printf("bagFileOpen status = %d\n", stat);
 
-	stat = bagInitDefinitionFromFile(&xml_data, xmlFileName);
+    if (xmlFileName[0] != '\0')
+        stat = bagInitDefinitionFromFile(&xml_data, xmlFileName);
 
 	switch(xml_data.def.depthCorrectionType)
 	{
@@ -97,29 +97,11 @@ int main( int argc, char **argv )
 	}
 		
 
-    /* switch btwn Geotrans CoordSys types and PROJ #defines */
-        switch (bagGetDataPointer(hnd)->def.geoParameters.datum)
-        {
-        case wgs84:
-            strcpy (datum, "WGS84");
-            break;
-        case wgs72:
-            strcpy (datum, "WGS72");
-            break;
-        case nad83:
-            strcpy (datum, "NAD83");
-            break;
-        default:
-            strcpy (datum, "UNKNOWN");
-            break;
-        }
-    
     printf("BAG row/column extents: %dx%d\n", bagGetDataPointer(hnd)->def.nrows, bagGetDataPointer(hnd)->def.ncols);
     printf("BAG South-West Corner : %lf, %lf\n", bagGetDataPointer(hnd)->def.swCornerX, bagGetDataPointer(hnd)->def.swCornerY );
     printf("BAG Node Spacing      : %lf, %lf\n", bagGetDataPointer(hnd)->def.nodeSpacingX, bagGetDataPointer(hnd)->def.nodeSpacingY );
-    printf("BAG Horizontal Datum  : %s\n", datum );
-    printf("BAG Vertical Datum    : %s\n", bagGetDataPointer(hnd)->def.geoParameters.vertical_datum );
-    printf("BAG Ellipsoid         : %s\n", bagGetDataPointer(hnd)->def.geoParameters.ellipsoid );
+    printf("BAG Horiz. CoordSys   : %s\n", bagGetDataPointer(hnd)->def.referenceSystem.horizontalReference);
+    printf("BAG Vert.  CoordSys   : %s\n", bagGetDataPointer(hnd)->def.referenceSystem.verticalReference);
     
     
 /*
@@ -127,7 +109,7 @@ int main( int argc, char **argv )
     printf("status for bagReadDataset(Metadata) = %d\n", stat);
 */
 	/* read the BAG file to determine whether or not any optional datasets exist */
-	stat = bagGetOptDatasets(&hnd_opt, bagFileName, &num_opt_datasets, opt_dataset_entities);
+	stat = bagGetOptDatasets(&hnd, &num_opt_datasets, opt_dataset_entities);
 
 	if(num_opt_datasets ==0)
 	{
@@ -218,14 +200,14 @@ int main( int argc, char **argv )
 				fprintf(stdout, "Nominal Elevation:=  {\n\t");
 				fflush(stdout);
 
-				bagGetOptDatasetInfo(&hnd_opt, Nominal_Elevation);
+				bagGetOptDatasetInfo(&hnd, Nominal_Elevation);
 
 				                
-				data = calloc (bagGetOptDataPointer(hnd_opt)->def.ncols, sizeof(f32));
-				for (i=0; i < bagGetOptDataPointer(hnd_opt)->def.nrows; i++)
+				data = calloc (bagGetDataPointer(hnd)->opt[Nominal_Elevation].ncols, sizeof(f32));
+				for (i=0; i < bagGetDataPointer(hnd)->opt[Nominal_Elevation].nrows; i++)
 				{
-					bagReadOptRow (hnd, hnd_opt, i, 0, bagGetOptDataPointer(hnd_opt)->def.ncols-1, Nominal_Elevation, data);
-					for (j=0; j < bagGetOptDataPointer(hnd_opt)->def.ncols; j++)
+					bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->opt[Nominal_Elevation].ncols-1, Nominal_Elevation, data);
+					for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
 					{
 						fprintf(stdout, "%0.3f\t", data[j]);
 					}
@@ -234,7 +216,7 @@ int main( int argc, char **argv )
 				}
 				
 				free(data);
-                bagFreeInfoOpt (hnd_opt);
+                bagFreeInfoOpt (hnd);
 				fprintf(stdout, "}\n\t");
 				fflush(stdout);
             }
@@ -244,17 +226,17 @@ int main( int argc, char **argv )
 				fprintf(stdout, "Vertical Datum Correctors :=  {\n\t");
 				fflush(stdout);
 
-				bagGetOptDatasetInfo(&hnd_opt, Surface_Correction);
+				bagGetOptDatasetInfo(&hnd, Surface_Correction);
 
 				                
-				vdata = calloc (bagGetOptDataPointer(hnd_opt)->def.ncols, sizeof(bagVerticalCorrector));
-				for (i=0; i < bagGetOptDataPointer(hnd_opt)->def.nrows; i++)
+				vdata = calloc (bagGetDataPointer(hnd)->opt[Surface_Correction].ncols, sizeof(bagVerticalCorrector));
+				for (i=0; i < bagGetDataPointer(hnd)->opt[Surface_Correction].nrows; i++)
 				{
-					bagReadOptRow (hnd, hnd_opt, i, 0, bagGetOptDataPointer(hnd_opt)->def.ncols-1, Surface_Correction, vdata);
-					for (j=0; j < bagGetOptDataPointer(hnd_opt)->def.ncols; j++)
+					bagReadRow (hnd, i, 0, bagGetDataPointer(hnd)->opt[Surface_Correction].ncols-1, Surface_Correction, vdata);
+					for (j=0; j < bagGetDataPointer(hnd)->def.ncols; j++)
 					{
                         u32 limit;
-                        bagGetNumSurfaceCorrectors  (hnd_opt, &limit);
+                        bagGetNumSurfaceCorrectors  (hnd, &limit);
                         for (k=0; k < limit; k++)
                         {
                             fprintf(stdout, "Z%d=%0.3lf ", k, vdata[j].z[k]); 
@@ -268,7 +250,7 @@ int main( int argc, char **argv )
 				}
 				
 				free(vdata);
-				bagFreeInfoOpt (hnd_opt);
+				bagFreeInfoOpt (hnd);
 				fprintf(stdout, "\t}\n");
 				fflush(stdout);
 			}
@@ -418,7 +400,6 @@ int main( int argc, char **argv )
             bagGetDataPointer(hnd)->max_uncertainty);
     fflush(stdout);
 
-    stat =  bagFileCloseOpt ( hnd_opt );
     stat =  bagFileClose( hnd );
     printf("stat for bagFileClose = %d\n", stat);
 
