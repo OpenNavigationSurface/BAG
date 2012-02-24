@@ -42,7 +42,7 @@
 						<gmd:MD_DimensionNameTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="row">row</gmd:MD_DimensionNameTypeCode>
 					</gmd:dimensionName>
 					<gmd:dimensionSize>
-						<gco:Integer>749</gco:Integer>
+						<gco:Integer>100</gco:Integer>
 					</gmd:dimensionSize>
 					<gmd:resolution>
 						<gco:Measure uom="Metres">10</gco:Measure>
@@ -55,7 +55,7 @@
 						<gmd:MD_DimensionNameTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="column">column</gmd:MD_DimensionNameTypeCode>
 					</gmd:dimensionName>
 					<gmd:dimensionSize>
-						<gco:Integer>369</gco:Integer>
+						<gco:Integer>100</gco:Integer>
 					</gmd:dimensionSize>
 					<gmd:resolution>
 						<gco:Measure uom="Metres">10</gco:Measure>
