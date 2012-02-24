@@ -14,7 +14,7 @@
 #include "bag.h"
 #include "hdf5.h"
 
-#define GRD_SIZE 1200
+#define GRD_SIZE 100
 #define SEP_SIZE 3
 
 int main (int argc, char *argv[])
