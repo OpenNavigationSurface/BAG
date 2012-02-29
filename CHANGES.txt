@@ -7,7 +7,6 @@ BAG v.1.5.0 Release Notes
 1. Update BAG metadata schema to the latest official version from
 TC211.
 2. Update the definition of the coordinate system information.
-SAIC
 3. Restructure the Optional Surfaces’ Handle object and its API.
 4. Modify the Optional Vertical Correctors surface and its API.
 5. Additional Optional Surfaces: Node and Elevation Solution Groups.
