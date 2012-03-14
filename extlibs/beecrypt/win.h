@@ -44,6 +44,8 @@
 #  define WORDS_BIGENDIAN		0
 #  define ROTL32(x, s) _rotl(x, s)
 #  define ROTR32(x, s) _rotr(x, s)
+# elif defined(_M_X64)
+#  define WORDS_BIGENDIAN		0
 # else
 #  error Unknown CPU type in Microsoft Visual C
 # endif
