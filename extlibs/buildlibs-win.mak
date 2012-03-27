@@ -1,7 +1,7 @@
 #/bin/bash
 #################################
 # Windows script for external libraries
-# Webb McDonald -- Mon Mar 14 09:21:54 2011
+# Webb McDonald -- Tue Mar 27 13:43:29 2012
 #################################
 
 export ECHO='echo -e'
@@ -143,16 +143,15 @@ fi
 if [ ! -e lib/$HOSTMACHINE/libxerces-c.dll ] ; then
 	$ECHO "Configuring and running make for $XERCESCROOT"
 	$CD $XERCESCROOT/src/xercesc
-#   don't this inside cygwin sh.... does not work.
-#	sh /cygdrive/c/cygwin/bin/autoconf
+	sh /cygdrive/c/cygwin/bin/autoconf
 #	sh runConfigure -p mingw-msys -c gcc -x g++  -minmem -nfileonly -tnative -rnone
 #	sh runConfigure -p mingw-msys -c gcc -x g++ -z -mno-cygwin -l -mno-cygwin -C --host=i686-mingw32  -minmem -nfileonly -tnative -rnone
-#	sh runConfigure -p cygwin -c gcc -x g++ -C --C --host=i686-pc-mingw32  -minmem -nfileonly -tnative -rnone -l-static-libgcc -l-static-libstdc++
-#	make-cywgin
+	sh runConfigure -p cygwin -c gcc -x g++ -C --C --host=i686-pc-mingw32  -minmem -nfileonly -tnative -rnone -l-static-libgcc -l-static-libstdc++
+	make
 
-#	$CD $XERCESCROOT/..
-#	$CP $XERCESCROOT/lib/libxerces-c2_6_0.dll lib/$HOSTMACHINE/libxerces-c.dll
-#	$CP $XERCESCROOT/lib/libxerces-c2_6_0.dll lib/$HOSTMACHINE
+	$CD $XERCESCROOT/..
+	$CP $XERCESCROOT/lib/libxerces-c2_6_0.dll lib/$HOSTMACHINE/libxerces-c.dll
+	$CP $XERCESCROOT/lib/libxerces-c2_6_0.dll lib/$HOSTMACHINE
 
 	if [ ! -e lib/$HOSTMACHINE/libxerces-c.dll ] ; then
 		$ECHO "FAILED to build libxerces-c.dll"
