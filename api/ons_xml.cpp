@@ -1231,7 +1231,6 @@ bagError bagGetUncertantyType(
     u32 *uncrtType
     )
 {
-    bagError error = BAG_SUCCESS;
     *uncrtType = Unknown_Uncert;
 
     //Figure out what version of metadata we have.
@@ -1821,7 +1820,7 @@ bagError bagGetHReferenceSystemV2(
 //******************************************************************************
 bagError bagGetHReferenceSystemV1(bagMetaData metaData, char *buffer, u32 bufferSize)
 {
-    f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint, latitudeOfProjectionCenter;
+    f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint;
     char projectionId[XML_ATTR_MAXSTR];
     char datumId[XML_ATTR_MAXSTR];
 

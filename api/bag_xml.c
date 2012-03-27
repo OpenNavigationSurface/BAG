@@ -157,30 +157,30 @@ bagError bagFreeXMLMeta ()
 bagError bagInitDefinition(
     bagDef *definition,
     bagMetaData metaData,
-    const char *version
+    const u8 *version
     )
 {
     bagError error = 0;
-    f64 urx, ury, longOfProjCenter;
+    f64 urx, ury;
 
     /* read the grid spacing */
-    error = bagGetGridSpacing(metaData, version, &definition->nodeSpacingX, &definition->nodeSpacingY);
+    error = bagGetGridSpacing(metaData, (char *) version, &definition->nodeSpacingX, &definition->nodeSpacingY);
     if (error)
         return error;
 
     /* read the cell dimensions (rows and columns) */
-    error = bagGetCellDims(metaData, version, &definition->nrows, &definition->ncols);
+    error = bagGetCellDims(metaData, (char *) version, &definition->nrows, &definition->ncols);
     if (error)
         return error;
 
     /* read vertical uncertainty type, if possible */
-    error = bagGetUncertantyType(metaData, version, &definition->uncertType);
+    error = bagGetUncertantyType(metaData, (char *) version, &definition->uncertType);
     if (error != BAG_SUCCESS)
     {
-        char *errstr;
-        if (bagGetErrorString (error, (u8 **)&errstr) == BAG_SUCCESS)
+        u8 *errstr;
+        if (bagGetErrorString (error, &(errstr)) == BAG_SUCCESS)
         {
-            fprintf(stderr, "Error in metadata initialization: {%s}\n", errstr);
+            fprintf(stderr, "Error in metadata initialization: {%s}\n", (char*)errstr);
             fflush(stderr);
         }
         return error;
@@ -191,7 +191,7 @@ bagError bagInitDefinition(
     error = bagGetElevationSolutionType(metaData, &definition->elevationSolutionGroupType);
 
     /* retrieve the depth correction type */
-	error = bagGetDepthCorrectionType(metaData, version, &definition->depthCorrectionType);
+    error = bagGetDepthCorrectionType(metaData, (char *) version, &definition->depthCorrectionType);
     if (error == BAG_METADTA_DPTHCORR_MISSING)
 	{
 		/* bag made pre-addition of the depthCorrectionType */
@@ -199,28 +199,27 @@ bagError bagInitDefinition(
 	}
 	else if (error != BAG_SUCCESS)
     {
-        char *errstr;
-        if (bagGetErrorString (error, (u8 **)&errstr) == BAG_SUCCESS)
+        u8 *errstr;
+        if (bagGetErrorString (error, &errstr) == BAG_SUCCESS)
         {
-            fprintf(stderr, "Error in metadata initialization: {%s}\n", errstr);
+            fprintf(stderr, "Error in metadata initialization: {%s}\n", (char*)errstr);
             fflush(stderr);
         }
         return error;
     }
 
     /* retrieve the horizontal reference system */
-    error = bagGetHReferenceSystem(metaData, version, definition->referenceSystem.horizontalReference, REF_SYS_MAX_LENGTH);
+    error = bagGetHReferenceSystem(metaData, (char *) version, (char *) definition->referenceSystem.horizontalReference, REF_SYS_MAX_LENGTH);
     if (error)
         return error;
 
     /* retrieve the vertical reference system */
-    error = bagGetVReferenceSystem(metaData, version, definition->referenceSystem.verticalReference, REF_SYS_MAX_LENGTH);
+    error = bagGetVReferenceSystem(metaData, (char *) version, (char *) definition->referenceSystem.verticalReference, REF_SYS_MAX_LENGTH);
     if (error)
         return error;
     
     /* read the cover information */
-    error = bagGetProjectedCover (metaData, version, &definition->swCornerX, 
-                                  &definition->swCornerY, &urx, &ury);
+    error = bagGetProjectedCover (metaData, (char *) version, &definition->swCornerX, &definition->swCornerY, &urx, &ury);
 
     if (error)
         return error;
@@ -250,7 +249,7 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
     /*We need to assume that a new BAG file is being created, so set the
       correct version on the bagData so we can correctly decode the
       metadata.  */
-    strcpy(data->version, BAG_VERSION);
+    strcpy((char *) data->version, BAG_VERSION);
 
     /* initialize the metadata module */
     error = bagInitMetadata();
@@ -310,7 +309,7 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
     char cacheString[XML_METADATA_MAX_LENGTH];
     bagError error = BAG_SUCCESS;
     u32 bufferLen = XML_METADATA_MAX_LENGTH-1;
-    bagMetaData  *locmeta;
+    bagMetaData  locmeta;
     void *tmp;
 
     if (data == NULL || buffer == NULL)
@@ -329,7 +328,7 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
     cacheString[bufferLen] = '\0';
 
     /* open and validate the XML file. */
-    locmeta = (bagMetaData *) bagGetMetadataBuffer(cacheString, bufferSize, validateXML, &error);
+    locmeta = (bagMetaData) bagGetMetadataBuffer(cacheString, bufferSize, validateXML, &error);
     
     if (error)
         return error;
@@ -373,7 +372,7 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     /*We need to assume that a new BAG file is being created, so set the
       correct version on the bagData so we can correctly decode the
       metadata.  */
-    strcpy(data->version, BAG_VERSION);
+  strcpy ((char *) data->version, BAG_VERSION);
 
     return bagInitAndValidateDefinition(data, buffer, bufferSize, True);
 }

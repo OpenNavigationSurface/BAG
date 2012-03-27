@@ -40,7 +40,7 @@
 bagError bagCreateNodeGroup  (bagHandle hnd, bagData *data)
 {
     bagError       err;
-    herr_t         herr, status;
+    herr_t         herr;
     
     if ((data->opt[Node_Group].datatype = H5Tcreate(H5T_COMPOUND, sizeof (bagOptNodeGroup))) < 0)
     {
@@ -74,7 +74,7 @@ bagError bagCreateNodeGroup  (bagHandle hnd, bagData *data)
 bagError bagCreateElevationSolutionGroup  (bagHandle hnd, bagData *data)
 {
     bagError       err;
-    herr_t         herr, status;
+    herr_t         herr;
     
     if ((data->opt[Elevation_Solution_Group].datatype = H5Tcreate(H5T_COMPOUND, sizeof (bagOptElevationSolutionGroup))) < 0)
     {

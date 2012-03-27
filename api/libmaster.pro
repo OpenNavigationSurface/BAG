@@ -26,7 +26,7 @@ win32 {
 DEFINES	+= H5_USE_16_API
 LANGUAGE = C++
 CONFIG  -= qt
-CONFIG  += exceptions warn_off
+CONFIG  += exceptions warn_on
 
 win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
@@ -35,9 +35,10 @@ win32 {
 	OBJECTS_DIR = .obj/$(HOSTMACHINE)
 	QMAKE_CFLAGS += -ansi ${IVSCOPTS} 
 	QMAKE_CXXFLAGS += -ansi ${IVSCCOPTS2} 
+        QMAKE_LFLAGS  +=  -static-libgcc -static-libstdc++
 	OPENNSLIBS += -lhdf5 -lxerces-c -lbeecrypt -lszip -lzlib
 	LIBS	+= $$SYSOBJFILES $$OPENNSLIBS
-    DESTDIR = ../lib/$(HOSTMACHINE)/
+        DESTDIR = ../lib/$(HOSTMACHINE)/
 }
 
 unix {

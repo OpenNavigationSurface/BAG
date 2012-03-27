@@ -1147,7 +1147,6 @@ bagError bagFreeArray (bagHandle hnd, s32 type)
  ****************************************************************************************/
 bagError bagFillPos (bagHandle bagHandle, u32 r1, u32 c1 , u32 r2, u32 c2, f64 **x, f64 **y)
 {
-    bagError stat;
     u32  xlen, ylen, i;
     f64  xorig, yorig, xoff, yoff;
 
