@@ -34,17 +34,10 @@ win32 {
 	message( libmaster.pro - WIN32 --> Setting up basic windows parameters )
 	# The defines should define the OS, GUI, and Hardware platform among others
 	DEFINES	+= WIN32 _WINDOWS _MBCS
-    CONFIG += warn_off
-    CONFIG -= QT_DLL
-    CONFIG(debug, debug|release) {
-            message( libmaster.pro - WIN32 --> Setting lib\debug directory )
-    	DESTDIR = ../../lib/Debug/
-	    OBJECTS_DIR = ./DebugObj/
-    } else {
-            message( libmaster.pro - WIN32 --> setting lib\release directory )
-    	DESTDIR = ../../lib/Release/
-	    OBJECTS_DIR = ./ReleaseObj/
-    }
+	OBJECTS_DIR = .obj/$(HOSTMACHINE)
+        QMAKE_LFLAGS  +=  -static-libgcc -static-libstdc++
+	#QMAKE_LIBDIR = ../../libsrc/lib/debug
+	DESTDIR = ../lib/$(HOSTMACHINE)/	
 }
 
 
