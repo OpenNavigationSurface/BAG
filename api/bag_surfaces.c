@@ -1449,11 +1449,6 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
 
-    min_tmp = calloc (1, sizeof (f32));
-    max_tmp = calloc (1, sizeof (f32));
-    if (min_tmp == NULL || max_tmp == NULL)
-        return BAG_MEMORY_ALLOCATION_FAILED;
-
     switch (type)
     {
     case Elevation:
@@ -1483,6 +1478,11 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
 
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
+
+    min_tmp = calloc (1, sizeof (f32));
+    max_tmp = calloc (1, sizeof (f32));
+    if (min_tmp == NULL || max_tmp == NULL)
+        return BAG_MEMORY_ALLOCATION_FAILED;
 
     *max_tmp = null_val;
     *min_tmp = null_val;
