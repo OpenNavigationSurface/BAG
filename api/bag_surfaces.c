@@ -1517,23 +1517,24 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
 
 	if (*max_tmp != null_val)
 	{
-          /*fprintf(stdout, "max = %f\n", *max_tmp);*/
-
         *omax = *max_tmp;
 		status = bagWriteAttribute (hnd, dataset_id, max_name, max_tmp);
 		check_hdf_status();
 	}
 	if (*min_tmp != null_val)
 	{ 
-          /*fprintf(stdout, "min = %f\n", *min_tmp);*/
        *omin = *min_tmp;
 		status = bagWriteAttribute (hnd, dataset_id, min_name, min_tmp);
 		check_hdf_status();
 	}
 	
-
     free (min_tmp);
     free (max_tmp);
+
+    /*! free previously allocated buffer if present */
+    status = bagFreeArray (hnd, type);
+    if (status != BAG_SUCCESS)
+        return status;
 
     return BAG_SUCCESS;
 }

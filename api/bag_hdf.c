@@ -516,7 +516,6 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return (BAG_INVALID_FUNCTION_ARGUMENT);
     }
 
-    (*bag_handle)->bag.metadata = (u8 *) calloc (length+16, sizeof (u8));
     if ((*bag_handle)->bag.metadata == (u8 *) NULL)
     {
         return (BAG_MEMORY_ALLOCATION_FAILED);
