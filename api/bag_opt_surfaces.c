@@ -529,21 +529,25 @@ bagError bagFreeInfoOpt (bagHandle bag_handle_opt)
         {
             status = H5Sclose (bag_handle_opt->opt_memspace_id[i]);
             check_hdf_status();
+            bag_handle_opt->opt_memspace_id[i] = -1;
         }
         if (bag_handle_opt->opt_filespace_id[i] >= 0)
         {
             status = H5Sclose (bag_handle_opt->opt_filespace_id[i]);
             check_hdf_status();
+            bag_handle_opt->opt_filespace_id[i] = -1;
         }
         if (bag_handle_opt->opt_datatype_id[i] >= 0)
         {
             status = H5Tclose (bag_handle_opt->opt_datatype_id[i]);
             check_hdf_status();
+            bag_handle_opt->opt_datatype_id[i] = -1;
         }
         if (bag_handle_opt->opt_dataset_id[i] >= 0)
         {
             status = H5Dclose (bag_handle_opt->opt_dataset_id[i]);
             check_hdf_status();
+            bag_handle_opt->opt_dataset_id[i] = -1;
         }
     }
 
