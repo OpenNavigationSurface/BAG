@@ -211,7 +211,7 @@ int main (int argc, char *argv[])
 		
     }
 
-	err = bagUpdateOptSurface (bagHandle, Nominal_Elevation);
+	err = bagUpdateSurface (bagHandle, Nominal_Elevation);
     if( err != BAG_SUCCESS )
     {
         char *errstr;
@@ -242,7 +242,8 @@ int main (int argc, char *argv[])
 		
     }
 
-    err = bagFileClose( bagHandle );   
+    err = bagFileClose( bagHandle );  
+    free (data.metadata);
     if( err != BAG_SUCCESS )
     {
         char *errstr;
