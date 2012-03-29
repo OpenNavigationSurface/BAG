@@ -147,10 +147,7 @@ int main (int argc, char *argv[])
     {
         for (j=0; j < GRD_SIZE; j++)
         {
-            if ( j > 500 && j < 1000)
-                surf[j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
-            else
-                surf[j] = 0;
+            surf[j] = (f32)((j * (i )) % GRD_SIZE) + ((f32)j / (f32)GRD_SIZE);
         }
         
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Elevation, (void *)surf );
@@ -160,10 +157,7 @@ int main (int argc, char *argv[])
     {
         for (j=0; j < GRD_SIZE; j++)
         {
-            if ( j > 500 && j < 1000)
-                uncert[j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
-            else
-                uncert[j] = 0;
+            uncert[j] = (f32)((j * (i )) % GRD_SIZE)/1000.0;
         }
         
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Uncertainty, (void *)uncert );
@@ -201,11 +195,7 @@ int main (int argc, char *argv[])
     {
         for (j=0; j < GRD_SIZE; j++)
         {
-            if ( j > 500 && j < 1000)
-                nominal_depth[j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0;
-            else
-                nominal_depth[j] = 0;
-
+            nominal_depth[j] = (f32)((j * (i )) % GRD_SIZE) + 1.0 + ((f32)j / (f32)GRD_SIZE);
         }
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth );
 		
@@ -228,6 +218,24 @@ int main (int argc, char *argv[])
 
 	err = bagCreateCorrectorDataset (bagHandle, bagGetDataPointer(bagHandle), 2, BAG_SURFACE_IRREGULARLY_SPACED);
     if( err != BAG_SUCCESS )
+    {
+        char *errstr;
+        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        {
+            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
+        }
+    }
+    err = bagWriteCorrectorVerticalDatum (bagHandle, 1, (u8 *)"Test");
+    if( err != BAG_SUCCESS )
+    {
+        char *errstr;
+        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        {
+            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
+        }
+    }
+    err = bagWriteCorrectorVerticalDatum (bagHandle, 2, (u8 *)"Unknown");
+	if( err != BAG_SUCCESS )
     {
         char *errstr;
         if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
