@@ -123,6 +123,12 @@
 				</CodeDefinition>
 			</codeEntry>
 			<codeEntry>
+				<CodeDefinition gml:id="BAG_VertUncertCode_averageTPE">
+					<gml:description>Average of all of the contributing sounding TPE's within the node</gml:description>
+					<gml:identifier codeSpace="ISOTC211/19115">averageTPE</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
 				<CodeDefinition gml:id="BAG_VertUncertCode_unknown">
 					<gml:description>The uncertainty layer is an unknown type.</gml:description>
 					<gml:identifier codeSpace="ISOTC211/19115">unknown</gml:identifier>
