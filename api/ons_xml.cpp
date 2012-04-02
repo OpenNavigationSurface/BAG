@@ -1205,7 +1205,7 @@ bagError bagGetVertDatum(
 }
 
 //************************************************************************
-//      Method name:    bagGetUncertantyType()
+//      Method name:    bagGetUncertaintyType()
 //
 //      
 //      - Initial implementation
@@ -1225,7 +1225,7 @@ bagError bagGetVertDatum(
     \li Error code.
 */
 //************************************************************************
-bagError bagGetUncertantyType(
+bagError bagGetUncertaintyType(
     bagMetaData metaData,
     const char *version,
     u32 *uncrtType
@@ -1256,6 +1256,8 @@ bagError bagGetUncertantyType(
         *uncrtType = CUBE_Std_Dev;
     else if (!strcmp(value.c_str(), "product uncert") || !strcmp(value.c_str(), "productuncert"))
         *uncrtType = Product_Uncert;
+    else if (!strcmp(value.c_str(), "average tpe") || !strcmp(value.c_str(), "averagetpe"))
+        *uncrtType = Average_TPE;
     else if (!strcmp(value.c_str(), "historical std dev") || !strcmp(value.c_str(), "historicalstddev"))
         *uncrtType = Historical_Std_Dev;
 

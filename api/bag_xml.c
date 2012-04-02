@@ -174,7 +174,7 @@ bagError bagInitDefinition(
         return error;
 
     /* read vertical uncertainty type, if possible */
-    error = bagGetUncertantyType(metaData, (char *) version, &definition->uncertType);
+    error = bagGetUncertaintyType(metaData, (char *) version, &definition->uncertType);
     if (error != BAG_SUCCESS)
     {
         u8 *errstr;

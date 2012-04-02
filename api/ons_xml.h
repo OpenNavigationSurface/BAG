@@ -86,7 +86,7 @@ extern bagError bagGetCellDims(bagMetaData metaData, const char *version, u32 *n
 extern bagError bagGetGeoCover(bagMetaData metaData, f64 *llLat, f64 *llLong, f64 *urLat, f64 *urLong);
 extern bagError bagGetProjectedCover(bagMetaData metaData, const char *version, f64 *llx, f64 *lly, f64 *urx, f64 *ury);
 extern bagError bagGetGridSpacing(bagMetaData metaData, const char *version, f64 *dx, f64 *dy);
-extern bagError bagGetUncertantyType(bagMetaData metaData, const char *version, u32 *uncrtType);
+extern bagError bagGetUncertaintyType(bagMetaData metaData, const char *version, u32 *uncrtType);
 extern bagError bagGetDepthCorrectionType(bagMetaData metaData, const char *version, u32 *depthCorrectionType);
 extern bagError bagGetHReferenceSystem(bagMetaData metaData, const char *version, char *buffer, u32 bufferSize);
 extern bagError bagGetVReferenceSystem(bagMetaData metaData, const char *version, char *buffer, u32 bufferSize);
