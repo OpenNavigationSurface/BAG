@@ -331,7 +331,11 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
     locmeta = (bagMetaData) bagGetMetadataBuffer(cacheString, bufferSize, validateXML, &error);
     
     if (error)
+    {
+        /* free the meta data */
+        bagFreeXMLMeta();
         return error;
+    }
 
     /* retrieve the necessary parameters */
     error = bagInitDefinition(&data->def, locmeta, data->version);
