@@ -51,9 +51,9 @@ const char k_transverse_mercator[] = "transverse_mercator";
 const char k_vandergrinten[] = "vandergrinten";
 
 //! Datum WKT names.
-const char k_wgs84[] = "wgs 84";
-const char k_wgs72[] = "wgs 72";
-const char k_nad83[] = "nad83";
+const char k_wgs84[] = "wgs_1984";
+const char k_wgs72[] = "wgs_1972";
+const char k_nad83[] = "north_american_datum_1983";
 
 //! Simple exception thrown internally when we run into a problem.
 struct CoordSysError : virtual std::exception
@@ -425,8 +425,8 @@ Coordinate_Type getCoordinateType(const std::string &wkt)
 //************************************************************************
 bagDatum getDatumType(const std::string &wkt)
 {
-    //Find the geographic node in the wkt string.
-    const size_t startIndex = wkt.find("geogcs[");
+    //Find the horizontal datum node in the wkt string.
+    const size_t startIndex = wkt.find("datum[");
     if (startIndex == std::string::npos)
         throw InvalidDatumError();
 
@@ -434,16 +434,16 @@ bagDatum getDatumType(const std::string &wkt)
     if (endIndex == std::string::npos)
         throw InvalidDatumError();
 
-    //Extract the geographic name.
-    const size_t startPos = startIndex + 8;
+    //Extract the horizontal datum name.
+    const size_t startPos = startIndex + 7;
     const size_t length = endIndex - startPos - 1;
-    const std::string geoName = wkt.substr(startPos, length);
+    const std::string hDatumName = wkt.substr(startPos, length);
 
-    if (geoName == k_wgs84)
+    if (hDatumName == k_wgs84)
         return wgs84;
-    else if (geoName == k_wgs72)
+    else if (hDatumName == k_wgs72)
         return wgs72;
-    else if (geoName == k_nad83)
+    else if (hDatumName == k_nad83)
         return nad83;
 
     //Unknown, so we can not convert this coordinate system.
