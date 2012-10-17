@@ -89,8 +89,8 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
     dims[0] = data->opt[type].nrows;
     dims[1] = data->opt[type].ncols;
 
-    bag_hnd->bag.opt[type].nrows = dims[0];
-    bag_hnd->bag.opt[type].ncols = dims[1];
+    bag_hnd->bag.opt[type].nrows = (u32)dims[0];
+    bag_hnd->bag.opt[type].ncols = (u32)dims[1];
 
     if (data->chunkSize > 0)
     {
@@ -678,8 +678,8 @@ bagError bagReadOptSurfaceDims (bagHandle hnd, s32 type)
     status = H5Sclose(dataspace_id);
     check_hdf_status();
 
-    hnd->bag.opt[type].nrows = max_dims[0];
-    hnd->bag.opt[type].ncols = max_dims[1];
+    hnd->bag.opt[type].nrows = (u32)max_dims[0];
+    hnd->bag.opt[type].ncols = (u32)max_dims[1];
     
     return BAG_SUCCESS;
 }

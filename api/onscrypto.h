@@ -39,11 +39,8 @@
 #ifndef __ONSCRYPTO_H__
 #define __ONSCRYPTO_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include "stdtypes.h"
+#include "bag.h"
 
 /*! \brief An enum to describe the errors codes that can be returned by this code module.
  *
@@ -79,7 +76,7 @@ typedef enum _ons_cryp_err {
  *			that the nbytes value won't change.  The user-supplied data 
  */
 
-extern u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes);
+BAG_EXTERNAL u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes);
 
 /* Routine:	ons_check_cblock
  * Purpose:	Determine whether the given file has an ONSCryptoBlock at the end
@@ -90,7 +87,7 @@ extern u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nby
  *			read and validate.
  */
 
-extern Bool ons_check_cblock(char *file);
+BAG_EXTERNAL Bool ons_check_cblock(char *file);
 
 /* Routine:	ons_read_file_sig
  * Purpose:	Verify a crypto signature block, and return signature if it exists
@@ -103,7 +100,7 @@ extern Bool ons_check_cblock(char *file);
  *			signature and block ID if it exists.
  */
 
-extern OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf);
+BAG_EXTERNAL OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf);
 
 /* Routine:	ons_write_file_sig
  * Purpose:	Write a signature into the specified file, appending if it doesn't have one yet
@@ -115,7 +112,7 @@ extern OnsCryptErr ons_read_file_sig(char *file, u8 *sig, u32 *sigid, u32 nbuf);
  * Comment:	-
  */
 
-extern OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid);
+BAG_EXTERNAL OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid);
 
 /* Routine:	ons_sig_to_ascii
  * Purpose:	Convert a binary signature into ASCII for output, with CRC
@@ -127,7 +124,7 @@ extern OnsCryptErr ons_write_file_sig(char *file, u8 *sig, u32 sigid);
  *			for correctness of the transmission, not of signature.
  */
 
-extern char *ons_sig_to_ascii(u8 *sig);
+BAG_EXTERNAL char *ons_sig_to_ascii(u8 *sig);
 
 /* Routine:	ons_key_to_ascii
  * Purpose:	Convert a binary key into ASCII for output, with CRC
@@ -139,7 +136,7 @@ extern char *ons_sig_to_ascii(u8 *sig);
  *			for correctness of the transmission, not of key.
  */
 
-extern char *ons_key_to_ascii(u8 *key);
+BAG_EXTERNAL char *ons_key_to_ascii(u8 *key);
 
 /* Routine:	ons_ascii_to_sig
  * Purpose:	Converts an ASCII signature to binary internal format, checking for validity
@@ -150,7 +147,7 @@ extern char *ons_key_to_ascii(u8 *key);
  *			are reported with return of NULL and appropriate setting of errcd.
  */
 
-extern u8 *ons_ascii_to_sig(char *sig, OnsCryptErr *errcd);
+BAG_EXTERNAL u8 *ons_ascii_to_sig(char *sig, OnsCryptErr *errcd);
 
 /* Routine:	ons_ascii_to_key
  * Purpose:	Convert an ASCII key to binary internal format, checking for validity
@@ -161,7 +158,7 @@ extern u8 *ons_ascii_to_sig(char *sig, OnsCryptErr *errcd);
  *			with return of NULL and appropriate setting of errcd.
  */
 
-extern u8 *ons_ascii_to_key(char *key, OnsCryptErr *errcd);
+BAG_EXTERNAL u8 *ons_ascii_to_key(char *key, OnsCryptErr *errcd);
 
 /* Routine:	ons_generate_keys
  * Purpose:	Generate keys for signature
@@ -173,7 +170,7 @@ extern u8 *ons_ascii_to_key(char *key, OnsCryptErr *errcd);
  *			course, be treated with a degree of respect.
  */
 
-extern OnsCryptErr ons_generate_keys(u8 **pkey, u8 **skey);
+BAG_EXTERNAL OnsCryptErr ons_generate_keys(u8 **pkey, u8 **skey);
 	
 /* Routine:	ons_sign_digest
  * Purpose:	Use secret key to sign the digest passed in
@@ -185,7 +182,7 @@ extern OnsCryptErr ons_generate_keys(u8 **pkey, u8 **skey);
  * Comment:	-
  */
 
-extern u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd);
+BAG_EXTERNAL u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd);
 
 /* Routine:	ons_compute_signature
  * Purpose:	Compute the signature for a file
@@ -199,7 +196,7 @@ extern u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd);
  *			to the message digest computation code; set NULL if none is required.
  */
 
-extern u8 *ons_compute_signature(char *name, u8 *user_data, u32 user_data_len, u8 *skey);
+BAG_EXTERNAL u8 *ons_compute_signature(char *name, u8 *user_data, u32 user_data_len, u8 *skey);
 
 /* Routine:	ons_sign_file
  * Purpose:	Read file, compute digest, and sign a file
@@ -210,7 +207,7 @@ extern u8 *ons_compute_signature(char *name, u8 *user_data, u32 user_data_len, u
  * Comment:	A convenience function to sequence all of the elements to add a signature to a file.
  */
 
-extern Bool ons_sign_file(char *name, u8 *skey, u32 sigid);
+BAG_EXTERNAL Bool ons_sign_file(char *name, u8 *skey, u32 sigid);
 
 /* Routine:	ons_verify_signature
  * Purpose:	Determine whether the signature provided matches the digest and public key
@@ -222,7 +219,7 @@ extern Bool ons_sign_file(char *name, u8 *skey, u32 sigid);
  * Comment:	-
  */
 
-extern Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len);
+BAG_EXTERNAL Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len);
 
 /* Routine:	ons_verify_file
  * Purpose:	Verify that a file is intact
@@ -236,7 +233,7 @@ extern Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len);
  *				(c) The signature ID extracted matches that passed in.
  */
 
-extern Bool ons_verify_file(char *name, u8 *pkey, u32 sig_id);
+BAG_EXTERNAL Bool ons_verify_file(char *name, u8 *pkey, u32 sig_id);
 
 /* Routine:	ons_phrase_to_key
  * Purpose:	Construct a 256-bit symmetric crypto. key from a pass phrase
@@ -248,7 +245,7 @@ extern Bool ons_verify_file(char *name, u8 *pkey, u32 sig_id);
  *			however, check that this is the case, nor does it enforce any particular standard.
  */
 
-extern u8 *ons_phrase_to_key(char *phrase);
+BAG_EXTERNAL u8 *ons_phrase_to_key(char *phrase);
 
 /* Routine:	ons_encrypt_key
  * Purpose:	Encrypt a private key with AES to protect it in external representations
@@ -265,7 +262,7 @@ extern u8 *ons_phrase_to_key(char *phrase);
  *			key pair to be repudiated by the key-signing authority.
  */
 
-extern u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len);
+BAG_EXTERNAL u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len);
 
 /* Routine:	ons_decrypt_key
  * Purpose:	Decrypt a private key encrypted with AES256 for use in DSA
@@ -280,10 +277,6 @@ extern u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len);
  *			key, with appended CRC32 of the decrypted key.
  */
 
-extern u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc);
-
-#ifdef __cplusplus
-}
-#endif
+BAG_EXTERNAL u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc);
 
 #endif

@@ -24,7 +24,6 @@
 #include <xercesc/dom/DOM.hpp>
 #include <xercesc/dom/DOMImplementation.hpp>
 #include <xercesc/dom/DOMImplementationLS.hpp>
-#include <xercesc/dom/DOMWriter.hpp>
 #include <iostream>
 #include <xercesc/framework/MemBufInputSource.hpp>
 #include <xercesc/framework/LocalFileInputSource.hpp>
@@ -1103,26 +1102,40 @@ bagError bagGetXMLBuffer(
     // get a serializer, an instance of DOMWriter
     XMLCh tempStr[100];
     XMLString::transcode("LS", tempStr, 99);
-    DOMImplementation *impl          = DOMImplementationRegistry::getDOMImplementation(tempStr);
-    DOMWriter         *theSerializer = ((DOMImplementationLS*)impl)->createDOMWriter();
+    DOMImplementation *impl = DOMImplementationRegistry::getDOMImplementation(tempStr);
+
+    // Create a DOMLSSerializer which is used to serialize a DOM tree into an XML document. 
+    DOMLSSerializer *serializer = ((DOMImplementationLS*)impl)->createLSSerializer(); 
+
+    // Make the output more human readable by inserting line feeds. 
+    if (serializer->getDomConfig()->canSetParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true)) 
+        serializer->getDomConfig()->setParameter(XMLUni::fgDOMWRTFormatPrettyPrint, true); 
+
+    // The end-of-line sequence of characters to be used in the XML being written out.  
+    serializer->setNewLine(XMLString::transcode("\r\n"));  
 
     // Create the memory target.
     MemBufFormatTarget memTarget(4096);  
 
+    // Create a new empty output destination object. 
+    DOMLSOutput *output = ((DOMImplementationLS*)impl)->createLSOutput(); 
+
+    // Set the stream to our target. 
+    output->setByteStream(&memTarget); 
+
     // get the DOM representation
     DOMNode *doc = metaData->parser->getDocument();
 
-    // do the serialization through DOMWriter::writeNode();
-    theSerializer->writeNode(&memTarget, *doc);
-
-    // delete the serializer.
-    delete theSerializer;
-
-    if (*maxBufferSize <= memTarget.getLen())
+    // Write the serialized output to the destination. 
+    serializer->write(doc, output); 
+    serializer->release(); 
+    output->release(); 
+    
+    if (*maxBufferSize <= memTarget.getLen())    
         return BAG_METADTA_INSUFFICIENT_BUFFER;
 
     // return the number of bytes written into the buffer.
-    *maxBufferSize = memTarget.getLen();
+    *maxBufferSize = static_cast<u32>(memTarget.getLen());
 
     // extract the contents of the memory format target into the user supplied buffer.
     memcpy(buffer, memTarget.getRawBuffer(), sizeof(XMLByte) * memTarget.getLen());
@@ -1443,7 +1456,7 @@ bagError bagGetProjectionParams(
             if (XMLString::compareString(pStr, zoneStr) == 0)
             {
                 std::string value = getValueFromNode(*pParamNode);
-                *zone = atof(value.c_str());
+                *zone = atoi(value.c_str());
                 valuesFound = true;
             }
             else if (XMLString::compareString(pStr, stdParStr) == 0)

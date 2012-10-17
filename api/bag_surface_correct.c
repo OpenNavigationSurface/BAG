@@ -168,7 +168,7 @@ bagError bagGetNumSurfaceCorrectors  (bagHandle hnd_opt, u32 *num)
     err = H5Tget_array_dims( typenow, adims, NULL );
     if (err > 0)
     {
-        *num  = adims[1];
+        *num  = (u32)adims[1];
         return BAG_SUCCESS;
     }
     else
@@ -200,7 +200,8 @@ bagError bagReadCorrectedRegion (bagHandle bagHandle,
                                  u32 corrIndex, u32 surfIndex, f32 *data)
 {
     bagError err;
-    s32 i, j, f;
+    s32 f;
+    u32 i, j;
     f32 *sepData;
     
     if (endcol >= bagHandle->bag.def.ncols ||
@@ -328,7 +329,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
         f64 nodeXY[2];
         f64 sum_sep = 0.0, sum = 0.0,
             leastDistSq = DBL_MAX;
-        s32 rowRange[2] = {0, 0}, colRange[2] = {0, 0};
+        u32 rowRange[2] = {0, 0}, colRange[2] = {0, 0};
         u32 indx = j-startcol;
         u8  zeroDist=0;
 
@@ -432,7 +433,8 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
             for (u=colRange[0]; u <= colRange[1]; u++)
             {
                 bagVerticalCorrectorNode  *vertCorr;
-                f64 x1, y1, z1, resratio, distSq;
+                f64 x1, y1, resratio, distSq;
+                f32 z1;
 
                 vertCorr =  readbuf + (u - colRange[0]);
 
@@ -477,7 +479,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
         /*! is not a constant SEP with one point? */
         if (sum_sep != 0.0 && sum != 0.0)
         {
-            data[indx] += sum_sep / sum;
+            data[indx] += (f32)(sum_sep / sum);
         }
         else if (!zeroDist)
         {

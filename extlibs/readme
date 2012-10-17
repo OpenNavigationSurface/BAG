@@ -8,10 +8,5 @@ files in order to make it easier to get a quick start. It is possible
 to substitute other versions or completely different libraries as long
 as they maintain the same calling interface.
 
-buildlibs.mak script assumes that the sources are present in
-compressed archives.  It will uncompress them and then try to
-build/make/configure the libraries for use with BAG.  Be aware that
-the xerces-c library requires an environment variable to be set.
-buildlibs.mak should set this for you:
-
+Be aware that the xerces-c library requires an environment variable to be set.
 	XERCESCROOT=$PWD/xerces-c-src_2_6_0

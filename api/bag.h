@@ -92,6 +92,10 @@ typedef int HDF_hid_t;
 
 #define BAG_VERSION         "1.5.1"
 #define BAG_VERSION_LENGTH  32           /* 32 bytes of space reserved in BAG attribute for VERSION string */
+#define BAG_VER_MAJOR 1
+#define BAG_VER_MINOR 5
+#define BAG_VER_REVISION 1
+
 #define XML_METADATA_MIN_LENGTH 1024   /* Encoded XML string expected to be at least this long to be valid */
 #define XML_METADATA_MAX_LENGTH 1000000
 #define DEFAULT_KEY_LEN		1024  /* taken from onscrypto.c */

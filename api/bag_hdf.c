@@ -510,7 +510,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return status;
     }
 
-    length = strlen((char *)data->metadata);
+    length = (u32)strlen((char *)data->metadata);
     if (length < XML_METADATA_MIN_LENGTH)
     {
         return (BAG_INVALID_FUNCTION_ARGUMENT);
@@ -796,8 +796,8 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         H5Fclose ((* bag_handle)->file_id);
         return status;
     }
-    (* bag_handle)->bag.def.nrows = max_dims[0];
-    (* bag_handle)->bag.def.ncols = max_dims[1];
+    (* bag_handle)->bag.def.nrows = (u32)max_dims[0];
+    (* bag_handle)->bag.def.ncols = (u32)max_dims[1];
 
     if (access_mode != BAG_OPEN_CREATE)
     {

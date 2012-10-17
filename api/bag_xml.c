@@ -395,7 +395,7 @@ bagError bagInitDefinitionFromBag(bagHandle hnd)
     if ((stat = bagReadXMLStream(hnd)) == BAG_SUCCESS)
     {
         pData = bagGetDataPointer(hnd);
-        stat = bagInitAndValidateDefinition(pData, pData->metadata, strlen((char *)pData->metadata), False);
+        stat = bagInitAndValidateDefinition(pData, pData->metadata, (u32)strlen((char *)pData->metadata), False);
     }
     return stat;
 }

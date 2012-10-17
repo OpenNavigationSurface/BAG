@@ -7,36 +7,21 @@ sample-data
    Contains a sample XML file and a prebuild BAG file as trivial 
    examples.
 
-bagread
+bag_read
 -------
 
    A sample reading of a Bag file. See the readme.txt file inside 
    the sample-data directory for more information to test this 
    program.
    
-bagcreate
+bag_create
 ---------
 
    Creates a sample 10x10 row/column BAG file. See the readme.txt 
    file inside the sample-data directory for more information on 
    how to test this program.
-
-excertlib
----------
-
-    A supporting library necessary to build the digital signature 
-    examples. Note that part of this library depends on the HASP 
-    support libraries for accessing a hardware security dongle. 
-    Your ability to use these libraries may be limited, and 
-    therefore this may not work for you. The library could be 
-    built without them by taking out the appropriate sections, 
-    since it also has support for using plain XML files for the 
-    same purpose.
     
-    The certificate generation and test code (below) all use this 
-    library, so you need to build it first.
-    
-gencert
+bag_gencert
 -------
 
 	Generates a digital signature key-pair for use in signing 
@@ -47,7 +32,7 @@ gencert
 	gencert/example_proto_cert.xml for the contents required in 
 	the base certificate.
 
-signcert
+bag_signcert
 --------
 
 	Uses the information in an Entity's private key (plus their 
@@ -56,7 +41,7 @@ signcert
 	binds the public key and identity information together (within 
 	the belief of the Certificate Signing Agency's veracity).
 
-verifycert
+bag_verifycert
 ----------
 
 	Uses the information from the Certificate Signing Agency's 
@@ -65,7 +50,7 @@ verifycert
 	signature verifies) means that the certificate was signed by 
 	the CSA and that it has not been modified since it was signed.
 
-signfile
+bag_signfile
 --------
 
 	Uses the information in a user's private key (and their 
@@ -75,7 +60,7 @@ signfile
 	the DS to the metadata in the BAG, and is an arbitrary 
 	integer.
 
-verifyfile
+bag_verifyfile
 ----------
 
 	Uses the information in a user certificate to verify the 
