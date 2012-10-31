@@ -472,16 +472,19 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
 
         } /* for q rows */
         
-        /*  fprintf(stderr, "sum sum %f / %f =  %f\n", sum_sep, sum, sum_sep / sum);  */
+/*         fprintf(stderr, "sum sum %f / %f =  %f : %f\n", sum_sep, sum, sum_sep / sum, data[indx]); */
 
-        /*! is not a constant SEP with one point? */
-        if (sum_sep != 0.0 && sum != 0.0)
+        if (!zeroDist)
         {
-            data[indx] += sum_sep / sum;
-        }
-        else if (!zeroDist)
-        {
-            data[indx] = NULL_GENERIC;
+            /*! is not a constant SEP with one point? */
+            if (sum_sep != 0.0 && sum != 0.0)
+            {
+                data[indx] += sum_sep / sum;
+            }
+            else 
+            {
+                data[indx] = NULL_GENERIC;
+            }
         }
 
     } /* for j cols */
