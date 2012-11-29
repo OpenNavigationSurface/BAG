@@ -351,11 +351,11 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
 //************************************************************************
 bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize, Bool validateXML)
 {
-    char cacheString[XML_METADATA_MAX_LENGTH];
+    char *nullTerminatedBuffer = NULL;
     bagError error = BAG_SUCCESS;
     u32 bufferLen = XML_METADATA_MAX_LENGTH-1;
     bagMetaData  locmeta;
-    void *tmp;
+    void *tmp = NULL;
 
     if (data == NULL || buffer == NULL)
         return BAG_METADTA_INSUFFICIENT_BUFFER;
@@ -367,13 +367,14 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
     /* initialize the metadata module */
     bagInitMetadata();
 
-    strncpy (cacheString, (char *)buffer, bufferLen-1);
+    nullTerminatedBuffer = (char*)malloc(bufferSize + 1);
+    strncpy (nullTerminatedBuffer, (char *)buffer, bufferSize);
 
     /* need to make sure that the buffer is NULL terminated. */
-    cacheString[bufferLen] = '\0';
+    nullTerminatedBuffer[bufferSize] = '\0';
 
     /* open and validate the XML file. */
-    locmeta = (bagMetaData) bagGetMetadataBuffer(cacheString, bufferSize, validateXML, &error);
+    locmeta = (bagMetaData) bagGetMetadataBuffer(nullTerminatedBuffer, bufferSize, validateXML, &error);
     
     if (error)
     {

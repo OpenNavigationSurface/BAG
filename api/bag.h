@@ -1093,8 +1093,7 @@ BAG_EXTERNAL bagError bagGetOptDatasets(bagHandle *bag_handle, s32 *num_opt_data
  *     Utility function used to convert the old reference system definition structures
  *     into a WKT (Well Known Text) string.
  * 
- *  \param    coordType		The reference system type.
- *  \param	  parameters	The projection parameters.
+ *  \param    system		The legacy reference system to convert.
  *  \param	  hBuffer   	Modified to contain the horizontal reference system definition as WKT.
  *	\param	  hBuffer_size	The size of the	horizontal definition buffer passed in.
  *  \param	  vBuffer   	Modified to contain the vertical reference system definition as WKT.
@@ -1114,9 +1113,8 @@ BAG_EXTERNAL bagError bagLegacyToWkt(const bagLegacyReferenceSystem system,
  * 
  *  \param    horiz_wkt     String buffer containing the horizontal WKT reference system definition.
  *  \param    vert_wkt      String buffer containing the vertical WKT reference system definition.
- *  \param	  coordType	    Modified to contain the reference system type.
- *	\param	  parameters	Modified to contain the projection parameters.
- *
+ *  \param	  system	    Modified to contain the legacy reference system type.
+  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
  */
 BAG_EXTERNAL bagError bagWktToLegacy(const char *horiz_wkt, const char *vert_wkt, bagLegacyReferenceSystem *system);
