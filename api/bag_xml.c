@@ -115,7 +115,16 @@ static struct DATUM_NAME_TYPE DATUM_NAME_LIST[]=
 };
 
 
-/******************************************************************************/
+//************************************************************************
+/*!
+\brief Convert the given coordinate system name to its enum identifier.
+
+\param str
+    \li The coordinate system name to convert.
+\return
+    \li The corresponding coordinate system identifier.
+*/
+//************************************************************************
 Coordinate_Type bagCoordsys( char *str )
 {
 	long i;
@@ -123,9 +132,18 @@ Coordinate_Type bagCoordsys( char *str )
 		if ( strncmp(str, COORD_SYS_NAME(i), strlen(COORD_SYS_NAME(i))) == 0 )
 			return i;
 	return -1;
-} /* bagCoordsys */
+}
 
-/******************************************************************************/
+//************************************************************************
+/*!
+\brief Convert the given datum name to its enum identifier.
+
+\param str
+    \li The datum name to convert.
+\return
+    \li The corresponding datum identifier.
+*/
+//************************************************************************
 bagDatum bagDatumID( char *str )
 {
 	long i;
@@ -134,11 +152,17 @@ bagDatum bagDatumID( char *str )
 		if ( strncmp(str, DATUM_NAME(i), strlen(DATUM_NAME(i))) == 0 )
 			return i;
 	return -1;
-} /* bagDatumID */
+}
 
+//************************************************************************
+/*!
+\brief Free the xml metadata.
 
-
-bagError bagFreeXMLMeta ()
+\return
+    \li Returns 0 if the function succeeds, non-zerof if the function fails.
+*/
+//************************************************************************
+bagError bagFreeXMLMeta()
 {
    /* terminate the support. */
     bagTermMetadata();
@@ -146,14 +170,20 @@ bagError bagFreeXMLMeta ()
     return BAG_SUCCESS;
 }
 
-/* Routine:     bagInitDefinition
- * Purpose:     Populate the bag definition structure from the meta data file.
- * Inputs:      *definition     The definition structure to be populated.
- *              metaData        The hanlde to the metadata.
- *              version         The version of the BAG being initialized.
- * Outputs:     Returns 0 if the function succeeds, non-zerof if the function fails.
- * Comment:
- */
+//************************************************************************
+/*!
+\brief Populate the bag definition structure from the meta data file.
+
+\param definition
+    \li The definition structure to be populated.
+\param metaData
+    \li The hanlde to the metadata.
+\param version
+    \li The version of the BAG being initialized.
+\return
+    \li Returns 0 if the function succeeds, non-zerof if the function fails.
+*/
+//************************************************************************
 bagError bagInitDefinition(
     bagDef *definition,
     bagMetaData metaData,
@@ -227,15 +257,21 @@ bagError bagInitDefinition(
     return error;
 }
 
-/* Routine:     bagInitDefinitionFromFile
- * Purpose:     Populate the bag definition structure from the XML file.
- * Inputs:      *data     The bag data structure to be populated.
- *          *fileName The name of the XML file to be read.
- * Outputs:     Returns 0 if the function succeeds, non-zero if the function fails.
- * Comment: This function opens and validates the XML file specified by fileName
- *          against the ISO19139 schema.
- */
+//************************************************************************
+/*!
+\brief Populate the bag definition structure from the XML file.
 
+    This function opens and validates the XML file specified by fileName
+    against the ISO19139 schema.
+
+\param data
+    \li The bag data structure to be populated.
+\param fileName
+    \li The name of the XML file to be read.
+\return
+    \li Returns 0 if the function succeeds, non-zero if the function fails.
+*/
+//************************************************************************
 bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
 {
     bagMetaData metaData = NULL;
@@ -294,16 +330,25 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
     return error;
 }
 
-/* Routine:     bagInitAndValidateDefinition
- * Purpose:     Populate the bag definition structure from the XML memory buffer.
- * Inputs:      *data     The bag data structure to be populated.
- *              *buffer   The memory buffer containing the XML data.
- *              bufferSize  The size of buffer in bytes.
- *              validateXML True if the xml should be validated, else false.
- * Outputs:     Returns 0 if the function succeeds, non-zero if the function fails.
- * Comment: This function validates the XML data in buffer against the 
- *          ISO19139 schema.
- */
+//************************************************************************
+/*!
+\brief Populate the bag definition structure from the XML memory buffer.
+
+    This function validates the XML data in buffer against the 
+    ISO19139 schema.
+
+\param data
+    \li The bag data structure to be populated.
+\param buffer
+    \li The memory buffer containing the XML data.
+\param bufferSize
+    \li The size of buffer in bytes.
+\param validateXML
+    \li True if the xml should be validated, else false.
+\return
+    \li Returns 0 if the function succeeds, non-zero if the function fails.
+*/
+//************************************************************************
 bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize, Bool validateXML)
 {
     char cacheString[XML_METADATA_MAX_LENGTH];
@@ -362,15 +407,23 @@ bagError bagInitAndValidateDefinition(bagData *data, u8 *buffer, u32 bufferSize,
     return error;
 }
 
-/* Routine:     bagInitDefinitionFromBuffer
- * Purpose:     Populate the bag definition structure from the XML memory buffer.
- * Inputs:      *data     The bag data structure to be populated.
- *          *buffer   The memory buffer containing the XML data.
- *          bufferSize  The size of buffer in bytes.
- * Outputs:     Returns 0 if the function succeeds, non-zero if the function fails.
- * Comment: This function validates the XML data in buffer against the 
- *          ISO19139 schema.
- */
+//************************************************************************
+/*!
+\brief Populate the bag definition structure from the XML memory buffer.
+
+    This function validates the XML data in buffer against the 
+    ISO19139 schema.
+
+\param data
+    \li The bag data structure to be populated.
+\param buffer
+    \li The memory buffer containing the XML data.
+\param bufferSize
+    \li The size of buffer in bytes.
+\return
+    \li Returns 0 if the function succeeds, non-zero if the function fails.
+*/
+//************************************************************************
 bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
 {
     /*We need to assume that a new BAG file is being created, so set the
@@ -381,12 +434,18 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
     return bagInitAndValidateDefinition(data, buffer, bufferSize, True);
 }
 
-/* Routine:     bagInitDefinitionFromBag
- * Purpose:     Populate the bag definition structure from yer own metadata.
- * Inputs:      bagHandle pointer to a BagHandle
- * Outputs:     Returns 0 if the function succeeds, non-zero if the function fails.
- * Comment:   Just a shortcut to bagInitDefinitionFromBuffer()
- */
+//************************************************************************
+/*!
+\brief Populate the bag definition structure from yer own metadata.
+
+    Just a shortcut to bagInitDefinitionFromBuffer()
+
+\param hnd
+    \li bagHandle pointer to a BagHandle
+\return
+    \li Returns 0 if the function succeeds, non-zero if the function fails.
+*/
+//************************************************************************
 bagError bagInitDefinitionFromBag(bagHandle hnd)
 {
     bagError stat;

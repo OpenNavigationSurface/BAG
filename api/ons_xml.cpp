@@ -415,6 +415,8 @@ DOMNode *bagGetXMLNodeByName(
 /*!
 \param source
     \li The input source object to be parsed.
+\param doValidation
+    \li true if the bag metadata should be validated against its schema, else false.
 \param error
     \li Modified to contain a non-zero value if the funtion fails, modified
     to contain zero if the function succeeds.
@@ -833,17 +835,17 @@ bagError bagGetCellDims(
 /*!
 \param metaData
     \li The handle to the metadata.
-\param llx
-    \li Modified to contain western most longitude on success, if the function
-    fails the contents are unmodified.
-\param lly
+\param llLat
     \li Modified to contain southern most latitiude on success, if the function
     fails the contents are unmodified.
-\param urx
-    \li Modified to contain eastern most longitude on success, if the function
+\param llLong
+    \li Modified to contain western most longitude on success, if the function
     fails the contents are unmodified.
-\param ury
+\param urLat
     \li Modified to contain northern most latitude on success, if the function
+    fails the contents are unmodified.
+\param urLong
+    \li Modified to contain eastern most longitude on success, if the function
     fails the contents are unmodified.
 \return
     \li 0 if the function is successfull, non-zero if the function fails.

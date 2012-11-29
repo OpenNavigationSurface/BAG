@@ -1,4 +1,4 @@
-/*! \file bag_opt_datasets.c
+/*! \file bag_opt_surfaces.c
  * \brief This module contains functions for accessing the optional surface datasets and the XML metadata.
  ********************************************************************
  *
@@ -49,8 +49,8 @@
 /****************************************************************************************/
 /*! \brief bagCreateOptionalDataset creates a dataset for an optional bag surface
  *
- *  \param bagHandle  Handle of the BAG
- *	\param bagDataOpt Pointer to memory holding the data for the optional dataset
+ *  \param bag_hnd    Handle of the BAG
+ *	\param data       Pointer to memory holding the data for the optional dataset
  *  \param type       Indicates which data surface type to access, element of \a BAG_SURFACE_PARAMS
  *
  *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
@@ -398,9 +398,9 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
  *     This function opens a BAG file and finds the number of optional datasets along with a 
  *		list of those found.
  *
- * \param *bag_handle   bag_handle will be set to the allocated \a bagHandle
- *                      private object for subsequent external reference
- *                      by the caller.
+ * \param *bag_handle_opt   bag_handle will be set to the allocated \a bagHandle
+ *                          private object for subsequent external reference
+ *                          by the caller.
  * \param num_opt_datasets    Number of optional datasets in bag file
  * \param opt_dataset_names	  List of BAG_SURFACE_PARAMS loaded in the BAG.
  *
@@ -561,9 +561,9 @@ bagError bagFreeInfoOpt (bagHandle bag_handle_opt)
  *
  * Description : 
  *        This function is used to access the \a bagData structure from
- *        within the private object referenced by \a *bag_handle.
+ *        within the private object referenced by \a *bag_handle_opt.
  * 
- * \param  bag_handle   External reference to the private \a bagHandle object
+ * \param  bag_handle_opt   External reference to the private \a bagHandle object
  *
  * \return : \li On success, \a bagError is set to \a BAG_SUCCESS
  *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
@@ -690,12 +690,10 @@ bagError bagReadOptSurfaceDims (bagHandle hnd, s32 type)
  * Description : 
  *     This function opens a BAG file and finds the optional dataset HDF information
  *
- * \param *bag_handle   bag_handle will be set to the allocated \a bagHandle
- *                      private object for subsequent external reference
- *                      by the caller.
+ * \param *bag_handle_opt   bag_handle_opt will be set to the allocated \a bagHandle
+ *                          private object for subsequent external reference
+ *                          by the caller.
  * \param type		    Dataset name from BAG_SURFACE_PARAMS
- * \param num_opt_datasets    Number of optional datasets in bag file
- * \param opt_dataset_names	  List of BAG_SURFACE_PARAMS loaded in the BAG.
  *
  * \return \li On success, \a bagError is set to \a BAG_SUCCESS
  *         \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS

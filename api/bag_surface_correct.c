@@ -43,6 +43,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
  *  \param hnd        BagHandle Pointer
  *  \param data       Data definition for this dataset.
  *  \param numCorrectors  The number of surface corrections per node of the optional dataset
+ *  \param type       The coordinate topography type.
  *
  *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
  *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
@@ -501,6 +502,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
  *     Write the vertical datum code to an attribute on the Vertical Datum Correctors dataset
  * 
  *  \param    hnd    - pointer to the structure which ultimately contains the bag
+ *  \param    type   - The corrector type to write.
  *  \param    datum  - string to store in attr
  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
@@ -564,6 +566,7 @@ bagError bagWriteCorrectorVerticalDatum (bagHandle hnd, u32 type, u8 *datum)
  *     Read the vertical datum code attribute from the Vertical Datum Correctors dataset
  * 
  *  \param    hnd    - pointer to the structure which ultimately contains the bag
+ *  \param    type   - The corrector type to read.
  *  \param    datum  - buffer to read the attribute string into
  *
  * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  

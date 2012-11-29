@@ -1,4 +1,4 @@
-/*! \file epsg.c
+/*! \file bag_epsg.c
  * \brief This module contains a function to convert a BAG file's georeferencing parameters to an EPSG authority code.
  ********************************************************************
  *

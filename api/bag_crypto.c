@@ -133,7 +133,7 @@ u8 *bagComputeMessageDigest(char *file, u32 signatureID, u32 *nBytes)
  * a call-through to ons_sign_digest().
  *
  * \param	*md			Message Digest (or arbitrary bytestream) to be signed.
- * \param	md_len		Length (bytes) of the Message Digest bytestream.
+ * \param	mdLen		Length (bytes) of the Message Digest bytestream.
  * \param	*secKey		Secret Key bytestream (in ONS internal format) to sign with.
  * \param	*errcode	Enumerated error code, or \a BAG_SUCCESS on success.
  * \return				Returns a pointer to the signature bytestream (in ONS internal format) on

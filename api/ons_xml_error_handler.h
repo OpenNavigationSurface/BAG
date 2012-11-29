@@ -7,7 +7,6 @@
 //        Bill Lamey, 7/19/2005
 //
 //************************************************************************
-
 #include <xercesc/util/XercesDefs.hpp>
 #include <xercesc/sax/ErrorHandler.hpp>
 
@@ -15,7 +14,7 @@
 XERCES_CPP_NAMESPACE_USE
 
 
-// This class represents the DOM error handler.
+//! This class represents the DOM error handler.
 class BAGMetaDataErrorHandler : public ErrorHandler
 {
 public:
