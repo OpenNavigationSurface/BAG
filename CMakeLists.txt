@@ -7,10 +7,12 @@ project (OPENNS)
 #-----------------------------------------------------------------------------
 # Define some CMake variables for use later in the project
 #-----------------------------------------------------------------------------
-SET (OPENNS_SRC_DIR                ${OPENNS_SOURCE_DIR}/api)
-SET (OPENNS_EXAMPLES_SOURCE_DIR    ${OPENNS_SOURCE_DIR}/examples)
-SET (LIBRARY_OUTPUT_PATH           ${OPENNS_SOURCE_DIR}/lib)
-SET (EXECUTABLE_OUTPUT_PATH        ${OPENNS_SOURCE_DIR}/examples/bin)
+SET (OPENNS_SRC_DIR                             ${OPENNS_SOURCE_DIR}/api)
+SET (OPENNS_EXAMPLES_SOURCE_DIR                 ${OPENNS_SOURCE_DIR}/examples)
+SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE     ${OPENNS_SOURCE_DIR}/bin)
+SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG       ${OPENNS_SOURCE_DIR}/bin)
+SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE     ${OPENNS_SOURCE_DIR}/lib)
+SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG       ${OPENNS_SOURCE_DIR}/lib)
 
 #-----------------------------------------------------------------------------
 # parse the full version number from bag.h and include in OPENNS_VERS_INFO
@@ -22,7 +24,6 @@ STRING (REGEX REPLACE ".*#define[ \t]+BAG_VER_MINOR[ \t]+([0-9]*).*$"
     "\\1" OPENNS_VERS_MINOR ${_bag_h_contents})
 STRING (REGEX REPLACE ".*#define[ \t]+BAG_VER_REVISION[ \t]+([0-9]*).*$"
     "\\1" OPENNS_VERS_RELEASE ${_bag_h_contents})
-#MESSAGE (STATUS "VERSION: ${OPENNS_VERS_MAJOR}.${OPENNS_VERS_MINOR}.${OPENNS_VERS_RELEASE}")
 
 #-----------------------------------------------------------------------------
 SET (OPENNS_PACKAGE "openns")

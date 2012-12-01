@@ -12,7 +12,7 @@ IF(MSVC)
     add_definitions(/D_CRT_SECURE_NO_WARNINGS /D _CRT_NONSTDC_NO_DEPRECATE)
     
     #compile using the dll.
-    add_definitions(/D BAG_DLL)
+    add_definitions(/D BAG_DLL /D _HDF5USEDLL_)
 ENDIF(MSVC)
 
 #-----------------------------------------------------------------------------
@@ -36,7 +36,11 @@ FOREACH (example ${examples})
     #Link with the bag library.
     TARGET_LINK_LIBRARIES(${example} bag)
     
-    #The debug build will have a 'd' postfix
-    SET(CMAKE_DEBUG_POSTFIX  "d")
-
+    #Add the '_debug' postfix to the samples.
+    SET_TARGET_PROPERTIES( ${example}
+        PROPERTIES
+        DEBUG_OUTPUT_NAME ${example}_debug
+        RELEASE_OUTPUT_NAME ${example}
+    )
+    
 ENDFOREACH (example ${examples})
