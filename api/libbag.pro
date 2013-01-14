@@ -27,11 +27,14 @@ HEADERS += stdtypes.h \
         ons_xml.h \
         onscrypto.h \
         ons_xml_error_handler.h \
-        bag_private.h \
+	bag_metadata_def.h	\
+	bag_xml_meta.hpp	\
+	bag_private.h \
         bag.h
         
 SOURCES += crc32.c \
         ons_xml.cpp \
+        bag_xml_meta.cpp \
         bag_attr.c \
         bag_crypto.c \
         bag_epsg.c \
