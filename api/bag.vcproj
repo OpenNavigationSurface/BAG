@@ -218,6 +218,10 @@
 				>
 			</File>
 			<File
+				RelativePath="bag_xml_meta.cpp"
+				>
+			</File>
+			<File
 				RelativePath="onscrypto.c"
 				>
 			</File>
