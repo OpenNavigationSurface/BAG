@@ -93,6 +93,8 @@ extern bagError bagGetVReferenceSystem(bagMetaData metaData, const char *version
 
 extern bagError bagGetNodeGroupType(bagMetaData metaData, u8 *);
 extern bagError bagGetElevationSolutionType(bagMetaData metaData, u8 *);
+extern bagError bagGetHReferenceSystemV1(bagMetaData metaData, char *buffer, u32 bufferSize);
+extern bagError bagGetVReferenceSystemV1(bagMetaData metaData, char *buffer, u32 bufferSize);
 #ifdef __cplusplus
 }
 #endif
