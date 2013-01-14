@@ -11,6 +11,7 @@
 // ONS includes
 #include "ons_xml_error_handler.h"
 #include "ons_xml.h"
+#include "bag_metadata_def.h"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -2109,3 +2110,1430 @@ bagError bagGetVReferenceSystem(
 
     return err;
 }
+
+//*****************************************************************************
+/*!
+\ Function: bagGetContact
+
+\brief  Populates a RESPONSIBLE_PARTY structure with "contact" information
+		  retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure.
+\param	version
+	\li		BAG version
+\param  contact
+	\li     pointer to structure to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+\ Assumptions: Assumes that only one "contact" node exists in the XML.
+*/
+//*****************************************************************************
+
+bagError bagGetContact( bagMetaData metaData, const char *version, RESPONSIBLE_PARTY * contact )
+{
+
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+	/* retrieve the INDIVIDUAL NAME from the Responsible Party info */
+    const std::string IndivStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/contact/smXML:CI_ResponsibleParty/individualName" :
+        "gmi:MI_Metadata/gmd:contact/gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString";
+
+    DOMNode *pResponibleNameNode = bagGetXMLNodeByName(metaData->parser->getDocument(), IndivStr_name.c_str());
+      
+    if (pResponibleNameNode == NULL)
+    {
+		strcpy((char*)contact->individualName,"\0");
+	}
+	else
+	{
+		std::string value = getValueFromNode(*pResponibleNameNode);
+		if (value.empty())
+			strcpy((char*)contact->individualName,"\0");
+		else
+			strcpy((char*)contact->individualName, value.c_str());
+	}
+	
+	/* retrieve the ROLE of the responsible party */
+	const std::string roleStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/contact/smXML:CI_ResponsibleParty/role" :
+        "gmi:MI_Metadata/gmd:contact/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode";
+
+    DOMNode *pRoleNode = bagGetXMLNodeByName(metaData->parser->getDocument(), roleStr_name.c_str());
+      
+	if (pRoleNode != NULL)
+	{
+		const std::string roleName = getValueFromNode(*pRoleNode);	
+
+		if (roleName.empty())
+			strcpy((char*)contact->role,"\0");
+		else
+			strcpy((char*)contact->role, roleName.c_str());
+	}
+	else 
+		strcpy((char*)contact->role, "\0");
+
+	/* retrieve the ORGANISATION_NAME from the responsible party */
+	const std::string OrgStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/contact/smXML:CI_ResponsibleParty/organisationName" :
+        "gmi:MI_Metadata/gmd:contact/gmd:CI_ResponsibleParty/gmd:organisationName/gco:CharacterString";
+
+	DOMNode *pOrgNameNode = bagGetXMLNodeByName(metaData->parser->getDocument(), OrgStr_name.c_str());
+    
+	if(pOrgNameNode != NULL)
+	{
+		const std::string orgName = getValueFromNode(*pOrgNameNode);
+
+		if (orgName.empty())
+			strcpy((char*)contact->organisationName,"\0");
+		else
+			strcpy((char*)contact->organisationName, orgName.c_str());
+	}
+	else
+		strcpy((char*)contact->organisationName, "\0");
+
+	/* retrieve the POSITION NAME from the responsible party */
+	const std::string positionStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/contact/smXML:CI_ResponsibleParty/positionName" :
+        "gmi:MI_Metadata/gmd:contact/gmd:CI_ResponsibleParty/gmd:positionName/gco:CharacterString";
+
+    DOMNode *pPositionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), positionStr_name.c_str());
+      
+	if(pPositionNode != NULL)
+	{
+		const std::string positionName = getValueFromNode(*pPositionNode);
+
+		if (positionName.empty())
+			strcpy((char*)contact->positionName, "\0");
+		else
+			strcpy((char*)contact->positionName, positionName.c_str());
+	}
+	else
+		strcpy((char*)contact->positionName, "\0");
+
+    return 0;
+
+}
+
+//*****************************************************************************
+/*!
+\ Function: bagGetLegalConstraints
+
+\brief  Populates a LEGAL_CONSTRAINTS structure with MD_LegalConstraints information
+		  retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure. 
+\param	version
+	\li		BAG version
+\param  legalConstraints
+	\li     pointer to structure to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+bagError  bagGetLegalConstraints(  bagMetaData metaData, const char *version, LEGAL_CONSTRAINTS * legalConstraints )
+{
+	   
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+
+	/* retrieve the USE CONSTRAINTS from the legal contraints info */
+    const std::string UseConstraintsStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/metadataConstraints/smXML:MD_LegalConstraints/useConstraints" :
+		"gmi:MI_Metadata/gmd:metadataConstraints/gmd:MD_LegalConstraints/gmd:useConstraints/gmd:MD_RestrictionCode";
+    DOMNode *pUseConstraintsNode = bagGetXMLNodeByName(metaData->parser->getDocument(), UseConstraintsStr_name.c_str());
+      
+    if (pUseConstraintsNode == NULL)
+    	strcpy((char*)legalConstraints->useConstraints,"\0");
+	else
+	{
+		std::string value = getValueFromNode(*pUseConstraintsNode);
+		if (value.empty())
+			strcpy((char*)legalConstraints->useConstraints,"\0");
+		else
+			strcpy((char*)legalConstraints->useConstraints, value.c_str());
+	}
+
+	/* retrieve the OTHER CONSTRAINTS from the legal contraints info */
+    const std::string OtherConstraintsStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/metadataConstraints/smXML:MD_LegalConstraints/otherConstraints" :
+		"gmi:MI_Metadata/gmd:metadataConstraints/gmd:MD_LegalConstraints/gmd:otherConstraints/gco:CharacterString";
+    DOMNode *pOtherConstraintsNode = bagGetXMLNodeByName(metaData->parser->getDocument(), OtherConstraintsStr_name.c_str());
+      
+    if (pOtherConstraintsNode == NULL)
+    	strcpy((char*)legalConstraints->otherConstraints,"\0");
+	else
+	{
+		std::string value = getValueFromNode(*pOtherConstraintsNode);
+		if (value.empty())
+			strcpy((char*)legalConstraints->otherConstraints,"\0");
+		else
+			strcpy((char*)legalConstraints->otherConstraints, value.c_str());
+	}
+
+	return 0;	
+}
+
+//*****************************************************************************
+/*!
+\ Function: bagGetSecurityConstraints
+
+\brief  Populates a SECURITY_CONSTRAINTS structure with MD_SecurityConstraints information
+		  retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure.
+\param	version
+	\li		BAG version
+\param  securityConstraints
+	\li     pointer to structure to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+bagError  bagGetSecurityConstraints(  bagMetaData metaData, const char *version, SECURITY_CONSTRAINTS *securityConstraints )
+{
+	signed short errorCode = 0;
+    
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+
+	/* retrieve the CLASSIFICATION from the security contraints info */
+    const std::string ClassStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/metadataConstraints/smXML:MD_SecurityConstraints/classification" :
+		"gmi:MI_Metadata/gmd:metadataConstraints/gmd:MD_SecurityConstraints/gmd:classification/gmd:MD_ClassificationCode";
+    DOMNode *pClassNode = bagGetXMLNodeByName(metaData->parser->getDocument(), ClassStr_name.c_str());
+      
+    if (pClassNode == NULL)
+    	strcpy((char*)securityConstraints->classification,"\0");
+	else
+	{
+		std::string value = getValueFromNode(*pClassNode);
+		if (value.empty())
+			strcpy((char*)securityConstraints->classification,"\0");
+		else
+			strcpy((char*)securityConstraints->classification, value.c_str());
+	}
+
+	/* retrieve the USERS NOTE from the security contraints info */
+    const std::string UserNoteStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/metadataConstraints/smXML:MD_SecurityConstraints/userNote" :
+		"gmi:MI_Metadata/gmd:metadataConstraints/gmd:MD_SecurityConstraints/gmd:userNote/gco:CharacterString";
+    DOMNode *pUserNoteNode = bagGetXMLNodeByName(metaData->parser->getDocument(), UserNoteStr_name.c_str());
+      
+    if (pUserNoteNode == NULL)
+    	strcpy((char*)securityConstraints->userNote,"\0");
+	else
+	{
+		std::string value = getValueFromNode(*pUserNoteNode);
+		if (value.empty())
+			strcpy((char*)securityConstraints->userNote,"\0");
+		else
+			strcpy((char*)securityConstraints->userNote, value.c_str());
+	}
+
+	return 0;	
+}
+
+
+
+//*****************************************************************************
+/*!
+\ Function: bagGetDataQualityInfo
+
+\brief  Populates a DATA_QUALITY_INFO structure with DQ_DataQuality information
+		  retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure. 
+\param	version
+	\li		BAG version
+\param  dataQualityInfo
+	\li     pointer to structure to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+bagError  bagGetDataQualityInfo(bagMetaData metaData, const char *version, DATA_QUALITY_INFO *dataQualityInfo)
+{
+	signed short errorCode = 0;
+    
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+	
+
+	const asciiString LineageStr = (metaVer == 1) ?
+        "smXML:LI_Lineage" : "gmd:LI_Lineage";
+
+	const std::string descriptionStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/description" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:description/gco:CharacterString";
+
+    const std::string titleStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/title" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:title/gco:CharacterString";
+
+	const std::string dateStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/date/smXML:CI_Date/date" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date";
+
+	const std::string dateTypeStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/date/smXML:CI_Date/dateType" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:dateType/gmd:CI_DateTypeCode";
+
+	const std::string roleStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/processor/smXML:CI_ResponsibleParty/role" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:processor/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode";
+
+	const std::string indivNameStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/processor/smXML:CI_ResponsibleParty/individualName" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:processor/gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString";
+   	
+	const std::string dateTimeStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/DateTime" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:dateTime/gco:DateTime";
+
+	const std::string ProcessDescriptStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/description" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:description/gco:CharacterString";
+
+	const std::string TrackIDStr = (metaVer == 1) ?
+        "processStep/smXML:BAG_ProcessStep/trackingId" : 
+		"gmd:processStep/bag:BAG_ProcessStep/bag:trackingId/gco:CharacterString";
+   
+	
+	//Find all of the lineage nodes.
+    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(LineageStr);
+    for (XMLSize_t i = 0; i < pNodeList->getLength(); i++)
+    {
+        DOMNode *pNode = pNodeList->item(i);
+        if (pNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+        //Get the dimension name node.
+        DOMNode *pDescriptNode = bagGetXMLNodeByName(pNode, descriptionStr.c_str());
+        if (pDescriptNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+        // Get the dimension size node.
+        DOMNode *pTitleNode = bagGetXMLNodeByName(pNode, titleStr.c_str());
+        if (pTitleNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+		//Get the dimension name node.
+        DOMNode *pDateNode = bagGetXMLNodeByName(pNode, dateStr.c_str());
+        if (pDateNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+        // Get the dimension size node.
+        DOMNode *pDateTypeNode = bagGetXMLNodeByName(pNode, dateTypeStr.c_str());
+        if (pDateTypeNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+		// Get the dimension size node.
+        DOMNode *pRoleNode = bagGetXMLNodeByName(pNode, roleStr.c_str());
+        if (pRoleNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+		
+		// Get the dimension size node.
+        DOMNode *pIndivNameNode = bagGetXMLNodeByName(pNode, indivNameStr.c_str());
+        if (pIndivNameNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+		// Get the dimension size node.
+        DOMNode *pDateTimeNode = bagGetXMLNodeByName(pNode, dateTimeStr.c_str());
+        if (pDateTimeNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+		// Get the dimension size node.
+        DOMNode *pProcessDescriptNode = bagGetXMLNodeByName(pNode, ProcessDescriptStr.c_str());
+        if (pProcessDescriptNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+		
+		// Get the dimension size node.
+        DOMNode *pTrackIDNode = bagGetXMLNodeByName(pNode, TrackIDStr.c_str());
+        if (pTrackIDNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+		
+        const std::string description = getValueFromNode(*pDescriptNode);
+        const std::string title = getValueFromNode(*pTitleNode);
+		const std::string date = getValueFromNode(*pDateNode);
+        const std::string dateType = getValueFromNode(*pDateTypeNode);
+		const std::string role = getValueFromNode(*pRoleNode);
+		const std::string indivName = getValueFromNode(*pIndivNameNode);
+		const std::string dateTime = getValueFromNode(*pDateTimeNode);
+		const std::string processDescript = getValueFromNode(*pProcessDescriptNode);
+		const std::string trackID = getValueFromNode(*pTrackIDNode);
+		
+		strcpy((char*)dataQualityInfo->lineageSources->description, description.c_str());
+		strcpy((char*)dataQualityInfo->lineageSources->title, title.c_str());
+		strcpy((char*)dataQualityInfo->lineageSources->date, date.c_str());
+		strcpy((char*)dataQualityInfo->lineageSources->dateType, dateType.c_str());
+
+		strcpy((char*)dataQualityInfo->lineageProcessSteps->processors->role, role.c_str());
+		strcpy((char*)dataQualityInfo->lineageProcessSteps->processors->individualName, indivName.c_str());
+		strcpy((char*)dataQualityInfo->lineageProcessSteps->dateTime, dateTime.c_str());
+		strcpy((char*)dataQualityInfo->lineageProcessSteps->description, processDescript.c_str());
+		strcpy((char*)dataQualityInfo->lineageProcessSteps->trackingId, trackID.c_str());
+    }
+
+
+	/* retrieve the level scope info */
+    const std::string ScopeStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/dataQualityInfo/smXML:DQ_DataQuality/scope/smXML:DQ_Scope/level" :
+		"gmi:MI_Metadata/gmd:dataQualityInfo/gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode";
+    DOMNode *pScopeNode = bagGetXMLNodeByName(metaData->parser->getDocument(), ScopeStr_name.c_str());
+      
+    if (pScopeNode == NULL)
+    	strcpy((char*)dataQualityInfo->scope,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pScopeNode);
+		if (value.empty())
+			strcpy((char*)dataQualityInfo->scope,"\0");
+		else
+			strcpy((char*)dataQualityInfo->scope, value.c_str());
+	}
+
+	
+	dataQualityInfo->numberOfSources=1;
+	dataQualityInfo->numberOfProcessSteps =1;
+
+	
+	return 0;	
+}
+
+//*****************************************************************************
+/*!
+\ Function: bagGetSpatialRepresentationInfo
+
+\brief  Populates a SPATIAL_REPRESENTATION_INFO structure with spatialRepresentationInfo
+		information retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure. 
+\param	version
+	\li		BAG version
+\param  spatial_rep_info
+	\li     pointer to structure to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+extern bagError bagGetSpatialRepresentationInfo(bagMetaData metaData, const char *version, SPATIAL_REPRESENTATION_INFO *spatial_rep_info)
+{
+
+  signed short errorCode = 0;
+  
+    
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+
+	// get the number of dimensions.
+    const std::string dimensionStr = (metaVer == 1) ?
+        "smXML:MD_Metadata/spatialRepresentationInfo/smXML:MD_Georectified/numberOfDimensions" :
+        "gmi:MI_Metadata/gmd:spatialRepresentationInfo/gmd:MD_Georectified/gmd:numberOfDimensions/gco:Integer";
+
+    DOMNode *pDimNode = bagGetXMLNodeByName(metaData->parser->getDocument(), dimensionStr.c_str());
+    if (pDimNode == NULL)
+        return BAG_METADTA_INVLID_DIMENSIONS;
+
+    const std::string value = getValueFromNode(*pDimNode);
+    const s32 numDims = atoi(value.c_str());
+
+    spatial_rep_info->numberOfDimensions = numDims;
+
+    const char rowStr[] = "row";
+    const char colStr[] = "column";
+
+    const asciiString dimStr = (metaVer == 1) ?
+        "smXML:MD_Dimension" : "gmd:MD_Dimension";
+
+    const std::string dimNameStr = (metaVer == 1) ?
+        "dimensionName" : "gmd:dimensionName/gmd:MD_DimensionNameTypeCode";
+
+    const std::string dimSizeStr = (metaVer == 1) ?
+        "dimensionSize" : "gmd:dimensionSize/gco:Integer";
+
+	 const std::string resolutionStr = (metaVer == 1) ?
+        "resolution/smXML:Measure/smXML:value" : "gmd:resolution/gco:Measure";
+
+	 const asciiString GeoRectifiedStr = (metaVer == 1) ?
+        "smXML:MD_Georectified" : "gmd:MD_Georectified";
+	 
+
+	 const std::string cellGeometryStr = (metaVer == 1) ?
+        "cellGeometry" : "gmd:cellGeometry/gmd:MD_CellGeometryCode";
+
+	 const std::string transParamAvailStr = (metaVer == 1) ?
+        "transformationParameterAvailability" : "gmd:transformationParameterAvailability/gco:Boolean";
+
+	 const std::string checkPtAvailStr = (metaVer == 1) ?
+        "checkPointAvailability" : "gmd:checkPointAvailability/gco:Boolean";
+
+	 
+    //Find all of the dimension nodes.
+    DOMNodeList *pNodeList = metaData->parser->getDocument()->getElementsByTagName(dimStr);
+    for (XMLSize_t i = 0; i < pNodeList->getLength(); i++)
+    {
+        DOMNode *pNode = pNodeList->item(i);
+        if (pNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+        //Get the dimension name node.
+        DOMNode *pNameNode = bagGetXMLNodeByName(pNode, dimNameStr.c_str());
+        if (pNameNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+        //Get the dimension size node.
+        DOMNode *pSizeNode = bagGetXMLNodeByName(pNode, dimSizeStr.c_str());
+        if (pSizeNode == NULL)
+            return BAG_METADTA_INVLID_DIMENSIONS;
+
+		//Get the resolution node.
+        DOMNode *pResNode = bagGetXMLNodeByName(pNode, resolutionStr.c_str());
+        if (pResNode == NULL)
+            return BAG_METADTA_RESOLUTION_MISSING;
+
+		
+
+        const std::string name = getValueFromNode(*pNameNode);
+        const std::string size = getValueFromNode(*pSizeNode);
+        const std::string resolution = getValueFromNode(*pResNode);
+		
+
+       	/* dimension name and sizes */
+		strcpy((char*)spatial_rep_info->dimensionName[i], name.c_str());
+		spatial_rep_info->dimensionSize[i] = atoi(size.c_str());
+
+		/* resolution values from dx dy*/
+	    if (strcmp(name.c_str(), rowStr) == 0)
+            spatial_rep_info->resolutionValue[i] = atof(resolution.c_str());
+        else if (strcmp(name.c_str(), colStr) == 0)
+            spatial_rep_info->resolutionValue[i] = atof(resolution.c_str());
+		
+		
+	}
+
+	//Find all of the dimension nodes.
+    DOMNodeList *pNextNodeList = metaData->parser->getDocument()->getElementsByTagName(GeoRectifiedStr);
+    for (XMLSize_t i = 0; i < pNodeList->getLength(); i++)
+    {
+        DOMNode *pNextNode = pNextNodeList->item(i);
+        if (pNextNode == NULL)
+            break;
+
+		//Get the cell geometry node.
+        DOMNode *pCellGeometryNode = bagGetXMLNodeByName(pNextNode, cellGeometryStr.c_str());
+        if (pCellGeometryNode == NULL)
+            return BAG_METADTA_RESOLUTION_MISSING;
+
+		//Get the trans param availability node.
+        DOMNode *pTransParamAvailNode = bagGetXMLNodeByName(pNextNode, transParamAvailStr.c_str());
+        if (pTransParamAvailNode == NULL)
+            return BAG_METADTA_RESOLUTION_MISSING;
+
+		//Get the checkPointAvailability node.
+        DOMNode *pCheckPtAvailabilityNode = bagGetXMLNodeByName(pNextNode, checkPtAvailStr.c_str());
+        if (pCheckPtAvailabilityNode == NULL)
+            return BAG_METADTA_RESOLUTION_MISSING;
+
+		const std::string cellGeom = getValueFromNode(*pCellGeometryNode);
+        const std::string transParamAvail = getValueFromNode(*pTransParamAvailNode);
+        const std::string checkPtAvail = getValueFromNode(*pCheckPtAvailabilityNode);
+
+		strcpy((char*)spatial_rep_info->cellGeometry, cellGeom.c_str());
+		strcpy((char*)spatial_rep_info->transformationParameterAvailability, transParamAvail.c_str());
+		strcpy((char*)spatial_rep_info->checkPointAvailability, checkPtAvail.c_str());
+	}
+
+	bagGetProjectedCover(metaData, version, &spatial_rep_info->llCornerX, &spatial_rep_info->llCornerY, 
+		&spatial_rep_info->urCornerX, &spatial_rep_info->urCornerY);
+
+	return 0;
+
+}
+
+//*****************************************************************************
+/*!
+\ Function: bagGetDateStamp
+
+\brief  Populates a character string with dateStamp
+		information retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure. 
+\param	version
+	\li		BAG version
+\param  dateString
+	\li     pointer to character string to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+
+bagError  bagGetDateStamp(bagMetaData metaData, const char *version, char ** dateString)
+{
+	signed short errorCode = 0;
+    
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+
+	/* retrieve the Description from the source info */
+    const std::string DateStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/dateStamp" :
+		"gmi:MI_Metadata/gmd:dateStamp";
+    DOMNode *pDateNode = bagGetXMLNodeByName(metaData->parser->getDocument(), DateStr_name.c_str());
+      
+    if (pDateNode == NULL)
+    	strcpy((char*)dateString,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pDateNode);
+		if (value.empty())
+			strcpy((char*)dateString,"\0");
+		else
+			strcpy((char*)dateString, value.c_str());
+	}
+
+	return 0;
+
+}
+
+//*****************************************************************************
+/*!
+\ Function: bagGetFileIdentifier
+
+\brief  Populates a character string with file indentifier
+		information retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure. 
+\param	version
+	\li		BAG version
+\param  fileIdentStr
+	\li     pointer to character string to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+
+extern bagError  bagGetFileIdentifier(bagMetaData metaData, const char *version, char ** fileIdentStr)
+{
+	signed short errorCode = 0;
+    
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+
+	/* retrieve the Description from the source info */
+    const std::string FileIdentifierStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/fileIdentifier" :
+		"gmi:MI_Metadata/gmd:fileIdentifier/gco:CharacterString";
+    DOMNode *pFileIdentNode = bagGetXMLNodeByName(metaData->parser->getDocument(), FileIdentifierStr_name.c_str());
+      
+    if (pFileIdentNode == NULL)
+    	strcpy((char*)fileIdentStr,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pFileIdentNode);
+		if (value.empty())
+			strcpy((char*)fileIdentStr,"\0");
+		else
+			strcpy((char*)fileIdentStr, value.c_str());
+	}
+
+	return 0;
+
+}
+
+//*****************************************************************************
+/*!
+\ Function: bagGetLanguage
+
+\brief  Populates a character string with language
+		information retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure. 
+\param	version
+	\li		BAG version
+\param  language
+	\li     pointer to character string to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+
+bagError  bagGetLanguage(bagMetaData metaData, const char *version, char ** language )
+{
+	signed short errorCode = 0;
+    
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+
+	/* retrieve the Description from the source info */
+    const std::string LanguageStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/language" :
+		"gmi:MI_Metadata/gmd:language/gmd:LanguageCode";
+    DOMNode *pLanguageNode = bagGetXMLNodeByName(metaData->parser->getDocument(), LanguageStr_name.c_str());
+      
+    if (pLanguageNode == NULL)
+    	strcpy((char*)language,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pLanguageNode);
+		if (value.empty())
+			strcpy((char*)language,"\0");
+		else
+			strcpy((char*)language, value.c_str());
+	}
+
+	return 0;
+
+}
+
+//*****************************************************************************
+/*!
+\ Function: bagGetIdentificationInfo
+
+\brief  Populates a IDENTIFICATION_INFO structure with BAG_DataIdentification
+		information retreived from a BAG metadata XML string.
+
+\param  metaData 
+	\li		The handle to the meta data structure. 
+\param	version
+	\li		BAG version
+\param  identification_info
+	\li     pointer to structure to load with converted XML.
+\return
+	\li 0 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+
+ bagError bagGetIdentificationInfo(bagMetaData metaData, const char *version, IDENTIFICATION_INFO *identification_info)
+ {
+	signed short errorCode = 0;
+    
+     //Figure out what version of metadata we have.
+    const int metaVer = getMetadataVersion(version);
+
+
+	/* retrieve the Description from the source info */
+    const std::string TitleStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/citation/smXML:CI_Citation/title" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString";
+    DOMNode *pTitleNode = bagGetXMLNodeByName(metaData->parser->getDocument(), TitleStr_name.c_str());
+      
+    if (pTitleNode == NULL)
+    	strcpy((char*)identification_info->title,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pTitleNode);
+		if (value.empty())
+			strcpy((char*)identification_info->title,"\0");
+		else
+			strcpy((char*)identification_info->title, value.c_str());
+	}
+
+	/* retrieve the date from the source info */
+    const std::string DateStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/citation/smXML:CI_Citation/date/smXML:CI_Date/date" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date";
+    DOMNode *pDateNode = bagGetXMLNodeByName(metaData->parser->getDocument(), DateStr_name.c_str());
+      
+    if (pDateNode == NULL)
+    	strcpy((char*)identification_info->date,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pDateNode);
+		if (value.empty())
+			strcpy((char*)identification_info->date,"\0");
+		else
+			strcpy((char*)identification_info->date, value.c_str());
+	}
+
+	/* retrieve the date type from the source info */
+    const std::string DateTypeStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/citation/smXML:CI_Citation/date/smXML:CI_Date/dateType" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:dateType/gmd:CI_DateTypeCode";
+    DOMNode *pDateTypeNode = bagGetXMLNodeByName(metaData->parser->getDocument(), DateTypeStr_name.c_str());
+      
+    if (pDateTypeNode == NULL)
+    	strcpy((char*)identification_info->dateType,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pDateTypeNode);
+		if (value.empty())
+			strcpy((char*)identification_info->dateType,"\0");
+		else
+			strcpy((char*)identification_info->dateType, value.c_str());
+	}
+
+	/* retrieve the individual name from the identification info */
+    const std::string IndivNameStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/citation/smXML:CI_Citation/citedResponsibleParty/smXML:CI_ResponsibleParty/individualName" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString";
+    DOMNode *pIndivNameNode = bagGetXMLNodeByName(metaData->parser->getDocument(), IndivNameStr_name.c_str());
+      
+    if (pIndivNameNode == NULL)
+    	strcpy((char*)identification_info->responsibleParties->individualName,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pIndivNameNode);
+		if (value.empty())
+			strcpy((char*)identification_info->responsibleParties->individualName,"\0");
+		else
+			strcpy((char*)identification_info->responsibleParties->individualName, value.c_str());
+	}
+
+	/* retrieve the role from the identification info */
+    const std::string RoleStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/citation/smXML:CI_Citation/citedResponsibleParty/smXML:CI_ResponsibleParty/role" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty/gmd:CI_ResponsibleParty/gmd:role/gmd:CI_RoleCode";
+    DOMNode *pRoleNode = bagGetXMLNodeByName(metaData->parser->getDocument(), RoleStr_name.c_str());
+      
+    if (pRoleNode == NULL)
+    	strcpy((char*)identification_info->responsibleParties->role,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pRoleNode);
+		if (value.empty())
+			strcpy((char*)identification_info->responsibleParties->role,"\0");
+		else
+			strcpy((char*)identification_info->responsibleParties->role, value.c_str());
+	}
+
+	/* retrieve the abstract from the identification info */
+    const std::string AbstractStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/abstract" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:abstract/gco:CharacterString";
+    DOMNode *pAbstractNode = bagGetXMLNodeByName(metaData->parser->getDocument(), AbstractStr_name.c_str());
+      
+    if (pAbstractNode == NULL)
+    	strcpy((char*)identification_info->abstract,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pAbstractNode);
+		if (value.empty())
+			strcpy((char*)identification_info->abstract,"\0");
+		else
+			strcpy((char*)identification_info->abstract, value.c_str());
+	}
+
+	/* retrieve the topic category from the identification info */
+    const std::string TopicCatStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/topicCategory" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:topicCategory/gmd:MD_TopicCategoryCode";
+    DOMNode *pTopicCatNode = bagGetXMLNodeByName(metaData->parser->getDocument(), TopicCatStr_name.c_str());
+      
+    if (pTopicCatNode == NULL)
+    	strcpy((char*)identification_info->topicCategory,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pAbstractNode);
+		if (value.empty())
+			strcpy((char*)identification_info->topicCategory,"\0");
+		else
+			strcpy((char*)identification_info->topicCategory, value.c_str());
+	}
+
+	/* retrieve the status from the identification info */
+    const std::string StatusStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/status" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:status/gmd:MD_ProgressCode";
+    DOMNode *pStatusNode = bagGetXMLNodeByName(metaData->parser->getDocument(), StatusStr_name.c_str());
+      
+    if (pStatusNode == NULL)
+    	strcpy((char*)identification_info->status,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pStatusNode);
+		if (value.empty())
+			strcpy((char*)identification_info->status,"\0");
+		else
+			strcpy((char*)identification_info->status, value.c_str());
+	}
+
+	/* retrieve the spatial representation type from the identification info */
+    const std::string SpatialRepTypeStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/spatialRepresentation" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:spatialRepresentationType/gmd:MD_SpatialRepresentationTypeCode";
+    DOMNode *pSpatialRepTypeNode = bagGetXMLNodeByName(metaData->parser->getDocument(), SpatialRepTypeStr_name.c_str());
+      
+    if (pSpatialRepTypeNode == NULL)
+    	strcpy((char*)identification_info->spatialRepresentationType,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pSpatialRepTypeNode);
+		if (value.empty())
+			strcpy((char*)identification_info->spatialRepresentationType,"\0");
+		else
+			strcpy((char*)identification_info->spatialRepresentationType, value.c_str());
+	}
+
+
+		/* retrieve the language from the identification info */
+    const std::string LanguageStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/language" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:language/gmd:LanguageCode";
+    DOMNode *pLanguageNode = bagGetXMLNodeByName(metaData->parser->getDocument(), LanguageStr_name.c_str());
+      
+    if (pLanguageNode == NULL)
+    	strcpy((char*)identification_info->language,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pLanguageNode);
+		if (value.empty())
+			strcpy((char*)identification_info->language,"\0");
+		else
+			strcpy((char*)identification_info->language, value.c_str());
+	}
+
+	/* retrieve the character set from the identification info */
+    const std::string CharSetStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/characterSet" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:characterSet/gmd:MD_CharacterSetCode";
+    DOMNode *pCharSetNode = bagGetXMLNodeByName(metaData->parser->getDocument(), CharSetStr_name.c_str());
+      
+    if (pCharSetNode == NULL)
+    	strcpy((char*)identification_info->character_set,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pCharSetNode);
+		if (value.empty())
+			strcpy((char*)identification_info->character_set,"\0");
+		else
+			strcpy((char*)identification_info->character_set, value.c_str());
+	}
+
+	/* retrieve the west bound longitude from the identification info */
+    const std::string WestBoundStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox/westBoundLongitude" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:westBoundLongitude/gco:Decimal";
+    DOMNode *pWestBoundNode = bagGetXMLNodeByName(metaData->parser->getDocument(), WestBoundStr_name.c_str());
+      
+    if (pWestBoundNode == NULL)
+    	identification_info->westBoundingLongitude = 999;
+	else 
+	{
+		std::string value = getValueFromNode(*pWestBoundNode);
+		if (value.empty())
+			identification_info->westBoundingLongitude = 999;
+		else
+			identification_info->westBoundingLongitude = atof( value.c_str());
+	}
+
+	/* retrieve the east bound loongitude from the identification info */
+    const std::string EastBoundStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox/eastBoundLongitude" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:eastBoundLongitude/gco:Decimal";
+    DOMNode *pEastBoundNode = bagGetXMLNodeByName(metaData->parser->getDocument(), EastBoundStr_name.c_str());
+      
+    if (pEastBoundNode == NULL)
+    	identification_info->eastBoundingLongitude = 999;
+	else 
+	{
+		std::string value = getValueFromNode(*pEastBoundNode);
+		if (value.empty())
+			identification_info->eastBoundingLongitude = 999;
+		else
+			identification_info->eastBoundingLongitude = atof( value.c_str());
+	}
+
+	/* retrieve the north bound latitude from the identification info */
+    const std::string NorthBoundStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox/northBoundLatitude" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:northBoundLatitude/gco:Decimal";
+    DOMNode *pNorthBoundNode = bagGetXMLNodeByName(metaData->parser->getDocument(), NorthBoundStr_name.c_str());
+      
+    if (pNorthBoundNode == NULL)
+    	identification_info->northBoundingLatitude = 999;
+	else 
+	{
+		std::string value = getValueFromNode(*pNorthBoundNode);
+		if (value.empty())
+			identification_info->northBoundingLatitude = 999;
+		else
+			identification_info->northBoundingLatitude = atof( value.c_str());
+	}
+
+	/* retrieve the south bound latitude from the identification info */
+    const std::string SouthBoundStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/extent/smXML:EX_Extent/geographicElement/smXML:EX_GeographicBoundingBox/southBoundLatitude" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/gmd:extent/gmd:EX_Extent/gmd:geographicElement/gmd:EX_GeographicBoundingBox/gmd:southBoundLatitude/gco:Decimal";
+    DOMNode *pSouthBoundNode = bagGetXMLNodeByName(metaData->parser->getDocument(), SouthBoundStr_name.c_str());
+      
+    if (pSouthBoundNode == NULL)
+    	identification_info->southBoundingLatitude = 999;
+	else 
+	{
+		std::string value = getValueFromNode(*pSouthBoundNode);
+		if (value.empty())
+			identification_info->southBoundingLatitude = 999;
+		else
+			identification_info->southBoundingLatitude = atof( value.c_str());
+	}
+
+	/* retrieve the vertical uncertainty from the identification info */
+    const std::string VertUncStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/verticalUncertaintyType" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:verticalUncertaintyType/bag:BAG_VertUncertCode";
+    DOMNode *pVertUncNode = bagGetXMLNodeByName(metaData->parser->getDocument(), VertUncStr_name.c_str());
+      
+    if (pVertUncNode == NULL)
+    	strcpy((char*)identification_info->verticalUncertaintyType,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pVertUncNode);
+		if (value.empty())
+			strcpy((char*)identification_info->verticalUncertaintyType,"\0");
+		else
+			strcpy((char*)identification_info->verticalUncertaintyType, value.c_str());
+	}
+
+	/* retrieve the depth correction type from the identification info */
+    const std::string DepthCorrStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/depthCorrectionType" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:depthCorrectionType/bag:BAG_DepthCorrectCode";
+    DOMNode *pDepthCorrNode = bagGetXMLNodeByName(metaData->parser->getDocument(), DepthCorrStr_name.c_str());
+      
+    if (pDepthCorrNode == NULL)
+    	strcpy((char*)identification_info->depthCorrectionType,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pDepthCorrNode);
+		if (value.empty())
+			strcpy((char*)identification_info->depthCorrectionType,"\0");
+		else
+			strcpy((char*)identification_info->depthCorrectionType, value.c_str());
+	}
+
+	/* retrieve the elevation solution group type from the identification info */
+    const std::string ElevSolutionStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/elevationSolutionGroupType" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:elevationSolutionGroupType/bag:BAG_OptGroupCode";
+    DOMNode *pElevSolutionNode = bagGetXMLNodeByName(metaData->parser->getDocument(), ElevSolutionStr_name.c_str());
+      
+    if (pElevSolutionNode == NULL)
+    	strcpy((char*)identification_info->elevationSolutionGroupType, "\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pElevSolutionNode);
+		if (value.empty())
+			strcpy((char*)identification_info->elevationSolutionGroupType,"\0");
+		else
+			strcpy((char*)identification_info->elevationSolutionGroupType, value.c_str());
+	}
+
+	/* retrieve the depth correction type from the identification info */
+    const std::string NodeGroupStr_name = (metaVer == 1) ? 
+        "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/nodeGroupType" :
+		"gmi:MI_Metadata/gmd:identificationInfo/bag:BAG_DataIdentification/bag:nodeGroupType/bag:BAG_OptGroupCode";
+    DOMNode *pNodeGroupNode = bagGetXMLNodeByName(metaData->parser->getDocument(), NodeGroupStr_name.c_str());
+      
+    if (pNodeGroupNode == NULL)
+    	strcpy((char*)identification_info->nodeGroupType,"\0");
+	else 
+	{
+		std::string value = getValueFromNode(*pNodeGroupNode);
+		if (value.empty())
+			strcpy((char*)identification_info->nodeGroupType,"\0");
+		else
+			strcpy((char*)identification_info->nodeGroupType, value.c_str());
+	}
+
+	
+	
+	return 0;
+
+ }
+
+ 
+//*****************************************************************************
+/*!
+\ Function: InitDataIdentificationInfo
+
+\brief  Initializes a IDENTIFICATION_INFO structure.
+
+\param  dataIdentificationInfo 
+	\li		pointer to structure to be initialized.
+\return
+	\li 1 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+bagError InitDataIdentificationInfo(IDENTIFICATION_INFO * dataIdentificationInfo)
+{
+
+    u8 status = 1;
+
+    try
+    {
+		if(dataIdentificationInfo != NULL)
+		{
+
+   
+			strcpy((char*)(*dataIdentificationInfo).title, "\0"); 
+			strcpy((char*)(*dataIdentificationInfo).date, "\0"); 
+			strcpy((char*)(*dataIdentificationInfo).dateType, "\0");  
+			(*dataIdentificationInfo).abstract = (u8*)malloc(sizeof(char) * 8000);
+			strcpy((char*)(*dataIdentificationInfo).abstract, "\0"); 
+			strcpy((char*)(*dataIdentificationInfo).purpose, "\0"); 
+			strcpy((char*)(*dataIdentificationInfo).status, "\0"); 
+			strcpy((char*)(*dataIdentificationInfo).spatialRepresentationType, "\0"); 
+			strcpy((char*)(*dataIdentificationInfo).language, ""); 
+			strcpy((char*)(*dataIdentificationInfo).topicCategory, ""); 
+			(*dataIdentificationInfo).westBoundingLongitude = INIT_VALUE;
+			(*dataIdentificationInfo).eastBoundingLongitude = INIT_VALUE;   
+			(*dataIdentificationInfo).southBoundingLatitude = INIT_VALUE;       
+			(*dataIdentificationInfo).northBoundingLatitude = INIT_VALUE;
+			strcpy((char*)(*dataIdentificationInfo).verticalUncertaintyType, "\0");
+			strcpy((char*)(*dataIdentificationInfo).depthCorrectionType, "\0");
+			strcpy((char*)(*dataIdentificationInfo).elevationSolutionGroupType, "\0");
+			strcpy((char*)(*dataIdentificationInfo).nodeGroupType, "\0");
+
+		}
+		else
+			throw (signed short) -1;
+
+		if((*dataIdentificationInfo).responsibleParties != NULL)
+		{
+
+			for(u8 i = 0; i < MAX_CI_RESPONSIBLE_PARTIES; i++)
+			{
+				strcpy((char*)(*dataIdentificationInfo).responsibleParties[i].individualName, "\0");
+				strcpy((char*)(*dataIdentificationInfo).responsibleParties[i].positionName, "\0");
+				strcpy((char*)(*dataIdentificationInfo).responsibleParties[i].organisationName, "\0");
+				strcpy((char*)(*dataIdentificationInfo).responsibleParties[i].contactInfo, "\0");
+				strcpy((char*)(*dataIdentificationInfo).responsibleParties[i].role, "\0");
+	         
+			}
+		}
+		else 
+			throw (signed short) -1;
+
+
+			
+
+			
+
+
+    }               
+    catch(signed short intException)
+    {
+		fprintf(stderr,"ERROR: Exception when attempting to intialize data structure. Exception message is: Null pointer\n");
+        status = -1;
+    }
+
+
+
+    return status;
+
+
+}
+
+
+
+//*****************************************************************************
+/*!
+\ Function: InitLegalConstraints
+
+\brief  Initializes a LEGAL_CONSTRAINTS structure.
+
+\param  legalConstraints 
+	\li		pointer to structure to be initialized.
+\return
+	\li 1 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+bagError InitLegalConstraints(LEGAL_CONSTRAINTS * legalConstraints)
+{
+
+    u8 status = 1;
+
+    try
+    {
+		if(legalConstraints != NULL)
+		{
+			strcpy( (char*)(*legalConstraints).useConstraints, "\0");
+			strcpy( (char*)(*legalConstraints).otherConstraints,"\0");
+		}
+		else 
+			throw (signed short) -1;
+    }               
+    catch(signed short intException)
+    {
+		fprintf(stderr,"ERROR: Exception when attempting to intialize data structure. Exception message is: Null pointer\n");
+        status = -1;
+    }
+
+
+
+
+    return status;
+
+
+}
+
+
+//*****************************************************************************
+/*!
+\ Function: InitSecurityConstraints
+
+\brief  Initializes a SECURITY_CONSTRAINTS structure.
+
+\param  securityConstraints 
+	\li		pointer to structure to be initialized.
+\return
+	\li 1 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+
+bagError InitSecurityConstraints(SECURITY_CONSTRAINTS * securityConstraints)
+{
+
+    u8 status = 1;
+
+    try
+    {
+		if(securityConstraints != NULL)
+		{
+
+			strcpy( (char*)(*securityConstraints).classification, "\0");
+			/*allocate space first for the userNote */
+			(*securityConstraints).userNote = (u8*)malloc(sizeof(char) * 4000);
+			strcpy( (char*)(*securityConstraints).userNote,"\0");
+		}
+		else 
+			throw (signed short) -1;
+    }               
+    catch(signed short intException)
+    {
+		fprintf(stderr,"ERROR: Exception when attempting to intialize data structure. Exception message is: Null pointer\n");
+        status = -1;
+    }
+
+
+    return status;
+
+
+}
+
+
+
+//*****************************************************************************
+/*!
+\ Function: InitDataQualityInfo
+
+\brief  Initializes a DATA_QUALITY_INFO structure.
+
+\param  dataQualityInfo 
+	\li		pointer to structure to be initialized.
+\return
+	\li 1 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+bagError InitDataQualityInfo(DATA_QUALITY_INFO * dataQualityInfo)
+{
+
+    u8 status = 1;
+
+    try
+    {
+		if(dataQualityInfo != NULL)
+		{
+
+			strcpy( (char*)(*dataQualityInfo).scope, "\0");
+
+			(*dataQualityInfo).numberOfSources = 0;
+			(*dataQualityInfo).numberOfProcessSteps = 0;
+
+
+			(*dataQualityInfo).lineageSources = NULL;            
+			(*dataQualityInfo).lineageProcessSteps = NULL;  
+
+			(*dataQualityInfo).lineageSources = (SOURCE_INFO*)malloc(sizeof(SOURCE_INFO));
+			strcpy( (char*)(*dataQualityInfo).lineageSources->description, "\0");
+			strcpy( (char*)(*dataQualityInfo).lineageSources->title,"\0");
+			strcpy( (char*)(*dataQualityInfo).lineageSources->date,"\0");
+			strcpy( (char*)(*dataQualityInfo).lineageSources->dateType,"\0");
+	    
+			for(u8 i = 0; i < MAX_CI_RESPONSIBLE_PARTIES; i++)
+			{
+				strcpy((char*)(*dataQualityInfo).lineageSources->responsibleParties[i].individualName, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageSources->responsibleParties[i].positionName, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageSources->responsibleParties[i].organisationName, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageSources->responsibleParties[i].contactInfo, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageSources->responsibleParties[i].role, "\0");
+	         
+			}
+
+			(*dataQualityInfo).lineageProcessSteps = (PROCESS_STEP_INFO*)malloc(sizeof(PROCESS_STEP_INFO));
+			strcpy( (char*)(*dataQualityInfo).lineageProcessSteps->description, "\0");
+			strcpy( (char*)(*dataQualityInfo).lineageProcessSteps->dateTime,"\0");
+			strcpy( (char*)(*dataQualityInfo).lineageProcessSteps->trackingId,"\0");
+	        
+	    
+			for(u8 i = 0; i < MAX_CI_RESPONSIBLE_PARTIES; i++)
+			{
+				strcpy((char*)(*dataQualityInfo).lineageProcessSteps->processors[i].individualName, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageProcessSteps->processors[i].positionName, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageProcessSteps->processors[i].organisationName, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageProcessSteps->processors[i].contactInfo, "\0");
+				strcpy((char*)(*dataQualityInfo).lineageProcessSteps->processors[i].role, "\0");
+	         
+			}
+		}
+		else 
+			throw (signed short) -1;
+    }               
+    catch(signed short intException)
+    {
+		fprintf(stderr,"ERROR: Exception when attempting to intialize data structure. Exception message is: Null pointer\n");
+        status = -1;
+    }
+
+
+
+    return status;
+
+
+}
+
+
+
+
+//*****************************************************************************
+/*!
+\ Function: InitSpatialRepresentationInfo
+
+\brief  Initializes a SPATIAL_REPRESENTATION_INFO structure.
+
+\param  spatialRepresentationInfo 
+	\li		pointer to structure to be initialized.
+\return
+	\li 1 if the function is successful, non-zero if the function fails.
+
+*/
+//*****************************************************************************
+bagError InitSpatialRepresentationInfo(SPATIAL_REPRESENTATION_INFO * spatialRepresentationInfo)
+{
+
+    u8 status = 1;
+
+    try
+    {
+
+		if(spatialRepresentationInfo != NULL)
+		{
+
+			(*spatialRepresentationInfo).numberOfDimensions = INIT_VALUE;
+
+			for (u8 i = 0; i < 3; i++)
+			{
+				strcpy((char*)(*spatialRepresentationInfo).dimensionName[i],  "\0");
+				(*spatialRepresentationInfo).dimensionSize[i] = 0; 
+				(*spatialRepresentationInfo).resolutionValue[i]  = 0; 
+			}
+               
+
+			strcpy((char*)(*spatialRepresentationInfo).cellGeometry, "\0");
+			strcpy((char*)(*spatialRepresentationInfo).transformationParameterAvailability, "\0");
+			strcpy((char*)(*spatialRepresentationInfo).checkPointAvailability, "\0");                
+
+			(*spatialRepresentationInfo).llCornerX = INIT_VALUE;                                 
+			(*spatialRepresentationInfo).llCornerY = INIT_VALUE;                                  
+			(*spatialRepresentationInfo).urCornerX = INIT_VALUE;                               
+			(*spatialRepresentationInfo).urCornerY = INIT_VALUE;  
+		}
+
+		else 
+			throw (signed short) -1;
+    }               
+    catch(signed short intException)
+    {
+		fprintf(stderr,"ERROR: Exception when attempting to intialize data structure. Exception message is: Null pointer\n");
+        status = -1;
+    }
+
+
+
+    return status;
+
+
+}
+
+
+
+
+
+/******************************************************************************************************
+*
+* Function: InitResponsibleParty
+*
+* Purpose:  Initialize all character arrays to empty string.
+*
+* Inputs:   responsibleParty - pointer to object to initialize.
+*
+* Returns:  1 = success
+*          -1 = not successful.  An exception was encountered.
+*
+*******************************************************************************************************/
+
+bagError InitResponsibleParty(RESPONSIBLE_PARTY * responsibleParty)
+{
+
+    u8 status = 1;
+
+    try
+    {
+		if(responsibleParty != NULL)
+		{
+
+			strcpy( (char*)(*responsibleParty).individualName, "\0");
+			strcpy( (char*)(*responsibleParty).organisationName, "\0");
+			strcpy( (char*)(*responsibleParty).positionName, "\0");
+			strcpy( (char*)(*responsibleParty).contactInfo, "\0");
+			strcpy( (char*)(*responsibleParty).role, "\0");
+
+		}
+
+		else 
+			throw (signed short) -1;
+    }               
+    catch(signed short intException)
+    {
+		fprintf(stderr,"ERROR: Exception when attempting to intialize data structure. Exception message is: Null pointer\n");
+        status = -1;
+    }
+
+
+    return status;
+
+
+}
+
+
