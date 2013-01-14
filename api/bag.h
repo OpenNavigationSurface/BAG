@@ -168,6 +168,7 @@ enum BAG_ERRORS {
     BAG_METADTA_INVALID_DATUM                  = 420, /*!< The datum is not supported. */
     BAG_METADTA_INVALID_HREF                   = 421, /*!< The horizontal reference system information is missing from the XML structure. */
     BAG_METADTA_INVALID_VREF                   = 422, /*!< The vertical reference system information is missing from the XML structure. */
+	BAG_METADTA_RESP_PARTY_MISSING			   = 423, /*!< The responsible party metadata is missing from the XML structure */
 
     BAG_NOT_HDF5_FILE                          = 602, /*!< HDF Bag is not an HDF5 File */
     BAG_HDF_RANK_INCOMPATIBLE                  = 605, /*!< HDF Bag's rank is incompatible with expected Rank of the Datasets */
@@ -1118,3 +1119,4 @@ BAG_EXTERNAL bagError bagLegacyToWkt(const bagLegacyReferenceSystem system,
 BAG_EXTERNAL bagError bagWktToLegacy(const char *horiz_wkt, const char *vert_wkt, bagLegacyReferenceSystem *system);
 
 #endif
+
