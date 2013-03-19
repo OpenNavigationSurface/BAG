@@ -560,7 +560,7 @@ try
     if (vBuffer != NULL && vBuffer_size > 0 && strlen((char*)system.geoParameters.vertical_datum) != 0)
     {        
         wktStream << "VERT_CS[\"" << system.geoParameters.vertical_datum
-            << "\", VERT_DATUM[" << system.geoParameters.vertical_datum << ", 2000]]";
+            << "\", VERT_DATUM[\"" << system.geoParameters.vertical_datum << "\", 2000]]";
 
         //Make sure our string is not too large.
         if (wktStream.str().size() > vBuffer_size)
@@ -572,7 +572,7 @@ try
     //If we want the horizontal system then...
     if (hBuffer != NULL && hBuffer_size > 0)
     {
-        switch (system.coordSys)
+	switch (system.coordSys)
         {
         case Geodetic:
             {

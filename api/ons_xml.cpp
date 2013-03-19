@@ -11,7 +11,7 @@
 // ONS includes
 #include "ons_xml_error_handler.h"
 #include "ons_xml.h"
-#include "bag_metadata_def.h"
+#include "bag_xml_meta.hpp"
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -73,6 +73,7 @@ std::string getValueFromNode(DOMNode &node)
 
     return retStr;
 }
+
 
 //************************************************************************
 /*!
@@ -374,8 +375,8 @@ DOMNode *bagGetXMLNodeByName(
         nodeName = pathName;
 
     DOMNodeList *pList = parent->getChildNodes();
-
-    for (u32 i = 0; i < pList->getLength(); i++)
+	int count = pList->getLength();
+    for (u32 i = 0; i < count; i++)
     {
         // get the node.
         DOMNode *pChild = pList->item(i);
@@ -1826,6 +1827,7 @@ bagError bagGetHReferenceSystemV1(bagMetaData metaData, char *buffer, u32 buffer
     f64 scaleFactAtEq, scaleAtCenterLine, scaleAtProjOrigin, heightOfPersPoint;
     char projectionId[XML_ATTR_MAXSTR];
     char datumId[XML_ATTR_MAXSTR];
+	char *matchPtr;
 
     bagLegacyReferenceSystem v1Def;
     memset(&v1Def, 0, sizeof(bagLegacyReferenceSystem));
@@ -1878,6 +1880,21 @@ bagError bagGetHReferenceSystemV1(bagMetaData metaData, char *buffer, u32 buffer
     if ( v1Def.coordSys == Transverse_Mercator || v1Def.coordSys == Polar_Stereo )
     	v1Def.geoParameters.scale_factor = scaleAtProjOrigin;
 
+	if (strstr(datumId, "WGS") != NULL)
+	{
+		if (strstr(datumId, "84"))
+		{
+			strcpy(datumId, "WGS84");
+		}
+		else
+		{
+			strcpy(datumId, "WGS72");
+		}
+	}
+	else if (strstr(datumId, "NAD") != NULL)
+	{
+	    strcpy(datumId, "NAD83");
+	}
     /* convert the datum type */
     v1Def.geoParameters.datum = bagDatumID(datumId);  
 
@@ -2337,7 +2354,9 @@ bagError  bagGetSecurityConstraints(  bagMetaData metaData, const char *version,
 		if (value.empty())
 			strcpy((char*)securityConstraints->userNote,"\0");
 		else
+		{
 			strcpy((char*)securityConstraints->userNote, value.c_str());
+		}
 	}
 
 	return 0;	
@@ -2366,7 +2385,7 @@ bagError  bagGetSecurityConstraints(  bagMetaData metaData, const char *version,
 bagError  bagGetDataQualityInfo(bagMetaData metaData, const char *version, DATA_QUALITY_INFO *dataQualityInfo)
 {
 	signed short errorCode = 0;
-    
+    bool dateMissing = false;
      //Figure out what version of metadata we have.
     const int metaVer = getMetadataVersion(version);
 
@@ -2376,19 +2395,19 @@ bagError  bagGetDataQualityInfo(bagMetaData metaData, const char *version, DATA_
         "smXML:LI_Lineage" : "gmd:LI_Lineage";
 
 	const std::string descriptionStr = (metaVer == 1) ?
-        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/description" : 
+        "source/smXML:LI_Source/description" : 
 		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:description/gco:CharacterString";
 
     const std::string titleStr = (metaVer == 1) ?
-        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/title" : 
+        "source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/title" : 
 		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:title/gco:CharacterString";
 
-	const std::string dateStr = (metaVer == 1) ?
-        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/date/smXML:CI_Date/date" : 
-		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date";
+	std::string dateStr = (metaVer == 1) ?
+        "source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/date/smXML:CI_Date/date" : 
+		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date";
 
 	const std::string dateTypeStr = (metaVer == 1) ?
-        "processStep/smXML:BAG_ProcessStep/source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/date/smXML:CI_Date/dateType" : 
+        "source/smXML:LI_Source/sourceCitation/smXML:CI_Citation/date/smXML:CI_Date/dateType" : 
 		"gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:dateType/gmd:CI_DateTypeCode";
 
 	const std::string roleStr = (metaVer == 1) ?
@@ -2400,7 +2419,7 @@ bagError  bagGetDataQualityInfo(bagMetaData metaData, const char *version, DATA_
 		"gmd:processStep/bag:BAG_ProcessStep/gmd:processor/gmd:CI_ResponsibleParty/gmd:individualName/gco:CharacterString";
    	
 	const std::string dateTimeStr = (metaVer == 1) ?
-        "processStep/smXML:BAG_ProcessStep/DateTime" : 
+        "processStep/smXML:BAG_ProcessStep/dateTime" : 
 		"gmd:processStep/bag:BAG_ProcessStep/gmd:dateTime/gco:DateTime";
 
 	const std::string ProcessDescriptStr = (metaVer == 1) ?
@@ -2433,7 +2452,18 @@ bagError  bagGetDataQualityInfo(bagMetaData metaData, const char *version, DATA_
 		//Get the dimension name node.
         DOMNode *pDateNode = bagGetXMLNodeByName(pNode, dateStr.c_str());
         if (pDateNode == NULL)
-            return BAG_METADTA_INVLID_DIMENSIONS;
+		{
+			dateStr = "gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date";
+			pDateNode = bagGetXMLNodeByName(pNode, dateStr.c_str());
+			if (pDateNode == NULL)
+			{
+				dateStr = "gmd:processStep/bag:BAG_ProcessStep/gmd:source/gmd:LI_Source/gmd:sourceCitation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:DateTime";
+				pDateNode = bagGetXMLNodeByName(pNode, dateStr.c_str());
+				if (pDateNode == NULL)
+					dateMissing = true;
+			}
+		}
+            
 
         // Get the dimension size node.
         DOMNode *pDateTypeNode = bagGetXMLNodeByName(pNode, dateTypeStr.c_str());
@@ -2468,7 +2498,7 @@ bagError  bagGetDataQualityInfo(bagMetaData metaData, const char *version, DATA_
 		
         const std::string description = getValueFromNode(*pDescriptNode);
         const std::string title = getValueFromNode(*pTitleNode);
-		const std::string date = getValueFromNode(*pDateNode);
+		const std::string date = (dateMissing) ? "Unknown": getValueFromNode(*pDateNode);
         const std::string dateType = getValueFromNode(*pDateTypeNode);
 		const std::string role = getValueFromNode(*pRoleNode);
 		const std::string indivName = getValueFromNode(*pIndivNameNode);
@@ -2950,13 +2980,13 @@ bagError  bagGetLanguage(bagMetaData metaData, const char *version, char ** lang
     	strcpy((char*)identification_info->topicCategory,"\0");
 	else 
 	{
-		std::string value = getValueFromNode(*pAbstractNode);
+		std::string value = getValueFromNode(*pTopicCatNode);
 		if (value.empty())
 			strcpy((char*)identification_info->topicCategory,"\0");
 		else
 			strcpy((char*)identification_info->topicCategory, value.c_str());
 	}
-
+	
 	/* retrieve the status from the identification info */
     const std::string StatusStr_name = (metaVer == 1) ? 
         "smXML:MD_Metadata/identificationInfo/smXML:BAG_DataIdentification/status" :

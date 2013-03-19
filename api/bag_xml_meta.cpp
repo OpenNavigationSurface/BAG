@@ -1226,12 +1226,11 @@ DOMElement * createMD_GeorectifiedNode(SPATIAL_REPRESENTATION_INFO  spatialRepre
         char dimAsString[2]; /* assume no more than 1 digits in integer specifiying number of dimensions. */
         sprintf(dimAsString, "%d", spatialRepresentationInfo.numberOfDimensions);
 
-
 		DOMElement *  numberOfDimensionsElem = doc->createElement(X("gmd:numberOfDimensions"));
             geoRectifiedElem->appendChild(numberOfDimensionsElem);
 
         
-		DOMElement *  datatypeElem = createElement("gco:integer", dimAsString, doc);
+		DOMElement *  datatypeElem = createElement("gco:Integer", dimAsString, doc);
         numberOfDimensionsElem->appendChild(datatypeElem);
    
 
@@ -1263,7 +1262,7 @@ DOMElement * createMD_GeorectifiedNode(SPATIAL_REPRESENTATION_INFO  spatialRepre
    
 			/* Create dimensionName node. */
             DOMElement *  dimensionSizeElem = doc->createElement(X("gmd:dimensionSize"));
-            dimensionNameElem->appendChild(dimensionSizeElem);
+            mdDimensionElem->appendChild(dimensionSizeElem);
 
 
             /* Create dimensionSize node. */
@@ -1454,7 +1453,7 @@ DOMElement * createMD_CRSVertNode(bagLegacyReferenceSystem system, DOMDocument *
 		 vBuffer_size = REF_SYS_MAX_LENGTH;
 
 
-		bagLegacyToWkt( system, hBuffer, hBuffer_size, vBuffer, vBuffer_size);
+		bagLegacyToWkt( system, NULL, 0, vBuffer, vBuffer_size);
 
 
 
@@ -1558,7 +1557,7 @@ DOMElement * createMD_CRSHorizNode(bagLegacyReferenceSystem system, DOMDocument 
 		 hBuffer_size = REF_SYS_MAX_LENGTH;
 		 vBuffer_size = REF_SYS_MAX_LENGTH;
 
-		bagLegacyToWkt( system, hBuffer, hBuffer_size, vBuffer, vBuffer_size);
+		bagLegacyToWkt( system, hBuffer, hBuffer_size, NULL, 0);
 
 
 
@@ -1653,7 +1652,7 @@ DOMElement * createBAG_DataIdentificationNode(IDENTIFICATION_INFO identification
     
 
         /* Create the citation node. */
-        DOMElement *  citationElem = doc->createElement(X("citation"));
+        DOMElement *  citationElem = doc->createElement(X("gmd:citation"));
         bagIdentificationElem->appendChild(citationElem);
 
 
@@ -1957,7 +1956,7 @@ DOMElement * createCI_CitationNode(char title[100], char date[20], char dateType
         /* Create the date node and its text value. */
 		if(strcmp(date,"") == 0)
 		{
-			DOMElement *  gcodateElem = createElement("gco:date", " ", doc);
+			DOMElement *  gcodateElem = createElement("gco:Date", " ", doc);
 			DateElem1->appendChild(gcodateElem);
 
 			char reason[10];
@@ -1967,7 +1966,7 @@ DOMElement * createCI_CitationNode(char title[100], char date[20], char dateType
 		}
 		else
 		{
-			DOMElement *  gcodateElem = createElement("gco:date", date, doc);
+			DOMElement *  gcodateElem = createElement("gco:Date", date, doc);
 			DateElem1->appendChild(gcodateElem);
 		}
 

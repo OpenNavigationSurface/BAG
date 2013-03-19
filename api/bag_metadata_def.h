@@ -1,6 +1,7 @@
 #ifndef __BAG_METADATA_DEF_H__
 #define __BAG_METADATA_DEF_H__
 
+
 #ifndef __BAG_H__
 #include "bag.h"
 #endif
@@ -170,7 +171,7 @@ bagError InitSecurityConstraints(SECURITY_CONSTRAINTS * securityConstraints);
 
 bagError InitDataQualityInfo(DATA_QUALITY_INFO * dataQualityInfo);
 
-bagError InitReferenceSystemInfo(REFERENCE_SYSTEM_INFO * referenceSystemInfo);
+bagError InitReferenceSystemInfo(bagLegacyReferenceSystem * referenceSystemInfo);
 
 bagError InitSpatialRepresentationInfo(SPATIAL_REPRESENTATION_INFO * spatialRepresentationInfo);
 
