@@ -3,7 +3,8 @@
 //      Open Navigation Surface Working Group, 2012
 //
 //************************************************************************
-#include "bag.h"
+#include "bag_errors.h"
+#include "bag_legacy.h"
 #include <algorithm>
 #include <exception>
 #include <fstream>

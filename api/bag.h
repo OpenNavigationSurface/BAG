@@ -56,39 +56,15 @@
 #include <limits.h>
 #include <float.h>
 #include "stdtypes.h"
+#include "bag_config.h"
+#include "bag_metadata.h"
+#include "bag_errors.h"
 
 /* This typedef must match the hsize_t type defined in HDF5 */
 typedef unsigned long long HDF_size_t;
 
 /* This typedef must match the hid_t type defined in HDF5 */
 typedef int HDF_hid_t;
-
-#if defined(BAG_DLL) && defined(_MSC_VER)
-
-    #ifdef __cplusplus
-        #ifdef BAG_EXPORTS
-            #define BAG_EXTERNAL extern "C" __declspec(dllexport)
-        #else
-            #define BAG_EXTERNAL extern "C" __declspec(dllimport)
-        #endif
-    #else
-        #ifdef BAG_EXPORTS
-            #define BAG_EXTERNAL extern __declspec(dllexport)
-        #else
-            #define BAG_EXTERNAL extern __declspec(dllimport)
-        #endif
-    #endif
-
-#else
-
-    #ifdef __cplusplus
-        #define BAG_EXTERNAL extern "C"
-    #else
-        #define BAG_EXTERNAL extern
-    #endif
-    
-#endif /* BAG_DLL && _MSC_VER */
-
 
 #define BAG_VERSION         "1.5.1"
 #define BAG_VERSION_LENGTH  32           /* 32 bytes of space reserved in BAG attribute for VERSION string */
@@ -122,91 +98,6 @@ typedef int HDF_hid_t;
  *       versions of HDF5 and all other library dependencies.
  */
 
-/*! Definitions for error conditions */
-#define BAG_GENERAL_ERROR_BASE                    0
-#define BAG_CRYPTO_ERROR_BASE                   200
-#define BAG_METADATA_ERROR_BASE                 400
-#define BAG_HDFV_ERROR_BASE                     600
-
-
-
-/*! General error conditions, including success */
-enum BAG_ERRORS {
-    BAG_SUCCESS                                =   0, /*!< Normal, successful completion */
-    BAG_BAD_FILE_IO_OPERATION                  =   1, /*!< A basic file IO operation failed */
-    BAG_NO_FILE_FOUND                          =   2, /*!< Specified file name could not be found */
-    BAG_NO_ACCESS_PERMISSION                   =   3, /* Used ? */
-    BAG_MEMORY_ALLOCATION_FAILED               =   4, /*!< Memory allocation failed */
-    BAG_INVALID_BAG_HANDLE                     =   5, /*!< bagHandle cannot be NULL */
-    BAG_INVALID_FUNCTION_ARGUMENT              =   6, /*!< Inconsistency or illegal value contained in function arguments */
-    BAG_INVALID_ERROR_CODE                     =   7, /*!< An undefined bagError code was encountered */
-	
-	BAG_CRYPTO_SIGNATURE_OK                    = 200, /*!< Signature found, and valid */
-	BAG_CRYPTO_NO_SIGNATURE_FOUND              = 201, /*!< No signature found in file */
-	BAG_CRYPTO_BAD_SIGNATURE_BLOCK             = 202, /*!< Signature found, but invalid */
-	BAG_CRYPTO_BAD_KEY                         = 203, /*!< Internal key format is invalid */
-	BAG_CRYPTO_WRONG_KEY                       = 204, /*!< Wrong key type passed */
-	BAG_CRYPTO_GENERAL_ERROR                   = 205, /*!< Something else went wrong */
-	BAG_CRYPTO_INTERNAL_ERROR                  = 206, /*!< Something went wrong that the library didn't expect */
-  
-    BAG_METADTA_NO_HOME                        = 400, /*!< BAG_HOME directory not set. */
-    BAG_METADTA_SCHEMA_FILE_MISSING            = 401, /*!< Unable to locate schema file. */
-    BAG_METADTA_PARSE_MEM_EXCEPTION            = 402, /*!< Unhandled exception while parsing.  Out of memory. */
-    BAG_METADTA_PARSE_EXCEPTION                = 403, /*!< Unhandled exception while parsing.  Parser error. */
-    BAG_METADTA_PARSE_DOM_EXCEPTION            = 404, /*!< Unhandled exception while parsing.  DOM error. */
-    BAG_METADTA_PARSE_UNK_EXCEPTION            = 405, /*!< Unhandled exception while parsing.  Unknown error. */
-    BAG_METADTA_PARSE_FAILED                   = 406, /*!< Unable to parse input file. */
-    BAG_METADTA_PARSE_FAILED_MEM               = 407, /*!< Unable to parse specified input buffer. */
-    BAG_METADTA_VALIDATE_FAILED                = 408, /*!< XML validation failed. */
-    BAG_METADTA_INVALID_HANDLE                 = 409, /*!< Invalid (NULL) handle supplied to an accessor method. */
-    BAG_METADTA_INIT_FAILED                    = 410, /*!< Initialization of the low level XML support system failed. */
-    BAG_METADTA_NO_PROJECTION_INFO             = 411, /*!< No projection information was found in the XML supplied. */
-    BAG_METADTA_INSUFFICIENT_BUFFER            = 412, /*!< The supplied buffer is not large enough to hold the extracted contents. */
-    BAG_METADTA_INCOMPLETE_COVER               = 413, /*!< One or more elements of the requested cover are missing from the XML file. */
-    BAG_METADTA_INVLID_DIMENSIONS              = 414, /*!< The number of dimensions is incorrect. (not equal to 2). */
-    BAG_METADTA_UNCRT_MISSING                  = 415, /*!< The 'uncertaintyType' information is missing from the XML structure. */
-    BAG_METADTA_BUFFER_EXCEEDED                = 416, /*!< The supplied buffer is to large to be stored in the internal array. */
-	BAG_METADTA_DPTHCORR_MISSING               = 417, /*!< The 'depthCorrectionType' information is missing from the XML structure. */
-    BAG_METADTA_RESOLUTION_MISSING             = 418, /*!< The 'resolution' information is missing from the XML structure. */
-    BAG_METADTA_INVALID_PROJECTION             = 419, /*!< The projection type is not supported. */
-    BAG_METADTA_INVALID_DATUM                  = 420, /*!< The datum is not supported. */
-    BAG_METADTA_INVALID_HREF                   = 421, /*!< The horizontal reference system information is missing from the XML structure. */
-    BAG_METADTA_INVALID_VREF                   = 422, /*!< The vertical reference system information is missing from the XML structure. */
-
-    BAG_NOT_HDF5_FILE                          = 602, /*!< HDF Bag is not an HDF5 File */
-    BAG_HDF_RANK_INCOMPATIBLE                  = 605, /*!< HDF Bag's rank is incompatible with expected Rank of the Datasets */
-    BAG_HDF_TYPE_NOT_FOUND                     = 606, /*!< HDF Bag surface Datatype parameter not available */
-    BAG_HDF_DATASPACE_CORRUPTED                = 607, /*!< HDF Dataspace for a bag surface is corrupted or could not be read */
-    BAG_HDF_ACCESS_EXTENTS_ERROR               = 608, /*!< HDF Failure in request for access outside the extents of a bag surface's Dataset */
-    BAG_HDF_CANNOT_WRITE_NULL_DATA             = 609, /*!< HDF Cannot write NULL or uninitialized data to Dataset */
-    BAG_HDF_INTERNAL_ERROR                     = 610, /*!< HDF There was an internal HDF error detected */
-    BAG_HDF_CREATE_FILE_FAILURE                = 611, /*!< HDF Unable to create new HDF Bag File */
-    BAG_HDF_CREATE_DATASPACE_FAILURE           = 612, /*!< HDF Unable to create the Dataspace */
-    BAG_HDF_CREATE_PROPERTY_CLASS_FAILURE      = 613, /*!< HDF Unable to create the Property class */
-    BAG_HDF_SET_PROPERTY_FAILURE               = 614, /*!< HDF Unable to set value of Property class */
-    BAG_HDF_TYPE_COPY_FAILURE                  = 615, /*!< HDF Failed to copy Datatype parameter for Dataset access */
-    BAG_HDF_CREATE_DATASET_FAILURE             = 616, /*!< HDF Unable to create the Dataset */
-    BAG_HDF_DATASET_EXTEND_FAILURE             = 617, /*!< HDF Cannot extend Dataset extents */
-    BAG_HDF_CREATE_ATTRIBUTE_FAILURE           = 618, /*!< HDF Unable to create Attribute */
-    BAG_HDF_CREATE_GROUP_FAILURE               = 619, /*!< HDF Unable to create Group */
-    BAG_HDF_WRITE_FAILURE                      = 620, /*!< HDF Failure writing to Dataset */
-    BAG_HDF_READ_FAILURE                       = 621, /*!< HDF Failure reading from Dataset */
-    BAG_HDF_GROUP_CLOSE_FAILURE                = 622, /*!< HDF Failure closing Group */
-    BAG_HDF_FILE_CLOSE_FAILURE                 = 623, /*!< HDF Failure closing File */
-    BAG_HDF_FILE_OPEN_FAILURE                  = 624, /*!< HDF Unable to open File */
-    BAG_HDF_GROUP_OPEN_FAILURE                 = 625, /*!< HDF Unable to open Group */
-    BAG_HDF_ATTRIBUTE_OPEN_FAILURE		       = 626, /*!< HDF Unable to open Attribute */
-    BAG_HDF_ATTRIBUTE_CLOSE_FAILURE		       = 627, /*!< HDF Failure closing Attribute */
-    BAG_HDF_DATASET_CLOSE_FAILURE              = 628, /*!< HDF Failure closing Dataset */
-    BAG_HDF_DATASET_OPEN_FAILURE               = 629, /*!< HDF Unable to open Dataset */
-    BAG_HDF_TYPE_CREATE_FAILURE                = 630, /*!< HDF Unable to create Datatype */
-    BAG_HDF_INVALID_COMPRESSION_LEVEL          = 631, /*!< HDF compression level not in acceptable range of 0 to 9 */
-
-};
-
-
-/* Error conditions from the cryptographic library */
-
 /* Definitions for NULL values */
 #define NULL_ELEVATION      1e6
 #define NULL_UNCERTAINTY    1e6
@@ -221,23 +112,7 @@ enum BAG_ERRORS {
  * be used to distinguish it from NULL.
  */
 #define UNK_UNCERTAINTY 0
-
-
-/* Define convenience data structure for BAG geographic definitions */
-enum BAG_COORDINATES {
-
-        BAG_COORDINATES_GEOGRAPHIC = 1,               /* values in XY array will be degrees on the earth */
-        BAG_COORDINATES_PROJECTED  = 2                /* values in XY array will distance on projection  */
-};
     
-enum BAG_COORD_UNITS {
-                                       
-        BAG_COORD_UNITS_DEGREES =  1,                 /* values in XY array are geographic in degrees    */
-        BAG_COORD_UNITS_METERS  =  2                  /* values in XY array are projected in meters      */
-};
-    
-typedef s32 bagError;
-
 typedef enum 
 {
     bagConvertASCIIToBin = 1,
@@ -250,74 +125,6 @@ typedef enum
     bagCryptoSignature = 2
 } bagCryptoObject;
 
-/* Legacy BAG datum definition */
-typedef enum bagDatums
-{
-        wgs84,
-        wgs72,
-        nad83
-} bagDatum;
-
-/* Legacy Coordinate Type Enumeration */
-typedef enum Coordinate_Types
-{
-  Geodetic,
-  GEOREF,
-  Geocentric,
-  Local_Cartesian,    
-  MGRS,
-  UTM,
-  UPS,
-  Albers_Equal_Area_Conic,
-  Azimuthal_Equidistant,
-  BNG,
-  Bonne,
-  Cassini,
-  Cylindrical_Equal_Area,
-  Eckert4,
-  Eckert6,
-  Equidistant_Cylindrical,
-  Gnomonic,
-  Lambert_Conformal_Conic,
-  Mercator,
-  Miller_Cylindrical,
-  Mollweide,
-  Neys,
-  NZMG,
-  Oblique_Mercator,
-  Orthographic,
-  Polar_Stereo,
-  Polyconic,
-  Sinusoidal,
-  Stereographic,
-  Transverse_Cylindrical_Equal_Area,
-  Transverse_Mercator,
-  Van_der_Grinten
-} Coordinate_Type;
-
-
-/* structure for parameters of all bag supported horizontal coord. sys.
-        mercator, tm, utm, ps, ups, lambert, & geodetic. */
-typedef struct t_bagProjectionParameters
-{
-        bagDatum datum;                               /* wgs84, wgs72, nad83, ...   */
-        u8  ellipsoid[256];                           /* ellipsoid                  */
-        u8  vertical_datum[256];                      /* vertical datum             */
-        f64 origin_latitude;                          /* degrees                    */
-        f64 central_meridian;                         /* degrees                    */
-        f64 std_parallel_1;                           /* degrees                    */
-        f64 std_parallel_2;                           /* degrees                    */
-        f64 false_easting;                            /* meters                     */
-        f64 false_northing;                           /* meters                     */
-        f64 scale_factor;                             /* unitless                   */
-        f64 latitude_of_true_scale;                   /* degrees                    */
-        f64 longitude_down_from_pole;                 /* degrees                    */
-        f64 latitude_of_centre;                       /* degrees                    */
-        f64 longitude_of_centre;                      /* degrees                    */
-        s32 zone;                                     /* utm zone 1-60              */
-        s32 utm_override;                             /* utm: 0=autozone,1=use zone */
-} bagProjectionParameters;
-/*///////////////////////////// /////////////////////////////// Legacy //////////////////////////////////////////////////////////////*/ 
 
 /* Reference system definition */
 typedef struct t_bagReferenceSystem
@@ -325,13 +132,6 @@ typedef struct t_bagReferenceSystem
     u8  horizontalReference[REF_SYS_MAX_LENGTH];    /* horizontal reference system definition */
     u8  verticalReference[REF_SYS_MAX_LENGTH];      /* vertical reference system definition */
 } bagReferenceSystem;
-
-/* Legacy Reference system definition */
-typedef struct t_bagLegacyReferenceSystem
-{
-    Coordinate_Type coordSys;                         /* either Geodetic or Mercator Transvers_Mercator,etc */
-    bagProjectionParameters geoParameters;            /* Parameters for projection information                        */
-} bagLegacyReferenceSystem;
 
 /* some basic tracking list codes */
 enum bagTrackCode
@@ -389,6 +189,7 @@ typedef struct _t_bag_data
     bagDef   def;                                     /* Geospatial definitions                                       */
     u8       version[BAG_VERSION_LENGTH];             /* Mapped from HDF file, defines BAG version of current file    */
     u8      *metadata;                                /* Mapped from XML metadata                                     */
+    BAG_METADATA *metadataDef;                        /* The BAG metadata definition.                                 */
     f32    **elevation;                               /* 2D array of Mandatory elevation values for each node         */
     f32      min_elevation;                           /* Minimum elevation value in the elevation dataset             */
     f32      max_elevation;                           /* Maximum elevation value in the elevation dataset             */
@@ -872,9 +673,6 @@ BAG_EXTERNAL bagError bagGenerateKeyPair(u8 **pubKey, u8 **secKey);
 BAG_EXTERNAL bagError bagConvertCryptoFormat(u8 *object, bagCryptoObject objType, bagConvDir convDir, u8 **converted);
 
 
-BAG_EXTERNAL Coordinate_Type bagCoordsys(char *str);
-BAG_EXTERNAL bagDatum        bagDatumID(char *str);
-
 BAG_EXTERNAL bagData *bagGetDataPointer(bagHandle bag_handle);
 
 /****************************************************************************************
@@ -1086,37 +884,5 @@ BAG_EXTERNAL bagError bagCreateCorrectorDataset   (bagHandle hnd, bagData *opt_d
 BAG_EXTERNAL bagError bagWriteCorrectorDefinition (bagHandle hnd, bagVerticalCorrectorDef *def);
 BAG_EXTERNAL bagError bagReadCorrectorDefinition  (bagHandle hnd, bagVerticalCorrectorDef *def);
 BAG_EXTERNAL bagError bagGetOptDatasets(bagHandle *bag_handle, s32 *num_opt_datasets, int opt_dataset_names[BAG_OPT_SURFACE_LIMIT]);
-
-
-/*! \brief  bagLegacyToWkt
- * Description:
- *     Utility function used to convert the old reference system definition structures
- *     into a WKT (Well Known Text) string.
- * 
- *  \param    system		The legacy reference system to convert.
- *  \param	  hBuffer   	Modified to contain the horizontal reference system definition as WKT.
- *	\param	  hBuffer_size	The size of the	horizontal definition buffer passed in.
- *  \param	  vBuffer   	Modified to contain the vertical reference system definition as WKT.
- *	\param	  vBuffer_size	The size of the	vertical definition buffer passed in.
- *
- * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
- */
-BAG_EXTERNAL bagError bagLegacyToWkt(const bagLegacyReferenceSystem system,
-                                     char *hBuffer, u32 hBuffer_size, char *vBuffer, u32 vBuffer_size);
-
-/*! \brief  bagWktToLegacy
- * Description:
- *     Utility function used to convert a WKT (Well Known Text) reference system definition
- *     into the old reference system defiition structures.
- *
- *     Some WKT definitions can not be converted into the old structures.
- * 
- *  \param    horiz_wkt     String buffer containing the horizontal WKT reference system definition.
- *  \param    vert_wkt      String buffer containing the vertical WKT reference system definition.
- *  \param	  system	    Modified to contain the legacy reference system type.
-  *
- * \return On success, a value of zero is returned.  On failure a value of -1 is returned.  
- */
-BAG_EXTERNAL bagError bagWktToLegacy(const char *horiz_wkt, const char *vert_wkt, bagLegacyReferenceSystem *system);
 
 #endif

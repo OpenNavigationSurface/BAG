@@ -851,6 +851,12 @@ bagError bagFileClose (bagHandle bag_handle)
     if (bagGetDataPointer(bag_handle)->metadata != NULL)
         free (bagGetDataPointer(bag_handle)->metadata);
 
+    if (bagGetDataPointer(bag_handle)->metadataDef != NULL)
+    {
+        bagFreeMetadata(bagGetDataPointer(bag_handle)->metadataDef);
+        free(bagGetDataPointer(bag_handle)->metadataDef);
+    }
+
     if ((status = H5Gclose (bag_handle->bagGroupID)) < 0)
     {
         return(BAG_HDF_GROUP_CLOSE_FAILURE);
@@ -1104,6 +1110,9 @@ bagError bagGetErrorString(bagError code, u8 **error)
         break;
     case BAG_METADTA_INVALID_VREF:
         strncpy (str, "Metadata vertical reference system is invalid", MAX_STR-1);
+        break;
+    case BAG_METADTA_NOT_INITIALIZED:
+        strncpy (str, "The metadata has not been initialized correctly", MAX_STR-1);
         break;
     case BAG_NOT_HDF5_FILE:
         strncpy (str, "HDF Bag is not an HDF5 File", MAX_STR-1);

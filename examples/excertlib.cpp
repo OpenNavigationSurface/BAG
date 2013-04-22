@@ -31,22 +31,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <memory>
+#include <string>
+#include <sstream>
+#include <vector>
 
-//#include "libxml/xmlmemory.h"
-//#include "libxml/parser.h"
-
-// XERCES includes.
-//#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/dom/DOM.hpp>
-#include <xercesc/dom/DOMImplementation.hpp>
-#include <xercesc/dom/DOMImplementationLS.hpp>
-//#include <xercesc/framework/MemBufInputSource.hpp>
-#include <xercesc/framework/LocalFileInputSource.hpp>
-#include <xercesc/framework/MemBufFormatTarget.hpp>
-#include <xercesc/parsers/XercesDOMParser.hpp>
-#include <xercesc/util/XMLUni.hpp>
-//#include <xercesc/util/OutOfMemoryException.hpp>
-//#include <xercesc/sax/SAXParseException.hpp>
+#include <libxml/xmlmemory.h>
+#include <libxml/parser.h>
+#include <libxml/xpath.h>
+#include <libxml/xpathInternals.h>
 
 #include "stdtypes.h"
 #include "onscrypto.h"
@@ -76,91 +68,316 @@ static char *modrev = "$Revision: 1.2 $";
 #define SECRET_KEY_STRING		"------ OpenNavigationSurface Secret Key ------"
 #define SIGNATURE_KEY_STRING	"------ OpenNavigationSurface Signature ------"
 
-using namespace XERCES_CPP_NAMESPACE;
-
-/* This a simpe class to allow transcoding of an ascii buffer to wide character buffer.*/
-class asciiString
+namespace {
+//! Utility class to convert an encoded XML string.
+class EncodedString
 {
 public:
+    //************************************************************************
     //! Constructor
-    asciiString()
-    : m_wBuffer(NULL)
+    /*!
+    \param doc
+        \li The XML document that the string is from.
+    \param string
+        \li The string to be converted.
+    */
+    //************************************************************************
+    EncodedString(const xmlDoc &doc, const char *string)
     {
+        this->m_pEncodedString = xmlEncodeEntitiesReentrant((xmlDoc *)&doc, (const xmlChar *)string);
     }
 
-    //! Constructor
-    asciiString(const char *buffer)
-    : m_wBuffer(NULL)
+    //************************************************************************
+    //! Destructor.
+    //************************************************************************
+    ~EncodedString()
     {
-        if (buffer != NULL)
-            m_wBuffer = XMLString::transcode(buffer);
+        xmlFree(this->m_pEncodedString);
     }
 
-    //! Destructor
-    ~asciiString()
+    //************************************************************************
+    //! Conversion operator.
+    /*!
+    \return 
+        \li The encoded string.
+    */
+    //************************************************************************
+    operator xmlChar*() const
     {
-        if (m_wBuffer != NULL)
-            XMLString::release(&m_wBuffer);
-    }
-
-    //! Cast type operator.
-    operator XMLCh*() const
-    {
-        return m_wBuffer;
-    }
-
-    //! Assignment operator.
-    asciiString & operator=(const char *buffer)
-    {
-        if (m_wBuffer != NULL)
-        {
-            XMLString::release(&m_wBuffer);
-            m_wBuffer = NULL;
-        }
-
-        if (buffer != NULL)
-            m_wBuffer = XMLString::transcode(buffer);
-
-        return *this;
+        return this->m_pEncodedString;
     }
 
 private:
-
-    //! The wide character buffer.
-    XMLCh *m_wBuffer;
+    //! The encoded string.
+    xmlChar* m_pEncodedString;
 };
 
-char* getStringValueFromNode(const DOMNode &node)
+//************************************************************************
+//! Convert a string to a double value.
+/*!
+\param value
+    \li The intput string to be converted.
+\return
+    \li The doulbe value.
+*/
+//************************************************************************
+double toDouble(const std::string &value)
 {
-    DOMNode *pChildNode = node.getFirstChild();
-    if (pChildNode == NULL)
-        return NULL;
+    std::stringstream lineStream;
+    lineStream.imbue(std::locale::classic());
+    lineStream << value;
 
-    char *pTmpStr = XMLString::transcode(pChildNode->getNodeValue());
-    if (pTmpStr == NULL)
-        return NULL;
+    double dblValue = 0.0;
+    lineStream >> dblValue;
 
-    char *retVal = strdup(pTmpStr);
-    XMLString::release(&pTmpStr);
-
-    return retVal;
+    return dblValue;
 }
 
-u32 getUIntValueFromNode(const DOMNode &node)
+//************************************************************************
+//! Get the name of a node.
+/*!
+\param value
+    \li The intput string to be converted.
+\return
+    \li The doulbe value.
+*/
+//************************************************************************
+std::string getNodeName(const xmlNode &node)
 {
-    DOMNode *pChildNode = node.getFirstChild();
-    if (pChildNode == NULL)
-        return NULL;
+    std::string name;
 
-    char *pTmpStr = XMLString::transcode(pChildNode->getNodeValue());
-    if (pTmpStr == NULL)
-        return NULL;
+    // append the namespace prefix
+    const xmlNs* nameSpace = node.ns;
+    if (nameSpace)
+    {
+        name = (const char*)nameSpace->prefix;
+        name += ':';
+    }
 
-    u32 retVal = atol(pTmpStr);
-    XMLString::release(&pTmpStr);
-
-    return retVal;
+    name += (const char*)node.name;
+    return name;
 }
+
+//************************************************************************
+//! Find all the nodes matching the supplied xpath pattern.
+/*!
+\param relativeNode
+    \li The node to start searching from.
+\param searchString
+    \li The pattern to be searched for.  The string conforms to the xpath
+        searching syntax.  For detailed information, see http://www.w3schools.com/xpath/xpath_syntax.asp
+\return
+    \li The list of XML nodes that match \e searchString
+*/
+//************************************************************************
+std::vector<const xmlNode*> findNodes(const xmlNode &relativeNode, const char *searchString)
+{
+    std::vector<const xmlNode*> retList;
+
+    //Get the root node of the document.
+    const xmlNode *pRoot = xmlDocGetRootElement(relativeNode.doc);
+    if (pRoot == NULL)
+        return std::vector<const xmlNode*>();
+
+    //If the xPath context has not been initialized yet, do it now.
+    xmlXPathContext *pContext = xmlXPathNewContext(relativeNode.doc);
+    if (pContext == NULL)
+        return std::vector<const xmlNode*>();
+
+    pContext->node = const_cast<xmlNode*>(&relativeNode);
+
+    //Register any namespaces with the xPath context.
+    const xmlNs *xmlNameSpace = pRoot->nsDef;
+    while (xmlNameSpace != NULL)
+    {
+        if (xmlNameSpace->prefix != NULL)
+        {
+            const int ret = xmlXPathRegisterNs(pContext, xmlNameSpace->prefix, xmlNameSpace->href);
+            if (ret != 0)
+            {
+                //Error
+                 xmlXPathFreeContext(pContext);
+                return std::vector<const xmlNode*>();
+            }
+        }
+
+        xmlNameSpace = xmlNameSpace->next;
+    }
+
+    //Encode the specified search string.
+    const EncodedString encodedSearch(*relativeNode.doc, searchString);
+
+    //Evaluate the expression.
+    xmlXPathObject *pPathObject = xmlXPathEvalExpression(encodedSearch, pContext);
+    if (pPathObject == NULL)
+    {
+        //Error
+         xmlXPathFreeContext(pContext);
+        return std::vector<const xmlNode*>();
+    }
+
+    //Add each value that was returned.
+    if (pPathObject->nodesetval != NULL)
+    {
+        for (int i = 0; i < pPathObject->nodesetval->nodeNr; i++)
+            retList.push_back(pPathObject->nodesetval->nodeTab[i]);
+    }
+
+    xmlXPathFreeObject(pPathObject);
+    xmlXPathFreeContext(pContext);
+
+    return retList;
+}
+
+//************************************************************************
+//! Find a single node matching the given xpath pattern.
+/*!
+\param relativeNode
+    \li The node to start searching from.
+\param searchString
+    \li The pattern to be searched for.  The string conforms to the xpath
+        searching syntax.  For detailed information, see http://www.w3schools.com/xpath/xpath_syntax.asp
+\return
+    \li The first XML node that matches \e searchString
+*/
+//************************************************************************
+const xmlNode* findNode(const xmlNode &relativeNode, const char *searchString)
+{
+    std::vector<const xmlNode*> retList = findNodes(relativeNode, searchString);
+    if (retList.empty())
+        return NULL;
+
+    return retList.front();
+}
+
+//************************************************************************
+//! Get the named property from an XML node.
+/*!
+\param current
+    \li The node to retreive the property from.
+\param propertyName
+    \li The name of the property to be retreived.
+\return
+    \li The property maching \e propertyName from \e current.
+*/
+//************************************************************************
+std::string getProperty(const xmlNode &current, const char *propertyName)
+{
+     // Retrieve the property.
+    xmlChar * temp = xmlGetProp(const_cast<xmlNode *>(&current), EncodedString(*current.doc, propertyName));
+    if(temp == NULL)
+        return std::string();
+
+    const std::string value((const char *)temp);
+
+    // Free the memory allocated by xmlGetProp().
+    xmlFree(temp);
+
+    return value;
+}
+
+//************************************************************************
+//! Get the contents of an XML node.
+/*!
+\param current
+    \li The node to retreive the contents from.
+\return
+    \li The contents of \e current.
+*/
+//************************************************************************
+std::string getContents(const xmlNode &current)
+{
+    std::string contents;
+
+    // Get the children of the current element.
+    const xmlNode * text = current.children;
+
+    // Concatenate all the text elements.
+    while(text != NULL)
+    {
+        if (text->type == XML_TEXT_NODE && text->content != NULL)
+            contents += (const char *)text->content;
+
+        text = text->next;
+    }
+
+    return contents;
+}
+
+//************************************************************************
+//! Get the named property from an XML node as a string.
+/*!
+\param node
+    \li The node to begin searching from.
+\param searchPath
+    \li The pattern to be searched for.  The string conforms to the xpath
+        searching syntax.  For detailed information, see http://www.w3schools.com/xpath/xpath_syntax.asp
+\param propertyName
+    \li The name of the property to be retreived from the node maching 
+        \e searchPath
+\return
+    \li The specified property as a string value.  NULL is returned if
+        a node matching \e searchPath cannot be found.
+*/
+//************************************************************************
+u8* getPropertyAsString(const xmlNode &node, const char *searchPath, const char * propertyName)
+{
+    const xmlNode *pNode = findNode(node, searchPath);
+    if (pNode == NULL)
+        return NULL;
+
+    const std::string &value = getProperty(*pNode, propertyName);
+    return (u8*)_strdup(value.c_str());
+}
+
+//************************************************************************
+//! Get the contents of an XML node as a string.
+/*!
+\param node
+    \li The node to begin searching from.
+\param searchPath
+    \li The pattern to be searched for.  The string conforms to the xpath
+        searching syntax.  For detailed information, see http://www.w3schools.com/xpath/xpath_syntax.asp
+\return
+    \li The contents of \e node as a string value.  NULL is returned if
+        a node matching \e searchPath cannot be found.
+*/
+//************************************************************************
+u8* getContentsAsString(const xmlNode &node, const char *searchPath)
+{
+    const xmlNode *pNode = findNode(node, searchPath);
+    if (pNode == NULL)
+        return NULL;
+
+    const std::string &value = getContents(*pNode);
+    return (u8*)_strdup(value.c_str());
+}
+
+//************************************************************************
+//! Get the contents of an XML node as an integer.
+/*!
+\param node
+    \li The node to begin searching from.
+\param searchPath
+    \li The pattern to be searched for.  The string conforms to the xpath
+        searching syntax.  For detailed information, see http://www.w3schools.com/xpath/xpath_syntax.asp
+\return
+    \li The contents of \e node as an integer value.  0 is returned if
+        a node matching \e searchPath cannot be found.
+*/
+//************************************************************************
+s32 getContentsAsInt(const xmlNode &node, const char *searchPath)
+{
+    const xmlNode *pNode = findNode(node, searchPath);
+    if (pNode == NULL)
+        return 0;
+
+    const std::string &value = getContents(*pNode);
+    return (s32)toDouble(value);
+}
+
+
+} // anonymous namespace
 
 /* Routine:	excert_write_tabs
  * Purpose:	Write a given number of tabs to output, to make things purty
@@ -1620,43 +1837,12 @@ static void excert_clean_string(char *string)
  *			necessary are in fact present.
  */
 
-static Bool excert_parse_user(DOMNode *node, xcrtUserInfo *user)
+static Bool excert_parse_user(const xmlNode &node, xcrtUserInfo *user)
 {
-	DOMNodeList *pChildList = node->getChildNodes();
-    if (pChildList == NULL)
-    {
-        fprintf(stderr, "%s: error: failed to get all user information from user tag.\n", modname);
-		free(user->name); free(user->organization); free(user->keysource);
-		return(False);
-    }
-
-    for (XMLSize_t counter = 0; counter < pChildList->getLength(); counter++)
-    {
-        DOMNode *pChildNode = pChildList->item(counter);
-        if (pChildNode == NULL)
-            continue;
-
-        const XMLCh *pNodeName = pChildNode->getNodeName();
-        if (pNodeName == NULL)
-            continue;
-
-        if (XMLString::compareIString(asciiString("name"), pNodeName) == 0)
-        {
-            user->name = getStringValueFromNode(*pChildNode);
-        }
-        else if (XMLString::compareIString(asciiString("organization"), pNodeName) == 0)
-        {
-            user->organization = getStringValueFromNode(*pChildNode);
-        }
-        else if (XMLString::compareIString(asciiString("idnum"), pNodeName) == 0)
-        {
-            user->idnum = getUIntValueFromNode(*pChildNode);
-        }
-        else if (XMLString::compareIString(asciiString("keysource"), pNodeName) == 0)
-        {
-            user->keysource = getStringValueFromNode(*pChildNode);
-        }
-    }
+    user->name = (char *)getContentsAsString(node, "name");
+    user->organization = (char *)getContentsAsString(node, "organization");
+    user->idnum = getContentsAsInt(node, "idnum");
+    user->keysource = (char *)getContentsAsString(node, "keysource");
 
 	if (user->name == NULL || user->organization == NULL || user->idnum == 0 || user->keysource == NULL) {
 		fprintf(stderr, "%s: error: failed to get all user information from user tag.\n", modname);
@@ -1691,7 +1877,7 @@ static void excert_clean_hex_string(char *string)
 
 /* Routine:	excert_parse_signature
  * Purpose:	Extract all signature information from the XML
- * Inputs:	node	Pointer to the XML child node of the <signature> node
+ * Inputs:	node	Reference to the XML child node of the <signature> node
  *			*sig	xcrtSigInfo structure to write the output into
  * Output:	True on success, else False.  Failure includes not having all of the <user>
  *			information for the signer, or not having a signature.
@@ -1700,131 +1886,93 @@ static void excert_clean_hex_string(char *string)
  *			CSA's certificate).
  */
 
-static Bool excert_parse_signature(DOMNode *node, xcrtSigInfo *sig)
+static Bool excert_parse_signature(const xmlNode &node, xcrtSigInfo *sig)
 {
-    DOMNodeList *pChildList = node->getChildNodes();
-    if (pChildList == NULL)
-    	return(False);
-
-    for (XMLSize_t counter = 0; counter < pChildList->getLength(); counter++)
+    // Check encoding.  We only want hex encoding.
+    char *encoding = (char *)getPropertyAsString(node, "sigstream", "encoding");
+    if (encoding == NULL)
+        return False;
+    if (stricmp(encoding, "hex") != 0)
     {
-        DOMNode *pChildNode = pChildList->item(counter);
-        if (pChildNode == NULL)
-            continue;
-
-        const XMLCh *pNodeName = pChildNode->getNodeName();
-        if (pNodeName == NULL)
-            continue;
-
-        if (XMLString::compareIString(asciiString("sigstream"), pNodeName) == 0)
-        {
-            DOMNamedNodeMap *pAttributeMap = pChildNode->getAttributes();
-            if (pAttributeMap == NULL)
-                return(False);
-
-
-            //
-            //First check the encoding to make sure it is correct.
-            //
-            DOMNode *pEncodingNode = pAttributeMap->getNamedItem(asciiString("encoding"));
-            if (pEncodingNode == NULL)
-                return(False);
-
-            char *versionValue = getStringValueFromNode(*pEncodingNode);
-            
-            //We only want hex encoding.
-            if (strcmp("hex", versionValue) != 0)
-            {
-                free(versionValue);
-                return(False);
-            }
-            free(versionValue);
-
-
-            //
-            //Next check the algorithm
-            //
-            DOMNode *pAlgorithmNode = pAttributeMap->getNamedItem(asciiString("algorithm"));
-            if (pAlgorithmNode == NULL)
-                return(False);
-
-            sig->algorithm = getStringValueFromNode(*pAlgorithmNode);
-            
-            //We only want openns.
-            if (strcmp("openns", sig->algorithm) != 0)
-            {
-#ifdef __DEBUG__
-                fprintf(stderr, "%s: debug: algorithm = \"%s\"\n", modname, sig->algorithm == NULL ? "NULL" : sig->algorithm);
-#endif
-                free(sig->algorithm);
-                free(sig->version);
-                return(False);
-            }
-
-
-            //
-            //Next check the version
-            //
-            DOMNode *pVersionNode = pAttributeMap->getNamedItem(asciiString("version"));
-            if (pVersionNode == NULL)
-                continue;
-
-            sig->version = getStringValueFromNode(*pVersionNode);
-
-            //We only want 1.0.
-            if (strcmp("1.0", sig->algorithm) != 0)
-            {
-#ifdef __DEBUG__
-                fprintf(stderr, "%s: debug: version = \"%s\"\n", modname, sig->version == NULL ? "NULL" : sig->version);
-#endif
-                free(sig->algorithm);
-                free(sig->version);
-                return(False);
-            }
-
-            char *signature = getStringValueFromNode(*pChildNode);
-            if (signature == NULL)
-            {
-                fprintf(stderr, "%s: error: failed to get signature from file.\n", modname);
-
-                free(sig->algorithm);
-                free(sig->version);
-                free(signature);
-				return(False);
-            }
-
-			/* Now, clean up the signature, and then convert into internal representation (with error checking) */
-			excert_clean_hex_string(signature);
-#ifdef __DEBUG__
-			printf("%s: debug: signature = \"%s\"\n", modname, signature);
-#endif
-            OnsCryptErr	rc;
-			if ((sig->signature = ons_ascii_to_sig(signature, &rc)) == NULL) {
-				fprintf(stderr, "%s: error: failed to convert signature string to internal format (rc = %d).\n",
-					modname, (u32)rc);
-
-                free(sig->algorithm);
-                free(sig->version);
-                free(signature);
-				return(False);
-			}
-			free(signature);
-#ifdef __DEBUG__
-			printf("%s: debug: converted signature = \"%s\"\n", modname,
-				ons_sig_to_ascii(sig->signature));
-#endif
-        }
-        else if (XMLString::compareIString(asciiString("user"), pNodeName) == 0)
-        {
-            if (!excert_parse_user(pChildNode, &sig->signer))
-            {
-				fprintf(stderr, "%s: error: failed to obtain signer information in signature of XML file.\n", modname);
-				return(False);
-			}
-        }
+        free(encoding);
+        return False;
     }
 
-	return(True);
+    // Check algorithm.  We only want openns.
+    char *algorithm = (char *)getPropertyAsString(node, "sigstream", "algorithm");
+    if (encoding == NULL)
+    {
+        free(encoding);
+        return False;
+    }
+    if (stricmp(algorithm, "openns") != 0)
+    {
+        free(encoding);
+        free(algorithm);
+        return False;
+    }
+
+    // Check version.  We only want 1.0.
+    char *version = (char *)getPropertyAsString(node, "sigstream", "version");
+    if (version == NULL)
+    {
+        free(encoding);
+        free(algorithm);
+        return False;
+    }
+    if (stricmp(version, "1.0") != 0)
+    {
+        free(encoding);
+        free(algorithm);
+        free(version);
+        return False;
+    }
+
+    // Get the actual signature.
+    char *signature = (char *)getContentsAsString(node, "sigstream");
+    if (signature == NULL)
+    {
+        free(encoding);
+        free(algorithm);
+        free(version);
+        return False;
+    }
+
+    // Get the signer.
+    const xmlNode *pUserNode = ::findNode(node, "user");
+    if (pUserNode == NULL)
+    {
+        free(signature);
+        free(encoding);
+        free(algorithm);
+        free(version);        
+        return False;
+    }
+
+    // ok we're good to go... set up the return struct.
+    sig->algorithm = algorithm;
+    sig->version = version;
+    excert_parse_user(*pUserNode, &sig->signer);
+
+    excert_clean_hex_string(signature);
+#ifdef __DEBUG__
+    printf("%s: debug: signature = \"%s\"\n", modname, signature);
+#endif
+    OnsCryptErr	rc;
+    if ((sig->signature = ons_ascii_to_sig(signature, &rc)) == NULL) {
+        fprintf(stderr, "%s: error: failed to convert signature string to internal format (rc = %d).\n",
+            modname, (u32)rc);
+
+        free(sig->algorithm);
+        free(sig->version);
+        free(signature);
+        free(encoding);
+        return(False);
+    }
+    free(signature);
+    free(encoding);
+
+    return(True);
 }
 
 /* Routine:	excert_parse_key
@@ -1838,87 +1986,99 @@ static Bool excert_parse_signature(DOMNode *node, xcrtSigInfo *sig)
  *			respectively.
  */
 
-static Bool excert_parse_key(DOMNode *node, xcrtKeyInfo *key)
+static Bool excert_parse_key(const xmlNode &node, xcrtKeyInfo *key)
 {
-//	xmlChar		*type, *enc;
-//	char		*keystring, *tmp;
-//	OnsCryptErr	rc;
-//
-//	type = xmlGetProp(node, "type");
-//	if (strcmp(type, "public") == 0) {
-//#ifdef __DEBUG__
-//		printf("%s: debug: child:\t(and it's a public key).\n", modname);
-//#endif
-//		key->is_public = True;
-//	} else if (strcmp(type, "private") == 0) {
-//#ifdef __DEBUG__
-//		printf("%s: debug: child:\t(and it's a secret key).\n", modname);
-//#endif
-//		key->is_public = False;
-//	} else {
-//#ifdef __DEBUG__
-//		printf("%s: debug: child:\t(and its type is unknown = \"%s\").\n", modname, type);
-//#endif
-//		fprintf(stderr, "%s: error: type of key in certificate is not 'public'"
-//			" or 'private'.\n", modname);
-//		xmlFree(type);
-//		return(False);
-//	}
-//	xmlFree(type);
-//
-//	if ((key->algorithm = xmlGetProp(node, "algorithm")) == NULL ||
-//		(key->version = xmlGetProp(node, "version")) == NULL ||
-//		(enc = xmlGetProp(node, "encoding")) == NULL) {
-//		fprintf(stderr, "%s: error: key does not have algorithm qualifiers.\n", modname);
-//		xmlFree(enc); xmlFree(key->algorithm); key->algorithm = NULL; xmlFree(key->version); key->version = NULL;
-//		return(False);
-//	}
-//	tmp = strdup(key->algorithm); xmlFree(key->algorithm); key->algorithm = tmp;
-//	tmp = strdup(key->version); xmlFree(key->version); key->version = tmp;
-//
-//	if (strcmp(key->algorithm, "openns") != 0 || strcmp(key->version, "1.0") != 0 ||
-//		(xmlStrcmp(enc, (const xmlChar *)"hex") != 0 && xmlStrcmp(enc, (const xmlChar *)"crypthex") != 0)) {
-//		fprintf(stderr, "%s: error: key algorithm qualifiers are invalid.\n", modname);
-//#ifdef __DEBUG__
-//		fprintf(stderr, "%s: debug: algorithm = \"%s\"\n", modname, key->algorithm);
-//		fprintf(stderr, "%s: debug: version = \"%s\"\n", modname, key->version);
-//		fprintf(stderr, "%s: debug: encoding = \"%s\"\n", modname, enc);
-//#endif
-//		xmlFree(enc);
-//		return(False);
-//	}
-//	if (strcmp(enc, "crypthex") == 0) key->is_encrypted = True; else key->is_encrypted = False;
-//	xmlFree(enc);
-//
-//	/* Read the key source and convert */
-//	if ((keystring = xmlNodeGetContent(node)) == NULL) {
-//		fprintf(stderr, "%s: error: failed to get information on key\n", modname);
-//		return(False);
-//	}
-//	excert_clean_hex_string(keystring);
-//#ifdef __DEBUG__
-//	printf("%s: debug: key = \"%s\"\n", modname, keystring);
-//#endif
-//	if (!key->is_encrypted) {
-//		if ((key->key = ons_ascii_to_key(keystring, &rc)) == NULL) {
-//			fprintf(stderr, "%s: error: failed to convert key to internal format (rc = %d).\n",
-//				modname, (u32)rc);
-//			xmlFree(keystring);
-//			return(False);
-//		}
-//	} else {
-//		/* Just copy the string --- it's encrypted, and we don't know how to fix it */
-//		key->key = strdup(keystring);
-//	}
-//	xmlFree(keystring);
-//#ifdef __DEBUG__
-//	if (key->is_encrypted) {
-//		printf("%s: debug: encrypted key = \"%s\"\n", modname, key->key);
-//	} else {
-//		printf("%s: debug: converted key = \"%s\"\n", modname, (keystring = ons_key_to_ascii(key->key)));
-//		free(keystring);
-//	}
-//#endif
+	OnsCryptErr	rc;
+    std::string type = ::getProperty(node, "type");
+
+	if (type == "public")
+    {
+#ifdef __DEBUG__
+		printf("%s: debug: child:\t(and it's a public key).\n", modname);
+#endif
+		key->is_public = True;
+	}
+    else if (type == "private")
+    {
+#ifdef __DEBUG__
+		printf("%s: debug: child:\t(and it's a secret key).\n", modname);
+#endif
+		key->is_public = False;
+	} 
+    else 
+    {
+#ifdef __DEBUG__
+		printf("%s: debug: child:\t(and its type is unknown = \"%s\").\n", modname, type);
+#endif
+		fprintf(stderr, "%s: error: type of key in certificate is not 'public'"
+			" or 'private'.\n", modname);
+		return(False);
+	}
+
+    std::string algorithm = ::getProperty(node, "algorithm");
+    std::string version = ::getProperty(node, "version");
+    std::string encoding = ::getProperty(node, "encoding");
+
+    if (algorithm.empty() || version.empty() || encoding.empty())
+    {
+		fprintf(stderr, "%s: error: key does not have algorithm qualifiers.\n", modname);
+		return(False);
+	}
+
+    key->algorithm = strdup(algorithm.c_str());
+    key->version = strdup(version.c_str());
+
+	if (strcmp(key->algorithm, "openns") != 0 || strcmp(key->version, "1.0") != 0 ||
+		(encoding != "hex" && encoding != "crypthex"))
+    {
+		fprintf(stderr, "%s: error: key algorithm qualifiers are invalid.\n", modname);
+#ifdef __DEBUG__
+		fprintf(stderr, "%s: debug: algorithm = \"%s\"\n", modname, key->algorithm);
+		fprintf(stderr, "%s: debug: version = \"%s\"\n", modname, key->version);
+		fprintf(stderr, "%s: debug: encoding = \"%s\"\n", modname, enc);
+#endif
+		return(False);
+	}
+
+	if (encoding == "crypthex") 
+        key->is_encrypted = True; 
+    else 
+        key->is_encrypted = False;
+
+	/* Read the key source and convert */
+    std::string tmp = ::getContents(node);
+    if (tmp.empty())
+        return False;
+
+    char *keystring = strdup(tmp.c_str());
+    excert_clean_hex_string(keystring);
+
+#ifdef __DEBUG__
+	printf("%s: debug: key = \"%s\"\n", modname, keystring);
+#endif
+	if (!key->is_encrypted) 
+    {
+		if ((key->key = ons_ascii_to_key(keystring, &rc)) == NULL) {
+			fprintf(stderr, "%s: error: failed to convert key to internal format (rc = %d).\n",
+				modname, (u32)rc);
+			xmlFree(keystring);
+			return(False);
+		}
+	} 
+    else 
+    {
+		/* Just copy the string --- it's encrypted, and we don't know how to fix it */
+		key->key = (u8*)strdup(keystring);
+	}
+	xmlFree(keystring);
+#ifdef __DEBUG__
+	if (key->is_encrypted) {
+		printf("%s: debug: encrypted key = \"%s\"\n", modname, key->key);
+	} else {
+		printf("%s: debug: converted key = \"%s\"\n", modname, (keystring = ons_key_to_ascii(key->key)));
+		free(keystring);
+	}
+#endif
 	return(True);
 }
 
@@ -1938,41 +2098,23 @@ xcrtCertificate *excert_read_xml_certificate(char *name, ExcertErr *rc)
 {
 	xcrtCertificate	*cert;
 
-	if ((cert = excert_new_xml_certificate()) == NULL) {
+	if ((cert = excert_new_xml_certificate()) == NULL) 
+    {
 		fprintf(stderr, "%s: error: failed to get memory for the internal certificate.\n", modname);
 		*rc = EXCERT_BAD_FILE;
 		return(NULL);
 	}
 
-    XMLPlatformUtils::Initialize();
-
-    std::auto_ptr<XercesDOMParser> parser(new XercesDOMParser);
-    parser->setDoNamespaces(true);
-    parser->setValidationSchemaFullChecking(false);
-    parser->setCreateEntityReferenceNodes(false);
-    parser->setIncludeIgnorableWhitespace(false);
-    parser->setValidationScheme(XercesDOMParser::Val_Never);
-
-    try
-    {
-        parser->parse(name);
-    }
-    catch (...)
+    // parse the file.
+    xmlDoc *pDocument = xmlParseFile((const char *)name); 
+    if (pDocument == NULL)
     {
         fprintf(stderr, "%s: error: failed to parse \"%s\" for valid XML tree.\n", modname, name);
 		*rc = EXCERT_BAD_FILE;
         return(NULL);
     }
 
-    DOMDocument* doc = parser->getDocument();
-    if (doc == NULL)
-    {
-        fprintf(stderr, "%s: error: failed to parse \"%s\" for valid XML tree.\n", modname, name);
-		*rc = EXCERT_BAD_FILE;
-        return(NULL);
-    }
-
-    DOMElement *pRoot = doc->getDocumentElement();
+    xmlNode *pRoot = pDocument->children;
     if (pRoot == NULL)
     {
         fprintf(stderr, "%s: error: failed to parse \"%s\" for valid XML tree.\n", modname, name);
@@ -1983,71 +2125,66 @@ xcrtCertificate *excert_read_xml_certificate(char *name, ExcertErr *rc)
     fprintf(stderr, "%s: debug: parsed \"%s\" for input XML tree.\n", modname, name);
 
     //Look for the 'user' node.
-    DOMXPathResult *pUserNodeIter = doc->evaluate(asciiString("/entity/user"), pRoot, NULL, DOMXPathResult::FIRST_ORDERED_NODE_TYPE, NULL);
-    if (pUserNodeIter != NULL)
+    const xmlNode *userNode = ::findNode(*pRoot, "/entity/user");
+    if (!userNode)
     {
-        DOMNode *pNode = pUserNodeIter->getNodeValue();
-        if (pNode != NULL)
-        {
-#ifdef __DEBUG__
-            printf("%s: debug: child: Found user node ...\n", modname);
-#endif
-            if (!excert_parse_user(pNode, &cert->user))
-            {
-                fprintf(stderr, "%s: error: failed to parse user name from \"%s\".\n", modname, name);
-			    *rc = EXCERT_BAD_FILE;
-			    excert_release_xml_certificate(cert);
-			    return(NULL);
-            }
-
-#ifdef __DEBUG__
-			printf("%s: debug: child:\tuser=\"%s\"\n", modname, cert->user.name);
-			printf("%s: debug: child:\torganization=\"%s\"\n", modname, cert->user.organization);
-			printf("%s: debug: child:\tid=\"%d\"\n", modname, cert->user.idnum);
-			printf("%s: debug: child:\tkeysource=\"%s\"\n", modname, cert->user.keysource);
-#endif
-        }
+        fprintf(stderr, "%s: error: failed to parse user name from \"%s\".\n", modname, name);
+	    excert_release_xml_certificate(cert);
+		*rc = EXCERT_BAD_FILE;
+        return NULL;
     }
 
-    //Look for the 'key' node.
-    DOMXPathResult *pKeyNodeIter = doc->evaluate(asciiString("/entity/key"), pRoot, NULL, DOMXPathResult::FIRST_ORDERED_NODE_TYPE, NULL);
-    if (pKeyNodeIter != NULL)
+    if (!excert_parse_user(*userNode, &cert->user))
     {
-        DOMNode *pNode = pKeyNodeIter->getNodeValue();
-        if (pNode != NULL)
-        {
+        fprintf(stderr, "%s: error: failed to parse user name from \"%s\".\n", modname, name);
+	    *rc = EXCERT_BAD_FILE;
+	    excert_release_xml_certificate(cert);
+	    return(NULL);
+    }
+
 #ifdef __DEBUG__
-            printf("%s: debug: child: Found key node ...\n", modname);
+    printf("%s: debug: child:\tuser=\"%s\"\n", modname, cert->user.name);
+    printf("%s: debug: child:\torganization=\"%s\"\n", modname, cert->user.organization);
+    printf("%s: debug: child:\tid=\"%d\"\n", modname, cert->user.idnum);
+    printf("%s: debug: child:\tkeysource=\"%s\"\n", modname, cert->user.keysource);
 #endif
-            if (!excert_parse_key(pNode, &cert->key))
-            {
-                fprintf(stderr, "%s: error: failed to parse key information from \"%s\".\n", modname, name);
-			    *rc = EXCERT_BAD_FILE;
-			    excert_release_xml_certificate(cert);
-			    return(NULL);
-            }
-        }
+
+
+    //Look for the 'key' node.
+    const xmlNode *keyNode = ::findNode(*pRoot, "/entity/key");
+    if (!keyNode)
+    {
+        fprintf(stderr, "%s: error: failed to parse key information from \"%s\".\n", modname, name);
+	    excert_release_xml_certificate(cert);
+		*rc = EXCERT_BAD_FILE;
+        return NULL;
+    }
+
+    if (!excert_parse_key(*keyNode, &cert->key))
+    {
+        fprintf(stderr, "%s: error: failed to parse key information from \"%s\".\n", modname, name);
+	    *rc = EXCERT_BAD_FILE;
+	    excert_release_xml_certificate(cert);
+	    return(NULL);
     }
 
     //Look for the 'signature' node.
-    DOMXPathResult *pSigNodeIter = doc->evaluate(asciiString("/entity/signature"), pRoot, NULL, DOMXPathResult::FIRST_ORDERED_NODE_TYPE, NULL);
-    if (pSigNodeIter != NULL)
+    const xmlNode *sigNode = ::findNode(*pRoot, "/entity/signature");
+    if (!sigNode)
     {
-        DOMNode *pNode = pSigNodeIter->getNodeValue();
-        if (pNode != NULL)
-        {
-#ifdef __DEBUG__
-            printf("%s: debug: child: Found signature node ...\n", modname);
-#endif
-            if (!excert_parse_signature(pNode, &cert->signature))
-            {
-				fprintf(stderr, "%s: error: failed to parse signature information from \"%s\".\n", modname, name);
-				*rc = EXCERT_BAD_FILE;
-				excert_release_xml_certificate(cert);
-				return(NULL);
-			}
-        }
+		fprintf(stderr, "%s: error: failed to parse signature information from \"%s\".\n", modname, name);
+	    excert_release_xml_certificate(cert);
+		*rc = EXCERT_BAD_FILE;
+        return NULL;
     }
+
+    if (!excert_parse_signature(*sigNode, &cert->signature))
+    {
+		fprintf(stderr, "%s: error: failed to parse signature information from \"%s\".\n", modname, name);
+		*rc = EXCERT_BAD_FILE;
+		excert_release_xml_certificate(cert);
+		return(NULL);
+	}
 
 	*rc = EXCERT_OK;
 	return(cert);

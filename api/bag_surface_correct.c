@@ -33,6 +33,7 @@
 #include <math.h>
 
 #define SEARCH_RADIUS 3
+#define XML_ATTR_MAXSTR 256
 
 static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 startcol, u32 endcol,
                                             u32 type, u32 surf, f32 *data);

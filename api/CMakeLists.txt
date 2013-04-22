@@ -1,37 +1,11 @@
 # 
-# Xerces Settings
-#
-IF(MSVC)
-# The location of the xerces header files.
-SET(XERCESC_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/xerces-c/src/" CACHE STRING "Location of xerces header files.")
-# The location of the xerces libraries.
-SET(XERCESC_LIB_DIR "${PROJECT_SOURCE_DIR}/extlibs/xerces-c/Build/Win64/VC9/Release/" CACHE STRING "The location of the xerces library.")
-# The name of the xerces release library.
-SET(XERCESC_LIB "optimized;xerces-c_3.lib;debug;xerces-c_3d.lib" CACHE STRING "The name of the xerces release library.")
-ELSEIF(UNIX)
-# The location of the xerces header files.
-SET(XERCESC_INCLUDE_DIR "/usr/include/xercesc" CACHE STRING "Location of xerces header files.")
-# The name of the xerces release library.
-SET(XERCESC_LIB "xerces-c" CACHE STRING "The name of the xerces release library.")
-ELSEIF(MINGW)
-# The location of the xerces header files.
-SET(XERCESC_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/xerces-c/installed/include/" CACHE STRING "Location of xerces header files.")
-# The location of the xerces libraries.
-SET(XERCESC_LIB_DIR "${PROJECT_SOURCE_DIR}/extlibs/xerces-c/installed/lib/" CACHE STRING "The location of the xerces library.")
-# The name of the xerces release library.
-SET(XERCESC_LIB "libxerces-c" CACHE STRING "The name of the xerces release library.")
-ENDIF(MSVC)
-
-# 
 # Hdf5 Settings
 #
 IF(MSVC)
 # The location of the Hdf5 header files.
 SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE STRING "Location of hdf5 header files.")
-# The location of the Hdf5 libraries.
-SET(HDF5_LIB_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/" CACHE STRING "The location of the hdf5 library.")
 # The name of the Hdf5 release library.
-SET(HDF5_LIB "optimized;hdf5dll.lib;debug;hdf5ddll.lib" CACHE STRING "The name of the hdf5 release library.")
+SET(HDF5_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5dll.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5ddll.lib" CACHE STRING "The name of the hdf5 release library.")
 ELSEIF(UNIX)
 # The location of the Hdf5 header files.
 SET(HDF5_INCLUDE_DIR "/usr/include" CACHE STRING "Location of hdf5 header files.")
@@ -40,10 +14,8 @@ SET(HDF5_LIB "hdf5" CACHE STRING "The name of the hdf5 release library.")
 ELSEIF(MINGW)
 # The location of the Hdf5 header files.
 SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE STRING "Location of hdf5 header files.")
-# The location of the Hdf5 libraries.
-SET(HDF5_LIB_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/" CACHE STRING "The location of the hdf5 library.")
 # The name of the Hdf5 release library.
-SET(HDF5_LIB "hdf5" CACHE STRING "The name of the hdf5 release library.")
+SET(HDF5_LIB "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5" CACHE STRING "The name of the hdf5 release library.")
 ENDIF(MSVC)
 
 # 
@@ -52,10 +24,8 @@ ENDIF(MSVC)
 IF(MSVC)
 # The location of the beecrypt header files.
 SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/" CACHE STRING "Location of beecrypt header files.")
-# The location of the beecrypt libraries.
-SET(BEECRYPT_LIB_DIR "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/" CACHE STRING "The location of the beecrypt library.")
 # The name of the beecrypt release library.
-SET(BEECRYPT_LIB "optimized;beecrypt.lib;debug;beecryptd.lib" CACHE STRING "The name of the beecrypt release library.")
+SET(BEECRYPT_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecryptd.lib" CACHE STRING "The name of the beecrypt release library.")
 ELSEIF(UNIX)
 # The location of the beecrypt header files.
 SET(BEECRYPT_INCLUDE_DIR "/usr/include" CACHE STRING "Location of beecrypt header files.")
@@ -64,14 +34,31 @@ SET(BEECRYPT_LIB "beecrypt" CACHE STRING "The name of the beecrypt release libra
 ELSEIF(MINGW)
 # The location of the beecrypt header files.
 SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/include/" CACHE STRING "Location of beecrypt header files.")
-# The location of the beecrypt libraries.
-SET(BEECRYPT_LIB_DIR "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/lib/" CACHE STRING "The location of the beecrypt library.")
 # The name of the beecrypt release library.
-SET(BEECRYPT_LIB "beecrypt" CACHE STRING "The name of the beecrypt release library.")
+SET(BEECRYPT_LIB "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/lib/beecrypt" CACHE STRING "The name of the beecrypt release library.")
 ENDIF(MSVC)
 
-include_directories (${XERCESC_INCLUDE_DIR} ${HDF5_INCLUDE_DIR} ${BEECRYPT_INCLUDE_DIR}) 
-link_directories(${XERCESC_LIB_DIR} ${HDF5_LIB_DIR} ${BEECRYPT_LIB_DIR})
+# 
+# libxml Settings
+#
+IF(MSVC)
+# The location of the libxml2 header files.
+SET(LIBXML_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/libxml2/include" CACHE STRING "Location of libxml2 header files.")
+# The name of the libxml2 release library.
+SET(LIBXML_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/libxml2/lib/release/libxml2.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/libxml2/lib/debug/libxml2.lib" CACHE STRING "The name of the libxml2 library.")
+ELSEIF(UNIX)
+# The location of the libxml2 header files.
+SET(LIBXML_INCLUDE_DIR "/usr/include" CACHE STRING "Location of libxml2 header files.")
+# The name of the libxml2 release library.
+SET(LIBXML_LIB "libxml2" CACHE STRING "The name of the libxml2 release library.")
+ELSEIF(MINGW)
+# The location of the libxml2 header files.
+SET(LIBXML_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/libxml2/installed/include/" CACHE STRING "Location of libxml2 header files.")
+# The name of the libxml2 release library.
+SET(LIBXML_LIB "${PROJECT_SOURCE_DIR}/extlibs/libxml2/installed/lib/libxml2" CACHE STRING "The name of the libxml2 release library.")
+ENDIF(MSVC)
+
+include_directories (${HDF5_INCLUDE_DIR} ${BEECRYPT_INCLUDE_DIR} ${LIBXML_INCLUDE_DIR}) 
 
 #Produce a shared library.
 set (LIB_TYPE SHARED)
@@ -99,34 +86,36 @@ ENDIF(MSVC)
 set (BAG_SOURCE_FILES 
  bag_attr.c
  bag_crypto.c
- bag_epsg.c
  bag_hdf.c
+ bag_metadata.cpp
+ bag_metadata_export.cpp
+ bag_metadata_import.cpp
+ bag_legacy.cpp
  bag_opt_group.c
  bag_opt_surfaces.c
  bag_reference_system.cpp
  bag_surface_correct.c
  bag_surfaces.c
  bag_tracking_list.c
- bag_xml.c
  crc32.c
- ons_xml.cpp
  onscrypto.c)
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
  
 set (BAG_HEADER_FILES 
  bag.h
+ bag_errors.h
+ bag_metadata.h
+ bag_legacy.h
  bag_opt_surfaces.h
  bag_private.h
  crc32.h
  dt_cc.h
- ons_xml.h
- ons_xml_error_handler.h
  onscrypto.h
  stdtypes.h)
 source_group("Header Files" FILES ${BAG_HEADER_FILES})
  
 add_library (bag ${LIB_TYPE} ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} )
 
-target_link_libraries(bag ${XERCESC_LIB})
 target_link_libraries(bag ${HDF5_LIB})
 target_link_libraries(bag ${BEECRYPT_LIB})
+target_link_libraries(bag ${LIBXML_LIB})

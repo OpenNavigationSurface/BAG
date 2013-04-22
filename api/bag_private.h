@@ -37,7 +37,6 @@
 
 #include "hdf5.h"
 #include "bag.h"
-#include "ons_xml.h"
 
 #ifndef __BAG_PRIVATE_H__
 #define __BAG_PRIVATE_H__
@@ -189,8 +188,5 @@ bagError bagSortTrackingList(bagHandle hnd, u16 mode);
 s32 bagCompareTrackIndices  (const void *a, const void *b);
 s32 bagCompareTrackNodes    (const void *a, const void *b);
 s32 bagCompareTrackCodes    (const void *a, const void *b);
-s32 bagIdentifyEPSG         (s32 crd_sys, bagDatum datum, s32 zone, f64 false_northing);
-bagError bagGetVertDatum    (bagMetaData metaData,char *buffer,u32 bufferSize);
-bagError bagGetHorizDatum    (bagMetaData metaData,char *buffer,u32 bufferSize);
 
 #endif
