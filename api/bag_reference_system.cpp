@@ -561,7 +561,7 @@ try
     if (vBuffer != NULL && vBuffer_size > 0 && strlen((char*)system.geoParameters.vertical_datum) != 0)
     {        
         wktStream << "VERT_CS[\"" << system.geoParameters.vertical_datum
-            << "\", VERT_DATUM[" << system.geoParameters.vertical_datum << ", 2000]]";
+            << "\", VERT_DATUM[\"" << system.geoParameters.vertical_datum << "\", 2000]]";
 
         //Make sure our string is not too large.
         if (wktStream.str().size() > vBuffer_size)
@@ -599,7 +599,7 @@ try
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"UTM Zone " << abs(system.geoParameters.zone)
                     << ((isNorth) ? ", Northern Hemisphere\"" : ", Southern Hemisphere\"")
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Transverse_Mercator\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << 0 << "],"
                     << " PARAMETER[\"central_meridian\"," << (abs(system.geoParameters.zone) * 6 - 183) << "],"
@@ -614,7 +614,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Albers_Conic_Equal_Area\"],"
                     << " PARAMETER[\"standard_parallel_1\"," << system.geoParameters.std_parallel_1 << "],"
                     << " PARAMETER[\"standard_parallel_2\"," << system.geoParameters.std_parallel_2 << "],"
@@ -630,7 +630,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Azimuthal_Equidistant\"],"
                     << " PARAMETER[\"latitude_of_center\"," << system.geoParameters.latitude_of_centre << "],"
                     << " PARAMETER[\"longitude_of_center\"," << system.geoParameters.longitude_of_centre << "],"
@@ -644,7 +644,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Bonne\"],"
                     << " PARAMETER[\"standard_parallel_1\"," << system.geoParameters.std_parallel_1 << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -658,7 +658,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Cassini_Soldner\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -672,7 +672,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Cylindrical_Equal_Area\"],"
                     << " PARAMETER[\"standard_parallel_1\"," << system.geoParameters.std_parallel_1 << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -686,7 +686,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Eckert_IV\"],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
                     << " PARAMETER[\"false_easting\"," << system.geoParameters.false_easting << "],"
@@ -699,7 +699,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Eckert_VI\"],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
                     << " PARAMETER[\"false_easting\"," << system.geoParameters.false_easting << "],"
@@ -715,7 +715,7 @@ try
 
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Equirectangular\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -729,7 +729,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Gnomonic\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -743,7 +743,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Lambert_Conformal_Conic_2SP\"],"
                     << " PARAMETER[\"standard_parallel_1\"," << system.geoParameters.std_parallel_1 << "],"
                     << " PARAMETER[\"standard_parallel_2\"," << system.geoParameters.std_parallel_2 << "],"
@@ -759,7 +759,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Mercator_1SP\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -774,7 +774,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Miller_Cylindrical\"],"
                     << " PARAMETER[\"latitude_of_center\"," << system.geoParameters.latitude_of_centre << "],"
                     << " PARAMETER[\"longitude_of_center\"," << system.geoParameters.longitude_of_centre << "],"
@@ -788,7 +788,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Mollweide\"],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
                     << " PARAMETER[\"false_easting\"," << system.geoParameters.false_easting << "],"
@@ -801,7 +801,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"New_Zealand_Map_Grid\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -815,7 +815,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Orthographic\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -829,7 +829,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Polar_Stereographic\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -844,7 +844,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Polyconic\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -858,7 +858,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Sinusoidal\"],"
                     << " PARAMETER[\"longitude_of_center\"," << system.geoParameters.longitude_of_centre << "],"
                     << " PARAMETER[\"false_easting\"," << system.geoParameters.false_easting << "],"
@@ -871,7 +871,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Oblique_Stereographic\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -886,7 +886,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"Transverse_Mercator\"],"
                     << " PARAMETER[\"latitude_of_origin\"," << system.geoParameters.origin_latitude << "],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
@@ -901,7 +901,7 @@ try
             {
                 wktStream << std::fixed << std::setprecision(6)
                     << "PROJCS[\"unnamed\""
-                    << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
+                    << ", " << datumToWkt(system.geoParameters.datum, system.geoParameters.ellipsoid)
                     << ", PROJECTION[\"VanDerGrinten\"],"
                     << " PARAMETER[\"central_meridian\"," << system.geoParameters.central_meridian << "],"
                     << " PARAMETER[\"false_easting\"," << system.geoParameters.false_easting << "],"
