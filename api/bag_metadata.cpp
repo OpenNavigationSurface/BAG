@@ -771,7 +771,7 @@ bagError bagGetUncertaintyType(
     if (metaData == NULL)
         return BAG_METADTA_INVALID_HANDLE;
 
-    if (metaData->identificationInfo == NULL || metaData->identificationInfo->verticalUncertaintyType)
+    if (metaData->identificationInfo == NULL || metaData->identificationInfo->verticalUncertaintyType == NULL)
         return BAG_METADTA_NOT_INITIALIZED;
 
     *uncrtType = Unknown_Uncert;
@@ -953,7 +953,7 @@ bagError bagGetHReferenceSystem(
     if (metaData == NULL)
         return BAG_METADTA_INVALID_HANDLE;
 
-    if (metaData->horizontalReferenceSystem == NULL == NULL || metaData->horizontalReferenceSystem->type == NULL
+    if (metaData->horizontalReferenceSystem == NULL || metaData->horizontalReferenceSystem->type == NULL
         || metaData->horizontalReferenceSystem->definition == NULL)
         return BAG_METADTA_NOT_INITIALIZED;
 
