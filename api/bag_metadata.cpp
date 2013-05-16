@@ -359,7 +359,7 @@ Bool initDataQualityInfo(BAG_DATA_QUALITY * dataQualityInfo)
     (*dataQualityInfo).scope = (u8*)_strdup("dataset");
 
     (*dataQualityInfo).lineageProcessSteps = (BAG_PROCESS_STEP*)malloc(sizeof(BAG_PROCESS_STEP));
-    if ((*dataQualityInfo).lineageProcessSteps)
+    if ((*dataQualityInfo).lineageProcessSteps == NULL)
         return False;
 
     initProcessStep((*dataQualityInfo).lineageProcessSteps);
