@@ -20,6 +20,7 @@
 
 extern Bool initResponsibleParty(BAG_RESPONSIBLE_PARTY * responsibleParty);
 extern Bool initSourceInfo(BAG_SOURCE * sourceInfo);
+extern Bool initProcessStep(BAG_PROCESS_STEP * processStep);
 
 namespace
 {
@@ -722,6 +723,7 @@ Bool decodeDataQualityInfo(const xmlNode &node, BAG_DATA_QUALITY * dataQualityIn
 
             for (u32 i = 0; i < dataQualityInfo->numberOfProcessSteps; i++)
             {
+                initProcessStep(&dataQualityInfo->lineageProcessSteps[i]);
                 if (!decodeProcessStep(*stepNodes[i], &dataQualityInfo->lineageProcessSteps[i], schemaVersion))
                     return False;
             }
@@ -741,6 +743,7 @@ Bool decodeDataQualityInfo(const xmlNode &node, BAG_DATA_QUALITY * dataQualityIn
 
             for (u32 i = 0; i < dataQualityInfo->numberOfProcessSteps; i++)
             {
+                initProcessStep(&dataQualityInfo->lineageProcessSteps[i]);
                 if (!decodeProcessStep(*stepNodes[i], &dataQualityInfo->lineageProcessSteps[i], schemaVersion))
                     return False;
             }
@@ -1390,7 +1393,7 @@ bagError bagImportMetadataFromXmlV2(xmlDoc &document, BAG_METADATA * metadata)
 
     //gmd:spatialRepresentationInfo
     {
-        const xmlNode *pNode = findNode(*pRoot, "/gmi:MI_Metadata/gmd:spatialRepresentationInfo");
+        const xmlNode *pNode = findNode(*pRoot, "/gmi:MI_Metadata/gmd:spatialRepresentationInfo/gmd:MD_Georectified/parent::*");
         if (pNode == NULL)
         {
             return BAG_METADTA_MISSING_MANDATORY_ITEM;

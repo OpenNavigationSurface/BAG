@@ -91,6 +91,7 @@ Bool initDataIdentificationInfo(BAG_IDENTIFICATION * dataIdentificationInfo)
 	(*dataIdentificationInfo).status = NULL;
 	(*dataIdentificationInfo).spatialRepresentationType = NULL;
 	(*dataIdentificationInfo).language = NULL;
+    (*dataIdentificationInfo).character_set = NULL;
 	(*dataIdentificationInfo).topicCategory = NULL;
 
     (*dataIdentificationInfo).verticalUncertaintyType = NULL;
@@ -300,12 +301,8 @@ Bool initProcessStep(BAG_PROCESS_STEP * processStep)
     (*processStep).dateTime = NULL;
     (*processStep).trackingId = NULL;
 
+    (*processStep).lineageSources = NULL;
     (*processStep).numberOfSources = 0;
-
-    (*processStep).lineageSources = (BAG_SOURCE*)malloc(sizeof(BAG_SOURCE));
-    if ((*processStep).lineageSources == NULL)
-        return False;
-    initSourceInfo((*processStep).lineageSources);
 
     (*processStep).processors = NULL;
     (*processStep).numberOfProcessors = 0;
@@ -357,12 +354,8 @@ Bool initDataQualityInfo(BAG_DATA_QUALITY * dataQualityInfo)
     }
 
     (*dataQualityInfo).scope = (u8*)_strdup("dataset");
-
-    (*dataQualityInfo).lineageProcessSteps = (BAG_PROCESS_STEP*)malloc(sizeof(BAG_PROCESS_STEP));
-    if ((*dataQualityInfo).lineageProcessSteps == NULL)
-        return False;
-
-    initProcessStep((*dataQualityInfo).lineageProcessSteps);
+    (*dataQualityInfo).lineageProcessSteps = NULL;
+    (*dataQualityInfo).numberOfProcessSteps = 0;
 
     return True;
 }
