@@ -1257,10 +1257,28 @@ bagError bagImportMetadataFromXmlV1(xmlDoc &document, BAG_METADATA * metadata)
         const xmlNode *pNode = findNode(*pRoot, "/smXML:MD_Metadata/referenceSystemInfo[2]");
         if (pNode == NULL)
         {
-            return BAG_METADTA_MISSING_MANDATORY_ITEM;
-        }
+            //If we could not find the vertical coordiante system node, then lets look in the other location.
+            const xmlNode *pNode2 = findNode(*pRoot, "/smXML:MD_Metadata/referenceSystemInfo[1]//verticalDatum");
+            if (pNode2 == NULL)
+                return BAG_METADTA_MISSING_MANDATORY_ITEM;
 
-        if (!decodeReferenceSystemInfo(*pNode, metadata->verticalReferenceSystem, 1))
+            u8 *datum = getContentsAsString(*pNode2, "smXML:RS_Identifier/code");
+            if (datum == NULL)
+                return BAG_METADTA_MISSING_MANDATORY_ITEM;
+            
+            bagLegacyReferenceSystem system;
+            strncpy((char *)system.geoParameters.vertical_datum, (const char*)datum, 256);
+            free(datum);
+
+            char buffer[1024];
+            bagError error = bagLegacyToWkt(system, NULL, 0, buffer, 1024);
+            if (error)
+                return error;
+
+            metadata->verticalReferenceSystem->definition = (u8*)strdup(buffer);
+            metadata->verticalReferenceSystem->type = (u8*)strdup("WKT");
+        }
+        else if (!decodeReferenceSystemInfo(*pNode, metadata->verticalReferenceSystem, 1))
             return BAG_METADTA_MISSING_MANDATORY_ITEM;
     }
 

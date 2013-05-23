@@ -684,14 +684,6 @@ BAG_EXTERNAL bagData *bagGetDataPointer(bagHandle bag_handle);
 BAG_EXTERNAL bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, u32 end_row, u32 end_col, s32 type);
 BAG_EXTERNAL bagError bagFreeArray (bagHandle hnd, s32 type);
 
-/*
- *  bagFreeXMLMeta ():
- *  
- * Ideally this would be called at the termination handler of whoever has
- * initialized the Bag library.
- */
-BAG_EXTERNAL bagError bagFreeXMLMeta ();
-
 BAG_EXTERNAL bagError bagUpdateSurface (bagHandle hnd, u32 type);
 BAG_EXTERNAL bagError bagUpdateOptSurface (bagHandle hnd, u32 type);
 BAG_EXTERNAL bagError bagReadMinMaxNodeGroup (bagHandle hnd,
