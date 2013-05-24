@@ -1233,7 +1233,7 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
     //Export to the buffer.
     int bufferSize = 0;
     xmlChar *pBuffer = NULL;
-    xmlDocDumpFormatMemoryEnc(pDocument, &pBuffer, &bufferSize, "UTF-8", 1);
+    xmlDocDumpMemoryEnc(pDocument, &pBuffer, &bufferSize, "UTF-8");
     xmlFreeDoc(pDocument);
 
     //If nothing was exported, then just return.

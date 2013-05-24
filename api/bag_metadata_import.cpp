@@ -941,10 +941,10 @@ Bool decodeDataIdentificationInfo(const xmlNode &node, BAG_IDENTIFICATION * data
         dataIdentificationInfo->title = getContentsAsString(node, "bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:title/gco:CharacterString");
 
         //bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:CI_Date/gmd:date
-        dataIdentificationInfo->date = getContentsAsString(node, "bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:CI_Date/gmd:date/gco:Date");
+        dataIdentificationInfo->date = getContentsAsString(node, "bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:date/gco:Date");
 
         //bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:CI_Date/gmd:dateType
-        dataIdentificationInfo->dateType = getContentsAsString(node, "bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:CI_Date/gmd:dateType/gmd:CI_DateTypeCode");
+        dataIdentificationInfo->dateType = getContentsAsString(node, "bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:date/gmd:CI_Date/gmd:dateType/gmd:CI_DateTypeCode");
 
         //bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty
         const std::vector<const xmlNode*> partyNodes = findNodes(node, "bag:BAG_DataIdentification/gmd:citation/gmd:CI_Citation/gmd:citedResponsibleParty");
