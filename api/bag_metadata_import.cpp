@@ -75,37 +75,6 @@ private:
 };
 
 //************************************************************************
-//! Get the current setting for the BAG_HOME directory.
-/*!
-\return
-    \li If the user has called setBagHomeDirectory(), then that
-        value is returned, otherwise, getenv("BAG_HOME") is
-        returned.
-*/
-//************************************************************************
-std::string getBagHomeDirectory()
-{
-    //If the BAG home folder has been set, then return it.
-    if (!bagHomeFolder.empty())
-        return bagHomeFolder;
-
-    //Else we will return the environment variable.
-    return std::string(getenv("BAG_HOME"));
-}
-
-//************************************************************************
-//! Set the location of the BAG 'home' directory.
-/*!
-\param homeFolder
-    \li The new location for the BAG home directory.
-*/
-//************************************************************************
-void setBagHomeDirectory(const u8 *homeFolder)
-{
-    bagHomeFolder = (const char *)homeFolder;
-}
-
-//************************************************************************
 //! Convert a string to a double value.
 /*!
 \param value
@@ -416,6 +385,37 @@ Bool getContentsAsBool(const xmlNode &node, const char *searchPath)
 }
 
 }   //namespace
+
+//************************************************************************
+//! Get the current setting for the BAG_HOME directory.
+/*!
+\return
+    \li If the user has called bagSetHomeFolder(), then that
+        value is returned, otherwise, getenv("BAG_HOME") is
+        returned.
+*/
+//************************************************************************
+std::string bagGetHomeFolder()
+{
+    //If the BAG home folder has been set, then return it.
+    if (!bagHomeFolder.empty())
+        return bagHomeFolder;
+
+    //Else we will return the environment variable.
+    return std::string(getenv("BAG_HOME"));
+}
+
+//************************************************************************
+//! Set the location of the BAG 'home' directory.
+/*!
+\param homeFolder
+    \li The new location for the BAG home directory.
+*/
+//************************************************************************
+void bagSetHomeFolder(const u8 *homeFolder)
+{
+    bagHomeFolder = (const char *)homeFolder;
+}
 
 //************************************************************************
 //! Decode a BAG_RESPONSIBLE_PARTY from the supplied XML node.
@@ -1120,7 +1120,7 @@ Bool decodeReferenceSystemInfo(const xmlNode &node, BAG_REFERENCE_SYSTEM * refer
 bagError validateSchema(xmlDoc &metadataDocument)
 {
     //Get the location of the BAG home directory.
-    const std::string bagHome = getBagHomeDirectory();
+    const std::string bagHome = bagGetHomeFolder();
 
     if (bagHome.empty())
         return BAG_METADTA_NO_HOME;
