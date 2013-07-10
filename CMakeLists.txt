@@ -36,6 +36,21 @@ SET (OPENNS_PACKAGE_TARNAME "bag")
 SET (OPENNS_PACKAGE_URL "http://www.opennavsurf.org")
 SET (VERSION 1.5 OPENNS_PACKAGE_VERSION)
 
+#-----------------------------------------------------------------------------
+# Option to Build Shared/Static libs, default is shared
+#-----------------------------------------------------------------------------
+OPTION (BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+IF (BUILD_SHARED_LIBS)
+  SET (LIB_TYPE SHARED)
+ELSE (BUILD_SHARED_LIBS)
+  SET (LIB_TYPE STATIC)
+ENDIF (BUILD_SHARED_LIBS)
+
+#-----------------------------------------------------------------------------
+# Option to Build against Shared/Static version of HDF5, default is shared
+#-----------------------------------------------------------------------------
+OPTION (BUILD_WITH_SHARED_HDF5 "Build with HDF5 as a shared library" ON)
+
 # Recurse into the "api" and "examples" subdirectories. This does not actually
 # cause another cmake executable to run. The same process will walk through
 # the project's entire directory structure.
