@@ -45,13 +45,13 @@
  
 #include <stdio.h>
 #include <stdlib.h>
-#include "aes.h"
-#include "dsa.h"
-#include "sha1.h"
-#include "sha256.h"
 #include "crc32.h"
-#include "mpnumber.h"
-#include "mpbarrett.h"
+#include "beecrypt/aes.h"
+#include "beecrypt/dsa.h"
+#include "beecrypt/sha1.h"
+#include "beecrypt/sha256.h"
+#include "beecrypt/mpnumber.h"
+#include "beecrypt/mpbarrett.h"
 
 #define DEFAULT_MD_BUFFER_LEN	40960			/*!< The default length of blocks to digest in the Message Digest */
 #define DEFAULT_KEY_LEN		1024				/*!< Maximum bit length allowed for asymmetric keys */
@@ -213,7 +213,7 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 
 	tot_read = 0;
 	while (!done && !feof(f)) {
-		n_read = fread((void *)buffer, 1, buffer_len, f);
+		n_read = (u32)fread((void *)buffer, 1, buffer_len, f);
 		tot_read += n_read;
 		if (n_read < buffer_len || tot_read > len) {
 			if (ferror(f)) {
@@ -604,7 +604,7 @@ static u8 *ons_ascii_to_int(char *ascii, OnsCryptErr *errcd)
 	u8		*rtn;
 	char	ascii_crc[9];
 	
-	ascii_len = strlen(ascii) - sizeof(u32)*2; /* Less size of CRC */
+	ascii_len = (u32)strlen(ascii) - sizeof(u32)*2; /* Less size of CRC */
 	crc = crc32_calc_buffer(ascii, ascii_len);
 	sprintf(ascii_crc, "%08X", crc);
 	if (strcmp(ascii_crc, ascii + ascii_len) != 0) {
@@ -678,7 +678,7 @@ static u8 *ons_mpn_to_int(mpnumber *mpi)
 	u8	*buffer;
 	u32	nbits, nbytes;
 	
-	nbits = mpnbits(mpi);
+	nbits = (u32)mpnbits(mpi);
 	nbytes = ((nbits + 7)>>3) + (((nbits & 7) == 0) ? 1 : 0);
 	
 	if ((buffer = (u8*)malloc(nbytes + 1)) == NULL) {
@@ -704,7 +704,7 @@ static u8 *ons_mpb_to_int(mpbarrett *mpb)
 	u8	*buffer;
 	u32	nbits, nbytes;
 	
-	nbits = mpbbits(mpb);
+	nbits = (u32)mpbbits(mpb);
 	nbytes = ((nbits + 7)>>3) + (((nbits & 7) == 0) ? 1 : 0);
 	
 	if ((buffer = (u8*)malloc(nbytes + 1)) == NULL) {

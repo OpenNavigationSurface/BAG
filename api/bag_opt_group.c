@@ -1,4 +1,4 @@
-/*! \file bag_opt_datasets.c
+/*! \file bag_opt_group.c
  * \brief This module contains functions for accessing the optional surface datasets and the XML metadata.
  ********************************************************************
  *
@@ -30,8 +30,8 @@
 /****************************************************************************************/
 /*! \brief bagCreateNodeGroup initializes the Node Group optional bag surface
  *
- *  \param hnd        BagHandle Pointer
- *  \param opt_data   Data definition for this dataset.
+ *  \param hnd      BagHandle Pointer
+ *  \param data     Data definition for this dataset.
  *
  *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
  *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
@@ -64,8 +64,8 @@ bagError bagCreateNodeGroup  (bagHandle hnd, bagData *data)
 /****************************************************************************************/
 /*! \brief bagCreateElevationSolutionGroup initializes the Elevation Solution Group optional bag surface
  *
- *  \param hnd        BagHandle Pointer
- *  \param opt_data   Data definition for this dataset.
+ *  \param hnd      BagHandle Pointer
+ *  \param data     Data definition for this dataset.
  *
  *  \return : \li On success, \a bagError is set to \a BAG_SUCCESS.
  *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.

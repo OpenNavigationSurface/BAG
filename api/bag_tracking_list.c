@@ -169,7 +169,7 @@ bagError bagReadTrackingListSeries(bagHandle bagHandle, u16 index, bagTrackingIt
  *                          \a bagTrackingItems, or will be left \a NULL if there
  *                          are none at the node given by row/col. Pointer 
  *                          MUST be set to NULL before calling this function!
- *            *length       The length of the list will be set to the number
+ * \param     *length       The length of the list will be set to the number
  *                          of elements allocated in \a *items
  *
  * \return   \li On success, \a bagError is set to \a BAG_SUCCESS

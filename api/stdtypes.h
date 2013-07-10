@@ -50,6 +50,7 @@ typedef enum {
 	True		/*!< The True value definition */
 } Bool;
 
+typedef s32 bagError;
 
 #ifdef __cplusplus__
 }

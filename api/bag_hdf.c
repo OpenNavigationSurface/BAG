@@ -510,7 +510,7 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
         return status;
     }
 
-    length = strlen((char *)data->metadata);
+    length = (u32)strlen((char *)data->metadata);
     if (length < XML_METADATA_MIN_LENGTH)
     {
         return (BAG_INVALID_FUNCTION_ARGUMENT);
@@ -796,8 +796,8 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         H5Fclose ((* bag_handle)->file_id);
         return status;
     }
-    (* bag_handle)->bag.def.nrows = max_dims[0];
-    (* bag_handle)->bag.def.ncols = max_dims[1];
+    (* bag_handle)->bag.def.nrows = (u32)max_dims[0];
+    (* bag_handle)->bag.def.ncols = (u32)max_dims[1];
 
     if (access_mode != BAG_OPEN_CREATE)
     {
@@ -850,6 +850,12 @@ bagError bagFileClose (bagHandle bag_handle)
 
     if (bagGetDataPointer(bag_handle)->metadata != NULL)
         free (bagGetDataPointer(bag_handle)->metadata);
+
+    if (bagGetDataPointer(bag_handle)->metadataDef != NULL)
+    {
+        bagFreeMetadata(bagGetDataPointer(bag_handle)->metadataDef);
+        free(bagGetDataPointer(bag_handle)->metadataDef);
+    }
 
     if ((status = H5Gclose (bag_handle->bagGroupID)) < 0)
     {
@@ -1090,6 +1096,9 @@ bagError bagGetErrorString(bagError code, u8 **error)
     case BAG_METADTA_BUFFER_EXCEEDED:
         strncpy (str, "Metadata supplied buffer is too large to be stored in the internal array", MAX_STR-1);
         break;
+	case BAG_METADTA_DPTHCORR_MISSING:
+		strncpy (str, "The 'depthCorrectionType' information is missing from the XML structure", MAX_STR-1);
+		break;
     case BAG_METADTA_RESOLUTION_MISSING:
         strncpy (str, "Metadata resolution information is missing from the XML structure", MAX_STR-1);
         break;
@@ -1104,6 +1113,21 @@ bagError bagGetErrorString(bagError code, u8 **error)
         break;
     case BAG_METADTA_INVALID_VREF:
         strncpy (str, "Metadata vertical reference system is invalid", MAX_STR-1);
+        break;
+	case BAG_METADTA_SCHEMA_SETUP_FAILED:
+		strncpy (str, "Failed to setup the xml schema", MAX_STR-1);
+        break;
+	case BAG_METADTA_SCHEMA_VALIDATION_SETUP_FAILED:
+		strncpy (str, "Failed to setup the xml schema validation", MAX_STR-1);
+        break;
+	case BAG_METADTA_EMPTY_DOCUMENT:
+		strncpy (str, "The metadata document is emtpy", MAX_STR-1);
+        break;
+	case BAG_METADTA_MISSING_MANDATORY_ITEM:
+		strncpy (str, "The metadata is missing a mandatory item", MAX_STR-1);
+        break;
+    case BAG_METADTA_NOT_INITIALIZED:
+        strncpy (str, "The metadata has not been initialized correctly", MAX_STR-1);
         break;
     case BAG_NOT_HDF5_FILE:
         strncpy (str, "HDF Bag is not an HDF5 File", MAX_STR-1);
