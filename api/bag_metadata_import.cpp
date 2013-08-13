@@ -783,9 +783,6 @@ Bool decodeSpatialRepresentationInfo(const xmlNode &node, BAG_SPATIAL_REPRESENTA
         //smXML:MD_Georectified/axisDimensionProperties/smXML:MD_Dimension/resolution/smXML:Measure
         spatialRepresentationInfo->columnResolution = getContentsAsFloat(node, "smXML:MD_Georectified/axisDimensionProperties/smXML:MD_Dimension[dimensionName='column']/resolution/smXML:Measure/smXML:value");
 
-        //Not stored... so just set to metres.
-        spatialRepresentationInfo->resolutionUnit = (u8*)strdup("Metre");
-
         //smXML:MD_Georectified/cellGeometry
         spatialRepresentationInfo->cellGeometry = getContentsAsString(node, "smXML:MD_Georectified/cellGeometry");
 
@@ -1283,6 +1280,25 @@ bagError bagImportMetadataFromXmlV1(xmlDoc &document, BAG_METADATA * metadata)
         }
         else if (!decodeReferenceSystemInfo(*pNode, metadata->verticalReferenceSystem, 1))
             return BAG_METADTA_MISSING_MANDATORY_ITEM;
+    }
+
+    //Because the previous metadata profile did not store the unit of measure for the
+    //spatial representation element, we will use the spatial reference system to
+    //figure it out.
+    {
+        //Get the WKT horizontal reference system string.
+        const std::string horizontalWKT((char *)metadata->horizontalReferenceSystem->definition);
+
+        //If we have a projection, then it must be metres (its all we supported in the past)
+        if (horizontalWKT.find("PROJCS[") >= 0)
+        {
+            metadata->spatialRepresentationInfo->resolutionUnit = (u8*)strdup("Metre");
+        }
+        //Else it must be geographic
+        else
+        {
+            metadata->spatialRepresentationInfo->resolutionUnit = (u8*)strdup("Degree");
+        }
     }
 
     //gmd:identificationInfo
