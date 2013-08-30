@@ -125,3 +125,10 @@ add_library (bag ${LIB_TYPE} ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} )
 target_link_libraries(bag ${HDF5_LIB})
 target_link_libraries(bag ${BEECRYPT_LIB})
 target_link_libraries(bag ${LIBXML_LIB})
+
+IF(MSVC)
+
+    #Apparently some versions of Visual Studio require us to link to ws2_32.lib
+    target_link_libraries(bag "ws2_32.lib")
+    
+ENDIF(MSVC)
