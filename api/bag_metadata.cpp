@@ -1240,8 +1240,13 @@ bagError bagInitDefinitionFromBuffer(bagData *data, u8 *buffer, u32 bufferSize)
         return error;
     }
 
-    //Populate the metadata buffer too.
-    bagExportMetadataToXmlBuffer(data->metadataDef, &data->metadata);
+    //Populate the metadata buffer with the original metadata passed in.
+    //It is possible that the original metadata contains more information
+    //than we know what to do with.
+    //Copy the buffer to our output string and add a null terminator.
+    data->metadata = (u8*)realloc(data->metadata, bufferSize + 1);
+    memcpy(data->metadata, buffer, bufferSize);
+    data->metadata[bufferSize] = 0;
 
     return 0;
 }

@@ -651,16 +651,16 @@ Bool decodeProcessStep(const xmlNode &node, BAG_PROCESS_STEP * processStep, u16 
     else if (schemaVersion == 2)
     {
         //bag:BAG_ProcessStep/gmd:description
-        processStep->description = getContentsAsString(node, "bag:BAG_ProcessStep/gmd:description/gco:CharacterString");
+        processStep->description = getContentsAsString(node, "//gmd:description/gco:CharacterString");
 
         //bag:BAG_ProcessStep/gmd:dateTime
-        processStep->dateTime = getContentsAsString(node, "bag:BAG_ProcessStep/gmd:dateTime/gco:DateTime");
+        processStep->dateTime = getContentsAsString(node, "//gmd:dateTime/gco:DateTime");
 
         //bag:BAG_ProcessStep/bag:trackingId
-        processStep->trackingId = getContentsAsString(node, "bag:BAG_ProcessStep/bag:trackingId/gco:CharacterString");
+        processStep->trackingId = getContentsAsString(node, "//bag:trackingId/gco:CharacterString");
 
         //bag:BAG_ProcessStep/gmd:processor
-        const std::vector<const xmlNode*> processorNodes = findNodes(node, "bag:BAG_ProcessStep/gmd:processor");
+        const std::vector<const xmlNode*> processorNodes = findNodes(node, "//gmd:processor");
         if (!processorNodes.empty())
         {
             processStep->numberOfProcessors = (u32)processorNodes.size();
@@ -675,7 +675,7 @@ Bool decodeProcessStep(const xmlNode &node, BAG_PROCESS_STEP * processStep, u16 
         }
 
         //bag:BAG_ProcessStep/gmd:source
-        const std::vector<const xmlNode*> sourceNodes = findNodes(node, "bag:BAG_ProcessStep/gmd:source");
+        const std::vector<const xmlNode*> sourceNodes = findNodes(node, "//gmd:source");
         if (!sourceNodes.empty())
         {
             processStep->numberOfSources = (u32)sourceNodes.size();
