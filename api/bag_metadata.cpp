@@ -1137,6 +1137,9 @@ bagError bagInitDefinitionFromFile(bagData *data, char *fileName)
     if (data->metadataDef == NULL)
         return BAG_MEMORY_ALLOCATION_FAILED;
 
+    /* Initialize the XML string pointer to NULL or it may crash on realloc. */
+    data->metadata = NULL;
+
     error = bagInitMetadata(data->metadataDef);
     if (error)
     {
