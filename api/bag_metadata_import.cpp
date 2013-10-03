@@ -402,7 +402,14 @@ std::string bagGetHomeFolder()
         return bagHomeFolder;
 
     //Else we will return the environment variable.
-    return std::string(getenv("BAG_HOME"));
+    if ( getenv("BAG_HOME") )
+    {
+        return std::string(getenv("BAG_HOME"));
+    }
+    else
+    {
+        return std::string("");
+    }
 }
 
 //************************************************************************
