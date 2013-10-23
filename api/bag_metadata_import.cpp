@@ -812,6 +812,13 @@ Bool decodeSpatialRepresentationInfo(const xmlNode &node, BAG_SPATIAL_REPRESENTA
             sscanf(value.c_str(), "%lf,%lf %lf,%lf", &spatialRepresentationInfo->llCornerX, &spatialRepresentationInfo->llCornerY,
                 &spatialRepresentationInfo->urCornerX, &spatialRepresentationInfo->urCornerY);
         }
+
+        //smXML:MD_Georectified/transformationDimensionDescription
+        spatialRepresentationInfo->transformationDimensionDescription = getContentsAsString(node, "smXML:MD_Georectified/transformationDimensionDescription");
+
+        //smXML:MD_Georectified/transformationDimensionMapping
+        spatialRepresentationInfo->transformationDimensionMapping = getContentsAsString(node, "smXML:MD_Georectified/transformationDimensionMapping");
+
     }
     else if (schemaVersion == 2)
     {
@@ -1008,6 +1015,51 @@ Bool decodeDataIdentificationInfo(const xmlNode &node, BAG_IDENTIFICATION * data
 
     return True;
 }
+
+//************************************************************************
+//! Decode a BAG_REFERENCE_SYSTEM from a BAG_SPATIAL_REPRESENTATION, the narrowly defined as the parsing of an EPSG code
+//! from the transformationDimensionDescription tag
+/*!
+\param spatialRepresentationInfo
+    \li Spatial representation information input.
+\param referenceSystemInfo
+    \li Modified to contain the reference system information from \e spatialRepresentationInfo->transformationDimensionDescription.
+\parma schemaVersion
+    \li The version of the schema stored in \e node.
+\return
+    \li True if the information was found and decoded properly, False if
+        the optional tag is not present in the header or an error occurs.
+*/
+//************************************************************************
+Bool decodeReferenceSystemInfoFromSpatial( const BAG_SPATIAL_REPRESENTATION * spatialRepresentationInfo, BAG_REFERENCE_SYSTEM * referenceSystemInfo, u16 schemaVersion)
+{
+    u32 epsg;
+    char * equal;
+    char buffer[2048];
+    if ( spatialRepresentationInfo && referenceSystemInfo )
+    {
+        // Is the TransformationDimensionDescription parameter present?
+        if ( spatialRepresentationInfo->transformationDimensionDescription )
+        {
+            // Find the assignment operator
+            if ( equal = strchr( (char*)spatialRepresentationInfo->transformationDimensionDescription, '=' ) )
+            {
+                equal++;
+                epsg = atoi( equal );
+                // Proceed to create a string containing the EPSG authority code, and set the type to "EPSG".
+                if ( epsg && strncmp((char*)spatialRepresentationInfo->transformationDimensionDescription, "EPSG", 4) == 0 )
+                {
+                    sprintf( buffer, "%d", epsg );
+                    referenceSystemInfo->definition = (u8*)strdup(buffer);
+                    referenceSystemInfo->type = (u8*)strdup("EPSG");
+                    return True;
+                }
+            }
+        }
+    }
+    return False;
+}
+
 
 //************************************************************************
 //! Decode a BAG_REFERENCE_SYSTEM from the supplied XML node.
@@ -1256,7 +1308,13 @@ bagError bagImportMetadataFromXmlV1(xmlDoc &document, BAG_METADATA * metadata)
         }
 
         if (!decodeReferenceSystemInfo(*pNode, metadata->horizontalReferenceSystem, 1))
-            return BAG_METADTA_MISSING_MANDATORY_ITEM;
+        {
+            // If the reference system could not be identified from this block of code look for an EPSG code in the spatial reference system
+            if (!decodeReferenceSystemInfoFromSpatial( metadata->spatialRepresentationInfo, metadata->horizontalReferenceSystem, 1))
+            {
+                return BAG_METADTA_MISSING_MANDATORY_ITEM;
+            }
+        }
     }
 
     //gmd:referenceSystemInfo (vertical)

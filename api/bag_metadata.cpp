@@ -413,6 +413,9 @@ Bool initSpatialRepresentationInfo(BAG_SPATIAL_REPRESENTATION * spatialRepresent
     (*spatialRepresentationInfo).urCornerX = INIT_VALUE;                               
     (*spatialRepresentationInfo).urCornerY = INIT_VALUE;  
 
+    (*spatialRepresentationInfo).transformationDimensionDescription = NULL;
+    (*spatialRepresentationInfo).transformationDimensionMapping = NULL;
+
     return True;
 }
 
@@ -431,6 +434,14 @@ void freeSpatialRepresentationInfo(BAG_SPATIAL_REPRESENTATION * spatialRepresent
 
     free(spatialRepresentationInfo->resolutionUnit);
     free(spatialRepresentationInfo->cellGeometry);
+    if (spatialRepresentationInfo->transformationDimensionDescription)
+    {
+        free(spatialRepresentationInfo->transformationDimensionDescription);
+    }
+    if (spatialRepresentationInfo->transformationDimensionMapping)
+    {
+        free(spatialRepresentationInfo->transformationDimensionMapping);
+    }
 }
 
 //************************************************************************

@@ -159,6 +159,12 @@ typedef struct
     //! Upper right y value of the gmd:cornerPoints node.
     //! Required
     f64 urCornerY;                            
+    //! Transformation Dimension Description.
+    //! Optional
+    u8 *transformationDimensionDescription;
+    //! Transformation Dimension Mapping.
+    //! Optional
+    u8 *transformationDimensionMapping;
 }
 BAG_SPATIAL_REPRESENTATION;
 
