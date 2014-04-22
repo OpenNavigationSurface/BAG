@@ -954,6 +954,7 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
                         u32 end_row, u32 end_col, s32 type)
 {
     u32 i, srow, scol;
+    u32 elementSize, elementPointerSize;
     bagError status;
 
     if (hnd == NULL)
@@ -1045,13 +1046,29 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
         break;
 
     default:
+        if (type == Node_Group)
+        {
+            elementSize = sizeof(bagOptNodeGroup);
+            elementPointerSize = sizeof(bagOptNodeGroup *);
+        }
+        else if (type == Elevation_Solution_Group)
+        {
+            elementSize = sizeof(bagOptElevationSolutionGroup);
+            elementPointerSize = sizeof(bagOptElevationSolutionGroup *);
+        }
+        else
+        {
+            elementSize = sizeof(f32);
+            elementPointerSize = sizeof(f32 *);
+        }
+
         /* alloc the contiguous 1d array */
-        hnd->dataArray[type] = (f32 *)calloc ((end_col-start_col+1)*(end_row-start_row+1), sizeof(f32));
+        hnd->dataArray[type] = (f32 *)calloc((end_col - start_col + 1)*(end_row - start_row + 1), elementSize);
         if (hnd->dataArray[type] == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
         /*! alloc the array of pointers to floats */
-        hnd->bag.opt[type].data = (f32 **)calloc ((end_row-start_row+1), sizeof (f32 *));
+        hnd->bag.opt[type].data = (f32 **)calloc((end_row - start_row + 1), elementPointerSize);
         if (hnd->bag.opt[type].data == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
@@ -1065,8 +1082,24 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
         }
 
         /*! init data to NULL values */
-        for (i=0; i < ((end_col-start_col+1)*(end_row-start_row+1)); i++)
-            hnd->dataArray[type] [i] = NULL_ELEVATION;
+        for (i = 0; i < ((end_col - start_col + 1)*(end_row - start_row + 1)); i++)
+        {
+            if (type == Node_Group)
+            {
+                ((bagOptNodeGroup*)&hnd->dataArray[type][i])->hyp_strength = NULL_ELEVATION;
+                ((bagOptNodeGroup*)&hnd->dataArray[type][i])->num_hypotheses = NULL_ELEVATION;
+            }
+            else if (type == Elevation_Solution_Group)
+            {
+                ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->shoal_elevation = NULL_ELEVATION;
+                ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->stddev = NULL_ELEVATION;
+                ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->num_soundings = NULL_ELEVATION;
+            }
+            else
+            {
+                hnd->dataArray[type][i] = NULL_ELEVATION;
+            }
+        }
         break;
     }
     
