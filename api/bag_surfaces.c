@@ -954,8 +954,13 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
                         u32 end_row, u32 end_col, s32 type)
 {
     u32 i, srow, scol;
-    u32 elementSize, elementPointerSize;
     bagError status;
+    u32 elementSize = sizeof(f32);
+    u32 elementPointerSize = sizeof(f32*);
+    u32 numCol = end_col - start_col + 1;
+    u32 numRow = end_row - start_row + 1;
+    u32 numElements = numRow * numCol;
+    char *dataBuffer = NULL;
 
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
@@ -996,52 +1001,48 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
     case Uncertainty:
         
         /* alloc the contiguous 1d array */
-        hnd->uncertaintyArray = (f32 *)calloc ((end_col-start_col+1)*(end_row-start_row+1), sizeof(f32));
+        hnd->uncertaintyArray = (f32 *)calloc(numElements, sizeof(f32));
         if (hnd->uncertaintyArray == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
         /*! alloc the array of pointers to floats */
-        hnd->bag.uncertainty = (f32 **)calloc ((end_row-start_row+1), sizeof (f32 *));
+        hnd->bag.uncertainty = (f32 **)calloc (numRow, sizeof (f32 *));
         if (hnd->bag.uncertainty == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
         /*! now the 2d is tied to the contiguous 1d */
-        hnd->bag.uncertainty[0] = hnd->uncertaintyArray;
-
-        /*! set the rest of the pointers */
-        for (i=1; i < (end_row-start_row+1); i++)
+        dataBuffer = (char *)hnd->uncertaintyArray;
+        for (i = 0; i < numRow; ++i)
         {
-            hnd->bag.uncertainty[i] = hnd->bag.uncertainty[i-1] + (end_col-start_col+1);
+            hnd->bag.uncertainty[i] = dataBuffer + (i * numCol * elementSize);
         }
 
         /*! init data to NULL values */
-        for (i=0; i < ((end_col-start_col+1)*(end_row-start_row+1)); i++)
+        for (i = 0; i < numElements; i++)
             hnd->uncertaintyArray [i] = NULL_UNCERTAINTY;
         break;
 
     case Elevation:
         
         /*! alloc the contiguous 1d array */
-        hnd->elevationArray = (f32 *)calloc ((end_col-start_col+1)*(end_row-start_row+1), sizeof(f32));
+        hnd->elevationArray = (f32 *)calloc(numElements, sizeof(f32));
         if (hnd->elevationArray == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
         /*! alloc the array of pointers to floats */
-        hnd->bag.elevation = (f32 **)calloc ((end_row-start_row+1), sizeof (f32 *));
+        hnd->bag.elevation = (f32 **)calloc (numRow, sizeof (f32 *));
         if (hnd->bag.elevation == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
         /*! now the 2d is tied to the contiguous 1d */
-        hnd->bag.elevation[0] = hnd->elevationArray;
-
-        /*! set the rest of the pointers */
-        for (i=1; i < (end_row-start_row+1); i++)
+        dataBuffer = (char *)hnd->elevationArray;
+        for (i = 0; i < numRow; ++i)
         {
-            hnd->bag.elevation[i] = hnd->bag.elevation[i-1] + (end_col-start_col+1);
+            hnd->bag.elevation[i] = dataBuffer + (i * numCol * elementSize);
         }
 
         /*! init data to NULL values */
-        for (i=0; i < ((end_col-start_col+1)*(end_row-start_row+1)); i++)
+        for (i = 0; i < numElements; i++)
             hnd->elevationArray [i] = NULL_ELEVATION;
         break;
 
@@ -1063,26 +1064,24 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
         }
 
         /* alloc the contiguous 1d array */
-        hnd->dataArray[type] = (f32 *)calloc((end_col - start_col + 1)*(end_row - start_row + 1), elementSize);
+        hnd->dataArray[type] = (f32 *)calloc((numCol)*numRow, elementSize);
         if (hnd->dataArray[type] == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
         /*! alloc the array of pointers to floats */
-        hnd->bag.opt[type].data = (f32 **)calloc((end_row - start_row + 1), elementPointerSize);
+        hnd->bag.opt[type].data = (f32 **)calloc(numRow, elementPointerSize);
         if (hnd->bag.opt[type].data == NULL)
             return BAG_MEMORY_ALLOCATION_FAILED;
 
         /*! now the 2d is tied to the contiguous 1d */
-        hnd->bag.opt[type].data[0] = hnd->dataArray[type];
-
-        /*! set the rest of the pointers */
-        for (i=1; i < (end_row-start_row+1); i++)
+        dataBuffer = (char *)hnd->dataArray[type];
+        for (i = 0; i < numRow; ++i)
         {
-            hnd->bag.opt[type].data[i] = hnd->bag.opt[type].data[i-1] + (end_col-start_col+1);
+            hnd->bag.opt[type].data[i] = dataBuffer + (i * numCol * elementSize);
         }
 
         /*! init data to NULL values */
-        for (i = 0; i < ((end_col - start_col + 1)*(end_row - start_row + 1)); i++)
+        for (i = 0; i < numElements; i++)
         {
             if (type == Node_Group)
             {
