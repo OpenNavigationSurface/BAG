@@ -104,16 +104,6 @@ typedef int HDF_hid_t;
 #define NULL_STD_DEV        1e6
 #define NULL_GENERIC	    1e6
 
-
-/* 
- * Unknown Uncertainty :
- * If there is not enough information present to perform a 
- * computation of a node's uncertainty, then this value will
- * be used to distinguish it from NULL.
- */
-#define UNK_UNCERTAINTY 0
-
-
 /* Define convenience data structure for BAG geographic definitions */
 enum BAG_COORDINATES {
 
