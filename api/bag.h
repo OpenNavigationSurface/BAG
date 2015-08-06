@@ -56,6 +56,9 @@
 #include <limits.h>
 #include <float.h>
 #include "stdtypes.h"
+
+typedef s32 bagError;
+
 #include "bag_config.h"
 #include "bag_metadata.h"
 #include "bag_errors.h"
@@ -76,7 +79,7 @@ typedef int HDF_hid_t;
 #define XML_METADATA_MAX_LENGTH 1000000
 #define DEFAULT_KEY_LEN		1024  /* taken from onscrypto.c */
 #define BAG_DEFAULT_COMPRESSION 1
-#define BAG_OPT_SURFACE_LIMIT 10        /* The maximum number of optional surfaces in a single BAG */
+#define BAG_OPT_SURFACE_LIMIT 13        /* The maximum number of optional surfaces in a single BAG */
 #define BAG_SURFACE_CORRECTOR_LIMIT 10  /* The maximum number of datum correctors per bagVerticalCorrector */
 #define REF_SYS_MAX_LENGTH  2048    /* The maximum length of the reference system definition string */
 
@@ -103,6 +106,7 @@ typedef int HDF_hid_t;
 #define NULL_UNCERTAINTY    1e6
 #define NULL_STD_DEV        1e6
 #define NULL_GENERIC	    1e6
+#define BAG_NULL_VARRES_INDEX 0xFFFFFFFF
 
 /* Define convenience data structure for BAG geographic definitions */
 enum BAG_COORDINATES {
@@ -116,8 +120,6 @@ enum BAG_COORD_UNITS {
         BAG_COORD_UNITS_DEGREES =  1,                 /* values in XY array are geographic in degrees    */
         BAG_COORD_UNITS_METERS  =  2                  /* values in XY array are projected in meters      */
 };
-    
-typedef s32 bagError;
 
 typedef enum 
 {
@@ -247,6 +249,25 @@ typedef struct _t_bag_optElevationSolutionGroup
 
 } bagOptElevationSolutionGroup;
 
+typedef struct _t_bag_varResMetadataGroup
+{
+	u32 index;
+	u32 dimensions;
+	f32 resolution;
+} bagVarResMetadataGroup;
+
+typedef struct _t_bag_varResRefinementGroup
+{
+	f32 depth;
+	f32 depth_uncrt;
+} bagVarResRefinementGroup;
+
+typedef struct _t_bag_varResNodeGroup
+{
+	f32 hyp_strength;
+	u32 num_hypotheses;
+	u32 n_samples;
+} bagVarResNodeGroup;
 
 /* The type of Uncertainty encoded in this BAG. */
 enum BAG_UNCERT_TYPES
@@ -295,7 +316,10 @@ enum BAG_SURFACE_PARAMS {
 	Nominal_Elevation = 6,
 	Surface_Correction = 7,  /* 7 and above are assumed to be composite datasets */
 	Node_Group = 8,
-	Elevation_Solution_Group = 9
+	Elevation_Solution_Group = 9,
+	VarRes_Metadata_Group = 10,
+	VarRes_Refinement_Group = 11,
+	VarRes_Node_Group = 12
 };
 
 /* Definitions for file open access modes */
@@ -696,6 +720,9 @@ BAG_EXTERNAL bagError bagReadMinMaxNodeGroup (bagHandle hnd,
                                         bagOptNodeGroup *minGroup, bagOptNodeGroup *maxGroup);
 BAG_EXTERNAL bagError bagReadMinMaxElevationSolutionGroup (bagHandle hnd,
                                                      bagOptElevationSolutionGroup *minGroup, bagOptElevationSolutionGroup *maxGroup);
+BAG_EXTERNAL bagError bagReadMinMaxVarResMetadataGroup(bagHandle hnd, bagVarResMetadataGroup *minGroup, bagVarResMetadataGroup *maxGroup);
+BAG_EXTERNAL bagError bagReadMinMaxVarResRefinementGroup(bagHandle hnd, bagVarResRefinementGroup *minGroup, bagVarResRefinementGroup *maxGroup);
+BAG_EXTERNAL bagError bagReadMinMaxVarResNodeGroup(bagHandle hnd, bagVarResNodeGroup *minGroup, bagVarResNodeGroup *maxGroup);
 
 /* 
  * Routine:     bagTrackingListLength
@@ -882,5 +909,9 @@ BAG_EXTERNAL bagError bagCreateCorrectorDataset   (bagHandle hnd, bagData *opt_d
 BAG_EXTERNAL bagError bagWriteCorrectorDefinition (bagHandle hnd, bagVerticalCorrectorDef *def);
 BAG_EXTERNAL bagError bagReadCorrectorDefinition  (bagHandle hnd, bagVerticalCorrectorDef *def);
 BAG_EXTERNAL bagError bagGetOptDatasets(bagHandle *bag_handle, s32 *num_opt_datasets, int opt_dataset_names[BAG_OPT_SURFACE_LIMIT]);
+
+BAG_EXTERNAL bagError bagCreateVarResMetadataGroup(bagHandle hnd, bagData *data);
+BAG_EXTERNAL bagError bagCreateVarResRefinementGroup(bagHandle hnd, bagData *data, u32 const n_cells);
+BAG_EXTERNAL bagError bagCreateVarResNodeGroup(bagHandle hnd, bagData *data, u32 const n_cells);
 
 #endif

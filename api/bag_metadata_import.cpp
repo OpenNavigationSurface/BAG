@@ -22,6 +22,8 @@ extern Bool initResponsibleParty(BAG_RESPONSIBLE_PARTY * responsibleParty);
 extern Bool initSourceInfo(BAG_SOURCE * sourceInfo);
 extern Bool initProcessStep(BAG_PROCESS_STEP * processStep);
 
+#define _strdup strdup
+
 namespace
 {
     
@@ -1042,7 +1044,7 @@ Bool decodeReferenceSystemInfoFromSpatial( const BAG_SPATIAL_REPRESENTATION * sp
         if ( spatialRepresentationInfo->transformationDimensionDescription )
         {
             // Find the assignment operator
-            if ( equal = strchr( (char*)spatialRepresentationInfo->transformationDimensionDescription, '=' ) )
+            if ((equal = strchr( (char*)spatialRepresentationInfo->transformationDimensionDescription, '=')) != NULL)
             {
                 equal++;
                 epsg = atoi( equal );
@@ -1355,7 +1357,7 @@ bagError bagImportMetadataFromXmlV1(xmlDoc &document, BAG_METADATA * metadata)
         const std::string horizontalWKT((char *)metadata->horizontalReferenceSystem->definition);
 
         //If we have a projection, then it must be metres (its all we supported in the past)
-        if (horizontalWKT.find("PROJCS[") >= 0)
+        if (horizontalWKT.find("PROJCS[") != horizontalWKT.npos)
         {
             metadata->spatialRepresentationInfo->resolutionUnit = (u8*)strdup("Metre");
         }

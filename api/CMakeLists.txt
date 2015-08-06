@@ -96,7 +96,7 @@ set (BAG_SOURCE_FILES
  bag_metadata.cpp
  bag_metadata_export.cpp
  bag_metadata_import.cpp
- bag_legacy.cpp
+ bag_legacy.c
  bag_opt_group.c
  bag_opt_surfaces.c
  bag_reference_system.cpp

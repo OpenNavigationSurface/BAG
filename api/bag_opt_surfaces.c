@@ -46,6 +46,52 @@
 
 #include "bag_private.h"
 
+static void InitVarResMetadataGroup(bagVarResMetadataGroup *g)
+{
+    memset(g, 0, sizeof(bagVarResMetadataGroup));
+        /* This isn't technically required, but might sort of save us if the definition changes and the code isn't updated here */
+    g->index = BAG_NULL_VARRES_INDEX;
+    g->dimensions = 0;
+    g->resolution = -1.0;
+}
+
+static void InitVarResRefinementGroup(bagVarResRefinementGroup *g)
+{
+    memset(g, 0, sizeof(bagVarResRefinementGroup));
+        /* This isn't technically required, but might sort of save us if the definition changes and the code isn't updated here */
+    g->depth = NULL_ELEVATION;
+    g->depth_uncrt = NULL_UNCERTAINTY;
+}
+
+static void InitVarResNodeGroup(bagVarResNodeGroup *g)
+{
+    memset(g, 0, sizeof(bagVarResNodeGroup));
+        /* This isn't technically required, but might sort of save us if the definition changes and the code isn't updated here */
+    g->hyp_strength = -1.0;
+    g->num_hypotheses = 0;
+    g->n_samples = 0;
+}
+
+#define DECLARE_MIN_ATTRIBUTE(name, actual_type, type_enum) \
+    if ((status = bagCreateAttribute(bag_hnd, dataset_id, (u8*)(name), sizeof(actual_type), (type_enum))) != BAG_SUCCESS) {\
+        status = H5Fclose(file_id);\
+        return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;\
+    }\
+    if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)(name), (void *) &(data->opt[type].min))) != BAG_SUCCESS) {\
+        status = H5Fclose(file_id);\
+        return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;\
+    }
+
+#define DECLARE_MAX_ATTRIBUTE(name, actual_type, type_enum) \
+    if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)(name), sizeof(actual_type), (type_enum))) != BAG_SUCCESS) {\
+        status = H5Fclose (file_id);\
+        return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;\
+    }\
+    if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)(name), (void *) &(data->opt[type].max))) != BAG_SUCCESS) {\
+        status = H5Fclose(file_id);\
+        return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;\
+    }
+
 /****************************************************************************************/
 /*! \brief bagCreateOptionalDataset creates a dataset for an optional bag surface
  *
@@ -70,11 +116,14 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 	herr_t		 status;
     u8           typer;
 
-	f32          null = NULL_ELEVATION;
-    bagVerticalCorrector  nullVdat;
-    bagVerticalCorrectorNode  nullVdatNode;
-    bagOptNodeGroup       nullNodeGroup;
-    bagOptElevationSolutionGroup nullElevationSolutionGroup;
+	f32                             null = NULL_ELEVATION;
+    bagVerticalCorrector            nullVdat;
+    bagVerticalCorrectorNode        nullVdatNode;
+    bagOptNodeGroup                 nullNodeGroup;
+    bagOptElevationSolutionGroup    nullElevationSolutionGroup;
+    bagVarResMetadataGroup          nullVarResMetadataGroup;
+    bagVarResRefinementGroup        nullVarResRefinementGroup;
+    bagVarResNodeGroup              nullVarResNodeGroup;
 	
     /*! init all the HDF structs to -1 */
     ( bag_hnd)->opt_memspace_id[type]  = 
@@ -158,7 +207,6 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
     switch (type)
 	{
 		case Nominal_Elevation:
-            
             status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
             status = H5Pset_fill_value (plist_id, datatype_id, &null);
             check_hdf_status();
@@ -168,44 +216,17 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 				status = H5Fclose (file_id);
 				return (BAG_HDF_CREATE_GROUP_FAILURE);
 			}
-
-            /*! Add the attributes to the \a elevation dataset */
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"min_value", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"min_value", (void *) &(data->opt[type].min) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"max_value", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"max_value", (void *) &(data->opt[type].max) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-
+            DECLARE_MIN_ATTRIBUTE("min_value", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_value", f32, BAG_ATTR_F32)
 			break;
 		
 		case Surface_Correction:
-
             typer = bag_hnd->bag.def.surfaceCorrectionTopography;
-
             status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
-
-            if (BAG_SURFACE_GRID_EXTENTS == typer)
-            {
+            if (BAG_SURFACE_GRID_EXTENTS == typer) {
                 memset (&nullVdatNode, 0, sizeof (bagVerticalCorrectorNode));
                 status = H5Pset_fill_value (plist_id, datatype_id, &nullVdatNode);
-            }
-            else
-            {
+            } else {
                 memset (&nullVdat, 0, sizeof (bagVerticalCorrector));
                 status = H5Pset_fill_value (plist_id, datatype_id, &nullVdat);
             }
@@ -216,6 +237,7 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 				status = H5Fclose (file_id);
 				return (BAG_HDF_CREATE_GROUP_FAILURE);
 			}
+            
             if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"surface_type", sizeof(u8), BAG_ATTR_U8)) != BAG_SUCCESS)
             {
                 status = H5Fclose (file_id);
@@ -233,7 +255,6 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 			break;
 		
 		case Node_Group:
-
             memset (&nullNodeGroup, 0, sizeof (bagOptNodeGroup));
             nullNodeGroup.hyp_strength   = NULL_GENERIC;
             nullNodeGroup.num_hypotheses = NULL_GENERIC;
@@ -247,52 +268,13 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 				status = H5Fclose (file_id);
 				return (BAG_HDF_CREATE_GROUP_FAILURE);
 			}
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"min_hyp_strength", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"min_hyp_strength", (void *) &(data->opt[type].min) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"max_hyp_strength", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"max_hyp_strength", (void *) &(data->opt[type].max) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"min_num_hypotheses", sizeof(u32), BAG_ATTR_U32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"min_num_hypotheses", (void *) &(data->opt[type].min) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"max_num_hypotheses", sizeof(u32), BAG_ATTR_U32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"max_num_hypotheses", (void *) &(data->opt[type].max) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            
-
+            DECLARE_MIN_ATTRIBUTE("min_hyp_strength", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_hyp_strength", f32, BAG_ATTR_F32)
+            DECLARE_MIN_ATTRIBUTE("min_num_hypotheses", u32, BAG_ATTR_U32)
+            DECLARE_MAX_ATTRIBUTE("max_num_hypotheses", u32, BAG_ATTR_U32)
             break;
 		
 		case Elevation_Solution_Group:
-
             memset (&nullElevationSolutionGroup, 0, sizeof (bagOptElevationSolutionGroup));
             nullElevationSolutionGroup.shoal_elevation   = NULL_ELEVATION;
             nullElevationSolutionGroup.stddev        = NULL_GENERIC;
@@ -307,68 +289,60 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 				status = H5Fclose (file_id);
 				return (BAG_HDF_CREATE_GROUP_FAILURE);
 			}
+            DECLARE_MIN_ATTRIBUTE("min_shoal_elevation", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_shoal_elevation", f32, BAG_ATTR_F32)
+            DECLARE_MIN_ATTRIBUTE("min_stddev", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_stddev", f32, BAG_ATTR_F32)
+            DECLARE_MIN_ATTRIBUTE("min_num_soundings", u32, BAG_ATTR_U32)
+            DECLARE_MAX_ATTRIBUTE("max_num_soundings", u32, BAG_ATTR_U32)
+            break;
             
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"min_shoal_elevation", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"min_shoal_elevation", (void *) &(data->opt[type].min) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"max_shoal_elevation", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"max_shoal_elevation", (void *) &(data->opt[type].max) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"min_stddev", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"min_stddev", (void *) &(data->opt[type].min) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"max_stddev", sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"max_stddev", (void *) &(data->opt[type].max) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"min_num_soundings", sizeof(u32), BAG_ATTR_U32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"min_num_soundings", (void *) &(data->opt[type].min) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagCreateAttribute (bag_hnd, dataset_id, (u8 *)"max_num_soundings", sizeof(u32), BAG_ATTR_U32)) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
-            if ((status = bagWriteAttribute (bag_hnd, dataset_id, (u8 *)"max_num_soundings", (void *) &(data->opt[type].max) )) != BAG_SUCCESS)
-            {
-                status = H5Fclose (file_id);
-                return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-            }
+        case VarRes_Metadata_Group:
+            InitVarResMetadataGroup(&nullVarResMetadataGroup);
+            status = H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC);
+            status = H5Pset_fill_value(plist_id, datatype_id, &nullVarResMetadataGroup);
+            check_hdf_status();
             
+            if ((dataset_id = H5Dcreate(file_id, VARRES_METADATA_GROUP_PATH, datatype_id, dataspace_id, plist_id)) < 0) {
+                status = H5Fclose(file_id);
+                return BAG_HDF_CREATE_GROUP_FAILURE;
+            }
+            DECLARE_MIN_ATTRIBUTE("min_dimensions", u32, BAG_ATTR_U32)
+            DECLARE_MAX_ATTRIBUTE("max_dimensions", u32, BAG_ATTR_U32)
+            DECLARE_MIN_ATTRIBUTE("min_resolution", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_resolution", f32, BAG_ATTR_F32)
+            break;
+            
+        case VarRes_Refinement_Group:
+            InitVarResRefinementGroup(&nullVarResRefinementGroup);
+            status = H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC);
+            status = H5Pset_fill_value(plist_id, datatype_id, (void*)&nullVarResRefinementGroup);
+            check_hdf_status();
+            
+            if ((dataset_id = H5Dcreate(file_id, VARRES_REFINEMENT_GROUP_PATH, datatype_id, dataspace_id, plist_id)) < 0) {
+                status = H5Fclose(file_id);
+                return BAG_HDF_CREATE_GROUP_FAILURE;
+            }
+            DECLARE_MIN_ATTRIBUTE("min_depth", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_depth", f32, BAG_ATTR_F32)
+            DECLARE_MIN_ATTRIBUTE("min_uncrt", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_uncrt", f32, BAG_ATTR_F32)
+            break;
+            
+        case VarRes_Node_Group:
+            InitVarResNodeGroup(&nullVarResNodeGroup);
+            status = H5Pset_fill_time(plist_id, H5D_FILL_TIME_ALLOC);
+            status = H5Pset_fill_value(plist_id, datatype_id, (void*)&nullVarResNodeGroup);
+            if ((dataset_id = H5Dcreate(file_id, VARRES_NODE_GROUP_PATH, datatype_id, dataspace_id, plist_id)) < 0) {
+                status = H5Fclose(file_id);
+                return BAG_HDF_CREATE_GROUP_FAILURE;
+            }
+            DECLARE_MIN_ATTRIBUTE("min_hyp_strength", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_hyp_strength", f32, BAG_ATTR_F32)
+            DECLARE_MIN_ATTRIBUTE("min_num_hypotheses", u32, BAG_ATTR_U32)
+            DECLARE_MAX_ATTRIBUTE("max_num_hypotheses", u32, BAG_ATTR_U32)
+            DECLARE_MIN_ATTRIBUTE("min_n_samples", u32, BAG_ATTR_U32)
+            DECLARE_MAX_ATTRIBUTE("max_n_samples", u32, BAG_ATTR_U32)
             break;
 		
 		default:
@@ -390,6 +364,15 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
     H5Pclose (plist_id);
 	return BAG_SUCCESS;
 }
+
+#define CHECK_OPT_DATASET(dataset_enum, dataset_path)\
+    dataset_id = H5Dopen((*bag_handle_opt)->file_id, (dataset_path));\
+    if (dataset_id > 0) {\
+        opt_dataset_names[*num_opt_datasets] = (dataset_enum);\
+        ++(*num_opt_datasets);\
+        status = H5Dclose(dataset_id);\
+        check_hdf_status();\
+    }
 
 /********************************************************************/
 /*! \brief bagGetOptDatasets
@@ -417,86 +400,25 @@ bagError bagGetOptDatasets(bagHandle *bag_handle_opt, s32 *num_opt_datasets,
     
   	*num_opt_datasets = 0;
 
-    /*!  Try to open the Nominal Elevation dataset */
-    dataset_id = H5Dopen((* bag_handle_opt)->file_id, NOMINAL_ELEVATION_PATH);
-    if (dataset_id > 0)
-	{
-		opt_dataset_names[*num_opt_datasets] = Nominal_Elevation;
-		++(*num_opt_datasets);
-        status = H5Dclose (dataset_id);
-        check_hdf_status();
-	}
-
-
-	/*!  Try to open the SEP / vertical dataum corrections dataset */
-    dataset_id = H5Dopen((* bag_handle_opt)->file_id, VERT_DATUM_CORR_PATH);
-    if (dataset_id > 0)
-	{
-		opt_dataset_names[*num_opt_datasets] = Surface_Correction;
-		++(*num_opt_datasets);
-        status = H5Dclose (dataset_id);
-        check_hdf_status();
-	}
-
-
-	/*!  Try to open the node group dataset */
-    dataset_id = H5Dopen((* bag_handle_opt)->file_id, NODE_GROUP_PATH);
-    if (dataset_id > 0)
-	{
-		opt_dataset_names[*num_opt_datasets] = Node_Group;
-		++(*num_opt_datasets);
-        status = H5Dclose (dataset_id);
-        check_hdf_status();
-	}
-
-
-	/*!  Try to open the elevation solution group dataset */
-    dataset_id = H5Dopen((* bag_handle_opt)->file_id, ELEVATION_SOLUTION_GROUP_PATH);
-    if (dataset_id > 0)
-	{
-		opt_dataset_names[*num_opt_datasets] = Elevation_Solution_Group;
-		++(*num_opt_datasets);
-        status = H5Dclose (dataset_id);
-        check_hdf_status();
-	}
-
-
-	/*!  Try to open the num hypothesis dataset */
-    dataset_id = H5Dopen((* bag_handle_opt)->file_id, NUM_HYPOTHESES_PATH);
-    if (dataset_id > 0)
-    {
-		opt_dataset_names[*num_opt_datasets] = Num_Hypotheses;
-		++(*num_opt_datasets);
-        status = H5Dclose (dataset_id);
-        check_hdf_status();
-	}
-
-	/*!  Try to open the average dataset */
-    dataset_id = H5Dopen((* bag_handle_opt)->file_id, AVERAGE_PATH);
-    if (dataset_id > 0)
-    {
-		opt_dataset_names[*num_opt_datasets] = Average;
-		++(*num_opt_datasets);
-        status = H5Dclose (dataset_id);
-        check_hdf_status();
-	}
-
-	/*!  Try to open the standard deviation dataset */
-    dataset_id = H5Dopen((* bag_handle_opt)->file_id, STANDARD_DEV_PATH);
-    if (dataset_id > 0)
-    {
-		opt_dataset_names[*num_opt_datasets] = Standard_Dev;
-		++num_opt_datasets;
-        status = H5Dclose (dataset_id);
-        check_hdf_status();
-	}
-	
+    /* Check for the presence of optional datasets, one at a time.  Note that the code
+     * is identical for each dataset except for the path and enum name that we're using
+     * to record that this dataset exists in the file, so we just expand the appropriate
+     * macro for each one in order to avoid too much typing (and to make sure that the
+     * code is right each time!)
+     */
+    CHECK_OPT_DATASET(Nominal_Elevation, NOMINAL_ELEVATION_PATH)
+    CHECK_OPT_DATASET(Surface_Correction, VERT_DATUM_CORR_PATH)
+    CHECK_OPT_DATASET(Node_Group, NODE_GROUP_PATH)
+    CHECK_OPT_DATASET(Elevation_Solution_Group, ELEVATION_SOLUTION_GROUP_PATH)
+    CHECK_OPT_DATASET(Num_Hypotheses, NUM_HYPOTHESES_PATH)
+    CHECK_OPT_DATASET(Average, AVERAGE_PATH)
+    CHECK_OPT_DATASET(Standard_Dev, STANDARD_DEV_PATH)
+    CHECK_OPT_DATASET(VarRes_Metadata_Group, VARRES_METADATA_GROUP_PATH)
+	CHECK_OPT_DATASET(VarRes_Refinement_Group, VARRES_REFINEMENT_GROUP_PATH)
+	CHECK_OPT_DATASET(VarRes_Node_Group, VARRES_NODE_GROUP_PATH)
     
     return (BAG_SUCCESS);
 }
-
-
-
 
 /********************************************************************/
 /*! \brief : bagFreeInfoOpt
@@ -569,7 +491,7 @@ bagError bagFreeInfoOpt (bagHandle bag_handle_opt)
  *           \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS
  * 
  ********************************************************************/
-bagDataOpt *bagGetOptDataPointer(bagHandle bag_handle_opt)
+bagData *bagGetOptDataPointer(bagHandle bag_handle_opt)
 {
     if (bag_handle_opt == NULL)
         return NULL;
@@ -702,238 +624,462 @@ bagError bagReadOptSurfaceDims (bagHandle hnd, s32 type)
 bagError bagGetOptDatasetInfo(bagHandle *bag_handle_opt, s32 type)
 {
     bagError     status;
-
-	/* set the memspace id to -1 */
-	(*bag_handle_opt)->opt_memspace_id[type] = -1;
-       
+    
+    /* set the memspace id to -1 */
+    (*bag_handle_opt)->opt_memspace_id[type] = -1;
+    
     /*!  Try to open the optional dataset */
-	switch(type)
-	{
-	case Nominal_Elevation:
-		/*!  Open the Nominal Elevation dataset and then the supporting HDF structures */
-
-		(* bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, NOMINAL_ELEVATION_PATH);
-		if ((* bag_handle_opt)->opt_dataset_id[type] < 0)
-				return BAG_HDF_DATASET_OPEN_FAILURE; 
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-
-		/*! Obtain Nominal Elevation datatype */
-		if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
-			return BAG_HDF_TYPE_NOT_FOUND;
-
-		/*! Obtain Nominal Elevation file space  */
-		(* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
-		if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
-		{
-			return BAG_HDF_DATASPACE_CORRUPTED;
-		}
-
-		/*!  Obtain surface dimensions */
-        /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
-        if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
-        {
-            return status;
-        }
-        
-		break;
-	
-	case Surface_Correction:
-		/*!  Open the SEP dataset and then the supporting HDF structures */
-
-		(*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, VERT_DATUM_CORR_PATH);
-		if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
-				return BAG_HDF_DATASET_OPEN_FAILURE; 
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"surface_type", &(* bag_handle_opt)->bag.def.surfaceCorrectionTopography)) != BAG_SUCCESS)
-		{
-            (* bag_handle_opt)->bag.def.surfaceCorrectionTopography = BAG_SURFACE_UNKNOWN;
-		}
-
-		/*! Obtain SEP datatype */
-		if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
-			return BAG_HDF_TYPE_NOT_FOUND;
-
-		/*! Obtain  SEP file space  */
-		(* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
-		if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
-		{
-			return BAG_HDF_DATASPACE_CORRUPTED;
-		}
-
-        /*!  Obtain surface dimensions */
-        /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
-        if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
-        {
-            return status;
-        }
-        
-		break;
-	
-	case Elevation_Solution_Group:
-		/*!  Open the Elevation Solution dataset and then the supporting HDF structures */
-
-		(*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, ELEVATION_SOLUTION_GROUP_PATH);
-		if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
-				return BAG_HDF_DATASET_OPEN_FAILURE; 
-
-		/*! Obtain datatype */
-		if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
-			return BAG_HDF_TYPE_NOT_FOUND;
-
-		/*! Obtain file space  */
-		(* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
-		if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
-		{
-			return BAG_HDF_DATASPACE_CORRUPTED;
-		}
-
-        /*!  Obtain surface dimensions */
-        /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
-        if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
-        {
-            return status;
-        }
-		break;
-	
-	case Node_Group:
-		/*!  Open the NODE GROUP dataset and then the supporting HDF structures */
-
-		(*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, NODE_GROUP_PATH);
-		if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
-				return BAG_HDF_DATASET_OPEN_FAILURE; 
-
-		/*! Obtain datatype */
-		if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
-			return BAG_HDF_TYPE_NOT_FOUND;
-
-		/*! Obtain file space  */
-		(* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
-		if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
-		{
-			return BAG_HDF_DATASPACE_CORRUPTED;
-		}
-
-        /*!  Obtain surface dimensions */
-        /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
-        if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
-        {
-            return status;
-        }
-		break;
-	
-	case Num_Hypotheses:
-		/*!  Open the number of hypotheses dataset and then the supporting HDF structures */
-
-		(*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, NUM_HYPOTHESES_PATH);
-		if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
-				return BAG_HDF_DATASET_OPEN_FAILURE; 
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-
-		/*! Obtain number of hypotheses datatype */
-		if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
-			return BAG_HDF_TYPE_NOT_FOUND;
-
-		/*! Obtain number of hypotheses file space  */
-		(* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
-		if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
-		{
-			return BAG_HDF_DATASPACE_CORRUPTED;
-		}
-		/*!  Obtain surface dimensions */
-        /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
-        if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
-        {
-            return status;
-        }
-        
-		break;
-	case Average:
-		/*!  Open the number of hypotheses dataset and then the supporting HDF structures */
-
-		(*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, AVERAGE_PATH);
-		if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
-				return BAG_HDF_DATASET_OPEN_FAILURE; 
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-
-		/*! Obtain number of hypotheses datatype */
-		if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
-			return BAG_HDF_TYPE_NOT_FOUND;
-
-		/*! Obtain number of hypotheses file space  */
-		(* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
-		if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
-		{
-			return BAG_HDF_DATASPACE_CORRUPTED;
-		}
-		/*!  Obtain surface dimensions */
-        /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
-        if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
-        {
-            return status;
-        }
-		break;
-	case Standard_Dev: 
-		/*!  Open the number of hypotheses dataset and then the supporting HDF structures */
-
-		(*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, STANDARD_DEV_PATH);
-		if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
-				return BAG_HDF_DATASET_OPEN_FAILURE; 
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type],
-                                        (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-		if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type],
-                                        (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
-		{
-			return (status);
-		}
-
-		/*! Obtain number of hypotheses datatype */
-		if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
-			return BAG_HDF_TYPE_NOT_FOUND;
-
-		/*! Obtain number of hypotheses file space  */
-		(* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
-		if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
-		{
-			return BAG_HDF_DATASPACE_CORRUPTED;
-		}
-		/*!  Obtain surface dimensions */
-        /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
-        if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
-        {
-            return status;
-        }
-		break;
+    switch(type)
+    {
+        case Nominal_Elevation:
+            /*!  Open the Nominal Elevation dataset and then the supporting HDF structures */
+            
+            (* bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, NOMINAL_ELEVATION_PATH);
+            if ((* bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            
+            /*! Obtain Nominal Elevation datatype */
+            if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            
+            /*! Obtain Nominal Elevation file space  */
+            (* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
+            if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+            
+            /*!  Obtain surface dimensions */
+            /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+            if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
+            {
+                return status;
+            }
+            
+            break;
+            
+        case Surface_Correction:
+            /*!  Open the SEP dataset and then the supporting HDF structures */
+            
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, VERT_DATUM_CORR_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"surface_type", &(* bag_handle_opt)->bag.def.surfaceCorrectionTopography)) != BAG_SUCCESS)
+            {
+                (* bag_handle_opt)->bag.def.surfaceCorrectionTopography = BAG_SURFACE_UNKNOWN;
+            }
+            
+            /*! Obtain SEP datatype */
+            if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            
+            /*! Obtain  SEP file space  */
+            (* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
+            if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+            
+            /*!  Obtain surface dimensions */
+            /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+            if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
+            {
+                return status;
+            }
+            
+            break;
+            
+        case Elevation_Solution_Group:
+            /*!  Open the Elevation Solution dataset and then the supporting HDF structures */
+            
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, ELEVATION_SOLUTION_GROUP_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            
+            /*! Obtain datatype */
+            if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            
+            /*! Obtain file space  */
+            (* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
+            if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+            
+            /*!  Obtain surface dimensions */
+            /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+            if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
+            {
+                return status;
+            }
+            break;
+            
+        case Node_Group:
+            /*!  Open the NODE GROUP dataset and then the supporting HDF structures */
+            
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, NODE_GROUP_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            
+            /*! Obtain datatype */
+            if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            
+            /*! Obtain file space  */
+            (* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
+            if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+            
+            /*!  Obtain surface dimensions */
+            /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+            if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
+            {
+                return status;
+            }
+            break;
+            
+        case Num_Hypotheses:
+            /*!  Open the number of hypotheses dataset and then the supporting HDF structures */
+            
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, NUM_HYPOTHESES_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            
+            /*! Obtain number of hypotheses datatype */
+            if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            
+            /*! Obtain number of hypotheses file space  */
+            (* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
+            if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+            /*!  Obtain surface dimensions */
+            /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+            if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
+            {
+                return status;
+            }
+            
+            break;
+            
+        case Average:
+            /*!  Open the number of hypotheses dataset and then the supporting HDF structures */
+            
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, AVERAGE_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type], (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            
+            /*! Obtain number of hypotheses datatype */
+            if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            
+            /*! Obtain number of hypotheses file space  */
+            (* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
+            if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+            /*!  Obtain surface dimensions */
+            /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+            if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
+            {
+                return status;
+            }
+            break;
+            
+        case Standard_Dev: 
+            /*!  Open the number of hypotheses dataset and then the supporting HDF structures */
+            
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((* bag_handle_opt)->file_id, STANDARD_DEV_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE; 
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type],
+                                            (u8 *)"min_value", &(* bag_handle_opt)->bag.opt[type].min)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            if ((status = bagReadAttribute ((bagHandle)(* bag_handle_opt), (*bag_handle_opt)->opt_dataset_id[type],
+                                            (u8 *)"max_value", &(* bag_handle_opt)->bag.opt[type].max)) != BAG_SUCCESS)
+            {
+                return (status);
+            }
+            
+            /*! Obtain number of hypotheses datatype */
+            if (((* bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            
+            /*! Obtain number of hypotheses file space  */
+            (* bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type]);
+            if ((* bag_handle_opt)->opt_filespace_id[type] < 0)
+            {
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            }
+            /*!  Obtain surface dimensions */
+            /*!  With the HDF structs in place, we're ready to read the max_dims and nrows/ncols */
+            if ((status = bagReadOptSurfaceDims ((* bag_handle_opt), type)) != BAG_SUCCESS)
+            {
+                return status;
+            }
+            break;
+            
+        case VarRes_Metadata_Group:
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((*bag_handle_opt)->file_id, VARRES_METADATA_GROUP_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if (((*bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            if (((*bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            if ((status = bagReadOptSurfaceDims(*bag_handle_opt, type)) != BAG_SUCCESS)
+                return status;
+            break;
+            
+        case VarRes_Refinement_Group:
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((*bag_handle_opt)->file_id, VARRES_REFINEMENT_GROUP_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if (((*bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            if (((*bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            if ((status = bagReadOptSurfaceDims(*bag_handle_opt, type)) != BAG_SUCCESS)
+                return status;
+            break;
+            
+        case VarRes_Node_Group:
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((*bag_handle_opt)->file_id, VARRES_NODE_GROUP_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if (((*bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            if (((*bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            if ((status = bagReadOptSurfaceDims(*bag_handle_opt, type)) != BAG_SUCCESS)
+                return status;
+            break;
+            
+        default:
+            return BAG_HDF_TYPE_NOT_FOUND;
+            break;
     }
-
+    
     
     return (BAG_SUCCESS);
 }
 
+static bagError ProcessVarResMetadataMinMax(bagHandle hnd, hid_t dataset_id)
+{
+    bagVarResMetadataGroup minGroup, maxGroup, *d;
+    u32 row, col;
+    herr_t status;
+    
+    minGroup.dimensions = 0xFFFFFFFF;
+    minGroup.resolution = FLT_MAX;
+    maxGroup.dimensions = 0;
+    maxGroup.resolution = -1.0;
+    
+    d = (bagVarResMetadataGroup*)calloc(hnd->bag.opt[VarRes_Metadata_Group].ncols, sizeof(bagVarResMetadataGroup));
+    if (d == NULL) return BAG_MEMORY_ALLOCATION_FAILED;
+    
+    for (row = 0; row < hnd->bag.opt[VarRes_Metadata_Group].nrows; ++row) {
+        bagReadRow(hnd, row, 0, hnd->bag.opt[VarRes_Metadata_Group].ncols-1, VarRes_Metadata_Group, (void*)d);
+        for (col = 0; col < hnd->bag.opt[VarRes_Metadata_Group].ncols; ++col) {
+            if (d[col].dimensions > 0) {
+                minGroup.dimensions = (d[col].dimensions < minGroup.dimensions) ? d[col].dimensions : minGroup.dimensions;
+                maxGroup.dimensions = (d[col].dimensions > maxGroup.dimensions) ? d[col].dimensions : maxGroup.dimensions;
+            }
+            if (d[col].resolution > 0) {
+                minGroup.resolution = (d[col].resolution < minGroup.resolution) ? d[col].resolution : minGroup.resolution;
+                maxGroup.resolution = (d[col].resolution > maxGroup.resolution) ? d[col].resolution : maxGroup.resolution;
+            }
+        }
+    }
+    free(d);
+    
+    if (minGroup.dimensions != 0xFFFFFFFF) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_dimensions", &minGroup.dimensions);
+        check_hdf_status();
+    }
+    if (minGroup.resolution < FLT_MAX) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_resolution", &minGroup.resolution);
+        check_hdf_status();
+    }
+    if (maxGroup.dimensions > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_dimensions", &maxGroup.dimensions);
+        check_hdf_status();
+    }
+    if (maxGroup.resolution > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_resolution", &maxGroup.resolution);
+        check_hdf_status();
+    }
+    return BAG_SUCCESS;
+}
+
+static bagError ProcessVarResRefinementMinMax(bagHandle hnd, hid_t dataset_id)
+{
+    bagVarResRefinementGroup minGroup, maxGroup, *d;
+    u32 n_windows, start_col, end_col;
+    u32 window, col;
+    herr_t status;
+    
+    /* We can't read the whole row at once, because it could be enormous; instead we compute how
+     * many windows of data (of fixed size) to read, and allocate for a nominal window size.
+     */
+    u32 window_size = 1000000; /* 10^6 groups should be approximately 7.6MB --- not too large */
+    
+    minGroup.depth = FLT_MAX;
+    minGroup.depth_uncrt = FLT_MAX;
+    maxGroup.depth = -FLT_MAX;
+    maxGroup.depth_uncrt = -1.0f;
+    
+    d = (bagVarResRefinementGroup*)calloc(window_size, sizeof(bagVarResRefinementGroup));
+    if (d == NULL) return BAG_MEMORY_ALLOCATION_FAILED;
+    
+    n_windows = (u32)ceil((f64)hnd->bag.opt[VarRes_Refinement_Group].ncols / window_size);
+    for (window = 0; window < n_windows; ++window) {
+        start_col = window*window_size;
+        end_col = (window+1)*window_size - 1;
+        if (end_col > hnd->bag.opt[VarRes_Refinement_Group].ncols-1)
+            end_col = hnd->bag.opt[VarRes_Refinement_Group].ncols-1;
+        bagReadRow(hnd, 0, start_col, end_col, VarRes_Refinement_Group, (void*)d);
+        for (col = 0; col < end_col - start_col + 1; ++col) {
+            if (d[col].depth != NULL_ELEVATION) {
+                minGroup.depth = (d[col].depth < minGroup.depth) ? d[col].depth : minGroup.depth;
+                maxGroup.depth = (d[col].depth > maxGroup.depth) ? d[col].depth : maxGroup.depth;
+            }
+            if (d[col].depth_uncrt != NULL_UNCERTAINTY) {
+                minGroup.depth_uncrt = (d[col].depth_uncrt < minGroup.depth_uncrt) ? d[col].depth_uncrt : minGroup.depth_uncrt;
+                maxGroup.depth_uncrt = (d[col].depth_uncrt > maxGroup.depth_uncrt) ? d[col].depth_uncrt : maxGroup.depth_uncrt;
+            }
+        }
+    }
+    free(d);
+    
+    if (minGroup.depth < FLT_MAX) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_depth", &minGroup.depth);
+        check_hdf_status();
+    }
+    if (minGroup.depth_uncrt < FLT_MAX) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_uncrt", &minGroup.depth_uncrt);
+        check_hdf_status();
+    }
+    if (maxGroup.depth > -FLT_MAX) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_depth", &maxGroup.depth);
+        check_hdf_status();
+    }
+    if (maxGroup.depth_uncrt > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_uncrt", &maxGroup.depth_uncrt);
+        check_hdf_status();
+    }
+    
+    return BAG_SUCCESS;
+}
+
+static bagError ProcessVarResNodeMinMax(bagHandle hnd, hid_t dataset_id)
+{
+    bagVarResNodeGroup minGroup, maxGroup, *d;
+    u32 n_windows, start_col, end_col;
+    u32 window, col;
+    herr_t status;
+    
+    /* We can't read the whole row at once, because it could be enormous; instead we compute how
+     * many windows of data (of fixed size) to read, and allocate for a nominal window size.
+     */
+    u32 window_size = 1000000; /* 10^6 groups should be approximately 11.4MB --- not too large */
+
+    minGroup.hyp_strength = FLT_MAX;
+    minGroup.n_samples = 0xFFFFFFFF;
+    minGroup.num_hypotheses = 0xFFFFFFFF;
+    maxGroup.hyp_strength = -1.0;
+    maxGroup.n_samples = 0;
+    maxGroup.num_hypotheses = 0;
+    
+    d = (bagVarResNodeGroup*)calloc(window_size, sizeof(bagVarResNodeGroup));
+    if (d == NULL) return BAG_MEMORY_ALLOCATION_FAILED;
+    
+    n_windows = (u32)ceil((f64)hnd->bag.opt[VarRes_Node_Group].ncols / window_size);
+    for (window = 0; window < n_windows; ++window) {
+        start_col = window*window_size;
+        end_col = (window+1)*window_size - 1;
+        if (end_col > hnd->bag.opt[VarRes_Node_Group].ncols-1)
+            end_col = hnd->bag.opt[VarRes_Node_Group].ncols-1;
+        bagReadRow(hnd, 0, start_col, end_col, VarRes_Node_Group, (void*)d);
+        for (col = 0; col < end_col - start_col + 1; ++col) {
+            if (d[col].hyp_strength != NULL_GENERIC) {
+                minGroup.hyp_strength = (d[col].hyp_strength < minGroup.hyp_strength) ? d[col].hyp_strength : minGroup.hyp_strength;
+                maxGroup.hyp_strength = (d[col].hyp_strength > maxGroup.hyp_strength) ? d[col].hyp_strength : maxGroup.hyp_strength;
+            }
+            if (d[col].n_samples != 0) {
+                minGroup.n_samples = (d[col].n_samples < minGroup.n_samples) ? d[col].n_samples : minGroup.n_samples;
+                maxGroup.n_samples = (d[col].n_samples > maxGroup.n_samples) ? d[col].n_samples : maxGroup.n_samples;
+            }
+            if (d[col].num_hypotheses != 0) {
+                minGroup.num_hypotheses = (d[col].num_hypotheses < minGroup.num_hypotheses) ? d[col].num_hypotheses : minGroup.num_hypotheses;
+                maxGroup.num_hypotheses = (d[col].num_hypotheses > maxGroup.num_hypotheses) ? d[col].num_hypotheses : maxGroup.num_hypotheses;
+            }
+        }
+    }
+    free(d);
+    
+    if (minGroup.hyp_strength < FLT_MAX) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_hyp_strength", &minGroup.hyp_strength);
+        check_hdf_status();
+    }
+    if (minGroup.n_samples < 0xFFFFFFFF) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_n_samples", &minGroup.n_samples);
+        check_hdf_status();
+    }
+    if (minGroup.num_hypotheses < 0xFFFFFFFF) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_num_hypotheses", &minGroup.num_hypotheses);
+        check_hdf_status();
+    }
+    if (maxGroup.hyp_strength > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_hyp_strength", &maxGroup.hyp_strength);
+        check_hdf_status();
+    }
+    if (maxGroup.n_samples > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_n_samples", &maxGroup.n_samples);
+        check_hdf_status();
+    }
+    if (maxGroup.num_hypotheses > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_num_hypotheses", &maxGroup.num_hypotheses);
+        check_hdf_status();
+    }
+
+    return BAG_SUCCESS;
+}
+
 /****************************************************************************************/
-/*! \brief  bagUpdateMinMax
+/*! \brief  bagUpdateOptMinMax
  *
  * Description:
  *     Examines all the data in the particular surface and updates the min and max value
@@ -952,8 +1098,8 @@ bagError bagUpdateOptMinMax (bagHandle hnd, u32 type)
     u8    *max_name, *min_name;
     hid_t  dataset_id;
     f32   *min_tmp, *max_tmp, **surface_array, *omax, *omin, null_val;
-    bagOptNodeGroup minNode, maxNode, *nodeSurf;
-    bagOptElevationSolutionGroup minElevationSolution, maxElevationSolution, *elevationSolutionSurf;
+    bagOptNodeGroup                 minNode,                maxNode,                *nodeSurf;
+    bagOptElevationSolutionGroup    minElevationSolution,   maxElevationSolution,   *elevationSolutionSurf;
 
 
     if (hnd == NULL)
@@ -1015,22 +1161,22 @@ bagError bagUpdateOptMinMax (bagHandle hnd, u32 type)
     
         if (maxNode.hyp_strength != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "max_hyp_strength", &maxNode.hyp_strength);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"max_hyp_strength", &maxNode.hyp_strength);
             check_hdf_status();
         }
         if (minNode.hyp_strength != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "min_hyp_strength", &minNode.hyp_strength);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"min_hyp_strength", &minNode.hyp_strength);
             check_hdf_status();
         }
         if (maxNode.num_hypotheses != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "max_num_hypotheses", &maxNode.num_hypotheses);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"max_num_hypotheses", &maxNode.num_hypotheses);
             check_hdf_status();
         }
         if (minNode.num_hypotheses != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "min_num_hypotheses", &minNode.num_hypotheses);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"min_num_hypotheses", &minNode.num_hypotheses);
             check_hdf_status();
         }
         
@@ -1095,36 +1241,51 @@ bagError bagUpdateOptMinMax (bagHandle hnd, u32 type)
 
         if (maxElevationSolution.stddev != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "max_stddev", &maxElevationSolution.stddev);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"max_stddev", &maxElevationSolution.stddev);
             check_hdf_status();
         }
         if (minElevationSolution.stddev != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "min_stddev", &minElevationSolution.stddev);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"min_stddev", &minElevationSolution.stddev);
             check_hdf_status();
         }
         if (maxElevationSolution.shoal_elevation != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "max_shoal_elevation", &maxElevationSolution.shoal_elevation);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"max_shoal_elevation", &maxElevationSolution.shoal_elevation);
             check_hdf_status();
         }
         if (minElevationSolution.shoal_elevation != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "min_shoal_elevation", &minElevationSolution.shoal_elevation);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"min_shoal_elevation", &minElevationSolution.shoal_elevation);
             check_hdf_status();
         }
         if (maxElevationSolution.num_soundings != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "max_num_soundings", &maxElevationSolution.num_soundings);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"max_num_soundings", &maxElevationSolution.num_soundings);
             check_hdf_status();
         }
         if (minElevationSolution.num_soundings != null_val)
         {
-            status = bagWriteAttribute (hnd, dataset_id, "min_num_soundings", &minElevationSolution.num_soundings);
+            status = bagWriteAttribute (hnd, dataset_id, (u8*)"min_num_soundings", &minElevationSolution.num_soundings);
             check_hdf_status();
         }
         
         free (elevationSolutionSurf);
+        break;
+            
+    case VarRes_Metadata_Group:
+        if ((status = ProcessVarResMetadataMinMax(hnd, dataset_id)) != BAG_SUCCESS)
+            return status;
+        break;
+            
+    case VarRes_Refinement_Group:
+        if ((status = ProcessVarResRefinementMinMax(hnd, dataset_id)) != BAG_SUCCESS)
+            return status;
+        break;
+        
+    case VarRes_Node_Group:
+        if ((status = ProcessVarResNodeMinMax(hnd, dataset_id)) != BAG_SUCCESS)
+            return status;
         break;
 
     default:

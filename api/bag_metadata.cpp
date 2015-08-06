@@ -14,9 +14,9 @@
 #include <algorithm>
 
 //This may not work for everyone.
-#ifndef __cplusplus
+//#ifndef __cplusplus
 #define _strdup strdup
-#endif
+//#endif
 
 
 //************************************************************************
@@ -251,7 +251,7 @@ Bool initSourceInfo(BAG_SOURCE * sourceInfo)
     (*sourceInfo).dateType = NULL;
 
     (*sourceInfo).responsibleParties = NULL;
-    (*sourceInfo).numberOfResponsibleParties = NULL;
+    (*sourceInfo).numberOfResponsibleParties = 0; // Number of resp. par. isn't a pointer, shouldn't use NULL
 
     return True;
 }

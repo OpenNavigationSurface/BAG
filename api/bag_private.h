@@ -48,7 +48,7 @@
 #define RANK 2
 #define TRACKING_LIST_BLOCK_SIZE       10
 
-/*! Path names for BAG entities */
+/*! Path names for mandatory BAG entities */
 #define ROOT_PATH          "/BAG_root"
 #define METADATA_PATH      ROOT_PATH"/metadata"
 #define ELEVATION_PATH     ROOT_PATH"/elevation"
@@ -56,14 +56,17 @@
 #define TRACKING_LIST_PATH ROOT_PATH"/tracking_list"
 
 /*! Path names for optional BAG entities */
-#define NOMINAL_ELEVATION_PATH  ROOT_PATH"/nominal_elevation"
-#define VERT_DATUM_CORR_PATH    ROOT_PATH"/vertical_datum_corrections"
-#define NUM_HYPOTHESES_PATH		ROOT_PATH"/num_hypotheses"
-#define AVERAGE_PATH			ROOT_PATH"/average"
-#define AVERAGE_PATH			ROOT_PATH"/average"
-#define NODE_GROUP_PATH			ROOT_PATH"/node"
-#define ELEVATION_SOLUTION_GROUP_PATH			ROOT_PATH"/elevation_solution"
-#define STANDARD_DEV_PATH		ROOT_PATH"/standard_dev"
+#define NOMINAL_ELEVATION_PATH          ROOT_PATH"/nominal_elevation"
+#define VERT_DATUM_CORR_PATH            ROOT_PATH"/vertical_datum_corrections"
+#define NUM_HYPOTHESES_PATH             ROOT_PATH"/num_hypotheses"
+#define AVERAGE_PATH                    ROOT_PATH"/average"
+#define AVERAGE_PATH                    ROOT_PATH"/average"
+#define NODE_GROUP_PATH                 ROOT_PATH"/node"
+#define ELEVATION_SOLUTION_GROUP_PATH	ROOT_PATH"/elevation_solution"
+#define STANDARD_DEV_PATH               ROOT_PATH"/standard_dev"
+#define VARRES_METADATA_GROUP_PATH      ROOT_PATH"/varres_metadata"
+#define VARRES_REFINEMENT_GROUP_PATH    ROOT_PATH"/varres_refinements"
+#define VARRES_NODE_GROUP_PATH          ROOT_PATH"/varres_nodes"
 
 /*! Names for BAG Attributes */
 #define BAG_VERSION_NAME     "Bag Version"                /*!< Name for version attribute, value set in bag.h */

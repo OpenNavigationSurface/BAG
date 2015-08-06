@@ -364,39 +364,32 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
         {
 
             /*! An simple calculation for 4 nearest corrector nodes */
-            colRange[0] = (s32)fabs(floor ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX));
-            colRange[1] = (s32)fabs(ceil  ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX));
-            rowRange[0] = (s32)fabs(floor ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY));
-            rowRange[1] = (s32)fabs(ceil  ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY));
+            colRange[0] = (u32)fabs(floor ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX));
+            colRange[1] = (u32)fabs(ceil  ((vddef.swCornerX - nodeXY[0]) / vddef.nodeSpacingX));
+            rowRange[0] = (u32)fabs(floor ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY));
+            rowRange[1] = (u32)fabs(ceil  ((vddef.swCornerY - nodeXY[1]) / vddef.nodeSpacingY));
         }
 
         /*! Enforce dataset limits */
         if (colRange[0] > colRange[1])
         {
-            s32 c = colRange[0];
+            u32 c = colRange[0];
             colRange[0] = colRange[1];
             colRange[1] = c;
         }
-        if (colRange[0] < 0)
-            colRange[0] = 0;
         if (colRange[0] >= bagHandle->bag.opt[Surface_Correction].ncols)
             colRange[0] = bagHandle->bag.opt[Surface_Correction].ncols -1;
-        if (colRange[1] < 0)
-            colRange[1] = 0;
         if (colRange[1] >= bagHandle->bag.opt[Surface_Correction].ncols)
             colRange[1] = bagHandle->bag.opt[Surface_Correction].ncols -1;
+        
         if (rowRange[0] > rowRange[1])
         {
-            s32 c = rowRange[0];
+            u32 c = rowRange[0];
             rowRange[0] = rowRange[1];
             rowRange[1] = c;
         }
-        if (rowRange[0] < 0)
-            rowRange[0] = 0;
         if (rowRange[0] >= bagHandle->bag.opt[Surface_Correction].nrows)
             rowRange[0] = bagHandle->bag.opt[Surface_Correction].nrows -1;
-        if (rowRange[1] < 0)
-            rowRange[1] = 0;
         if (rowRange[1] >= bagHandle->bag.opt[Surface_Correction].nrows)
             rowRange[1] = bagHandle->bag.opt[Surface_Correction].nrows -1;
 
@@ -668,7 +661,7 @@ bagError bagReadCorrectorDefinition (bagHandle hnd,  bagVerticalCorrectorDef *de
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
     
-    memset (def, 0, sizeof(def));
+    memset (def, 0, sizeof(bagVerticalCorrectorDef));
 
     dataset_id = hnd->opt_dataset_id[Surface_Correction];
     

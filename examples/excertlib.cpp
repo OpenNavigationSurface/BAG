@@ -45,8 +45,8 @@
 #include "crc32.h"
 #include "excertlib.h"
 
-static char *modname = "excertlib";
-static char *modrev = "$Revision: 1.2 $";
+static const char *modname = "excertlib";
+static const char *modrev = "$Revision: 1.2 $";
 
 #undef __DEBUG_HASH__
 #undef __DEBUG__
@@ -67,6 +67,8 @@ static char *modrev = "$Revision: 1.2 $";
 #define PUBLIC_KEY_STRING		"------ OpenNavigationSurface Public Key ------"
 #define SECRET_KEY_STRING		"------ OpenNavigationSurface Secret Key ------"
 #define SIGNATURE_KEY_STRING	"------ OpenNavigationSurface Signature ------"
+
+#define _strdup strdup
 
 namespace {
 //! Utility class to convert an encoded XML string.
@@ -872,7 +874,7 @@ static u8 *excert_ext_to_bytes(FILE *ip, u32 *nbytes)
 u8 *excert_get_object(FILE *ip, ExcertObject iptype)
 {
     u8      *rtn;
-	char	*search_string;
+	const char	*search_string;
 	char	buffer[1024];
 	Bool	found;
 	u32		n_read;
@@ -968,7 +970,7 @@ ExcertErr excert_put_object(FILE *op, u8 *obj, ExcertObject obtype)
 u8 *excert_hash_certificate(char *cert, u32 *nbytes)
 {
 	FILE	*ip, *tmp;
-	char	*tmp_file;
+	char	tmp_file[1024];
 	u8		buffer[1024], *hash;
 	Bool	in_sig;
 
@@ -976,7 +978,8 @@ u8 *excert_hash_certificate(char *cert, u32 *nbytes)
 		fprintf(stderr, "%s: error: failed to open \"%s\" for signature hash.\n", modname, cert);
 		return(NULL);
 	}
-	if ((tmp_file = tmpnam(NULL)) == NULL) {
+    strcpy(tmp_file, "/tmp/excert_temp.XXXXXX");
+	if (mktemp(tmp_file) == NULL) {
 		fprintf(stderr, "%s: error: failed to generate temporary file name for signature hash.\n", modname);
 		fclose(ip);
 		return(NULL);
@@ -1015,10 +1018,11 @@ u8 *excert_hash_certificate(char *cert, u32 *nbytes)
 
 u8 *excert_hash_xml_certificate(xcrtCertificate *user, u32 *digest_len)
 {
-	char	*tmp_file;
+	char	tmp_file[1024];
 	u8		*digest;
 
-	if ((tmp_file = tmpnam(NULL)) == NULL) {
+    strcpy(tmp_file, "/tmp/excert_temp.XXXXXX");
+	if (mktemp(tmp_file) == NULL) {
 		fprintf(stderr, "%s: error: failed to get temporary file for certificate digest.\n", modname);
 		return(NULL);
 	}
@@ -1038,12 +1042,13 @@ u8 *excert_hash_xml_certificate(xcrtCertificate *user, u32 *digest_len)
 
 static u8 *excert_hash_xml_certificate_file(char *name, u32 *digest_len)
 {
-	char	*tmp_file, buffer[1024];
+	char	tmp_file[1024], buffer[1024];
 	FILE	*ip, *tmp;
 	u8		*digest;
 	Bool	in_sigstream;
 
-	if ((tmp_file = tmpnam(NULL)) == NULL) {
+    strcpy(tmp_file, "/tmp/excert_temp.XXXXXX");
+	if (mktemp(tmp_file) == NULL) {
 		fprintf(stderr, "%s: error: failed to get name for temporary certificate file.\n", modname);
 		return(NULL);
 	}
@@ -1052,7 +1057,7 @@ static u8 *excert_hash_xml_certificate_file(char *name, u32 *digest_len)
 		return(NULL);
 	}
 	if ((tmp = fopen(tmp_file, "w")) == NULL) {
-		fprintf(stderr, "%s: error: failed to open temporary certificate file.\n", modname, name);
+		fprintf(stderr, "%s: error: failed to open temporary certificate file \"%s\".\n", modname, name);
 		fclose(ip);
 		return(NULL);
 	}
@@ -1089,7 +1094,7 @@ static u8 *excert_hash_xml_certificate_file(char *name, u32 *digest_len)
  * Comment:	-
  */
 
-static Bool excert_find_section(FILE *f, char *section)
+static Bool excert_find_section(FILE *f, const char *section)
 {
 	char	buffer[1024], *recog_string;
 	u32		recog_len;
@@ -1147,7 +1152,7 @@ static void excert_release_tags(CertTag *tags)
  *			anything important) and that the memory is freed after use.
  */
 
-s32 excert_parse_certificate(char *cert, char *section, CertTag *table)
+s32 excert_parse_certificate(const char *cert, const char *section, CertTag *table)
 {
 	FILE	*ip;
 	char	buffer[1024], *start;
@@ -1470,7 +1475,7 @@ ExcertErr excert_construct_certificate(char *user_name, char *user_org, char *us
 	ExcertErr	rc;
 
 	if ((op = fopen(cert, "w")) == NULL) {
-		fprintf(stderr, "%s: error: failed to open \"%s\" for certificate.\n", cert);
+		fprintf(stderr, "%s: error: failed to open \"%s\" for certificate.\n", modname, cert);
 		return(EXCERT_NO_FILE);
 	}
 	fprintf(op, "user {\n");
@@ -1563,7 +1568,7 @@ ExcertErr excert_build_certificate(char *proto, char *cert, char *phrase)
 		return(rc);
 	}
 	if ((rc = excert_construct_certificate(user[0].value, user[1].value, user[2].value, NULL, pkey, cert)) != EXCERT_OK) {
-		fprintf(stderr, "%s: error: failed to construct user certificate in \"%s\".\n", modname);
+		fprintf(stderr, "%s: error: failed to construct user certificate in \"%s\".\n", modname, cert);
 		free(pkey);
 		return(rc);
 	}
@@ -1892,7 +1897,7 @@ static Bool excert_parse_signature(const xmlNode &node, xcrtSigInfo *sig)
     char *encoding = (char *)getPropertyAsString(node, "sigstream", "encoding");
     if (encoding == NULL)
         return False;
-    if (stricmp(encoding, "hex") != 0)
+    if (strcmp(encoding, "hex") != 0)
     {
         free(encoding);
         return False;
@@ -1900,12 +1905,12 @@ static Bool excert_parse_signature(const xmlNode &node, xcrtSigInfo *sig)
 
     // Check algorithm.  We only want openns.
     char *algorithm = (char *)getPropertyAsString(node, "sigstream", "algorithm");
-    if (encoding == NULL)
+    if (algorithm == NULL)
     {
         free(encoding);
         return False;
     }
-    if (stricmp(algorithm, "openns") != 0)
+    if (strcmp(algorithm, "openns") != 0)
     {
         free(encoding);
         free(algorithm);
@@ -1920,7 +1925,7 @@ static Bool excert_parse_signature(const xmlNode &node, xcrtSigInfo *sig)
         free(algorithm);
         return False;
     }
-    if (stricmp(version, "1.0") != 0)
+    if (strcmp(version, "1.0") != 0)
     {
         free(encoding);
         free(algorithm);
