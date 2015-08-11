@@ -59,8 +59,8 @@ static void InitVarResRefinementGroup(bagVarResRefinementGroup *g)
 {
     memset(g, 0, sizeof(bagVarResRefinementGroup));
         /* This isn't technically required, but might sort of save us if the definition changes and the code isn't updated here */
-    g->depth = NULL_ELEVATION;
-    g->depth_uncrt = NULL_UNCERTAINTY;
+    g->depth = BAG_NULL_ELEVATION;
+    g->depth_uncrt = BAG_NULL_UNCERTAINTY;
 }
 
 static void InitVarResNodeGroup(bagVarResNodeGroup *g)
@@ -116,7 +116,7 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 	herr_t		 status;
     u8           typer;
 
-	f32                             null = NULL_ELEVATION;
+	f32                             null = BAG_NULL_ELEVATION;
     bagVerticalCorrector            nullVdat;
     bagVerticalCorrectorNode        nullVdatNode;
     bagOptNodeGroup                 nullNodeGroup;
@@ -134,10 +134,9 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
     ( bag_hnd)->dataArray[type]    = (f32 *) NULL;
     ( bag_hnd)->bag.opt[type].data     = (f32 **) NULL;
 
-	/*! Create the mandatory \a elevation dataset */
     dims[0] = data->opt[type].nrows;
     dims[1] = data->opt[type].ncols;
-
+    
     bag_hnd->bag.opt[type].nrows = (u32)dims[0];
     bag_hnd->bag.opt[type].ncols = (u32)dims[1];
 
@@ -256,8 +255,8 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 		
 		case Node_Group:
             memset (&nullNodeGroup, 0, sizeof (bagOptNodeGroup));
-            nullNodeGroup.hyp_strength   = NULL_GENERIC;
-            nullNodeGroup.num_hypotheses = NULL_GENERIC;
+            nullNodeGroup.hyp_strength   = BAG_NULL_GENERIC;
+            nullNodeGroup.num_hypotheses = BAG_NULL_GENERIC;
 
             status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
             status = H5Pset_fill_value (plist_id, datatype_id, &nullNodeGroup);
@@ -276,9 +275,9 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 		
 		case Elevation_Solution_Group:
             memset (&nullElevationSolutionGroup, 0, sizeof (bagOptElevationSolutionGroup));
-            nullElevationSolutionGroup.shoal_elevation   = NULL_ELEVATION;
-            nullElevationSolutionGroup.stddev        = NULL_GENERIC;
-            nullElevationSolutionGroup.num_soundings = NULL_GENERIC;
+            nullElevationSolutionGroup.shoal_elevation   = BAG_NULL_ELEVATION;
+            nullElevationSolutionGroup.stddev        = BAG_NULL_GENERIC;
+            nullElevationSolutionGroup.num_soundings = BAG_NULL_GENERIC;
 
             status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
             status = H5Pset_fill_value (plist_id, datatype_id, &nullElevationSolutionGroup);
@@ -344,10 +343,15 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
             DECLARE_MIN_ATTRIBUTE("min_n_samples", u32, BAG_ATTR_U32)
             DECLARE_MAX_ATTRIBUTE("max_n_samples", u32, BAG_ATTR_U32)
             break;
-		
+            
+        case VarRes_Tracking_List:
+            fprintf(stderr, "error: make Variable Resolution tracking lists through the API, not directly!\n");
+            return BAG_INVALID_FUNCTION_ARGUMENT;
+            break;
+            
 		default:
-        return BAG_HDF_TYPE_NOT_FOUND;
-        break;
+            return BAG_HDF_TYPE_NOT_FOUND;
+            break;
 	}
 
 
@@ -416,6 +420,7 @@ bagError bagGetOptDatasets(bagHandle *bag_handle_opt, s32 *num_opt_datasets,
     CHECK_OPT_DATASET(VarRes_Metadata_Group, VARRES_METADATA_GROUP_PATH)
 	CHECK_OPT_DATASET(VarRes_Refinement_Group, VARRES_REFINEMENT_GROUP_PATH)
 	CHECK_OPT_DATASET(VarRes_Node_Group, VARRES_NODE_GROUP_PATH)
+    CHECK_OPT_DATASET(VarRes_Tracking_List, VARRES_TRACKING_LIST_PATH)
     
     return (BAG_SUCCESS);
 }
@@ -887,6 +892,18 @@ bagError bagGetOptDatasetInfo(bagHandle *bag_handle_opt, s32 type)
                 return status;
             break;
             
+        case VarRes_Tracking_List:
+            (*bag_handle_opt)->opt_dataset_id[type] = H5Dopen((*bag_handle_opt)->file_id, VARRES_TRACKING_LIST_PATH);
+            if ((*bag_handle_opt)->opt_dataset_id[type] < 0)
+                return BAG_HDF_DATASET_OPEN_FAILURE;
+            if (((*bag_handle_opt)->opt_datatype_id[type] = H5Dget_type((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_TYPE_NOT_FOUND;
+            if (((*bag_handle_opt)->opt_filespace_id[type] = H5Dget_space((*bag_handle_opt)->opt_dataset_id[type])) < 0)
+                return BAG_HDF_DATASPACE_CORRUPTED;
+            if ((status = bagReadOptSurfaceDims(*bag_handle_opt, type)) != BAG_SUCCESS)
+                return status;
+            break;
+            
         default:
             return BAG_HDF_TYPE_NOT_FOUND;
             break;
@@ -972,11 +989,11 @@ static bagError ProcessVarResRefinementMinMax(bagHandle hnd, hid_t dataset_id)
             end_col = hnd->bag.opt[VarRes_Refinement_Group].ncols-1;
         bagReadRow(hnd, 0, start_col, end_col, VarRes_Refinement_Group, (void*)d);
         for (col = 0; col < end_col - start_col + 1; ++col) {
-            if (d[col].depth != NULL_ELEVATION) {
+            if (d[col].depth != BAG_NULL_ELEVATION) {
                 minGroup.depth = (d[col].depth < minGroup.depth) ? d[col].depth : minGroup.depth;
                 maxGroup.depth = (d[col].depth > maxGroup.depth) ? d[col].depth : maxGroup.depth;
             }
-            if (d[col].depth_uncrt != NULL_UNCERTAINTY) {
+            if (d[col].depth_uncrt != BAG_NULL_UNCERTAINTY) {
                 minGroup.depth_uncrt = (d[col].depth_uncrt < minGroup.depth_uncrt) ? d[col].depth_uncrt : minGroup.depth_uncrt;
                 maxGroup.depth_uncrt = (d[col].depth_uncrt > maxGroup.depth_uncrt) ? d[col].depth_uncrt : maxGroup.depth_uncrt;
             }
@@ -1034,7 +1051,7 @@ static bagError ProcessVarResNodeMinMax(bagHandle hnd, hid_t dataset_id)
             end_col = hnd->bag.opt[VarRes_Node_Group].ncols-1;
         bagReadRow(hnd, 0, start_col, end_col, VarRes_Node_Group, (void*)d);
         for (col = 0; col < end_col - start_col + 1; ++col) {
-            if (d[col].hyp_strength != NULL_GENERIC) {
+            if (d[col].hyp_strength != BAG_NULL_GENERIC) {
                 minGroup.hyp_strength = (d[col].hyp_strength < minGroup.hyp_strength) ? d[col].hyp_strength : minGroup.hyp_strength;
                 maxGroup.hyp_strength = (d[col].hyp_strength > maxGroup.hyp_strength) ? d[col].hyp_strength : maxGroup.hyp_strength;
             }
@@ -1106,7 +1123,7 @@ bagError bagUpdateOptMinMax (bagHandle hnd, u32 type)
         return BAG_INVALID_BAG_HANDLE;
 
     dataset_id    = hnd->opt_dataset_id[type];
-    null_val      = NULL_GENERIC;
+    null_val      = BAG_NULL_GENERIC;
 
     if (dataset_id < 0)
         return BAG_HDF_DATASET_OPEN_FAILURE; 
@@ -1286,6 +1303,12 @@ bagError bagUpdateOptMinMax (bagHandle hnd, u32 type)
     case VarRes_Node_Group:
         if ((status = ProcessVarResNodeMinMax(hnd, dataset_id)) != BAG_SUCCESS)
             return status;
+        break;
+            
+    case VarRes_Tracking_List:
+            /* Nothing to do here; only attribute is the list length, which is
+             * handled differently.
+             */
         break;
 
     default:

@@ -57,7 +57,7 @@
 #include <float.h>
 #include "stdtypes.h"
 
-typedef s32 bagError;
+/*typedef s32 bagError;*/
 
 #include "bag_config.h"
 #include "bag_metadata.h"
@@ -69,19 +69,19 @@ typedef unsigned long long HDF_size_t;
 /* This typedef must match the hid_t type defined in HDF5 */
 typedef int HDF_hid_t;
 
-#define BAG_VERSION         "1.5.3"
-#define BAG_VERSION_LENGTH  32           /* 32 bytes of space reserved in BAG attribute for VERSION string */
-#define BAG_VER_MAJOR 1
-#define BAG_VER_MINOR 5
-#define BAG_VER_REVISION 3
+#define BAG_VERSION         "1.5.4"
+#define BAG_VERSION_LENGTH  32              /* 32 bytes of space reserved in BAG attribute for VERSION string */
+#define BAG_VER_MAJOR       1
+#define BAG_VER_MINOR       5
+#define BAG_VER_REVISION    4
 
-#define XML_METADATA_MIN_LENGTH 1024   /* Encoded XML string expected to be at least this long to be valid */
-#define XML_METADATA_MAX_LENGTH 1000000
-#define DEFAULT_KEY_LEN		1024  /* taken from onscrypto.c */
-#define BAG_DEFAULT_COMPRESSION 1
-#define BAG_OPT_SURFACE_LIMIT 13        /* The maximum number of optional surfaces in a single BAG */
-#define BAG_SURFACE_CORRECTOR_LIMIT 10  /* The maximum number of datum correctors per bagVerticalCorrector */
-#define REF_SYS_MAX_LENGTH  2048    /* The maximum length of the reference system definition string */
+#define XML_METADATA_MIN_LENGTH     1024    /* Encoded XML string expected to be at least this long to be valid */
+#define XML_METADATA_MAX_LENGTH     1000000
+#define DEFAULT_KEY_LEN             1024    /* taken from onscrypto.c */
+#define BAG_DEFAULT_COMPRESSION     1
+#define BAG_OPT_SURFACE_LIMIT       14      /* The maximum number of optional surfaces in a single BAG */
+#define BAG_SURFACE_CORRECTOR_LIMIT 10      /* The maximum number of datum correctors per bagVerticalCorrector */
+#define REF_SYS_MAX_LENGTH          2048    /* The maximum length of the reference system definition string */
 
 
 /* General conventions:
@@ -102,11 +102,11 @@ typedef int HDF_hid_t;
  */
 
 /* Definitions for NULL values */
-#define NULL_ELEVATION      1e6
-#define NULL_UNCERTAINTY    1e6
-#define NULL_STD_DEV        1e6
-#define NULL_GENERIC	    1e6
-#define BAG_NULL_VARRES_INDEX 0xFFFFFFFF
+#define BAG_NULL_ELEVATION      1e6
+#define BAG_NULL_UNCERTAINTY    1e6
+#define BAG_NULL_STD_DEV        1e6
+#define BAG_NULL_GENERIC	    1e6
+#define BAG_NULL_VARRES_INDEX   0xFFFFFFFF
 
 /* Define convenience data structure for BAG geographic definitions */
 enum BAG_COORDINATES {
@@ -269,6 +269,19 @@ typedef struct _t_bag_varResNodeGroup
 	u32 n_samples;
 } bagVarResNodeGroup;
 
+typedef struct _t_bag_varResTrackingList
+{
+    u32 row;            /* location of the low-resolution node of the BAG that was modified      */
+    u32 col;
+    u32 sub_row;        /*!< Row within the refined grid that was modified       */
+    u32 sub_col;        /*!< Column within the refined grid that was modified    */
+    f32 depth;          /* original depth before this change                     */
+    f32 uncertainty;    /* original uncertainty before this change               */
+    u8  track_code;     /* reason code indicating why the modification was made  */
+    u16 list_series;    /* index number indicating the item in the metadata that */
+                        /* describes the modifications                           */
+} bagVarResTrackingItem;
+
 /* The type of Uncertainty encoded in this BAG. */
 enum BAG_UNCERT_TYPES
 {
@@ -307,19 +320,20 @@ enum BAG_SURFACE_CORRECTION_TOPOGRAPHY {
 
 /* ELEVATION, UNCERTAINTY are mandatory BAG datasets, the rest are optional. */
 enum BAG_SURFACE_PARAMS {
-    Metadata       = 0,
-    Elevation      = 1,
-    Uncertainty    = 2, 
-    Num_Hypotheses = 3,
-    Average        = 4,
-    Standard_Dev   = 5,
-	Nominal_Elevation = 6,
-	Surface_Correction = 7,  /* 7 and above are assumed to be composite datasets */
-	Node_Group = 8,
-	Elevation_Solution_Group = 9,
-	VarRes_Metadata_Group = 10,
-	VarRes_Refinement_Group = 11,
-	VarRes_Node_Group = 12
+    Metadata                    = 0,
+    Elevation                   = 1,
+    Uncertainty                 = 2,
+    Num_Hypotheses              = 3,
+    Average                     = 4,
+    Standard_Dev                = 5,
+	Nominal_Elevation           = 6,
+	Surface_Correction          = 7,  /* 7 and above are assumed to be composite datasets */
+	Node_Group                  = 8,
+	Elevation_Solution_Group    = 9,
+	VarRes_Metadata_Group       = 10,
+	VarRes_Refinement_Group     = 11,
+	VarRes_Node_Group           = 12,
+    VarRes_Tracking_List        = 13
 };
 
 /* Definitions for file open access modes */
@@ -330,7 +344,6 @@ enum BAG_OPEN_MODE {
 
 /* Bit flag definitions for file open access ID */
 #define BAG_ACCESS_DEFAULT           0
-
 
 /* Function prototypes */
 
@@ -348,6 +361,29 @@ BAG_EXTERNAL bagError bagFileOpen(bagHandle *bagHandle, s32 accessMode, const u8
 
 /* bag_hdf.c */                             
 BAG_EXTERNAL bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle);
+
+/*! \brief bagCreateVariableResolutionLayers
+ * Construct all of the optional layers required for variable resolution BAG files.
+ * This automates the construction based on the size of the grids already configured
+ * for the fixed resolution layer (which becomes the meta-layer for a variable
+ * resolution BAG, i.e., the depth/uncertainty that non-aware readers get, and the
+ * "synopsis" description of the bathymetry in the area), and therefore this should
+ * only be called after the basic size of the grids have been established by a call
+ * to bagFileCreate() or bagFileOpen().  The variable resolution grid can be configured
+ * to contain layers to maintain auxiliary tracking information for all of the refinements
+ * as well as the low-resolution synopsis grid --- this turns on the Node_Group
+ * optional layer, as well as the VarRes_Node_Group optional layer.  If the file
+ * is just holding the results of a grid (i.e., the final output, not an intermediate
+ * product to be used for data inspection) then you probably don't need these.
+ *
+ * \param handle        bagHandle for the file to enhance
+ * \param nRefinements  Total umber of refinement nodes expected in the grid
+ * \param aux_layers    Flag: true => set up for auxiliary layers
+ * \return bagError with any error code appropriate, or BAG_SUCCESS.
+ */
+
+BAG_EXTERNAL bagError bagCreateVariableResolutionLayers(bagHandle handle, u32 const nRefinements, Bool aux_layers);
+
 /* Description:
  *     This function opens a BAG file stored in HDF5.  The library supports 
  *     access for up to 32 separate BAG files at a time.
@@ -737,6 +773,7 @@ BAG_EXTERNAL bagError bagReadMinMaxVarResNodeGroup(bagHandle hnd, bagVarResNodeG
  */
 
 BAG_EXTERNAL bagError bagTrackingListLength (bagHandle bagHandle, u32 *len);
+BAG_EXTERNAL bagError bagVarResTrackingListLength(bagHandle bagHandle, u32 *len);
 
 /* 
  * Routine:     bagReadTrackingListNode
@@ -756,6 +793,8 @@ BAG_EXTERNAL bagError bagTrackingListLength (bagHandle bagHandle, u32 *len);
  *              Caller must assign items a NULL value before using this function!
  */
 BAG_EXTERNAL bagError bagReadTrackingListNode(bagHandle bagHandle, u32 row, u32 col, bagTrackingItem **items, u32 *length);
+BAG_EXTERNAL bagError bagReadVarResTrackingListNode(bagHandle bagHandle, u32 row, u32 col, bagVarResTrackingItem **items, u32 *length);
+BAG_EXTERNAL bagError bagReadVarResTrackingListSubnode(bagHandle bagHandle, u32 row, u32 col, u32 sub_row, u32 sub_col, bagVarResTrackingItem **items, u32 *length);
 
 /****************************************************************************************
  * Routine:     bagReadTrackingListCode
@@ -775,6 +814,7 @@ BAG_EXTERNAL bagError bagReadTrackingListNode(bagHandle bagHandle, u32 row, u32 
  *              Caller must assign items a NULL value before using this function!
  ****************************************************************************************/
 BAG_EXTERNAL bagError bagReadTrackingListCode(bagHandle bagHandle, u8 code, bagTrackingItem **items, u32 *length);
+BAG_EXTERNAL bagError bagReadVarResTrackingListCode(bagHandle bagHandle, u8 code, bagVarResTrackingItem **items, u32 *length);
 
 /* Routine:     bagReadTrackingListSeries
  * Purpose:     Read all tracking list items from a specific list series index.
@@ -796,6 +836,7 @@ BAG_EXTERNAL bagError bagReadTrackingListCode(bagHandle bagHandle, u8 code, bagT
  *              Caller must assign items a NULL value before using this function!
  */
 BAG_EXTERNAL bagError bagReadTrackingListSeries(bagHandle bagHandle, u16 index, bagTrackingItem **items, u32 *length);
+BAG_EXTERNAL bagError bagReadVarResTracklingListSeries(bagHandle, u16 index, bagVarResTrackingItem **items, u32 *length);
 
 /* Routine:     bagReadTrackingListIndex
  * Purpose:     Read the one list item at the index provided. 
@@ -810,6 +851,7 @@ BAG_EXTERNAL bagError bagReadTrackingListSeries(bagHandle bagHandle, u16 index, 
  * Comment:    
  */
 BAG_EXTERNAL bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, bagTrackingItem *item);
+BAG_EXTERNAL bagError bagReadVarResTrackingListIndex(bagHandle bagHandle, u16 index, bagVarResTrackingItem *item);
 
 /* Routine:     bagWriteTrackingListItem
  * Purpose:     Write a single bagTrackingItem into the tracking_list dataset.
@@ -820,6 +862,7 @@ BAG_EXTERNAL bagError bagReadTrackingListIndex (bagHandle bagHandle, u16 index, 
  * Comment:     BAG_SUCCESS 
  */
 BAG_EXTERNAL bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingItem *item);
+BAG_EXTERNAL bagError bagWriteVarResTrackingListItem(bagHandle bagHandle, bagVarResTrackingItem *item);
 
 
 /****************************************************************************************
@@ -839,6 +882,8 @@ BAG_EXTERNAL bagError bagWriteTrackingListItem(bagHandle bagHandle, bagTrackingI
  *
  ****************************************************************************************/
 BAG_EXTERNAL bagError bagSortTrackingListByNode (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagSortVarResTrackingListByNode(bagHandle bagHandle);
+BAG_EXTERNAL bagError bagSortVarResTrackingListBySubNode(bagHandle bagHandle);
 
 /****************************************************************************************
  * Routine:     bagSortTrackingList
@@ -856,7 +901,9 @@ BAG_EXTERNAL bagError bagSortTrackingListByNode (bagHandle bagHandle);
  *
  ****************************************************************************************/
 BAG_EXTERNAL bagError bagSortTrackingListBySeries (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagSortVarResTrackingListBySeries(bagHandle bagHandle);
 BAG_EXTERNAL bagError bagSortTrackingListByCode (bagHandle bagHandle);
+BAG_EXTERNAL bagError bagSortVarResTrackingListByCode(bagHandle bagHandle);
 
 /* Description:
  *     This function provides a short text description for the last error that 
@@ -913,5 +960,6 @@ BAG_EXTERNAL bagError bagGetOptDatasets(bagHandle *bag_handle, s32 *num_opt_data
 BAG_EXTERNAL bagError bagCreateVarResMetadataGroup(bagHandle hnd, bagData *data);
 BAG_EXTERNAL bagError bagCreateVarResRefinementGroup(bagHandle hnd, bagData *data, u32 const n_cells);
 BAG_EXTERNAL bagError bagCreateVarResNodeGroup(bagHandle hnd, bagData *data, u32 const n_cells);
+BAG_EXTERNAL bagError bagCreateVarResTrackingList(bagHandle hnd, bagData *data);
 
 #endif

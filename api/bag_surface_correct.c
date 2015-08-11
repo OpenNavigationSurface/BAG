@@ -228,7 +228,7 @@ bagError bagReadCorrectedRegion (bagHandle bagHandle,
     {
         if (i >= startrow && i <= endrow)
         {
-            memset (sepData, NULL_GENERIC, sizeof(f32) * endcol-startcol+1);
+            memset (sepData, BAG_NULL_GENERIC, sizeof(f32) * endcol-startcol+1);
             
             /*! By row at a time, fill the whole buffer */
             err = bagReadCorrectedRowBalance (bagHandle,  i, startcol, endcol,
@@ -335,7 +335,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
         u32 indx = j-startcol;
         u8  zeroDist=0;
 
-        if (data[indx] == NULL_GENERIC || data[indx] == NULL_ELEVATION || data[indx] == NULL_UNCERTAINTY)
+        if (data[indx] == BAG_NULL_GENERIC || data[indx] == BAG_NULL_ELEVATION || data[indx] == BAG_NULL_UNCERTAINTY)
             continue;
 
         /*! determine the XY value of given cell */
@@ -480,7 +480,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
             }
             else 
             {
-                data[indx] = NULL_GENERIC;
+                data[indx] = BAG_NULL_GENERIC;
             }
         }
 

@@ -124,6 +124,101 @@ bagError bagCreateVarResNodeGroup(bagHandle hnd, bagData *data, u32 const n_cell
 	return err;
 }
 
+bagError bagCreateVarResTrackingList(bagHandle hnd, bagData *data)
+{
+    bagError    err;
+    herr_t      status;
+    
+    hsize_t dim_init[1];
+    hsize_t dim_max[1];
+    hid_t   dataspace_id;
+    hid_t   datatype_id;
+    hid_t   dataset_id;
+    hid_t   cparams;
+    hsize_t chunk_dims[1];
+    
+    u32 length;
+    
+    dim_init[0] = 0;
+    dim_max[0] = H5S_UNLIMITED;
+    
+    if ((dataspace_id = H5Screate_simple(1, dim_init, dim_max)) < 0) {
+        status = H5Fclose(hnd->file_id);
+        return BAG_HDF_CREATE_DATASET_FAILURE;
+    }
+    
+    printf("Creating base data type\n");
+    if ((datatype_id = H5Tcreate(H5T_COMPOUND, sizeof(bagVarResTrackingItem))) < 0) {
+        return BAG_HDF_TYPE_CREATE_FAILURE;
+    }
+    printf("Creating row\n");
+    status = H5Tinsert(datatype_id, "row", HOFFSET(bagVarResTrackingItem, row), H5T_NATIVE_UINT32);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    printf("Creating col\n");
+    status = H5Tinsert(datatype_id, "col", HOFFSET(bagVarResTrackingItem, col), H5T_NATIVE_UINT32);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    printf("Creating sub_row\n");
+    status = H5Tinsert(datatype_id, "sub_row", HOFFSET(bagVarResTrackingItem, sub_row), H5T_NATIVE_UINT32);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    printf("Creating sub_col\n");
+    status = H5Tinsert(datatype_id, "sub_col", HOFFSET(bagVarResTrackingItem, sub_col), H5T_NATIVE_UINT32);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    printf("Creating depth\n");
+    status = H5Tinsert(datatype_id, "depth", HOFFSET(bagVarResTrackingItem, depth), H5T_NATIVE_FLOAT);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    printf("Creating uncertainty\n");
+    status = H5Tinsert(datatype_id, "uncertainty", HOFFSET(bagVarResTrackingItem, uncertainty), H5T_NATIVE_FLOAT);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    printf("Creating track_code\n");
+    status = H5Tinsert(datatype_id, "track_code", HOFFSET(bagVarResTrackingItem, track_code), H5T_NATIVE_UCHAR);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    printf("Creating list_series\n");
+    status = H5Tinsert(datatype_id, "list_series", HOFFSET(bagVarResTrackingItem, list_series), H5T_NATIVE_UINT16);
+    if (status < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    
+    data->opt[VarRes_Tracking_List].nrows = 1;
+    data->opt[VarRes_Tracking_List].ncols = 0;
+    
+    if ((cparams = H5Pcreate(H5P_DATASET_CREATE)) < 0) {
+        status = H5Fclose(hnd->file_id);
+        return BAG_HDF_CREATE_PROPERTY_CLASS_FAILURE;
+    }
+    chunk_dims[0] = VARRES_TRACKING_LIST_BLOCK_SIZE;
+    if ((status = H5Pset_chunk(cparams, 1, chunk_dims)) < 0) {
+        status = H5Fclose(hnd->file_id);
+        return BAG_HDF_SET_PROPERTY_FAILURE;
+    }
+    if (data->compressionLevel > 0 && data->compressionLevel <= 9) {
+        if ((status = H5Pset_deflate(cparams, data->compressionLevel)) < 0) {
+            status = H5Fclose(hnd->file_id);
+            return BAG_HDF_SET_PROPERTY_FAILURE;
+        }
+    } else if (data->compressionLevel != 0) {
+        return BAG_HDF_INVALID_COMPRESSION_LEVEL;
+    }
+    if ((dataset_id = H5Dcreate(hnd->file_id, VARRES_TRACKING_LIST_PATH, datatype_id, dataspace_id, cparams)) < 0) {
+        status = H5Fclose(hnd->file_id);
+        return BAG_HDF_CREATE_DATASET_FAILURE;
+    }
+    if ((status = H5Dextend(dataset_id, dim_init)) < 0) {
+        status = H5Fclose(hnd->file_id);
+        return BAG_HDF_DATASET_EXTEND_FAILURE;
+    }
+    if ((err = bagCreateAttribute(hnd, dataset_id, (u8*)VARRES_TRACKING_LIST_LENGTH_NAME, sizeof(u32), BAG_ATTR_U32)) != BAG_SUCCESS) {
+        status = H5Fclose(hnd->file_id);
+        return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;
+    }
+    length = 0;
+    if ((err = bagWriteAttribute(hnd, dataset_id, (u8*)VARRES_TRACKING_LIST_LENGTH_NAME, &length)) != BAG_SUCCESS) {
+        status = H5Fclose(hnd->file_id);
+        return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;
+    }
+    status = H5Pclose(cparams);
+    
+    printf("done\n");
+    return err;
+}
+
 /****************************************************************************************/
 /*! \brief bagCreateElevationSolutionGroup initializes the Elevation Solution Group optional bag surface
  *
