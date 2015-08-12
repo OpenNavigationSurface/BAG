@@ -384,6 +384,21 @@ BAG_EXTERNAL bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandl
 
 BAG_EXTERNAL bagError bagCreateVariableResolutionLayers(bagHandle handle, u32 const nRefinements, Bool aux_layers);
 
+/*! \brief Check whether the BAG file open contains variable resolution extensions
+ * This checks the data layers present in the BAG file to see whether it has all
+ * of the requirements for a variable-resolution implementation.  In addition, if
+ * the data has the extended attributes (hypothesis strength, number of hypotheses,
+ * sample counts, etc.) associated with an intermediate processing product, then
+ * \a has_extended_data is set True.
+ *
+ * \param handle            BAG handle to assess
+ * \param is_var_res        Flag: True if BAG has variable resolution extensions
+ * \param has_extended_data Flag: True if auxiliary data is also available
+ * \return BAG_SUCCESS, or an appropriate error condition
+ */
+
+BAG_EXTERNAL bagError bagCheckVariableResolution(bagHandle handle, Bool * const is_var_res, Bool * const has_extended_data);
+
 /* Description:
  *     This function opens a BAG file stored in HDF5.  The library supports 
  *     access for up to 32 separate BAG files at a time.
