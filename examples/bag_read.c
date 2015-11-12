@@ -61,7 +61,7 @@ int main( int argc, char **argv )
     fprintf( stdout, "trying to open: {%s}...\n", bagFileName );
     fflush( stdout );
 
-    stat = bagFileOpen (&hnd, BAG_OPEN_READ_WRITE, bagFileName);
+    stat = bagFileOpen (&hnd, BAG_OPEN_READONLY, bagFileName);
     if (stat != BAG_SUCCESS)
     {
         fprintf(stderr, "bag file unavailable ! %d\n", stat);
