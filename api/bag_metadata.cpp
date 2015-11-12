@@ -14,7 +14,9 @@
 #include <algorithm>
 
 //This may not work for everyone.
-#ifndef __cplusplus
+//#ifndef __cplusplus
+//Above didn't work for me, trying following as _strdup is apparently a MSVC thing.
+#ifndef _MSC_VER
 #define _strdup strdup
 #endif
 
