@@ -22,7 +22,10 @@ extern Bool initResponsibleParty(BAG_RESPONSIBLE_PARTY * responsibleParty);
 extern Bool initSourceInfo(BAG_SOURCE * sourceInfo);
 extern Bool initProcessStep(BAG_PROCESS_STEP * processStep);
 
+#ifndef _MSC_VER
+#include <string.h>
 #define _strdup strdup
+#endif
 
 namespace
 {

@@ -45,8 +45,14 @@
 #include "crc32.h"
 #include "excertlib.h"
 
+
 static const char *modname = "excertlib";
 static const char *modrev = "$Revision: 1.2 $";
+
+#ifndef _MSC_VER
+#define _strdup strdup
+#define stricmp strcasecmp
+#endif
 
 #undef __DEBUG_HASH__
 #undef __DEBUG__

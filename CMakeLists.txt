@@ -51,6 +51,12 @@ ENDIF (BUILD_SHARED_LIBS)
 #-----------------------------------------------------------------------------
 OPTION (BUILD_WITH_SHARED_HDF5 "Build with HDF5 as a shared library" ON)
 
+
+if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
+    set (CMAKE_C_FLAGS "--std=gnu99 ${CMAKE_C_FLAGS}")
+endif ()
+
+
 # Recurse into the "api" and "examples" subdirectories. This does not actually
 # cause another cmake executable to run. The same process will walk through
 # the project's entire directory structure.

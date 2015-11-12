@@ -13,11 +13,9 @@
 #include <string>
 #include <algorithm>
 
-//This may not work for everyone.
-//#ifndef __cplusplus
+#ifndef _MSC_VER
 #define _strdup strdup
-//#endif
-
+#endif
 
 //************************************************************************
 /*!

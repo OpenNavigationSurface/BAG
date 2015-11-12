@@ -47,10 +47,18 @@ SET(LIBXML_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/libxml2/include" CACHE PAT
 # The name of the libxml2 release library.
 SET(LIBXML_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/libxml2/lib/release/libxml2.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/libxml2/lib/debug/libxml2.lib" CACHE STRING "The name of the libxml2 library.")
 ELSEIF(UNIX)
+
 # The location of the libxml2 header files.
-SET(LIBXML_INCLUDE_DIR "/usr/include" CACHE PATH "Location of libxml2 header files.")
-# The name of the libxml2 release library.
-SET(LIBXML_LIB "libxml2" CACHE STRING "The name of the libxml2 release library.")
+FIND_PACKAGE(LibXml2)
+IF(LIBXML2_INCLUDE_DIR)
+  SET(LIBXML_INCLUDE_DIR ${LIBXML2_INCLUDE_DIR} CACHE PATH "Location of libxml2 header files.")
+  SET(LIBXML_LIB ${LIBXML2_LIBRARIES} CACHE STRING "The name of the libxml2 release library.")
+ELSE(LIBXML2_INCLUDE_DIR)
+  SET(LIBXML_INCLUDE_DIR "/usr/include" CACHE PATH "Location of libxml2 header files.")
+  # The name of the libxml2 release library.
+  SET(LIBXML_LIB "libxml2" CACHE STRING "The name of the libxml2 release library.")
+ENDIF(LIBXML2_INCLUDE_DIR)
+
 ELSEIF(MINGW)
 # The location of the libxml2 header files.
 SET(LIBXML_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/libxml2/installed/include/" CACHE PATH "Location of libxml2 header files.")

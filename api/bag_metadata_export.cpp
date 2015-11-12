@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <string.h>
 
 #include <libxml/parser.h>
 
