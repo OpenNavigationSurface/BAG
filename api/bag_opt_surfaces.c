@@ -256,7 +256,7 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
 		case Node_Group:
             memset (&nullNodeGroup, 0, sizeof (bagOptNodeGroup));
             nullNodeGroup.hyp_strength   = BAG_NULL_GENERIC;
-            nullNodeGroup.num_hypotheses = BAG_NULL_GENERIC;
+			nullNodeGroup.num_hypotheses = (u32) BAG_NULL_GENERIC;
 
             status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
             status = H5Pset_fill_value (plist_id, datatype_id, &nullNodeGroup);
@@ -277,7 +277,7 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
             memset (&nullElevationSolutionGroup, 0, sizeof (bagOptElevationSolutionGroup));
             nullElevationSolutionGroup.shoal_elevation   = BAG_NULL_ELEVATION;
             nullElevationSolutionGroup.stddev        = BAG_NULL_GENERIC;
-            nullElevationSolutionGroup.num_soundings = BAG_NULL_GENERIC;
+            nullElevationSolutionGroup.num_soundings = (u32) BAG_NULL_GENERIC;
 
             status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
             status = H5Pset_fill_value (plist_id, datatype_id, &nullElevationSolutionGroup);
@@ -1136,8 +1136,8 @@ bagError bagUpdateOptMinMax (bagHandle hnd, u32 type)
     case Node_Group:
         minNode.hyp_strength = null_val;
         maxNode.hyp_strength = null_val;
-        minNode.num_hypotheses = null_val;
-        maxNode.num_hypotheses = null_val;
+        minNode.num_hypotheses = (u32) null_val;
+        maxNode.num_hypotheses = (u32) null_val;
 
         nodeSurf = (bagOptNodeGroup *) calloc (hnd->bag.opt[type].ncols, sizeof (bagOptNodeGroup));
         if (nodeSurf == NULL)

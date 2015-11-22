@@ -1,5 +1,13 @@
 cmake_minimum_required(VERSION 2.8.11)
 
+# Eliminate a CMake warning for policy CMP0043.
+# This policy was CMake version 3.0.2 warns when the policy 
+# is not set and uses OLD behavior. 
+# We Use the cmake_policy command to set it to OLD explicitly.
+if( POLICY CMP0043 )
+	cmake_policy( SET CMP0043 OLD )
+endif()
+
 project(helloQT)
 
 # Find includes in corresponding build directories
