@@ -18,6 +18,11 @@
 
 #include "bag.h"
 
+// Not always defined
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 typedef enum {
     XML_FILENAME = 1,
     OUTPUT_BAG,
@@ -115,8 +120,8 @@ void generate_vr_data(u32 const rows, f32 const min_z, f32 const max_z, f32 cons
     
     for (row = 0; row < rows; ++row) {
         for (col = 0; col < rows; ++col, ++index) {
-            data[index].depth = min_z + 0.5*(max_z - min_z)*(1.0+cos(2.0*M_PI*col/rows - (f64)row/rows));
-            data[index].depth_uncrt = min_u + 0.5*(max_u - min_u)*(1.0 + cos(2*M_PI*col/rows - (f64)row/rows));
+            data[index].depth = min_z + 0.5f*(max_z - min_z)*(f32)(1.0f+cos(2.0f*M_PI*col/rows - (f64)row/rows));
+            data[index].depth_uncrt = min_u + 0.5f*(max_u - min_u)*(f32)(1.0f + cos(2*M_PI*col/rows - (f64)row/rows));
         }
     }
 }
@@ -182,7 +187,7 @@ Bool augment_vr_bag(bagHandle handle, bagData *data)
      * the low resolution data */
     for (col = 0; col < lowres_cols; ++col) {
         lowres_aux[col].num_hypotheses = 1 + col % 10;
-        lowres_aux[col].hyp_strength = 4.0*(col % 10)/10.0;
+        lowres_aux[col].hyp_strength = 4.0f*(col % 10)/10.0f;
     }
     for (row = 0; row < lowres_rows; ++row) {
         if ((errcode = bagWriteRow(handle, row, 0, lowres_cols-1, Node_Group, lowres_aux)) != BAG_SUCCESS) {
@@ -201,7 +206,7 @@ Bool augment_vr_bag(bagHandle handle, bagData *data)
         for(col = 0; col < lowres_cols; ++col) {
             vr_metadata[col].index = n_cells;
             vr_metadata[col].dimensions = refinement_cols[col];
-            vr_metadata[col].resolution = (data->def.nodeSpacingX - 0.1)/(refinement_cols[col] - 1);
+            vr_metadata[col].resolution = (f32)(data->def.nodeSpacingX - 0.1)/(refinement_cols[col] - 1);
 
             /* Refinement information */
             total_refinements = refinement_cols[col]*refinement_cols[col];
@@ -216,7 +221,7 @@ Bool augment_vr_bag(bagHandle handle, bagData *data)
 
             /* Auxiliary information */
             for (ref = 0; ref < total_refinements; ++ref) {
-                vr_aux[ref].hyp_strength = 4.0*(ref % 10)/10.0;
+                vr_aux[ref].hyp_strength = 4.0f*(ref % 10)/10.0f;
                 vr_aux[ref].num_hypotheses = 1 + ref % 10;
                 vr_aux[ref].n_samples = 1 + ref % 15;
             }

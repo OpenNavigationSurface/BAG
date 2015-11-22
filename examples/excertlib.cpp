@@ -52,6 +52,8 @@ static const char *modrev = "$Revision: 1.2 $";
 #ifndef _MSC_VER
 #define _strdup strdup
 #define stricmp strcasecmp
+#else
+#include <io.h>  // required for mktemp
 #endif
 
 #undef __DEBUG_HASH__

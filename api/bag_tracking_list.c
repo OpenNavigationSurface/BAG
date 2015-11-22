@@ -970,7 +970,7 @@ static s32 bagCompareVarResTrackSubNodes(const void *a, const void *b)
          */
         long long index_a = ((long long)sa->row<<12 | (sa->sub_row & 0xFFF))<<32 | (((long long)sa->col<<12 | (sa->sub_col & 0xFFF)) & 0xFFFFFFFFLL);
         long long index_b = ((long long)sb->row<<12 | (sb->sub_row & 0xFFF))<<32 | (((long long)sb->col<<12 | (sb->sub_col & 0xFFF)) & 0xFFFFFFFFLL);
-        return index_a - index_b;
+        return (s32)(index_a - index_b);
     }
 }
 

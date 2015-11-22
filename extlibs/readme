@@ -6,6 +6,3 @@ by the Open Navigation Surface project. While you can download and
 build them all separately they are included here in order to make it
 easier to get a quick start. It is possible to substitute other versions
 or completely different libraries as long as they maintain the same calling interface.
-
-Be aware that the xerces-c library requires an environment variable to be set.
-	XERCESCROOT=$PWD/xerces-c-3.1.1

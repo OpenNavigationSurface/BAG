@@ -228,7 +228,7 @@ bagError bagReadCorrectedRegion (bagHandle bagHandle,
     {
         if (i >= startrow && i <= endrow)
         {
-            memset (sepData, BAG_NULL_GENERIC, sizeof(f32) * endcol-startcol+1);
+            memset (sepData, (int) BAG_NULL_GENERIC, sizeof(f32) * endcol-startcol+1);
             
             /*! By row at a time, fill the whole buffer */
             err = bagReadCorrectedRowBalance (bagHandle,  i, startcol, endcol,
@@ -476,7 +476,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
             /*! is not a constant SEP with one point? */
             if (sum_sep != 0.0 && sum != 0.0)
             {
-                data[indx] += sum_sep / sum;
+                data[indx] += (f32)(sum_sep / sum);
             }
             else 
             {
