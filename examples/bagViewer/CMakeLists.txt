@@ -31,4 +31,4 @@ set_property(SOURCE BagViewer.cpp APPEND PROPERTY OBJECT_DEPENDS ${PROJECT_BINAR
 
 add_executable(bagViewer main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp)
 qt5_use_modules(bagViewer Widgets OpenGL)
-target_link_libraries(bagViewer ${QT_LIBRARIES} ${OPENGL_gl_LIBRARY})
+target_link_libraries(bagViewer ${QT_LIBRARIES} ${OPENGL_gl_LIBRARY} bag)

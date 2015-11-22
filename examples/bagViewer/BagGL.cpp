@@ -2,8 +2,7 @@
 #include <QOpenGLShaderProgram>
 #include <QScreen>
 #include <QMouseEvent>
-
-#include <iostream>
+#include <QMessageBox>
 
 static const char *vertexShaderSource =
 "attribute highp vec4 posAttr;\n"
@@ -23,10 +22,20 @@ static const char *fragmentShaderSource =
 
 BagGL::BagGL(): 
     program(0),
-    frame(0)
+    bag(0),
+    zoom(1.0),
+    yaw(0.0),
+    pitch(0.0),
+    rotating(false)
 {
 
 }
+
+BagGL::~BagGL()
+{
+    closeBag();
+}
+
 
 GLuint BagGL::loadShader(GLenum type, const char *source)
 {
@@ -57,9 +66,11 @@ void BagGL::render()
     program->bind();
     
     QMatrix4x4 matrix;
-    matrix.perspective(60.0f, 4.0f/3.0f, 0.1f, 100.0f);
+    matrix.perspective(60.0f, width()/float(height()), 0.1f, 100.0f);
     matrix.translate(0, 0, -2);
-    matrix.rotate(100.0f * frame / screen()->refreshRate(), 0, 1, 0);
+    matrix.scale(zoom,zoom,zoom);
+    matrix.rotate(pitch, 1, 0, 0);
+    matrix.rotate(yaw, 0, 1, 0);
     
     program->setUniformValue(matrixUniform, matrix);
     
@@ -87,16 +98,60 @@ void BagGL::render()
     glDisableVertexAttribArray(0);
     
     program->release();
-    
-    ++frame;
 }
 
 void BagGL::mousePressEvent(QMouseEvent* event)
 {
-    std::cerr << "click! " << event->pos().x() << ", " << event->pos().y() << std::endl;
+    if(event->button() == Qt::MiddleButton)
+    {
+        rotating= true;
+        lastPosition = event->pos();
+    }
+}
+
+void BagGL::mouseReleaseEvent(QMouseEvent* event)
+{
+    if(event->button() == Qt::MiddleButton)
+    {
+        rotating = false;
+    }
 }
 
 void BagGL::mouseMoveEvent(QMouseEvent* event)
 {
-    std::cerr << "move!  " << event->pos().x() << ", " << event->pos().y() << std::endl;
+    if(rotating)
+    {
+        int dx = event->pos().x() - lastPosition.x();
+        int dy = event->pos().y()- lastPosition.y();
+        lastPosition = event->pos();
+        pitch += dy;
+        yaw += dx;
+    }
 }
+
+void BagGL::wheelEvent(QWheelEvent* event)
+{
+    if(event->angleDelta().y() > 0)
+        zoom *= 1.3;
+    else
+        zoom /= 1.3;
+}
+
+bool BagGL::openBag(const QString& bagFileName)
+{
+    if(bag)
+        closeBag();
+    bagError status = bagFileOpen (&bag, BAG_OPEN_READONLY, reinterpret_cast<const u8*>(bagFileName.toStdString().c_str()));
+    if (status != BAG_SUCCESS)
+    {
+        return false;
+    }
+    return true;
+}
+
+void BagGL::closeBag()
+{
+    bagFileClose(bag);
+    bag = 0;
+}
+

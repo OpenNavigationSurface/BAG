@@ -42,5 +42,7 @@ void BagViewer::on_actionOpen_triggered()
             QMessageBox::critical(this, tr("Error"), tr("Could not open file"));
             return;
         }
+        if(!bagGL->openBag(fileName))
+            QMessageBox::critical(this, tr("Error"), tr("Could not open bag file"));
     }
 }
