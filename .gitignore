@@ -1,0 +1,8 @@
+/bin/
+/lib/
+/installed/
+
+/extlibs/beecrypt/
+/extlibs/hdf5/
+/extlibs/libxml2/
+/extlibs/zlib/
