@@ -37,6 +37,8 @@ private:
     float pitch;
     bool rotating;
     QPoint lastPosition;
+    
+    std::vector<GLfloat> elevationVerticies;
 };
 
 #endif

@@ -8,7 +8,7 @@ if( POLICY CMP0043 )
 	cmake_policy( SET CMP0043 OLD )
 endif()
 
-project(helloQT)
+project(bagViewer)
 
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
