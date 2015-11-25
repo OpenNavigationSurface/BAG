@@ -76,8 +76,8 @@ QMatrix4x4 BagGL::genMatrix()
     matrix.scale(zoom,zoom,zoom);
     matrix.rotate(pitch, 1, 0, 0);
     matrix.rotate(yaw, 0, 0, 1);
-    matrix.translate(-translateX,-translateY,-translateZ);
     matrix.scale(1.0,1.0,heightExaggeration);
+    matrix.translate(-translateX,-translateY,-translateZ);
     return matrix;
 }
 
