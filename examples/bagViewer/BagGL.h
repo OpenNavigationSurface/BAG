@@ -35,7 +35,7 @@ private:
     
     bagHandle bag;
     
-    float near,far;
+    float nearPlane, farPlane;
     
     float zoom;
     float yaw;
