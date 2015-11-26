@@ -3,6 +3,8 @@
 
 #include "GLWindow.h"
 #include "bag.h"
+#include <QVector3D>
+#include <QTime>
 
 class BagGL: public GLWindow
 {
@@ -23,6 +25,7 @@ protected:
     
 private:
     GLuint loadShader(GLenum type, const char *source);
+    QMatrix4x4 genMatrix();
     
     GLuint posAttr;
     GLuint colAttr;
@@ -32,11 +35,21 @@ private:
     
     bagHandle bag;
     
+    float near,far;
+    
     float zoom;
     float yaw;
     float pitch;
     bool rotating;
     QPoint lastPosition;
+    
+    float translateX, translateY, translateZ;
+    
+    bool translating;
+    QVector3D translateStartPosition, translateEndPosition;
+    QTime translateStartTime;
+    
+    float heightExaggeration; 
     
     std::vector<GLfloat> elevationVerticies;
 };
