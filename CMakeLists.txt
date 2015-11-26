@@ -9,10 +9,10 @@ project (OPENNS)
 #-----------------------------------------------------------------------------
 SET (OPENNS_SRC_DIR                             ${OPENNS_SOURCE_DIR}/api)
 SET (OPENNS_EXAMPLES_SOURCE_DIR                 ${OPENNS_SOURCE_DIR}/examples)
-SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE     ${OPENNS_SOURCE_DIR}/bin)
-SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG       ${OPENNS_SOURCE_DIR}/bin)
-SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE     ${OPENNS_SOURCE_DIR}/lib)
-SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG       ${OPENNS_SOURCE_DIR}/lib)
+#SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE     ${OPENNS_SOURCE_DIR}/bin)
+#SET (CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG       ${OPENNS_SOURCE_DIR}/bin)
+#SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE     ${OPENNS_SOURCE_DIR}/lib)
+#SET (CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG       ${OPENNS_SOURCE_DIR}/lib)
 
 #-----------------------------------------------------------------------------
 # parse the full version number from bag.h and include in OPENNS_VERS_INFO
@@ -55,6 +55,26 @@ OPTION (BUILD_WITH_SHARED_HDF5 "Build with HDF5 as a shared library" ON)
 if (CMAKE_C_COMPILER_ID STREQUAL "GNU")
     set (CMAKE_C_FLAGS "--std=gnu99 ${CMAKE_C_FLAGS}")
 endif ()
+
+# use, i.e. don't skip the full RPATH for the build tree
+SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
+
+# when building, don't use the install RPATH already
+# (but later on when installing)
+SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE) 
+
+#SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
+# add the automatically determined parts of the RPATH
+# which point to directories outside the build tree to the install RPATH
+SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+
+
+# the RPATH to be used when installing, but only if it's not a system directory
+LIST(FIND CMAKE_PLATFORM_IMPLICIT_LINK_DIRECTORIES "${CMAKE_INSTALL_PREFIX}/lib" isSystemDir)
+IF("${isSystemDir}" STREQUAL "-1")
+   SET(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+ENDIF("${isSystemDir}" STREQUAL "-1")
 
 
 # Recurse into the "api" and "examples" subdirectories. This does not actually

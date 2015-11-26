@@ -31,11 +31,12 @@ BagGL::BagGL():
     yaw(0.0),
     pitch(0.0),
     rotating(false),
-    translateX(0.0),
-    translateY(0.0),
-    translateZ(0.0),
+    translatePosition(0.0,0.0,0.0),
+    bagCenter(0.0,0.0,0.0),
     translating(false),
-    heightExaggeration(25.0)
+    heightExaggeration(25.0),
+    elementCount(0),
+    primitiveReset(0xffffffff)
 {
 
 }
@@ -65,6 +66,8 @@ void BagGL::initialize()
     matrixUniform = program->uniformLocation("matrix");
     glEnable(GL_DEPTH_TEST);
     glPointSize(5.0);
+    glEnable(GL_PRIMITIVE_RESTART);
+    glPrimitiveRestartIndex(primitiveReset);
 }
 
 QMatrix4x4 BagGL::genMatrix()
@@ -77,7 +80,7 @@ QMatrix4x4 BagGL::genMatrix()
     matrix.rotate(pitch, 1, 0, 0);
     matrix.rotate(yaw, 0, 0, 1);
     matrix.scale(1.0,1.0,heightExaggeration);
-    matrix.translate(-translateX,-translateY,-translateZ);
+    matrix.translate(-translatePosition.x(),-translatePosition.y(),-translatePosition.z());
     return matrix;
 }
 
@@ -85,20 +88,16 @@ void BagGL::render()
 {
     if(translating)
     {
-        float p = translateStartTime.elapsed()/500.0;
+        float p = translateStartTime.elapsed()/250.0;
         if(p >= 1.0)
         {
-            translateX = translateEndPosition.x();
-            translateY = translateEndPosition.y();
-            translateZ = translateEndPosition.z();
+            translatePosition = translateEndPosition;
             translating = false;
         }
         else
         {
             float ip = 1.0-p;
-            translateX = translateStartPosition.x()*ip+translateEndPosition.x()*p;
-            translateY = translateStartPosition.y()*ip+translateEndPosition.y()*p;
-            translateZ = translateStartPosition.z()*ip+translateEndPosition.z()*p;
+            translatePosition = translateStartPosition*ip+translateEndPosition*p;
         }
     }
     const qreal retinaScale = devicePixelRatio();
@@ -123,7 +122,8 @@ void BagGL::render()
     glEnableVertexAttribArray(0);
     //glEnableVertexAttribArray(1);
     
-    glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
+    //glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
+    glDrawElements(GL_LINE_STRIP,elementCount,GL_UNSIGNED_INT,indecies.data());
     
     //glDisableVertexAttribArray(1);
     glDisableVertexAttribArray(0);
@@ -158,7 +158,7 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         if (gz < 1.0)
         {
             translating = true;
-            translateStartPosition = QVector3D(translateX,translateY,translateZ);
+            translateStartPosition = translatePosition;
             translateEndPosition = QVector3D(mousePos.x()/mousePos.w(),mousePos.y()/mousePos.w(),mousePos.z()/mousePos.w());
             translateStartTime.start();
         }
@@ -198,6 +198,19 @@ void BagGL::wheelEvent(QWheelEvent* event)
         zoom /= 1.3f;
 }
 
+void BagGL::keyPressEvent(QKeyEvent* event)
+{
+    switch(event->key())
+    {
+    case Qt::Key_R:
+        resetView();
+        break;
+    default:
+        event->ignore();
+    }
+}
+
+
 bool BagGL::openBag(const QString& bagFileName)
 {
     if(bag)
@@ -215,9 +228,9 @@ bool BagGL::openBag(const QString& bagFileName)
     double dx = bd->def.nodeSpacingX;
     double dy = bd->def.nodeSpacingY;
 
-    translateX = dx*bd->def.ncols/2.0f;
-    translateY = dy*bd->def.nrows/2.0f;
-    
+    bagCenter.setX(dx*bd->def.ncols/2.0f);
+    bagCenter.setY(dy*bd->def.nrows/2.0f);
+    resetView();
     
     std::cerr << bd->def.ncols << " columns, " << bd->def.nrows << " rows" << std::endl;
     std::cerr << "spacing: " << bd->def.nodeSpacingX << " x " << bd->def.nodeSpacingY << std::endl;
@@ -237,13 +250,19 @@ bool BagGL::openBag(const QString& bagFileName)
     std::cerr << "0,0: " << nodeZeroZero << " pos: " << *nzzx << ", " << *nzzy << std::endl;
     free(nzzx);
     free(nzzy);
-    
-    //elevationVerticies.resize(bd->def.ncols*bd->def.nrows*3);
+
     elevationVerticies.resize(0);
+    indecies.resize(0);
+    elementCount = 0;
+    bool inElement = false;
     std::vector<float> dataRow(bd->def.ncols);
+    IndexMapPtr lastRowIndecies, currentRowIndecies;
     for(u32 i = 0; i < bd->def.nrows; ++i)
     {
+        inElement = false;
         bagReadRow(bag,i,0,bd->def.ncols-1,Elevation,dataRow.data());
+        lastRowIndecies = currentRowIndecies;
+        currentRowIndecies = IndexMapPtr(new IndexMap);
         for(u32 j = 0; j < bd->def.ncols; ++j)
         {
             if(dataRow[j]!=BAG_NULL_ELEVATION)
@@ -251,11 +270,32 @@ bool BagGL::openBag(const QString& bagFileName)
                 elevationVerticies.push_back(j*dx);
                 elevationVerticies.push_back(i*dy);
                 elevationVerticies.push_back(dataRow[j]);
+                (*currentRowIndecies)[IndexMap::key_type(i,j)]=elevationVerticies.size()/3;
+                if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(i-1,j)))
+                {
+                    indecies.push_back((*lastRowIndecies)[IndexMap::key_type(i-1,j)]);
+                    indecies.push_back(elevationVerticies.size()/3);
+                    elementCount++;
+                    inElement = true;
+                }
+                else
+                    if(inElement)
+                    {
+                        indecies.push_back(primitiveReset);
+                        inElement = false;
+                    }
             }
-            //elevationVerticies[3*(i*bd->def.ncols+j)] = j;
-            //elevationVerticies[3*(i*bd->def.ncols+j)+1] = i;
-            //elevationVerticies[3*(i*bd->def.ncols+j)+2] = dataRow[j];
+            else
+            {
+                if(inElement)
+                {
+                    indecies.push_back(primitiveReset);
+                    inElement = false;
+                }
+            }
         }
+        if(inElement)
+            indecies.push_back(primitiveReset);
     }
     
     return true;
@@ -265,8 +305,16 @@ void BagGL::closeBag()
 {
     bagFileClose(bag);
     elevationVerticies.resize(0);
-    translateX = 0.0f;
-    translateY = 0.0f;
+    bagCenter.setX(0.0f);
+    bagCenter.setY(0.0f);
     bag = 0;
+}
+
+void BagGL::resetView()
+{
+    translatePosition = bagCenter;
+    pitch = 0.0;
+    yaw = 0.0;
+    zoom = 1.0;
 }
 

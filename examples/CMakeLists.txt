@@ -38,7 +38,7 @@ SET (examples
     bag_verifyfile
 )
 
-link_directories(/Users/brc/lib)
+#link_directories(/Users/brc/lib)
 
 FOREACH (example ${examples})
   
@@ -54,6 +54,8 @@ FOREACH (example ${examples})
         DEBUG_OUTPUT_NAME ${example}_debug
         RELEASE_OUTPUT_NAME ${example}
     )
+
+    INSTALL(TARGETS ${example} RUNTIME DESTINATION bin)
     
 ENDFOREACH (example ${examples})
 

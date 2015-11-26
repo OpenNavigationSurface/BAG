@@ -2,13 +2,13 @@
 #define GLWINDOW_H
 
 #include <QtGui/QWindow>
-#include <QtGui/QOpenGLFunctions>
+#include <QtGui/QOpenGLFunctions_3_1>
 
 class QPainter;
 class QOpenGLPaintDevice;
 class QOpenGLShaderProgram;
 
-class GLWindow: public QWindow, protected QOpenGLFunctions
+class GLWindow: public QWindow, protected QOpenGLFunctions_3_1
 {
     Q_OBJECT
 public:

@@ -29,6 +29,13 @@ add_custom_command(
 
 set_property(SOURCE BagViewer.cpp APPEND PROPERTY OBJECT_DEPENDS ${PROJECT_BINARY_DIR}/ui_BagViewer.h)
 
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-std=c++11)
+endif(CMAKE_COMPILER_IS_GNUCXX)
+
+
 add_executable(bagViewer main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp)
 qt5_use_modules(bagViewer Widgets OpenGL)
 target_link_libraries(bagViewer ${QT_LIBRARIES} ${OPENGL_gl_LIBRARY} bag)
+
+INSTALL(TARGETS bagViewer RUNTIME DESTINATION bin)
