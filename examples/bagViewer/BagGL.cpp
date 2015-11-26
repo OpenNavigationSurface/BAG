@@ -25,8 +25,8 @@ static const char *fragmentShaderSource =
 BagGL::BagGL(): 
     program(0),
     bag(0),
-    near(1.0),
-    far(100.0),
+    nearPlane(1.0),
+    farPlane(100.0),
     zoom(1.0),
     yaw(0.0),
     pitch(0.0),
@@ -70,7 +70,7 @@ void BagGL::initialize()
 QMatrix4x4 BagGL::genMatrix()
 {
     QMatrix4x4 matrix;
-    matrix.perspective(60.0f, width()/float(height()), near, far);
+    matrix.perspective(60.0f, width()/float(height()), nearPlane, farPlane);
     matrix.translate(0, 0, -2);
     matrix.rotate(-90, 1, 0, 0);
     matrix.scale(zoom,zoom,zoom);
@@ -193,9 +193,9 @@ void BagGL::mouseMoveEvent(QMouseEvent* event)
 void BagGL::wheelEvent(QWheelEvent* event)
 {
     if(event->angleDelta().y() > 0)
-        zoom *= 1.3;
+        zoom *= 1.3f;
     else
-        zoom /= 1.3;
+        zoom /= 1.3f;
 }
 
 bool BagGL::openBag(const QString& bagFileName)
@@ -241,10 +241,10 @@ bool BagGL::openBag(const QString& bagFileName)
     //elevationVerticies.resize(bd->def.ncols*bd->def.nrows*3);
     elevationVerticies.resize(0);
     std::vector<float> dataRow(bd->def.ncols);
-    for(int i = 0; i < bd->def.nrows; ++i)
+    for(u32 i = 0; i < bd->def.nrows; ++i)
     {
         bagReadRow(bag,i,0,bd->def.ncols-1,Elevation,dataRow.data());
-        for(int j = 0; j < bd->def.ncols; ++j)
+        for(u32 j = 0; j < bd->def.ncols; ++j)
         {
             if(dataRow[j]!=BAG_NULL_ELEVATION)
             {
