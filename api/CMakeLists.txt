@@ -141,4 +141,7 @@ IF(MSVC)
     
 ENDIF(MSVC)
 
-install(TARGETS bag LIBRARY DESTINATION lib)
+install(TARGETS bag
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION lib
+        ARCHIVE DESTINATION lib/static)
