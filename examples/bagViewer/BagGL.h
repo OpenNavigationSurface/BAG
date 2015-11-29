@@ -32,8 +32,11 @@ private:
     void resetView();
     
     GLuint posAttr;
-    GLuint colAttr;
+    GLuint unAttr;
+    GLuint normAttr;
     GLuint matrixUniform;
+    GLuint normMatrixUniform;
+    GLuint lightDirectionUniform;
     
     QOpenGLShaderProgram *program;
     
@@ -57,8 +60,9 @@ private:
     float heightExaggeration; 
     
     std::vector<GLfloat> elevationVerticies;
+    std::vector<GLfloat> normals;
+    std::vector<GLfloat> uncertainties;
     std::vector<GLuint> indecies;
-    GLsizei elementCount;
     const GLuint primitiveReset;
     typedef std::map<std::pair<u32,u32>,GLuint> IndexMap;
     typedef std::shared_ptr<IndexMap> IndexMapPtr;

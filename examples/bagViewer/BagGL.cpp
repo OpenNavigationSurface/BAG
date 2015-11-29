@@ -8,18 +8,29 @@
 
 static const char *vertexShaderSource =
 "attribute highp vec4 posAttr;\n"
-"attribute lowp vec4 colAttr;\n"
-"varying lowp vec4 col;\n"
+"attribute float uncertainty;\n"
+"attribute vec3 normal;\n"
+"varying lowp vec4 color;\n"
 "uniform highp mat4 matrix;\n"
+"uniform highp mat3 normMatrix;\n"
+"uniform vec3 lightDirection;\n"
 "void main() {\n"
-"   col = colAttr;\n"
+"   vec3 vsNormal = normalize(normMatrix*normal);\n"
+"   float NdotL = max(dot(vsNormal,lightDirection), 0.0);\n"
+"   color.r = uncertainty;\n"
+"   //color.r = NdotL;\n"
+"   color.g = NdotL;\n"
+"   color.b = NdotL;\n"
+"   //color.rgb = vsNormal.xyz;\n"
+"   //color.g = .1;\n"
+"   color.a = 1.0;\n"
 "   gl_Position = matrix * posAttr;\n"
 "}\n";
 
 static const char *fragmentShaderSource =
-"varying lowp vec4 col;\n"
+"varying lowp vec4 color;\n"
 "void main() {\n"
-"   gl_FragColor = col;\n"
+"   gl_FragColor = color;\n"
 "}\n";
 
 BagGL::BagGL(): 
@@ -35,7 +46,6 @@ BagGL::BagGL():
     bagCenter(0.0,0.0,0.0),
     translating(false),
     heightExaggeration(25.0),
-    elementCount(0),
     primitiveReset(0xffffffff)
 {
 
@@ -62,8 +72,11 @@ void BagGL::initialize()
     program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
     program->link();
     posAttr = program->attributeLocation("posAttr");
-    colAttr = program->attributeLocation("colAttr");
+    unAttr = program->attributeLocation("uncertainty");
+    normAttr = program->attributeLocation("normal");
     matrixUniform = program->uniformLocation("matrix");
+    normMatrixUniform = program->uniformLocation("normMatrix");
+    lightDirectionUniform = program->uniformLocation("lightDirection");
     glEnable(GL_DEPTH_TEST);
     glPointSize(5.0);
     glEnable(GL_PRIMITIVE_RESTART);
@@ -108,25 +121,43 @@ void BagGL::render()
     program->bind();
     
     QMatrix4x4 matrix = genMatrix();
+    QMatrix4x4 normMatrix;
+    normMatrix.scale(1.0,1.0,heightExaggeration);
+    
+//     std::cerr << "normMatrix" << std::endl;
+//     std::cerr << normMatrix.data()[0] << ", " << normMatrix.data()[1] << ", " << normMatrix.data()[2] << ", " << normMatrix.data()[3] << ", " << std::endl;
+//     std::cerr << normMatrix.data()[4] << ", " << normMatrix.data()[5] << ", " << normMatrix.data()[6] << ", " << normMatrix.data()[7] << ", " << std::endl;
+//     std::cerr << normMatrix.data()[8] << ", " << normMatrix.data()[9] << ", " << normMatrix.data()[10] << ", " << normMatrix.data()[11] << ", " << std::endl;
+//     std::cerr << normMatrix.data()[12] << ", " << normMatrix.data()[13] << ", " << normMatrix.data()[14] << ", " << normMatrix.data()[15] << ", " << std::endl;
+    
+    //normMatrix = normMatrix.inverted().transposed();
+    
+//     std::cerr << "normMatrix inverted transposed" << std::endl;
+//     std::cerr << normMatrix.data()[0] << ", " << normMatrix.data()[1] << ", " << normMatrix.data()[2] << ", " << normMatrix.data()[3] << ", " << std::endl;
+//     std::cerr << normMatrix.data()[4] << ", " << normMatrix.data()[5] << ", " << normMatrix.data()[6] << ", " << normMatrix.data()[7] << ", " << std::endl;
+//     std::cerr << normMatrix.data()[8] << ", " << normMatrix.data()[9] << ", " << normMatrix.data()[10] << ", " << normMatrix.data()[11] << ", " << std::endl;
+//     std::cerr << normMatrix.data()[12] << ", " << normMatrix.data()[13] << ", " << normMatrix.data()[14] << ", " << normMatrix.data()[15] << ", " << std::endl;
     
     program->setUniformValue(matrixUniform, matrix);
+    program->setUniformValue(normMatrixUniform, normMatrix.normalMatrix());
     
-    GLfloat colors[] = {
-        1.0f, 0.0f, 0.0f,
-        0.0f, 1.0f, 0.0f,
-        0.0f, 0.0f, 1.0f
-    };
+    QVector3D lightDirection(0.0,0.0,1.0);
+    program->setUniformValue(lightDirectionUniform,lightDirection);
     
     glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, elevationVerticies.data());
+    glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, uncertainties.data());
+    glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, normals.data());
     
-    glEnableVertexAttribArray(0);
-    //glEnableVertexAttribArray(1);
+    glEnableVertexAttribArray(posAttr);
+    glEnableVertexAttribArray(unAttr);
+    glEnableVertexAttribArray(normAttr);
     
     //glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
-    glDrawElements(GL_LINE_STRIP,elementCount,GL_UNSIGNED_INT,indecies.data());
+    glDrawElements(GL_TRIANGLE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
     
-    //glDisableVertexAttribArray(1);
-    glDisableVertexAttribArray(0);
+    glDisableVertexAttribArray(normAttr);
+    glDisableVertexAttribArray(unAttr);
+    glDisableVertexAttribArray(posAttr);
     
     program->release();
 }
@@ -142,19 +173,15 @@ void BagGL::mousePressEvent(QMouseEvent* event)
     {
         int mx = event->pos().x();
         int my = height()-event->pos().y();
-        std::cerr << "mouse: " << mx << ", " << my << std::endl;
         float gx = -1.0+mx/(width()/2.0);
         float gy = -1.0+my/(height()/2.0);
         renderNow();
         GLfloat gz;
         glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
         gz = (gz-.5)*2.0;
-        //gz = (near*far)/(far-gz*(far-near));
-        std::cerr << "gl coord: " << gx << ", " << gy << ", " << gz << std::endl;
         QMatrix4x4 matrix = genMatrix().inverted();
         QVector4D mousePos(gx,gy,gz,1.0);
         mousePos = matrix*mousePos;
-        std::cerr << mousePos.x()/mousePos.w() <<", " << mousePos.y()/mousePos.w() << ", " << mousePos.z()/mousePos.w() << std::endl;
         if (gz < 1.0)
         {
             translating = true;
@@ -252,38 +279,67 @@ bool BagGL::openBag(const QString& bagFileName)
     free(nzzy);
 
     elevationVerticies.resize(0);
+    uncertainties.resize(0);
+    normals.resize(0);
     indecies.resize(0);
-    elementCount = 0;
     bool inElement = false;
-    std::vector<float> dataRow(bd->def.ncols);
+    typedef std::vector<float> DataRowVec;
+    typedef std::shared_ptr<DataRowVec> DataRowVecPtr;
+    DataRowVecPtr dataRow,lastDataRow;
+    //std::vector<float> dataRow(bd->def.ncols);
+    std::vector<float> unRow(bd->def.ncols);
     IndexMapPtr lastRowIndecies, currentRowIndecies;
     for(u32 i = 0; i < bd->def.nrows; ++i)
     {
         inElement = false;
-        bagReadRow(bag,i,0,bd->def.ncols-1,Elevation,dataRow.data());
+        lastDataRow = dataRow;
+        dataRow = DataRowVecPtr(new DataRowVec(bd->def.ncols));
+        bagReadRow(bag,i,0,bd->def.ncols-1,Elevation,dataRow->data());
+        bagReadRow(bag,i,0,bd->def.ncols-1,Uncertainty,unRow.data());
         lastRowIndecies = currentRowIndecies;
         currentRowIndecies = IndexMapPtr(new IndexMap);
         for(u32 j = 0; j < bd->def.ncols; ++j)
         {
-            if(dataRow[j]!=BAG_NULL_ELEVATION)
+            if((*dataRow)[j]!=BAG_NULL_ELEVATION)
             {
+                (*currentRowIndecies)[IndexMap::key_type(i,j)]=elevationVerticies.size()/3;
                 elevationVerticies.push_back(j*dx);
                 elevationVerticies.push_back(i*dy);
-                elevationVerticies.push_back(dataRow[j]);
-                (*currentRowIndecies)[IndexMap::key_type(i,j)]=elevationVerticies.size()/3;
+                elevationVerticies.push_back((*dataRow)[j]);
+                uncertainties.push_back(unRow[j]);
                 if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(i-1,j)))
                 {
                     indecies.push_back((*lastRowIndecies)[IndexMap::key_type(i-1,j)]);
-                    indecies.push_back(elevationVerticies.size()/3);
-                    elementCount++;
+                    indecies.push_back((elevationVerticies.size()/3)-1);
                     inElement = true;
+                    if(j < bd->def.ncols-1 && (*dataRow)[j+1] != BAG_NULL_ELEVATION)
+                    {
+                        QVector3D v1(dx,0.0,(*lastDataRow)[j]-(*dataRow)[j]);
+                        QVector3D v2(0.0,dy,(*dataRow)[j+1]-(*dataRow)[j]);
+                        QVector3D n = QVector3D::normal(v1,v2);
+                        normals.push_back(n.x());
+                        normals.push_back(n.y());
+                        normals.push_back(n.z());
+                    }
+                    else
+                    {
+                        normals.push_back(0.0);
+                        normals.push_back(0.0);
+                        normals.push_back(1.0);
+                    }
                 }
                 else
+                {
                     if(inElement)
                     {
                         indecies.push_back(primitiveReset);
                         inElement = false;
                     }
+                    normals.push_back(0.0);
+                    normals.push_back(0.0);
+                    normals.push_back(1.0);
+                    
+                }
             }
             else
             {
@@ -297,6 +353,7 @@ bool BagGL::openBag(const QString& bagFileName)
         if(inElement)
             indecies.push_back(primitiveReset);
     }
+    std::cerr << elevationVerticies.size() << " ev size, " << normals.size() << " normals size" << std::endl;
     
     return true;
 }
