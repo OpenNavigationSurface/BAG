@@ -15,6 +15,7 @@ class BagViewer: public QMainWindow
 public:
     explicit BagViewer(QWidget *parent=0);
     ~BagViewer();
+    void openBag(std::string const &fname);
 private:
     BagGL *bagGL;
     Ui::BagViewer *ui;

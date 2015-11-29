@@ -31,6 +31,12 @@ BagViewer::~BagViewer()
     delete ui;
 }
 
+void BagViewer::openBag(const std::string& fname)
+{
+    bagGL->openBag(QString(fname.c_str()));
+}
+
+
 void BagViewer::on_actionExit_triggered()
 {
     qApp->quit();
