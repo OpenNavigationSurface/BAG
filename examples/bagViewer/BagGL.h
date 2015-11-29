@@ -6,7 +6,7 @@
 #include <QVector3D>
 #include <QTime>
 #include <memory>
-
+#include <QOpenGLTexture>
 
 class BagGL: public GLWindow
 {
@@ -19,6 +19,7 @@ public:
     
     bool openBag(QString const &bagFileName);
     void closeBag();
+    void setColormap(std::string const&cm);
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -37,10 +38,19 @@ private:
     GLuint matrixUniform;
     GLuint normMatrixUniform;
     GLuint lightDirectionUniform;
+    GLuint minElevationUniform;
+    GLuint maxElevationUniform;
     
     QOpenGLShaderProgram *program;
     
     bagHandle bag;
+    
+    float minElevation, maxElevation;
+    
+    typedef std::shared_ptr<QOpenGLTexture> QOpenGLTexturePtr;
+    typedef std::map<std::string,QOpenGLTexturePtr> ColormapMap;
+    ColormapMap colormaps;
+    std::string currentColormap;
     
     float nearPlane, farPlane;
     
@@ -52,6 +62,7 @@ private:
     
     QVector3D translatePosition;
     QVector3D bagCenter;
+    float defaultZoom;
     
     bool translating;
     QVector3D translateStartPosition, translateEndPosition;

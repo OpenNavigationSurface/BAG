@@ -30,7 +30,21 @@
     <addaction name="actionOpen"/>
     <addaction name="actionExit"/>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <widget class="QMenu" name="menuColormap">
+     <property name="title">
+      <string>Colormap</string>
+     </property>
+     <addaction name="actionTopographic"/>
+     <addaction name="actionOmnimap"/>
+    </widget>
+    <addaction name="menuColormap"/>
+   </widget>
    <addaction name="menuFile"/>
+   <addaction name="menuView"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
@@ -41,6 +55,25 @@
   <action name="actionExit">
    <property name="text">
     <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionTopographic">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Topographic</string>
+   </property>
+  </action>
+  <action name="actionOmnimap">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Omnimap</string>
    </property>
   </action>
  </widget>

@@ -1,0 +1,6 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource>
+        <file>colormaps/topographic.png</file>
+        <file>colormaps/omnimap.png</file>
+    </qresource>
+</RCC>

@@ -9,6 +9,9 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     bagGL(new BagGL), ui(new Ui::BagViewer)
 {
     ui->setupUi(this);
+    colormapActionGroup = new QActionGroup(this);
+    colormapActionGroup->addAction(ui->actionTopographic);
+    colormapActionGroup->addAction(ui->actionOmnimap);
     
     QSurfaceFormat format;
     //format.setSamples(16);
@@ -47,3 +50,14 @@ void BagViewer::on_actionOpen_triggered()
             QMessageBox::critical(this, tr("Error"), tr("Could not open bag file"));
     }
 }
+
+void BagViewer::on_actionTopographic_triggered()
+{
+    bagGL->setColormap("topographic");
+}
+
+void BagViewer::on_actionOmnimap_triggered()
+{
+    bagGL->setColormap("omnimap");
+}
+

@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 
+class QActionGroup;
 class BagGL;
 namespace Ui {
     class BagViewer;
@@ -17,10 +18,13 @@ public:
 private:
     BagGL *bagGL;
     Ui::BagViewer *ui;
+    QActionGroup *colormapActionGroup;
     
 private slots:
     void on_actionOpen_triggered();
     void on_actionExit_triggered();
+    void on_actionTopographic_triggered();
+    void on_actionOmnimap_triggered();
 };    
 
 #endif

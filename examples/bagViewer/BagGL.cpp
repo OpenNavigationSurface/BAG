@@ -10,40 +10,51 @@ static const char *vertexShaderSource =
 "attribute highp vec4 posAttr;\n"
 "attribute float uncertainty;\n"
 "attribute vec3 normal;\n"
-"varying lowp vec4 color;\n"
+"varying float elevation;\n"
+"varying float lighting;\n"
+"varying float vsUncertainty;\n"
 "uniform highp mat4 matrix;\n"
 "uniform highp mat3 normMatrix;\n"
 "uniform vec3 lightDirection;\n"
+"uniform float minElevation;\n"
+"uniform float maxElevation;\n"
 "void main() {\n"
 "   vec3 vsNormal = normalize(normMatrix*normal);\n"
-"   float NdotL = max(dot(vsNormal,lightDirection), 0.0);\n"
-"   color.r = uncertainty;\n"
-"   //color.r = NdotL;\n"
-"   color.g = NdotL;\n"
-"   color.b = NdotL;\n"
-"   //color.rgb = vsNormal.xyz;\n"
-"   //color.g = .1;\n"
-"   color.a = 1.0;\n"
+"   lighting = max(dot(vsNormal,lightDirection), 0.0);\n"
+"   vsUncertainty = uncertainty;\n"
+"   elevation = (posAttr.z-minElevation)/(maxElevation-minElevation);\n"
 "   gl_Position = matrix * posAttr;\n"
 "}\n";
 
 static const char *fragmentShaderSource =
-"varying lowp vec4 color;\n"
+"varying float lighting;\n"
+"varying float elevation;\n"
+"uniform sampler2D texture;\n"
 "void main() {\n"
+"   vec2 tc;\n"
+"   tc.x = elevation;\n"
+"   tc.y = .5;\n"
+"   vec4 color = texture2D(texture,tc);\n"
+"   color.rgb *= lighting;\n"
+"   color.a = 1.0;\n"
 "   gl_FragColor = color;\n"
 "}\n";
 
 BagGL::BagGL(): 
     program(0),
     bag(0),
+    minElevation(-1.0),
+    maxElevation(0.0),
+    currentColormap("omnimap"),
     nearPlane(1.0),
     farPlane(100.0),
     zoom(1.0),
     yaw(0.0),
-    pitch(0.0),
+    pitch(30.0),
     rotating(false),
     translatePosition(0.0,0.0,0.0),
     bagCenter(0.0,0.0,0.0),
+    defaultZoom(1.0),
     translating(false),
     heightExaggeration(25.0),
     primitiveReset(0xffffffff)
@@ -77,10 +88,15 @@ void BagGL::initialize()
     matrixUniform = program->uniformLocation("matrix");
     normMatrixUniform = program->uniformLocation("normMatrix");
     lightDirectionUniform = program->uniformLocation("lightDirection");
+    minElevationUniform = program->uniformLocation("minElevation");
+    maxElevationUniform = program->uniformLocation("maxElevation");
     glEnable(GL_DEPTH_TEST);
     glPointSize(5.0);
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(primitiveReset);
+    
+    colormaps["topographic"] = QOpenGLTexturePtr(new QOpenGLTexture(QImage(QString(":/colormaps/topographic.png"))));
+    colormaps["omnimap"] = QOpenGLTexturePtr(new QOpenGLTexture(QImage(QString(":/colormaps/omnimap.png"))));
 }
 
 QMatrix4x4 BagGL::genMatrix()
@@ -124,22 +140,10 @@ void BagGL::render()
     QMatrix4x4 normMatrix;
     normMatrix.scale(1.0,1.0,heightExaggeration);
     
-//     std::cerr << "normMatrix" << std::endl;
-//     std::cerr << normMatrix.data()[0] << ", " << normMatrix.data()[1] << ", " << normMatrix.data()[2] << ", " << normMatrix.data()[3] << ", " << std::endl;
-//     std::cerr << normMatrix.data()[4] << ", " << normMatrix.data()[5] << ", " << normMatrix.data()[6] << ", " << normMatrix.data()[7] << ", " << std::endl;
-//     std::cerr << normMatrix.data()[8] << ", " << normMatrix.data()[9] << ", " << normMatrix.data()[10] << ", " << normMatrix.data()[11] << ", " << std::endl;
-//     std::cerr << normMatrix.data()[12] << ", " << normMatrix.data()[13] << ", " << normMatrix.data()[14] << ", " << normMatrix.data()[15] << ", " << std::endl;
-    
-    //normMatrix = normMatrix.inverted().transposed();
-    
-//     std::cerr << "normMatrix inverted transposed" << std::endl;
-//     std::cerr << normMatrix.data()[0] << ", " << normMatrix.data()[1] << ", " << normMatrix.data()[2] << ", " << normMatrix.data()[3] << ", " << std::endl;
-//     std::cerr << normMatrix.data()[4] << ", " << normMatrix.data()[5] << ", " << normMatrix.data()[6] << ", " << normMatrix.data()[7] << ", " << std::endl;
-//     std::cerr << normMatrix.data()[8] << ", " << normMatrix.data()[9] << ", " << normMatrix.data()[10] << ", " << normMatrix.data()[11] << ", " << std::endl;
-//     std::cerr << normMatrix.data()[12] << ", " << normMatrix.data()[13] << ", " << normMatrix.data()[14] << ", " << normMatrix.data()[15] << ", " << std::endl;
-    
     program->setUniformValue(matrixUniform, matrix);
     program->setUniformValue(normMatrixUniform, normMatrix.normalMatrix());
+    program->setUniformValue(minElevationUniform, minElevation);
+    program->setUniformValue(maxElevationUniform, maxElevation);
     
     QVector3D lightDirection(0.0,0.0,1.0);
     program->setUniformValue(lightDirectionUniform,lightDirection);
@@ -151,6 +155,8 @@ void BagGL::render()
     glEnableVertexAttribArray(posAttr);
     glEnableVertexAttribArray(unAttr);
     glEnableVertexAttribArray(normAttr);
+    
+    colormaps[currentColormap]->bind();
     
     //glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
     glDrawElements(GL_TRIANGLE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
@@ -213,6 +219,7 @@ void BagGL::mouseMoveEvent(QMouseEvent* event)
         int dy = event->pos().y()- lastPosition.y();
         lastPosition = event->pos();
         pitch += dy;
+        pitch = std::max(-90.0f,std::min(90.0f,pitch));
         yaw += dx;
     }
 }
@@ -254,9 +261,15 @@ bool BagGL::openBag(const QString& bagFileName)
     
     double dx = bd->def.nodeSpacingX;
     double dy = bd->def.nodeSpacingY;
+    
+    minElevation = bd->min_elevation;
+    maxElevation = bd->max_elevation;
 
     bagCenter.setX(dx*bd->def.ncols/2.0f);
     bagCenter.setY(dy*bd->def.nrows/2.0f);
+    
+    defaultZoom = 2/std::max(dx*bd->def.ncols,dy*bd->def.nrows);
+    
     resetView();
     
     std::cerr << bd->def.ncols << " columns, " << bd->def.nrows << " rows" << std::endl;
@@ -370,8 +383,12 @@ void BagGL::closeBag()
 void BagGL::resetView()
 {
     translatePosition = bagCenter;
-    pitch = 0.0;
+    pitch = 30.0;
     yaw = 0.0;
-    zoom = 1.0;
+    zoom = defaultZoom;
 }
 
+void BagGL::setColormap(const std::string& cm)
+{
+    currentColormap = cm;
+}

@@ -17,6 +17,7 @@ SET(CMAKE_DEBUG_POSTFIX  "d")
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
 set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
 
 # Find the QtWidgets library
 find_package(Qt5 COMPONENTS Widgets OpenGL)
@@ -32,12 +33,20 @@ add_custom_command(
 
 set_property(SOURCE BagViewer.cpp APPEND PROPERTY OBJECT_DEPENDS ${PROJECT_BINARY_DIR}/ui_BagViewer.h)
 
+add_custom_command(
+  OUTPUT resources.cxx
+  COMMAND rcc 
+  ARGS    ${PROJECT_SOURCE_DIR}/resources.qrc -o ${PROJECT_BINARY_DIR}/resources.cxx
+  DEPENDS resources.qrc 
+)
+
+
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 
-add_executable(bagViewer main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp)
+add_executable(bagViewer main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp resources.cxx)
 qt5_use_modules(bagViewer Widgets OpenGL)
 target_link_libraries(bagViewer ${QT_LIBRARIES} ${OPENGL_gl_LIBRARY} bag)
 
