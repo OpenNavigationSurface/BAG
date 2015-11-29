@@ -41,7 +41,16 @@
      <addaction name="actionTopographic"/>
      <addaction name="actionOmnimap"/>
     </widget>
+    <widget class="QMenu" name="menuDraw_style">
+     <property name="title">
+      <string>Draw style</string>
+     </property>
+     <addaction name="actionSolid"/>
+     <addaction name="actionWireframe"/>
+     <addaction name="actionPoints"/>
+    </widget>
     <addaction name="menuColormap"/>
+    <addaction name="menuDraw_style"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuView"/>
@@ -74,6 +83,33 @@
    </property>
    <property name="text">
     <string>Omnimap</string>
+   </property>
+  </action>
+  <action name="actionSolid">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Solid</string>
+   </property>
+  </action>
+  <action name="actionWireframe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Wireframe</string>
+   </property>
+  </action>
+  <action name="actionPoints">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Points</string>
    </property>
   </action>
  </widget>

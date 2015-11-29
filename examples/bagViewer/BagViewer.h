@@ -20,12 +20,16 @@ private:
     BagGL *bagGL;
     Ui::BagViewer *ui;
     QActionGroup *colormapActionGroup;
+    QActionGroup *drawStyleActionGroup;
     
 private slots:
     void on_actionOpen_triggered();
     void on_actionExit_triggered();
     void on_actionTopographic_triggered();
     void on_actionOmnimap_triggered();
+    void on_actionSolid_triggered();
+    void on_actionWireframe_triggered();
+    void on_actionPoints_triggered();
 };    
 
 #endif

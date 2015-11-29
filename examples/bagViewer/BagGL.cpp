@@ -46,6 +46,7 @@ BagGL::BagGL():
     minElevation(-1.0),
     maxElevation(0.0),
     currentColormap("omnimap"),
+    drawStyle("solid"),
     nearPlane(1.0),
     farPlane(100.0),
     zoom(1.0),
@@ -91,7 +92,7 @@ void BagGL::initialize()
     minElevationUniform = program->uniformLocation("minElevation");
     maxElevationUniform = program->uniformLocation("maxElevation");
     glEnable(GL_DEPTH_TEST);
-    glPointSize(5.0);
+    glPointSize(2.0);
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(primitiveReset);
     
@@ -158,8 +159,12 @@ void BagGL::render()
     
     colormaps[currentColormap]->bind();
     
-    //glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
-    glDrawElements(GL_TRIANGLE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
+    if(drawStyle == "points")
+        glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
+    if(drawStyle == "solid")
+        glDrawElements(GL_TRIANGLE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
+    if(drawStyle == "wireframe")
+        glDrawElements(GL_LINE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
     
     glDisableVertexAttribArray(normAttr);
     glDisableVertexAttribArray(unAttr);
@@ -392,3 +397,9 @@ void BagGL::setColormap(const std::string& cm)
 {
     currentColormap = cm;
 }
+
+void BagGL::setDrawStyle(const std::string& ds)
+{
+    drawStyle = ds;
+}
+

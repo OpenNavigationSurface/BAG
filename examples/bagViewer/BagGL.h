@@ -19,7 +19,8 @@ public:
     
     bool openBag(QString const &bagFileName);
     void closeBag();
-    void setColormap(std::string const&cm);
+    void setColormap(std::string const &cm);
+    void setDrawStyle(std::string const &ds);
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -51,6 +52,8 @@ private:
     typedef std::map<std::string,QOpenGLTexturePtr> ColormapMap;
     ColormapMap colormaps;
     std::string currentColormap;
+    
+    std::string drawStyle;
     
     float nearPlane, farPlane;
     

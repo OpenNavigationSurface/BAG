@@ -13,6 +13,11 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     colormapActionGroup->addAction(ui->actionTopographic);
     colormapActionGroup->addAction(ui->actionOmnimap);
     
+    drawStyleActionGroup = new QActionGroup(this);
+    drawStyleActionGroup->addAction(ui->actionSolid);
+    drawStyleActionGroup->addAction(ui->actionWireframe);
+    drawStyleActionGroup->addAction(ui->actionPoints);
+    
     QSurfaceFormat format;
     //format.setSamples(16);
     format.setDepthBufferSize(32);
@@ -65,5 +70,20 @@ void BagViewer::on_actionTopographic_triggered()
 void BagViewer::on_actionOmnimap_triggered()
 {
     bagGL->setColormap("omnimap");
+}
+
+void BagViewer::on_actionSolid_triggered()
+{
+    bagGL->setDrawStyle("solid");
+}
+
+void BagViewer::on_actionWireframe_triggered()
+{
+    bagGL->setDrawStyle("wireframe");
+}
+
+void BagViewer::on_actionPoints_triggered()
+{
+    bagGL->setDrawStyle("points");
 }
 
