@@ -10,6 +10,9 @@ endif()
 
 project(bagViewer)
 
+# The debug build will have a 'd' postfix
+SET(CMAKE_DEBUG_POSTFIX  "d")
+
 # Find includes in corresponding build directories
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 # Instruct CMake to run moc automatically when needed.
