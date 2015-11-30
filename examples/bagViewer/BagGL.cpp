@@ -104,7 +104,7 @@ QMatrix4x4 BagGL::genMatrix()
 {
     QMatrix4x4 matrix;
     matrix.perspective(60.0f, width()/float(height()), nearPlane, farPlane);
-    matrix.translate(0, 0, -2);
+    matrix.translate(0, 0, -5);
     matrix.rotate(-90, 1, 0, 0);
     matrix.scale(zoom,zoom,zoom);
     matrix.rotate(pitch, 1, 0, 0);
@@ -212,7 +212,7 @@ void BagGL::mouseReleaseEvent(QMouseEvent* event)
     
     if(event->button() == Qt::MiddleButton)
     {
-        translating = false;
+        //translating = false;
     }
 }
 

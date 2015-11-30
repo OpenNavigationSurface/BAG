@@ -21,7 +21,7 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     drawStyleActionGroup->addAction(ui->actionPoints);
     
     QSurfaceFormat format;
-    //format.setSamples(16);
+    format.setSamples(16);
     format.setDepthBufferSize(32);
     
     bagGL->setFormat(format);
