@@ -45,8 +45,13 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
+set( HDR GLWindow.h BagViewer.h BagGL.h)
+set( SRC main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp resources.cxx)
+if( MSVC )
+	set( SRC ${SRC} BagViewer.rc )
+endif()
+add_executable(bagViewer ${HDR} ${SRC})
 
-add_executable(bagViewer main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp resources.cxx)
 qt5_use_modules(bagViewer Widgets OpenGL)
 target_link_libraries(bagViewer ${QT_LIBRARIES} ${OPENGL_gl_LIBRARY} bag)
 

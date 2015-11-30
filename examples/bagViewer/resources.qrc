@@ -2,5 +2,6 @@
     <qresource>
         <file>colormaps/topographic.png</file>
         <file>colormaps/omnimap.png</file>
+		<file>icons/bagViewer.png</file>
     </qresource>
 </RCC>
