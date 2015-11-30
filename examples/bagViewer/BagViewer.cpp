@@ -9,6 +9,8 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     bagGL(new BagGL), ui(new Ui::BagViewer)
 {
     ui->setupUi(this);
+	this->setWindowIcon(QIcon(QString(":/icons/bagViewer.png")));
+
     colormapActionGroup = new QActionGroup(this);
     colormapActionGroup->addAction(ui->actionTopographic);
     colormapActionGroup->addAction(ui->actionOmnimap);
