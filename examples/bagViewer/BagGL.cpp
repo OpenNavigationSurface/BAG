@@ -57,7 +57,8 @@ BagGL::BagGL():
     bagCenter(0.0,0.0,0.0),
     defaultZoom(1.0),
     translating(false),
-    heightExaggeration(25.0),
+    heightExaggeration(1.0),
+    adjustingHeightExaggeration(false),
     primitiveReset(0xffffffff)
 {
 
@@ -201,6 +202,11 @@ void BagGL::mousePressEvent(QMouseEvent* event)
             translateStartTime.start();
         }
     }
+    if(event->button() == Qt::RightButton)
+    {
+        adjustingHeightExaggeration = true;
+        lastPosition = event->pos();
+    }
 }
 
 void BagGL::mouseReleaseEvent(QMouseEvent* event)
@@ -214,6 +220,11 @@ void BagGL::mouseReleaseEvent(QMouseEvent* event)
     {
         //translating = false;
     }
+    if(event->button() == Qt::RightButton)
+    {
+        adjustingHeightExaggeration = false;
+    }
+    
 }
 
 void BagGL::mouseMoveEvent(QMouseEvent* event)
@@ -226,6 +237,13 @@ void BagGL::mouseMoveEvent(QMouseEvent* event)
         pitch += dy;
         pitch = std::max(-90.0f,std::min(90.0f,pitch));
         yaw += dx;
+    }
+    if(adjustingHeightExaggeration)
+    {
+        int dy = event->pos().y()- lastPosition.y();
+        lastPosition = event->pos();
+        heightExaggeration -= dy/10.0;
+        heightExaggeration = std::max(1.0f,std::min(heightExaggeration,500.0f));
     }
 }
 
@@ -371,7 +389,6 @@ bool BagGL::openBag(const QString& bagFileName)
         if(inElement)
             indecies.push_back(primitiveReset);
     }
-    std::cerr << elevationVerticies.size() << " ev size, " << normals.size() << " normals size" << std::endl;
     
     return true;
 }
@@ -391,6 +408,7 @@ void BagGL::resetView()
     pitch = 30.0;
     yaw = 0.0;
     zoom = defaultZoom;
+    heightExaggeration = 1.0;
 }
 
 void BagGL::setColormap(const std::string& cm)

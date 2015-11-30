@@ -71,7 +71,8 @@ private:
     QVector3D translateStartPosition, translateEndPosition;
     QTime translateStartTime;
     
-    float heightExaggeration; 
+    float heightExaggeration;
+    bool adjustingHeightExaggeration;
     
     std::vector<GLfloat> elevationVerticies;
     std::vector<GLfloat> normals;
