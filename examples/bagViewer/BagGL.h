@@ -78,6 +78,11 @@ private:
     std::vector<GLfloat> normals;
     std::vector<GLfloat> uncertainties;
     std::vector<GLuint> indecies;
+    
+    std::vector<GLfloat> vrElevationVerticies;
+    std::vector<GLfloat> vrNormals;
+    std::vector<GLuint> vrIndecies;
+    
     const GLuint primitiveReset;
     typedef std::map<std::pair<u32,u32>,GLuint> IndexMap;
     typedef std::shared_ptr<IndexMap> IndexMapPtr;

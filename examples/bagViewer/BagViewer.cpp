@@ -30,6 +30,7 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     
     QWidget *container = QWidget::createWindowContainer(bagGL);
     setCentralWidget(container);
+    container->setFocusPolicy(Qt::StrongFocus );
 }
 
 BagViewer::~BagViewer()

@@ -150,22 +150,42 @@ void BagGL::render()
     QVector3D lightDirection(0.0,0.0,1.0);
     program->setUniformValue(lightDirectionUniform,lightDirection);
     
-    glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, elevationVerticies.data());
-    glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, uncertainties.data());
-    glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, normals.data());
-    
+    if(!vrElevationVerticies.empty())
+    {
+        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, vrElevationVerticies.data());
+        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, vrNormals.data());
+    }
+    else
+    {
+        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, elevationVerticies.data());
+        glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, uncertainties.data());
+        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, normals.data());
+    }    
     glEnableVertexAttribArray(posAttr);
     glEnableVertexAttribArray(unAttr);
     glEnableVertexAttribArray(normAttr);
     
     colormaps[currentColormap]->bind();
-    
-    if(drawStyle == "points")
-        glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
-    if(drawStyle == "solid")
-        glDrawElements(GL_TRIANGLE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
-    if(drawStyle == "wireframe")
-        glDrawElements(GL_LINE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
+
+
+    if(!vrElevationVerticies.empty())
+    {
+        if(drawStyle == "points")
+            glDrawArrays(GL_POINTS, 0, vrElevationVerticies.size()/3);
+        if(drawStyle == "solid")
+            glDrawElements(GL_TRIANGLE_STRIP,vrIndecies.size(),GL_UNSIGNED_INT,vrIndecies.data());
+        if(drawStyle == "wireframe")
+            glDrawElements(GL_LINE_STRIP,vrIndecies.size(),GL_UNSIGNED_INT,vrIndecies.data());
+    }
+    else
+    {
+        if(drawStyle == "points")
+            glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
+        if(drawStyle == "solid")
+            glDrawElements(GL_TRIANGLE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
+        if(drawStyle == "wireframe")
+            glDrawElements(GL_LINE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
+    }
     
     glDisableVertexAttribArray(normAttr);
     glDisableVertexAttribArray(unAttr);
@@ -388,6 +408,96 @@ bool BagGL::openBag(const QString& bagFileName)
         }
         if(inElement)
             indecies.push_back(primitiveReset);
+    }
+    
+    vrElevationVerticies.resize(0);
+    vrNormals.resize(0);
+    vrIndecies.resize(0);
+    inElement = false;
+    
+    if(isVarRes)
+    {
+        bagGetOptDatasetInfo(&bag, VarRes_Metadata_Group);
+        bagGetOptDatasetInfo(&bag, VarRes_Refinement_Group);
+        currentRowIndecies.reset();
+        std::vector<bagVarResMetadataGroup> metadata(bd->def.ncols);
+        std::vector<bagVarResRefinementGroup> refinements;
+        for(u32 i = 0; i < bd->def.nrows; ++i)
+        {
+            float cy = i*dy;
+            bagReadRow(bag,i,0,bd->def.ncols-1,VarRes_Metadata_Group,metadata.data());
+            for(u32 j = 0; j < bd->def.ncols; ++j)
+            {
+                float cx = j*dx;
+                if(metadata[j].dimensions > 0)
+                {
+                    refinements.resize(metadata[j].dimensions*metadata[j].dimensions);
+                    bagReadRow(bag,0,metadata[j].index,metadata[j].index+refinements.size()-1,VarRes_Refinement_Group,refinements.data());
+                    float llx = cx - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
+                    float lly = cy - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
+                    for (u32 ri = 0; ri < metadata[j].dimensions; ++ri)
+                    {
+                        inElement = false;
+                        lastRowIndecies = currentRowIndecies;
+                        currentRowIndecies = IndexMapPtr(new IndexMap);
+                        for (u32 rj = 0; rj < metadata[j].dimensions; ++rj)
+                        {
+                            u32 rindex = ri*metadata[j].dimensions+rj;
+                            if(refinements[rindex].depth!=BAG_NULL_ELEVATION)
+                            {
+                                (*currentRowIndecies)[IndexMap::key_type(ri,rj)]=vrElevationVerticies.size()/3;
+                                vrElevationVerticies.push_back(llx+rj*metadata[j].resolution);
+                                vrElevationVerticies.push_back(lly+ri*metadata[j].resolution);
+                                vrElevationVerticies.push_back(refinements[rindex].depth);
+                                if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(ri-1,rj)))
+                                {
+                                    vrIndecies.push_back((*lastRowIndecies)[IndexMap::key_type(ri-1,rj)]);
+                                    vrIndecies.push_back((vrElevationVerticies.size()/3)-1);
+                                    inElement = true;
+                                    if(rj < metadata[j].dimensions-1 && refinements[rindex+1].depth != BAG_NULL_ELEVATION)
+                                    {
+                                        QVector3D v1(metadata[j].resolution,0.0,refinements[rindex-metadata[j].dimensions].depth-refinements[rindex].depth);
+                                        QVector3D v2(0.0,metadata[j].resolution,refinements[rindex+1].depth-refinements[rindex].depth);
+                                        QVector3D n = QVector3D::normal(v1,v2);
+                                        vrNormals.push_back(n.x());
+                                        vrNormals.push_back(n.y());
+                                        vrNormals.push_back(n.z());
+                                    }
+                                    else
+                                    {
+                                        vrNormals.push_back(0.0);
+                                        vrNormals.push_back(0.0);
+                                        vrNormals.push_back(1.0);
+                                    }
+                                }
+                                else
+                                {
+                                    if(inElement)
+                                    {
+                                        vrIndecies.push_back(primitiveReset);
+                                        inElement = false;
+                                    }
+                                    vrNormals.push_back(0.0);
+                                    vrNormals.push_back(0.0);
+                                    vrNormals.push_back(1.0);
+                                }
+                            }
+                            else
+                            {
+                                if(inElement)
+                                {
+                                    vrIndecies.push_back(primitiveReset);
+                                    inElement = false;
+                                }
+                            }
+                            
+                        }
+                        if(inElement)
+                            vrIndecies.push_back(primitiveReset);
+                    }
+                }
+            }
+        }
     }
     
     return true;
