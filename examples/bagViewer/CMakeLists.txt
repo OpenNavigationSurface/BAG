@@ -46,7 +46,7 @@ if(CMAKE_COMPILER_IS_GNUCXX)
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 set( HDR GLWindow.h BagViewer.h BagGL.h)
-set( SRC main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp resources.cxx)
+set( SRC main.cpp GLWindow.cpp BagViewer.cpp BagGL.cpp BagIO.cpp resources.cxx)
 if( MSVC )
 	set( SRC ${SRC} BagViewer.rc )
 endif()

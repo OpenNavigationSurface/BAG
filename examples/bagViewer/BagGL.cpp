@@ -41,10 +41,9 @@ static const char *fragmentShaderSource =
 "}\n";
 
 BagGL::BagGL(): 
+    primitiveReset(0xffffffff),
+    bag(primitiveReset),
     program(0),
-    bag(0),
-    minElevation(-1.0),
-    maxElevation(0.0),
     currentColormap("omnimap"),
     drawStyle("solid"),
     nearPlane(1.0),
@@ -54,12 +53,10 @@ BagGL::BagGL():
     pitch(30.0),
     rotating(false),
     translatePosition(0.0,0.0,0.0),
-    bagCenter(0.0,0.0,0.0),
     defaultZoom(1.0),
     translating(false),
     heightExaggeration(1.0),
-    adjustingHeightExaggeration(false),
-    primitiveReset(0xffffffff)
+    adjustingHeightExaggeration(false)
 {
 
 }
@@ -144,22 +141,22 @@ void BagGL::render()
     
     program->setUniformValue(matrixUniform, matrix);
     program->setUniformValue(normMatrixUniform, normMatrix.normalMatrix());
-    program->setUniformValue(minElevationUniform, minElevation);
-    program->setUniformValue(maxElevationUniform, maxElevation);
+    program->setUniformValue(minElevationUniform, bag.minElevation);
+    program->setUniformValue(maxElevationUniform, bag.maxElevation);
     
     QVector3D lightDirection(0.0,0.0,1.0);
     program->setUniformValue(lightDirectionUniform,lightDirection);
     
-    if(!vrElevationVerticies.empty())
+    if(!bag.vrg.elevationVerticies.empty())
     {
-        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, vrElevationVerticies.data());
-        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, vrNormals.data());
+        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.elevationVerticies.data());
+        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.normals.data());
     }
     else
     {
-        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, elevationVerticies.data());
-        glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, uncertainties.data());
-        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, normals.data());
+        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.elevationVerticies.data());
+        glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, bag.g.uncertainties.data());
+        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.normals.data());
     }    
     glEnableVertexAttribArray(posAttr);
     glEnableVertexAttribArray(unAttr);
@@ -168,23 +165,23 @@ void BagGL::render()
     colormaps[currentColormap]->bind();
 
 
-    if(!vrElevationVerticies.empty())
+    if(!bag.vrg.elevationVerticies.empty())
     {
         if(drawStyle == "points")
-            glDrawArrays(GL_POINTS, 0, vrElevationVerticies.size()/3);
+            glDrawArrays(GL_POINTS, 0, bag.vrg.elevationVerticies.size()/3);
         if(drawStyle == "solid")
-            glDrawElements(GL_TRIANGLE_STRIP,vrIndecies.size(),GL_UNSIGNED_INT,vrIndecies.data());
+            glDrawElements(GL_TRIANGLE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
         if(drawStyle == "wireframe")
-            glDrawElements(GL_LINE_STRIP,vrIndecies.size(),GL_UNSIGNED_INT,vrIndecies.data());
+            glDrawElements(GL_LINE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
     }
     else
     {
         if(drawStyle == "points")
-            glDrawArrays(GL_POINTS, 0, elevationVerticies.size()/3);
+            glDrawArrays(GL_POINTS, 0, bag.g.elevationVerticies.size()/3);
         if(drawStyle == "solid")
-            glDrawElements(GL_TRIANGLE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
+            glDrawElements(GL_TRIANGLE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
         if(drawStyle == "wireframe")
-            glDrawElements(GL_LINE_STRIP,indecies.size(),GL_UNSIGNED_INT,indecies.data());
+            glDrawElements(GL_LINE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
     }
     
     glDisableVertexAttribArray(normAttr);
@@ -290,234 +287,25 @@ void BagGL::keyPressEvent(QKeyEvent* event)
 
 bool BagGL::openBag(const QString& bagFileName)
 {
-    if(bag)
-        closeBag();
-    bagError status = bagFileOpen (&bag, BAG_OPEN_READONLY, reinterpret_cast<const u8*>(bagFileName.toStdString().c_str()));
-    if (status != BAG_SUCCESS)
-        return false;
-    Bool isVarRes, hasExtData;
-    bagCheckVariableResolution(bag,&isVarRes,&hasExtData);
-    std::cerr << "variable resolution? " << isVarRes << " extended data? " << hasExtData << std::endl;
-    
-    bagData * bd = bagGetDataPointer(bag);
-    
-    
-    double dx = bd->def.nodeSpacingX;
-    double dy = bd->def.nodeSpacingY;
-    
-    minElevation = bd->min_elevation;
-    maxElevation = bd->max_elevation;
-
-    bagCenter.setX(dx*bd->def.ncols/2.0f);
-    bagCenter.setY(dy*bd->def.nrows/2.0f);
-    
-    defaultZoom = 2/std::max(dx*bd->def.ncols,dy*bd->def.nrows);
-    
-    resetView();
-    
-    std::cerr << bd->def.ncols << " columns, " << bd->def.nrows << " rows" << std::endl;
-    std::cerr << "spacing: " << bd->def.nodeSpacingX << " x " << bd->def.nodeSpacingY << std::endl;
-    std::cerr << "sw corner: " << bd->def.swCornerX << ", " << bd->def.swCornerY << std::endl;
-    std::cerr << "Horizontal coordinate system: " << bd->def.referenceSystem.horizontalReference << std::endl;
-    std::cerr << "Vertical coordinate system: " << bd->def.referenceSystem.verticalReference << std::endl;
-    
-    s32 numOptDatasets;
-    int optDatasetEntities[BAG_OPT_SURFACE_LIMIT];
-    bagGetOptDatasets(&bag,&numOptDatasets,optDatasetEntities);
-    for(int i = 0; i < numOptDatasets; ++i)
-        std::cerr << "optional dataset type: " << optDatasetEntities[i] << std::endl;
-    
-    float nodeZeroZero;
-    f64 *nzzx, *nzzy;
-    bagReadNodePos(bag,0,0,Elevation,&nodeZeroZero,&nzzx,&nzzy);
-    std::cerr << "0,0: " << nodeZeroZero << " pos: " << *nzzx << ", " << *nzzy << std::endl;
-    free(nzzx);
-    free(nzzy);
-
-    elevationVerticies.resize(0);
-    uncertainties.resize(0);
-    normals.resize(0);
-    indecies.resize(0);
-    bool inElement = false;
-    typedef std::vector<float> DataRowVec;
-    typedef std::shared_ptr<DataRowVec> DataRowVecPtr;
-    DataRowVecPtr dataRow,lastDataRow;
-    //std::vector<float> dataRow(bd->def.ncols);
-    std::vector<float> unRow(bd->def.ncols);
-    IndexMapPtr lastRowIndecies, currentRowIndecies;
-    for(u32 i = 0; i < bd->def.nrows; ++i)
-    {
-        inElement = false;
-        lastDataRow = dataRow;
-        dataRow = DataRowVecPtr(new DataRowVec(bd->def.ncols));
-        bagReadRow(bag,i,0,bd->def.ncols-1,Elevation,dataRow->data());
-        bagReadRow(bag,i,0,bd->def.ncols-1,Uncertainty,unRow.data());
-        lastRowIndecies = currentRowIndecies;
-        currentRowIndecies = IndexMapPtr(new IndexMap);
-        for(u32 j = 0; j < bd->def.ncols; ++j)
-        {
-            if((*dataRow)[j]!=BAG_NULL_ELEVATION)
-            {
-                (*currentRowIndecies)[IndexMap::key_type(i,j)]=elevationVerticies.size()/3;
-                elevationVerticies.push_back(j*dx);
-                elevationVerticies.push_back(i*dy);
-                elevationVerticies.push_back((*dataRow)[j]);
-                uncertainties.push_back(unRow[j]);
-                if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(i-1,j)))
-                {
-                    indecies.push_back((*lastRowIndecies)[IndexMap::key_type(i-1,j)]);
-                    indecies.push_back((elevationVerticies.size()/3)-1);
-                    inElement = true;
-                    if(j < bd->def.ncols-1 && (*dataRow)[j+1] != BAG_NULL_ELEVATION)
-                    {
-                        QVector3D v1(dx,0.0,(*lastDataRow)[j]-(*dataRow)[j]);
-                        QVector3D v2(0.0,dy,(*dataRow)[j+1]-(*dataRow)[j]);
-                        QVector3D n = QVector3D::normal(v1,v2);
-                        normals.push_back(n.x());
-                        normals.push_back(n.y());
-                        normals.push_back(n.z());
-                    }
-                    else
-                    {
-                        normals.push_back(0.0);
-                        normals.push_back(0.0);
-                        normals.push_back(1.0);
-                    }
-                }
-                else
-                {
-                    if(inElement)
-                    {
-                        indecies.push_back(primitiveReset);
-                        inElement = false;
-                    }
-                    normals.push_back(0.0);
-                    normals.push_back(0.0);
-                    normals.push_back(1.0);
-                    
-                }
-            }
-            else
-            {
-                if(inElement)
-                {
-                    indecies.push_back(primitiveReset);
-                    inElement = false;
-                }
-            }
-        }
-        if(inElement)
-            indecies.push_back(primitiveReset);
-    }
-    
-    vrElevationVerticies.resize(0);
-    vrNormals.resize(0);
-    vrIndecies.resize(0);
-    inElement = false;
-    
-    if(isVarRes)
-    {
-        bagGetOptDatasetInfo(&bag, VarRes_Metadata_Group);
-        bagGetOptDatasetInfo(&bag, VarRes_Refinement_Group);
-        currentRowIndecies.reset();
-        std::vector<bagVarResMetadataGroup> metadata(bd->def.ncols);
-        std::vector<bagVarResRefinementGroup> refinements;
-        for(u32 i = 0; i < bd->def.nrows; ++i)
-        {
-            float cy = i*dy;
-            bagReadRow(bag,i,0,bd->def.ncols-1,VarRes_Metadata_Group,metadata.data());
-            for(u32 j = 0; j < bd->def.ncols; ++j)
-            {
-                float cx = j*dx;
-                if(metadata[j].dimensions > 0)
-                {
-                    refinements.resize(metadata[j].dimensions*metadata[j].dimensions);
-                    bagReadRow(bag,0,metadata[j].index,metadata[j].index+refinements.size()-1,VarRes_Refinement_Group,refinements.data());
-                    float llx = cx - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
-                    float lly = cy - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
-                    for (u32 ri = 0; ri < metadata[j].dimensions; ++ri)
-                    {
-                        inElement = false;
-                        lastRowIndecies = currentRowIndecies;
-                        currentRowIndecies = IndexMapPtr(new IndexMap);
-                        for (u32 rj = 0; rj < metadata[j].dimensions; ++rj)
-                        {
-                            u32 rindex = ri*metadata[j].dimensions+rj;
-                            if(refinements[rindex].depth!=BAG_NULL_ELEVATION)
-                            {
-                                (*currentRowIndecies)[IndexMap::key_type(ri,rj)]=vrElevationVerticies.size()/3;
-                                vrElevationVerticies.push_back(llx+rj*metadata[j].resolution);
-                                vrElevationVerticies.push_back(lly+ri*metadata[j].resolution);
-                                vrElevationVerticies.push_back(refinements[rindex].depth);
-                                if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(ri-1,rj)))
-                                {
-                                    vrIndecies.push_back((*lastRowIndecies)[IndexMap::key_type(ri-1,rj)]);
-                                    vrIndecies.push_back((vrElevationVerticies.size()/3)-1);
-                                    inElement = true;
-                                    if(rj < metadata[j].dimensions-1 && refinements[rindex+1].depth != BAG_NULL_ELEVATION)
-                                    {
-                                        QVector3D v1(metadata[j].resolution,0.0,refinements[rindex-metadata[j].dimensions].depth-refinements[rindex].depth);
-                                        QVector3D v2(0.0,metadata[j].resolution,refinements[rindex+1].depth-refinements[rindex].depth);
-                                        QVector3D n = QVector3D::normal(v1,v2);
-                                        vrNormals.push_back(n.x());
-                                        vrNormals.push_back(n.y());
-                                        vrNormals.push_back(n.z());
-                                    }
-                                    else
-                                    {
-                                        vrNormals.push_back(0.0);
-                                        vrNormals.push_back(0.0);
-                                        vrNormals.push_back(1.0);
-                                    }
-                                }
-                                else
-                                {
-                                    if(inElement)
-                                    {
-                                        vrIndecies.push_back(primitiveReset);
-                                        inElement = false;
-                                    }
-                                    vrNormals.push_back(0.0);
-                                    vrNormals.push_back(0.0);
-                                    vrNormals.push_back(1.0);
-                                }
-                            }
-                            else
-                            {
-                                if(inElement)
-                                {
-                                    vrIndecies.push_back(primitiveReset);
-                                    inElement = false;
-                                }
-                            }
-                            
-                        }
-                        if(inElement)
-                            vrIndecies.push_back(primitiveReset);
-                    }
-                }
-            }
-        }
-    }
-    
-    return true;
+    bool ret = bag.open(bagFileName);
+    if(ret)
+        resetView();
+    return ret;
 }
 
 void BagGL::closeBag()
 {
-    bagFileClose(bag);
-    elevationVerticies.resize(0);
-    bagCenter.setX(0.0f);
-    bagCenter.setY(0.0f);
-    bag = 0;
+    bag.close();
 }
 
 void BagGL::resetView()
 {
-    translatePosition = bagCenter;
+    translatePosition = bag.size/2.0;
+    translatePosition.setZ(0.0);
     pitch = 30.0;
     yaw = 0.0;
-    zoom = defaultZoom;
+    zoom = 2/std::max(bag.size.x(),bag.size.y());
+    
     heightExaggeration = 1.0;
 }
 

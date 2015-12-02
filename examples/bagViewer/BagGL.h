@@ -2,7 +2,7 @@
 #define BAGGL_H
 
 #include "GLWindow.h"
-#include "bag.h"
+#include "BagIO.h"
 #include <QVector3D>
 #include <QTime>
 #include <memory>
@@ -42,11 +42,12 @@ private:
     GLuint minElevationUniform;
     GLuint maxElevationUniform;
     
+    const GLuint primitiveReset;
+    
+    BagIO bag;
+
     QOpenGLShaderProgram *program;
     
-    bagHandle bag;
-    
-    float minElevation, maxElevation;
     
     typedef std::shared_ptr<QOpenGLTexture> QOpenGLTexturePtr;
     typedef std::map<std::string,QOpenGLTexturePtr> ColormapMap;
@@ -64,7 +65,6 @@ private:
     QPoint lastPosition;
     
     QVector3D translatePosition;
-    QVector3D bagCenter;
     float defaultZoom;
     
     bool translating;
@@ -73,19 +73,6 @@ private:
     
     float heightExaggeration;
     bool adjustingHeightExaggeration;
-    
-    std::vector<GLfloat> elevationVerticies;
-    std::vector<GLfloat> normals;
-    std::vector<GLfloat> uncertainties;
-    std::vector<GLuint> indecies;
-    
-    std::vector<GLfloat> vrElevationVerticies;
-    std::vector<GLfloat> vrNormals;
-    std::vector<GLuint> vrIndecies;
-    
-    const GLuint primitiveReset;
-    typedef std::map<std::pair<u32,u32>,GLuint> IndexMap;
-    typedef std::shared_ptr<IndexMap> IndexMapPtr;
 };
 
 #endif
