@@ -154,9 +154,9 @@ void BagGL::render()
     }
     else
     {
-        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.elevationVerticies.data());
-        glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, bag.g.uncertainties.data());
-        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.normals.data());
+//         glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.elevationVerticies.data());
+//         glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, bag.g.uncertainties.data());
+//         glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.normals.data());
     }    
     glEnableVertexAttribArray(posAttr);
     glEnableVertexAttribArray(unAttr);
@@ -176,12 +176,30 @@ void BagGL::render()
     }
     else
     {
-        if(drawStyle == "points")
-            glDrawArrays(GL_POINTS, 0, bag.g.elevationVerticies.size()/3);
-        if(drawStyle == "solid")
-            glDrawElements(GL_TRIANGLE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
-        if(drawStyle == "wireframe")
-            glDrawElements(GL_LINE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
+//         if(drawStyle == "points")
+//             glDrawArrays(GL_POINTS, 0, bag.g.elevationVerticies.size()/3);
+//         if(drawStyle == "solid")
+//             glDrawElements(GL_TRIANGLE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
+//         if(drawStyle == "wireframe")
+//             glDrawElements(GL_LINE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
+    
+    }
+    
+    if(bag.vrg.elevationVerticies.empty())
+    {
+        for(auto t: bag.getOverviewTiles())
+        {
+            glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, t->g.elevationVerticies.data());
+            glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, t->g.uncertainties.data());
+            glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, t->g.normals.data());
+
+            if(drawStyle == "points")
+                glDrawArrays(GL_POINTS, 0, t->g.elevationVerticies.size()/3);
+            if(drawStyle == "solid")
+                glDrawElements(GL_TRIANGLE_STRIP,t->g.indecies.size(),GL_UNSIGNED_INT,t->g.indecies.data());
+            if(drawStyle == "wireframe")
+                glDrawElements(GL_LINE_STRIP,t->g.indecies.size(),GL_UNSIGNED_INT,t->g.indecies.data());
+        }
     }
     
     glDisableVertexAttribArray(normAttr);
