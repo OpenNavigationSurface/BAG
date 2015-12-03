@@ -40,9 +40,10 @@ static const char *fragmentShaderSource =
 "   gl_FragColor = color;\n"
 "}\n";
 
+const GLuint BagGL::primitiveReset = 0xffffffff;
+
+
 BagGL::BagGL(): 
-    primitiveReset(0xffffffff),
-    bag(primitiveReset),
     program(0),
     currentColormap("omnimap"),
     drawStyle("solid"),
@@ -58,7 +59,7 @@ BagGL::BagGL():
     heightExaggeration(1.0),
     adjustingHeightExaggeration(false)
 {
-
+    connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
 }
 
 BagGL::~BagGL()
@@ -139,20 +140,22 @@ void BagGL::render()
     QMatrix4x4 normMatrix;
     normMatrix.scale(1.0,1.0,heightExaggeration);
     
+    BagIO::MetaData meta = bag.getMeta();
+    
     program->setUniformValue(matrixUniform, matrix);
     program->setUniformValue(normMatrixUniform, normMatrix.normalMatrix());
-    program->setUniformValue(minElevationUniform, bag.minElevation);
-    program->setUniformValue(maxElevationUniform, bag.maxElevation);
+    program->setUniformValue(minElevationUniform, meta.minElevation);
+    program->setUniformValue(maxElevationUniform, meta.maxElevation);
     
     QVector3D lightDirection(0.0,0.0,1.0);
     program->setUniformValue(lightDirectionUniform,lightDirection);
     
-    if(!bag.vrg.elevationVerticies.empty())
-    {
-        glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.elevationVerticies.data());
-        glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.normals.data());
-    }
-    else
+//     if(!bag.vrg.elevationVerticies.empty())
+//     {
+//         glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.elevationVerticies.data());
+//         glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.normals.data());
+//     }
+//     else
     {
 //         glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.elevationVerticies.data());
 //         glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, bag.g.uncertainties.data());
@@ -165,16 +168,16 @@ void BagGL::render()
     colormaps[currentColormap]->bind();
 
 
-    if(!bag.vrg.elevationVerticies.empty())
-    {
-        if(drawStyle == "points")
-            glDrawArrays(GL_POINTS, 0, bag.vrg.elevationVerticies.size()/3);
-        if(drawStyle == "solid")
-            glDrawElements(GL_TRIANGLE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
-        if(drawStyle == "wireframe")
-            glDrawElements(GL_LINE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
-    }
-    else
+//     if(!bag.vrg.elevationVerticies.empty())
+//     {
+//         if(drawStyle == "points")
+//             glDrawArrays(GL_POINTS, 0, bag.vrg.elevationVerticies.size()/3);
+//         if(drawStyle == "solid")
+//             glDrawElements(GL_TRIANGLE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
+//         if(drawStyle == "wireframe")
+//             glDrawElements(GL_LINE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
+//     }
+//     else
     {
 //         if(drawStyle == "points")
 //             glDrawArrays(GL_POINTS, 0, bag.g.elevationVerticies.size()/3);
@@ -185,8 +188,8 @@ void BagGL::render()
     
     }
     
-    if(bag.vrg.elevationVerticies.empty())
-    {
+//     if(bag.vrg.elevationVerticies.empty())
+//     {
         for(auto t: bag.getOverviewTiles())
         {
             glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, t->g.elevationVerticies.data());
@@ -200,7 +203,7 @@ void BagGL::render()
             if(drawStyle == "wireframe")
                 glDrawElements(GL_LINE_STRIP,t->g.indecies.size(),GL_UNSIGNED_INT,t->g.indecies.data());
         }
-    }
+//    }
     
     glDisableVertexAttribArray(normAttr);
     glDisableVertexAttribArray(unAttr);
@@ -318,11 +321,12 @@ void BagGL::closeBag()
 
 void BagGL::resetView()
 {
-    translatePosition = bag.size/2.0;
+    BagIO::MetaData meta = bag.getMeta();
+    translatePosition = meta.size/2.0;
     translatePosition.setZ(0.0);
     pitch = 30.0;
     yaw = 0.0;
-    zoom = 2/std::max(bag.size.x(),bag.size.y());
+    zoom = 2/std::max(meta.size.x(),meta.size.y());
     
     heightExaggeration = 1.0;
 }

@@ -4,11 +4,13 @@
 #include <memory>
 #include <QString>
 #include <QtConcurrent/QtConcurrent>
+#include "BagGL.h"
 
-BagIO::BagIO(GLuint primitiveReset):
-    bag(0),
-    primitiveReset(primitiveReset),
-    tileSize(100)
+BagIO::BagIO(QObject *parent):
+    QThread(parent),
+    tileSize(100),
+    restart(false),
+    abort(false)
 {
 
 }
@@ -16,174 +18,235 @@ BagIO::BagIO(GLuint primitiveReset):
 BagIO::~BagIO()
 {
     close();
+    mutex.lock();
+    abort = true;
+    condition.wakeOne();
+    mutex.unlock();
+    
+    wait();
 }
 
-bool BagIO::open(const QString& bagFileName)
+void BagIO::run()
 {
-    if(bag)
-        close();
-    bagError status = bagFileOpen (&bag, BAG_OPEN_READONLY, reinterpret_cast<const u8*>(bagFileName.toStdString().c_str()));
-    if (status != BAG_SUCCESS)
-        return false;
-    Bool isVarRes, hasExtData;
-    bagCheckVariableResolution(bag,&isVarRes,&hasExtData);
-    std::cerr << "variable resolution? " << isVarRes << " extended data? " << hasExtData << std::endl;
-    
-    bagData * bd = bagGetDataPointer(bag);
-    
-    
-    dx = bd->def.nodeSpacingX;
-    dy = bd->def.nodeSpacingY;
-    
-    minElevation = bd->min_elevation;
-    maxElevation = bd->max_elevation;
-    
-    ncols = bd->def.ncols;
-    nrows = bd->def.nrows;
-
-    size.setX(dx*ncols);
-    size.setY(dy*nrows);
-    size.setZ(maxElevation-minElevation);
-    
-    swBottomCorner.setX(bd->def.swCornerX);
-    swBottomCorner.setY(bd->def.swCornerY);
-    swBottomCorner.setZ(minElevation);
-    
-    std::cerr << bd->def.ncols << " columns, " << bd->def.nrows << " rows" << std::endl;
-    std::cerr << "spacing: " << bd->def.nodeSpacingX << " x " << bd->def.nodeSpacingY << std::endl;
-    std::cerr << "sw corner: " << bd->def.swCornerX << ", " << bd->def.swCornerY << std::endl;
-    std::cerr << "Horizontal coordinate system: " << bd->def.referenceSystem.horizontalReference << std::endl;
-    std::cerr << "Vertical coordinate system: " << bd->def.referenceSystem.verticalReference << std::endl;
-    
-    s32 numOptDatasets;
-    int optDatasetEntities[BAG_OPT_SURFACE_LIMIT];
-    bagGetOptDatasets(&bag,&numOptDatasets,optDatasetEntities);
-    for(int i = 0; i < numOptDatasets; ++i)
-        std::cerr << "optional dataset type: " << optDatasetEntities[i] << std::endl;
-    
-    for(u32 i = 0; i < nrows; i += tileSize)
-    {
-        u32 trow = i/tileSize;
-        for(u32 j = 0; j < ncols; j += tileSize)
+    forever {
+        bagHandle bag;
+        
+        mutex.lock();
+        QString filename = this->filename;
+        mutex.unlock();
+        
+        bagError status = bagFileOpen (&bag, BAG_OPEN_READONLY, reinterpret_cast<const u8*>(filename.toStdString().c_str()));
+        if (status == BAG_SUCCESS)
         {
-            Index2D tindex(j/tileSize,trow);
-            std::cerr << "tile: " << tindex.first << "," << tindex.second << std::endl;
-            auto ftp = QtConcurrent::run(this, &BagIO::loadTile,tindex);
-            loadingTiles.push_back(ftp);
-            //TilePtr t = loadTile(tindex);
+            MetaData meta;
             
-            //if(!t->g.elevationVerticies.empty())
-            //    overviewTiles[tindex]=t;
-        }
-    }
-    
-    
-    bool inElement = false;
-    typedef std::map<std::pair<u32,u32>,GLuint> IndexMap;
-    typedef std::shared_ptr<IndexMap> IndexMapPtr;
-    
-    IndexMapPtr lastRowIndecies, currentRowIndecies;
-    
-    
-    if(isVarRes)
-    {
-        bagGetOptDatasetInfo(&bag, VarRes_Metadata_Group);
-        bagGetOptDatasetInfo(&bag, VarRes_Refinement_Group);
-        currentRowIndecies.reset();
-        std::vector<bagVarResMetadataGroup> metadata(bd->def.ncols);
-        std::vector<bagVarResRefinementGroup> refinements;
-        for(u32 i = 0; i < bd->def.nrows; ++i)
-        {
-            float cy = i*dy;
-            bagReadRow(bag,i,0,bd->def.ncols-1,VarRes_Metadata_Group,metadata.data());
-            for(u32 j = 0; j < bd->def.ncols; ++j)
+            Bool isVarRes, hasExtData;
+            bagCheckVariableResolution(bag,&isVarRes,&hasExtData);
+            std::cerr << "variable resolution? " << isVarRes << " extended data? " << hasExtData << std::endl;
+            
+            bagData * bd = bagGetDataPointer(bag);
+            
+            
+            meta.dx = bd->def.nodeSpacingX;
+            meta.dy = bd->def.nodeSpacingY;
+            
+            meta.minElevation = bd->min_elevation;
+            meta.maxElevation = bd->max_elevation;
+            
+            meta.ncols = bd->def.ncols;
+            meta.nrows = bd->def.nrows;
+            
+            meta.size.setX(meta.dx*meta.ncols);
+            meta.size.setY(meta.dy*meta.nrows);
+            meta.size.setZ(meta.maxElevation-meta.minElevation);
+            
+            meta.swBottomCorner.setX(bd->def.swCornerX);
+            meta.swBottomCorner.setY(bd->def.swCornerY);
+            meta.swBottomCorner.setZ(meta.minElevation);
+            
+            std::cerr << bd->def.ncols << " columns, " << bd->def.nrows << " rows" << std::endl;
+            std::cerr << "spacing: " << bd->def.nodeSpacingX << " x " << bd->def.nodeSpacingY << std::endl;
+            std::cerr << "sw corner: " << bd->def.swCornerX << ", " << bd->def.swCornerY << std::endl;
+            std::cerr << "Horizontal coordinate system: " << bd->def.referenceSystem.horizontalReference << std::endl;
+            std::cerr << "Vertical coordinate system: " << bd->def.referenceSystem.verticalReference << std::endl;
+            
+            s32 numOptDatasets;
+            int optDatasetEntities[BAG_OPT_SURFACE_LIMIT];
+            bagGetOptDatasets(&bag,&numOptDatasets,optDatasetEntities);
+            for(int i = 0; i < numOptDatasets; ++i)
+                std::cerr << "optional dataset type: " << optDatasetEntities[i] << std::endl;
+            
             {
-                float cx = j*dx;
-                if(metadata[j].dimensions > 0)
+                QMutexLocker locker(&mutex);
+                this->meta = meta;
+            }
+            emit metaLoaded();
+            
+            for(u32 i = 0; i < meta.nrows; i += tileSize)
+            {
                 {
-                    refinements.resize(metadata[j].dimensions*metadata[j].dimensions);
-                    bagReadRow(bag,0,metadata[j].index,metadata[j].index+refinements.size()-1,VarRes_Refinement_Group,refinements.data());
-                    float llx = cx - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
-                    float lly = cy - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
-                    for (u32 ri = 0; ri < metadata[j].dimensions; ++ri)
+                    QMutexLocker locker(&mutex);
+                    if (restart)
+                        break;
+                    if (abort)
+                        return;
+                }
+                u32 trow = i/tileSize;
+                for(u32 j = 0; j < meta.ncols; j += tileSize)
+                {
+                    Index2D tindex(j/tileSize,trow);
+                    std::cerr << "tile: " << tindex.first << "," << tindex.second << std::endl;
+                    //auto ftp = QtConcurrent::run(this, &BagIO::loadTile,tindex);
+                    //loadingTiles.push_back(ftp);
+                    TilePtr t = loadTile(bag,tindex,meta);
+                    
                     {
-                        inElement = false;
-                        lastRowIndecies = currentRowIndecies;
-                        currentRowIndecies = IndexMapPtr(new IndexMap);
-                        for (u32 rj = 0; rj < metadata[j].dimensions; ++rj)
+                        QMutexLocker locker(&mutex);
+                        if (restart)
+                            break;
+                        if (abort)
+                            return;
+                        if(!t->g.elevationVerticies.empty())
                         {
-                            u32 rindex = ri*metadata[j].dimensions+rj;
-                            if(refinements[rindex].depth!=BAG_NULL_ELEVATION)
-                            {
-                                (*currentRowIndecies)[IndexMap::key_type(ri,rj)]=vrg.elevationVerticies.size()/3;
-                                vrg.elevationVerticies.push_back(llx+rj*metadata[j].resolution);
-                                vrg.elevationVerticies.push_back(lly+ri*metadata[j].resolution);
-                                vrg.elevationVerticies.push_back(refinements[rindex].depth);
-                                vrg.uncertainties.push_back(refinements[rindex].depth_uncrt);
-                                if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(ri-1,rj)))
-                                {
-                                    vrg.indecies.push_back((*lastRowIndecies)[IndexMap::key_type(ri-1,rj)]);
-                                    vrg.indecies.push_back((vrg.elevationVerticies.size()/3)-1);
-                                    inElement = true;
-                                    if(rj < metadata[j].dimensions-1 && refinements[rindex+1].depth != BAG_NULL_ELEVATION)
-                                    {
-                                        QVector3D v1(metadata[j].resolution,0.0,refinements[rindex-metadata[j].dimensions].depth-refinements[rindex].depth);
-                                        QVector3D v2(0.0,metadata[j].resolution,refinements[rindex+1].depth-refinements[rindex].depth);
-                                        QVector3D n = QVector3D::normal(v1,v2);
-                                        vrg.normals.push_back(n.x());
-                                        vrg.normals.push_back(n.y());
-                                        vrg.normals.push_back(n.z());
-                                    }
-                                    else
-                                    {
-                                        vrg.normals.push_back(0.0);
-                                        vrg.normals.push_back(0.0);
-                                        vrg.normals.push_back(1.0);
-                                    }
-                                }
-                                else
-                                {
-                                    if(inElement)
-                                    {
-                                        vrg.indecies.push_back(primitiveReset);
-                                        inElement = false;
-                                    }
-                                    vrg.normals.push_back(0.0);
-                                    vrg.normals.push_back(0.0);
-                                    vrg.normals.push_back(1.0);
-                                }
-                            }
-                            else
-                            {
-                                if(inElement)
-                                {
-                                    vrg.indecies.push_back(primitiveReset);
-                                    inElement = false;
-                                }
-                            }
-                            
+                            overviewTiles[tindex]=t;
                         }
-                        if(inElement)
-                            vrg.indecies.push_back(primitiveReset);
                     }
                 }
             }
         }
+        bagFileClose(bag);
+        bag = 0;
+        
+        
+        {
+            QMutexLocker locker(&mutex);
+            if (!restart)
+                condition.wait(&mutex);
+            restart = false;
+        }
     }
+}
+
+
+bool BagIO::open(const QString& bagFileName)
+{
+    close();
+    QMutexLocker locker(&mutex);
+    filename = bagFileName;
+    if (!isRunning()) {
+        start(LowPriority);
+    } else {
+        restart = true;
+        condition.wakeOne();
+    }
+    
+    
+//     bool inElement = false;
+//     typedef std::map<std::pair<u32,u32>,GLuint> IndexMap;
+//     typedef std::shared_ptr<IndexMap> IndexMapPtr;
+//     
+//     IndexMapPtr lastRowIndecies, currentRowIndecies;
+//     
+//     
+//     if(isVarRes)
+//     {
+//         bagGetOptDatasetInfo(&bag, VarRes_Metadata_Group);
+//         bagGetOptDatasetInfo(&bag, VarRes_Refinement_Group);
+//         currentRowIndecies.reset();
+//         std::vector<bagVarResMetadataGroup> metadata(bd->def.ncols);
+//         std::vector<bagVarResRefinementGroup> refinements;
+//         for(u32 i = 0; i < bd->def.nrows; ++i)
+//         {
+//             float cy = i*dy;
+//             bagReadRow(bag,i,0,bd->def.ncols-1,VarRes_Metadata_Group,metadata.data());
+//             for(u32 j = 0; j < bd->def.ncols; ++j)
+//             {
+//                 float cx = j*dx;
+//                 if(metadata[j].dimensions > 0)
+//                 {
+//                     refinements.resize(metadata[j].dimensions*metadata[j].dimensions);
+//                     bagReadRow(bag,0,metadata[j].index,metadata[j].index+refinements.size()-1,VarRes_Refinement_Group,refinements.data());
+//                     float llx = cx - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
+//                     float lly = cy - (metadata[j].dimensions-1)*metadata[j].resolution/2.0;
+//                     for (u32 ri = 0; ri < metadata[j].dimensions; ++ri)
+//                     {
+//                         inElement = false;
+//                         lastRowIndecies = currentRowIndecies;
+//                         currentRowIndecies = IndexMapPtr(new IndexMap);
+//                         for (u32 rj = 0; rj < metadata[j].dimensions; ++rj)
+//                         {
+//                             u32 rindex = ri*metadata[j].dimensions+rj;
+//                             if(refinements[rindex].depth!=BAG_NULL_ELEVATION)
+//                             {
+//                                 (*currentRowIndecies)[IndexMap::key_type(ri,rj)]=vrg.elevationVerticies.size()/3;
+//                                 vrg.elevationVerticies.push_back(llx+rj*metadata[j].resolution);
+//                                 vrg.elevationVerticies.push_back(lly+ri*metadata[j].resolution);
+//                                 vrg.elevationVerticies.push_back(refinements[rindex].depth);
+//                                 vrg.uncertainties.push_back(refinements[rindex].depth_uncrt);
+//                                 if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(ri-1,rj)))
+//                                 {
+//                                     vrg.indecies.push_back((*lastRowIndecies)[IndexMap::key_type(ri-1,rj)]);
+//                                     vrg.indecies.push_back((vrg.elevationVerticies.size()/3)-1);
+//                                     inElement = true;
+//                                     if(rj < metadata[j].dimensions-1 && refinements[rindex+1].depth != BAG_NULL_ELEVATION)
+//                                     {
+//                                         QVector3D v1(metadata[j].resolution,0.0,refinements[rindex-metadata[j].dimensions].depth-refinements[rindex].depth);
+//                                         QVector3D v2(0.0,metadata[j].resolution,refinements[rindex+1].depth-refinements[rindex].depth);
+//                                         QVector3D n = QVector3D::normal(v1,v2);
+//                                         vrg.normals.push_back(n.x());
+//                                         vrg.normals.push_back(n.y());
+//                                         vrg.normals.push_back(n.z());
+//                                     }
+//                                     else
+//                                     {
+//                                         vrg.normals.push_back(0.0);
+//                                         vrg.normals.push_back(0.0);
+//                                         vrg.normals.push_back(1.0);
+//                                     }
+//                                 }
+//                                 else
+//                                 {
+//                                     if(inElement)
+//                                     {
+//                                         vrg.indecies.push_back(BagGL::primitiveReset);
+//                                         inElement = false;
+//                                     }
+//                                     vrg.normals.push_back(0.0);
+//                                     vrg.normals.push_back(0.0);
+//                                     vrg.normals.push_back(1.0);
+//                                 }
+//                             }
+//                             else
+//                             {
+//                                 if(inElement)
+//                                 {
+//                                     vrg.indecies.push_back(BagGL::primitiveReset);
+//                                     inElement = false;
+//                                 }
+//                             }
+//                             
+//                         }
+//                         if(inElement)
+//                             vrg.indecies.push_back(BagGL::primitiveReset);
+//                     }
+//                 }
+//             }
+//         }
+//     }
     
     return true;
     
 }
 
-BagIO::TilePtr BagIO::loadTile(BagIO::Index2D tileIndex) const
+BagIO::TilePtr BagIO::loadTile(bagHandle &bag, BagIO::Index2D tileIndex, MetaData &meta) const
 {
     TilePtr ret(new Tile);
     ret->index = tileIndex;
     
     u32 startRow = tileIndex.second * tileSize;
-    u32 endRow = std::min(startRow+tileSize+1,nrows);
+    u32 endRow = std::min(startRow+tileSize+1,meta.nrows);
     u32 startCol = tileIndex.first * tileSize;
-    u32 endCol = std::min(startCol+tileSize+1,ncols);
+    u32 endCol = std::min(startCol+tileSize+1,meta.ncols);
     
     bool inElement = false;
     typedef std::vector<float> DataRowVec;
@@ -209,8 +272,8 @@ BagIO::TilePtr BagIO::loadTile(BagIO::Index2D tileIndex) const
             if((*dataRow)[ri]!=BAG_NULL_ELEVATION)
             {
                 (*currentRowIndecies)[IndexMap::key_type(i,j)]=ret->g.elevationVerticies.size()/3;
-                ret->g.elevationVerticies.push_back(j*dx);
-                ret->g.elevationVerticies.push_back(i*dy);
+                ret->g.elevationVerticies.push_back(j*meta.dx);
+                ret->g.elevationVerticies.push_back(i*meta.dy);
                 ret->g.elevationVerticies.push_back((*dataRow)[ri]);
                 ret->g.uncertainties.push_back(unRow[ri]);
                 if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(i-1,j)))
@@ -218,10 +281,10 @@ BagIO::TilePtr BagIO::loadTile(BagIO::Index2D tileIndex) const
                     ret->g.indecies.push_back((*lastRowIndecies)[IndexMap::key_type(i-1,j)]);
                     ret->g.indecies.push_back((ret->g.elevationVerticies.size()/3)-1);
                     inElement = true;
-                    if(j < ncols-1 && (*dataRow)[ri+1] != BAG_NULL_ELEVATION)
+                    if(j < meta.ncols-1 && (*dataRow)[ri+1] != BAG_NULL_ELEVATION)
                     {
-                        QVector3D v1(dx,0.0,(*lastDataRow)[ri]-(*dataRow)[ri]);
-                        QVector3D v2(0.0,dy,(*dataRow)[ri+1]-(*dataRow)[ri]);
+                        QVector3D v1(meta.dx,0.0,(*lastDataRow)[ri]-(*dataRow)[ri]);
+                        QVector3D v2(0.0,meta.dy,(*dataRow)[ri+1]-(*dataRow)[ri]);
                         QVector3D n = QVector3D::normal(v1,v2);
                         ret->g.normals.push_back(n.x());
                         ret->g.normals.push_back(n.y());
@@ -238,7 +301,7 @@ BagIO::TilePtr BagIO::loadTile(BagIO::Index2D tileIndex) const
                 {
                     if(inElement)
                     {
-                        ret->g.indecies.push_back(primitiveReset);
+                        ret->g.indecies.push_back(BagGL::primitiveReset);
                         inElement = false;
                     }
                     ret->g.normals.push_back(0.0);
@@ -250,13 +313,13 @@ BagIO::TilePtr BagIO::loadTile(BagIO::Index2D tileIndex) const
             {
                 if(inElement)
                 {
-                    ret->g.indecies.push_back(primitiveReset);
+                    ret->g.indecies.push_back(BagGL::primitiveReset);
                     inElement = false;
                 }
             }
         }
         if(inElement)
-            ret->g.indecies.push_back(primitiveReset);
+            ret->g.indecies.push_back(BagGL::primitiveReset);
     }
     return ret;
 }
@@ -264,10 +327,10 @@ BagIO::TilePtr BagIO::loadTile(BagIO::Index2D tileIndex) const
 
 void BagIO::close()
 {
-    bagFileClose(bag);
-    bag = 0;
-    vrg.reset();
+    //vrg.reset();
+    mutex.lock();
     overviewTiles.clear();
+    mutex.unlock();
 }
 
 
@@ -282,19 +345,29 @@ void BagIO::Geometry::reset()
 
 std::vector< BagIO::TilePtr > BagIO::getOverviewTiles()
 {
-    for(auto ftp :loadingTiles)
-    {
-        if(ftp.isFinished())
-        {
-            auto t = ftp.result();
-            if(!t->g.elevationVerticies.empty())
-                overviewTiles[t->index]=t;
-        }
-    }
+//     for(auto ftp :loadingTiles)
+//     {
+//         if(ftp.isFinished())
+//         {
+//             auto t = ftp.result();
+//             if(!t->g.elevationVerticies.empty())
+//                 overviewTiles[t->index]=t;
+//         }
+//     }
     
     
     std::vector<TilePtr> ret;
+    QMutexLocker locker(&mutex);
     for(auto it: overviewTiles)
         ret.push_back(it.second);
     return ret;
 }
+
+BagIO::MetaData BagIO::getMeta()
+{
+    MetaData ret;
+    QMutexLocker locker(&mutex);
+    ret = meta;
+    return ret;
+}
+

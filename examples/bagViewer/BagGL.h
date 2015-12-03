@@ -10,6 +10,8 @@
 
 class BagGL: public GLWindow
 {
+    Q_OBJECT
+    
 public:
     BagGL();
     ~BagGL();
@@ -21,6 +23,12 @@ public:
     void closeBag();
     void setColormap(std::string const &cm);
     void setDrawStyle(std::string const &ds);
+    
+    static const GLuint primitiveReset;
+    
+public slots:
+    void resetView();
+    
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
     void mouseReleaseEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -31,7 +39,6 @@ protected:
 private:
     GLuint loadShader(GLenum type, const char *source);
     QMatrix4x4 genMatrix();
-    void resetView();
     
     GLuint posAttr;
     GLuint unAttr;
@@ -42,7 +49,6 @@ private:
     GLuint minElevationUniform;
     GLuint maxElevationUniform;
     
-    const GLuint primitiveReset;
     
     BagIO bag;
 
