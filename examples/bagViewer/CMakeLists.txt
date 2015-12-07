@@ -22,11 +22,14 @@ set(CMAKE_AUTORCC ON)
 # Find the QtWidgets library
 find_package(Qt5 COMPONENTS Widgets OpenGL)
 
+find_file(QtUIC uic)
+find_file(QtRCC rcc)
+
 find_package(OpenGL)
 
 add_custom_command(
   OUTPUT ui_BagViewer.h
-  COMMAND uic 
+  COMMAND ${QtUIC}
   ARGS    ${PROJECT_SOURCE_DIR}/BagViewer.ui -o ${PROJECT_BINARY_DIR}/ui_BagViewer.h
   DEPENDS BagViewer.ui 
 )
@@ -35,7 +38,7 @@ set_property(SOURCE BagViewer.cpp APPEND PROPERTY OBJECT_DEPENDS ${PROJECT_BINAR
 
 add_custom_command(
   OUTPUT resources.cxx
-  COMMAND rcc 
+  COMMAND ${QtRCC}
   ARGS    ${PROJECT_SOURCE_DIR}/resources.qrc -o ${PROJECT_BINARY_DIR}/resources.cxx
   DEPENDS resources.qrc vertex.glsl fragment.glsl 
 )

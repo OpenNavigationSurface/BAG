@@ -1,3 +1,4 @@
+#version 410
 
 in vec2 inPosition;
 
@@ -7,10 +8,10 @@ uniform int tileSize;
 
 uniform vec2 lowerLeft;
 
-varying float elevation;
-varying float lighting;
-varying float vsUncertainty;
-varying float isnull;
+out float elevation;
+out float lighting;
+out float vsUncertainty;
+out float isnull;
 
 uniform highp mat4 matrix;
 uniform highp mat3 normMatrix;
@@ -24,7 +25,7 @@ void main() {
     lighting = 1.0;
     //vsUncertainty = uncertainty;
     vec2 tc = inPosition/float(tileSize);
-    float e = texture2D(elevationMap,tc);
+    float e = texture(elevationMap,tc).r;
     if(e > 9999.0)
     {
         isnull = 1.0;
