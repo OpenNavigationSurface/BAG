@@ -13,7 +13,7 @@ ELSEIF(UNIX)
     # SET(HDF5_LIB "hdf5" CACHE STRING "The name of the hdf5 release library.")
     find_package(HDF5 REQUIRED)
     set(HDF5_INCLUDE_DIR ${HDF5_C_INCLUDE_DIR})
-    set(HDF5_LIB ${HDF5_hdf5_LIBRARY_RELEASE})
+    set(HDF5_LIB ${HDF5_C_LIBRARY})
 ELSEIF(MINGW)
     # The location of the Hdf5 header files.
     SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE PATH "Location of hdf5 header files.")

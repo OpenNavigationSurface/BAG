@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "GLWindow.h"
 
 #include <QtCore/QCoreApplication>
@@ -79,7 +81,10 @@ void GLWindow::renderNow()
     if(!context){
         context = new QOpenGLContext(this);
         context->setFormat(requestedFormat());
-        context->create();
+        if (!context->create()) {
+            std::cerr << "Failed to create OpenGL context." << std::endl;
+            exit(1);
+        }
         needInit = true;
     }
     
