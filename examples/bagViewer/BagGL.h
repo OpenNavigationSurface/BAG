@@ -67,7 +67,10 @@ private:
     BagIO bag;
 
     QOpenGLShaderProgram *program;
+    
+#ifndef NDEBUG
     QOpenGLDebugLogger gldebug;
+#endif
     
     typedef std::shared_ptr<QOpenGLTexture> QOpenGLTexturePtr;
     typedef std::map<std::string,QOpenGLTexturePtr> ColormapMap;

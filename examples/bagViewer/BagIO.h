@@ -72,6 +72,7 @@ public:
     
 signals:
     void metaLoaded();
+    void tileLoaded();
     
 protected:
     void run() Q_DECL_OVERRIDE;

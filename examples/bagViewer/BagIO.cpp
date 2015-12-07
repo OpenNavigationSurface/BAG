@@ -117,6 +117,7 @@ void BagIO::run()
                         if(t)
                         {
                             overviewTiles[tindex]=t;
+                            emit tileLoaded();
                         }
                     }
                 }

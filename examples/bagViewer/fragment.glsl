@@ -14,6 +14,5 @@ void main() {
     vec4 color = texture2D(colorMap,tc);
     color.rgb *= lighting;
     color.a = 1.0;
-    //color.r = elevation;
     gl_FragColor = color;
 }

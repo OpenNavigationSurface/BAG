@@ -12,7 +12,7 @@ BagGL::BagGL():
     program(0),
     currentColormap("omnimap"),
     drawStyle("solid"),
-    gldebug(this),
+    //gldebug(this),
     nearPlane(1.0),
     farPlane(100.0),
     zoom(1.0),
@@ -25,6 +25,7 @@ BagGL::BagGL():
     adjustingHeightExaggeration(false)
 {
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
+    connect(&bag, SIGNAL(tileLoaded()), this, SLOT(renderLater()));
 }
 
 BagGL::~BagGL()
@@ -34,9 +35,12 @@ BagGL::~BagGL()
 
 void BagGL::initialize()
 {
+
+#ifndef NDEBUG
     std::cerr << "GL debug? " << gldebug.initialize() << std::endl;
     connect(&gldebug, SIGNAL(messageLogged(const QOpenGLDebugMessage &)),this,SLOT(messageLogged(const QOpenGLDebugMessage &)));
     gldebug.startLogging();
+#endif
     
     program = new QOpenGLShaderProgram(this);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex.glsl");
@@ -51,6 +55,7 @@ void BagGL::initialize()
     maxElevationUniform = program->uniformLocation("maxElevation");
     
     elevationMapUniform = program->uniformLocation("elevationMap");
+    colorMapUniform = program->uniformLocation("colorMap");
     spacingUniform = program->uniformLocation("spacing");
     lowerLeftUniform = program->uniformLocation("lowerLeft");
     tileSizeUniform = program->uniformLocation("tileSize");

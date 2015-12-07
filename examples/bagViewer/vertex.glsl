@@ -35,6 +35,6 @@ void main() {
     }
 
     elevation = (e-minElevation)/(maxElevation-minElevation);
-    gl_Position = matrix * vec4(inPosition.x*spacing.x+lowerLeft.x,inPosition.y*spacing.y+lowerLeft.y,e,1.0);
-    //gl_Position = matrix * vec4(inPosition.x,inPosition.y,e,1.0);
+    vec2 posMeters = inPosition*spacing+lowerLeft;
+    gl_Position = matrix * vec4(posMeters.x,posMeters.y,e,1.0);
 }
