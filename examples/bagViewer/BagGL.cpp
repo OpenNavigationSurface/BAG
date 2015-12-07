@@ -174,6 +174,7 @@ void BagGL::render()
             t->gl->elevations.setFormat(QOpenGLTexture::R32F);
             t->gl->elevations.allocateStorage();
             t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->g.elevations.data());
+            t->g.elevations.resize(0);
         }
         t->gl->elevations.bind(0);
         QVector2D ll(t->index.first*meta.dx*tileSize,t->index.second*meta.dy*tileSize);
@@ -297,6 +298,8 @@ bool BagGL::openBag(const QString& bagFileName)
 
 void BagGL::closeBag()
 {
+    for(auto t: bag.getOverviewTiles())
+        t->gl.reset();
     bag.close();
 }
 
