@@ -26,6 +26,12 @@ BagIO::~BagIO()
     wait();
 }
 
+u32 BagIO::getTileSize() const
+{
+    return tileSize;
+}
+
+
 void BagIO::run()
 {
     forever {
@@ -92,21 +98,23 @@ void BagIO::run()
                         return;
                 }
                 u32 trow = i/tileSize;
+                std::cerr << "tile row: " << trow << std::endl;
                 for(u32 j = 0; j < meta.ncols; j += tileSize)
                 {
                     Index2D tindex(j/tileSize,trow);
-                    std::cerr << "tile: " << tindex.first << "," << tindex.second << std::endl;
-                    //auto ftp = QtConcurrent::run(this, &BagIO::loadTile,tindex);
-                    //loadingTiles.push_back(ftp);
+                    std::cerr << "tile: " << tindex.first << "," << tindex.second;
                     TilePtr t = loadTile(bag,tindex,meta);
-                    
+                    if(t)
+                        std::cerr << "\tsaved" << std::endl;
+                    else
+                        std::cerr << "\tdiscarded" << std::endl;
                     {
                         QMutexLocker locker(&mutex);
                         if (restart)
                             break;
                         if (abort)
                             return;
-                        if(!t->g.elevationVerticies.empty())
+                        if(t)
                         {
                             overviewTiles[tindex]=t;
                         }
@@ -243,91 +251,43 @@ BagIO::TilePtr BagIO::loadTile(bagHandle &bag, BagIO::Index2D tileIndex, MetaDat
     TilePtr ret(new Tile);
     ret->index = tileIndex;
     
+    
     u32 startRow = tileIndex.second * tileSize;
-    u32 endRow = std::min(startRow+tileSize+1,meta.nrows);
+    u32 endRow = std::min(startRow+tileSize-1,meta.nrows-1);
     u32 startCol = tileIndex.first * tileSize;
-    u32 endCol = std::min(startCol+tileSize+1,meta.ncols);
+    u32 endCol = std::min(startCol+tileSize-1,meta.ncols-1);
     
-    bool inElement = false;
-    typedef std::vector<float> DataRowVec;
-    typedef std::shared_ptr<DataRowVec> DataRowVecPtr;
-    typedef std::map<std::pair<u32,u32>,GLuint> IndexMap;
-    typedef std::shared_ptr<IndexMap> IndexMapPtr;
+    bagReadRegion(bag, startRow, startCol, endRow, endCol, Elevation);
     
-    DataRowVecPtr dataRow,lastDataRow;
-    std::vector<float> unRow(tileSize+1);
-    IndexMapPtr lastRowIndecies, currentRowIndecies;
-    for(u32 i = startRow; i < endRow; ++i)
+    ret->g.elevations.resize(tileSize*tileSize,BAG_NULL_ELEVATION);
+    if(endCol < startCol+tileSize-1)
     {
-        inElement = false;
-        lastDataRow = dataRow;
-        dataRow = DataRowVecPtr(new DataRowVec(tileSize+1));
-        bagReadRow(bag,i,startCol,endCol-1,Elevation,dataRow->data());
-        bagReadRow(bag,i,startCol,endCol-1,Uncertainty,unRow.data());
-        lastRowIndecies = currentRowIndecies;
-        currentRowIndecies = IndexMapPtr(new IndexMap);
-        for(u32 j = startCol; j < endCol; ++j)
-        {
-            u32 ri = j-startCol;
-            if((*dataRow)[ri]!=BAG_NULL_ELEVATION)
-            {
-                (*currentRowIndecies)[IndexMap::key_type(i,j)]=ret->g.elevationVerticies.size()/3;
-                ret->g.elevationVerticies.push_back(j*meta.dx);
-                ret->g.elevationVerticies.push_back(i*meta.dy);
-                ret->g.elevationVerticies.push_back((*dataRow)[ri]);
-                ret->g.uncertainties.push_back(unRow[ri]);
-                if(lastRowIndecies && lastRowIndecies->count(IndexMap::key_type(i-1,j)))
-                {
-                    ret->g.indecies.push_back((*lastRowIndecies)[IndexMap::key_type(i-1,j)]);
-                    ret->g.indecies.push_back((ret->g.elevationVerticies.size()/3)-1);
-                    inElement = true;
-                    if(j < meta.ncols-1 && (*dataRow)[ri+1] != BAG_NULL_ELEVATION)
-                    {
-                        QVector3D v1(meta.dx,0.0,(*lastDataRow)[ri]-(*dataRow)[ri]);
-                        QVector3D v2(0.0,meta.dy,(*dataRow)[ri+1]-(*dataRow)[ri]);
-                        QVector3D n = QVector3D::normal(v1,v2);
-                        ret->g.normals.push_back(n.x());
-                        ret->g.normals.push_back(n.y());
-                        ret->g.normals.push_back(n.z());
-                    }
-                    else
-                    {
-                        ret->g.normals.push_back(0.0);
-                        ret->g.normals.push_back(0.0);
-                        ret->g.normals.push_back(1.0);
-                    }
-                }
-                else
-                {
-                    if(inElement)
-                    {
-                        ret->g.indecies.push_back(BagGL::primitiveReset);
-                        inElement = false;
-                    }
-                    ret->g.normals.push_back(0.0);
-                    ret->g.normals.push_back(0.0);
-                    ret->g.normals.push_back(1.0);
-                }
-            }
-            else
-            {
-                if(inElement)
-                {
-                    ret->g.indecies.push_back(BagGL::primitiveReset);
-                    inElement = false;
-                }
-            }
-        }
-        if(inElement)
-            ret->g.indecies.push_back(BagGL::primitiveReset);
+        for(uint i=0; i < endRow-startRow+1; ++i)
+            memcpy(&(ret->g.elevations.data()[i*tileSize]),bagGetDataPointer(bag)->elevation[i], (endCol-startCol+1)*sizeof(GLfloat));
+        
     }
+    else
+        memcpy(ret->g.elevations.data(),*(bagGetDataPointer(bag)->elevation), ((endRow-startRow)+1)*tileSize*sizeof(GLfloat));
+    
+    bool notEmpty = false;
+    for(auto e: ret->g.elevations)
+    {
+        if(e != BAG_NULL_ELEVATION)
+        {
+            notEmpty = true;
+            break;
+        }
+    }
+    
+    if(!notEmpty)
+        ret.reset();
+    
     return ret;
 }
 
 
 void BagIO::close()
 {
-    //vrg.reset();
     mutex.lock();
     overviewTiles.clear();
     mutex.unlock();
@@ -337,25 +297,12 @@ void BagIO::close()
 
 void BagIO::Geometry::reset()
 {
-    elevationVerticies.resize(0);
-    normals.resize(0);
+    elevations.resize(0);
     uncertainties.resize(0);
-    indecies.resize(0);
 }
 
 std::vector< BagIO::TilePtr > BagIO::getOverviewTiles()
 {
-//     for(auto ftp :loadingTiles)
-//     {
-//         if(ftp.isFinished())
-//         {
-//             auto t = ftp.result();
-//             if(!t->g.elevationVerticies.empty())
-//                 overviewTiles[t->index]=t;
-//         }
-//     }
-    
-    
     std::vector<TilePtr> ret;
     QMutexLocker locker(&mutex);
     for(auto it: overviewTiles)

@@ -7,6 +7,15 @@
 #include <QTime>
 #include <memory>
 #include <QOpenGLTexture>
+#include <QOpenGLDebugLogger>
+
+struct TileGL
+{
+    QOpenGLTexture elevations;
+    QOpenGLTexture uncertainties;
+    TileGL(): elevations(QOpenGLTexture::Target2D), uncertainties(QOpenGLTexture::Target2D) {}
+    ~TileGL(){}
+};
 
 class BagGL: public GLWindow
 {
@@ -28,6 +37,7 @@ public:
     
 public slots:
     void resetView();
+    void messageLogged(const QOpenGLDebugMessage & debugMessage);
     
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -37,23 +47,27 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     
 private:
-    GLuint loadShader(GLenum type, const char *source);
     QMatrix4x4 genMatrix();
     
-    GLuint posAttr;
-    GLuint unAttr;
-    GLuint normAttr;
     GLuint matrixUniform;
     GLuint normMatrixUniform;
     GLuint lightDirectionUniform;
     GLuint minElevationUniform;
     GLuint maxElevationUniform;
+    GLuint elevationMapUniform;
+    GLuint spacingUniform;
+    GLuint lowerLeftUniform;
+    GLuint tileSizeUniform;
+    GLuint colorMapUniform;
     
+    GLuint tileVAO;
+    GLuint tileBuffers[2];
+    GLsizei tileIndeciesCount;
     
     BagIO bag;
 
     QOpenGLShaderProgram *program;
-    
+    QOpenGLDebugLogger gldebug;
     
     typedef std::shared_ptr<QOpenGLTexture> QOpenGLTexturePtr;
     typedef std::map<std::string,QOpenGLTexturePtr> ColormapMap;
@@ -71,7 +85,6 @@ private:
     QPoint lastPosition;
     
     QVector3D translatePosition;
-    float defaultZoom;
     
     bool translating;
     QVector3D translateStartPosition, translateEndPosition;

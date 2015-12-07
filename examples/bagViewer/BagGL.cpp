@@ -6,47 +6,13 @@
 
 #include <iostream>
 
-static const char *vertexShaderSource =
-"attribute highp vec4 posAttr;\n"
-"attribute float uncertainty;\n"
-"attribute vec3 normal;\n"
-"varying float elevation;\n"
-"varying float lighting;\n"
-"varying float vsUncertainty;\n"
-"uniform highp mat4 matrix;\n"
-"uniform highp mat3 normMatrix;\n"
-"uniform vec3 lightDirection;\n"
-"uniform float minElevation;\n"
-"uniform float maxElevation;\n"
-"void main() {\n"
-"   vec3 vsNormal = normalize(normMatrix*normal);\n"
-"   lighting = max(dot(vsNormal,lightDirection), 0.0);\n"
-"   vsUncertainty = uncertainty;\n"
-"   elevation = (posAttr.z-minElevation)/(maxElevation-minElevation);\n"
-"   gl_Position = matrix * posAttr;\n"
-"}\n";
-
-static const char *fragmentShaderSource =
-"varying float lighting;\n"
-"varying float elevation;\n"
-"uniform sampler2D texture;\n"
-"void main() {\n"
-"   vec2 tc;\n"
-"   tc.x = elevation;\n"
-"   tc.y = .5;\n"
-"   vec4 color = texture2D(texture,tc);\n"
-"   color.rgb *= lighting;\n"
-"   color.a = 1.0;\n"
-"   gl_FragColor = color;\n"
-"}\n";
-
 const GLuint BagGL::primitiveReset = 0xffffffff;
-
 
 BagGL::BagGL(): 
     program(0),
     currentColormap("omnimap"),
     drawStyle("solid"),
+    gldebug(this),
     nearPlane(1.0),
     farPlane(100.0),
     zoom(1.0),
@@ -54,7 +20,6 @@ BagGL::BagGL():
     pitch(30.0),
     rotating(false),
     translatePosition(0.0,0.0,0.0),
-    defaultZoom(1.0),
     translating(false),
     heightExaggeration(1.0),
     adjustingHeightExaggeration(false)
@@ -67,36 +32,68 @@ BagGL::~BagGL()
     closeBag();
 }
 
-
-GLuint BagGL::loadShader(GLenum type, const char *source)
-{
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, 0);
-    glCompileShader(shader);
-    return shader;
-}
-
 void BagGL::initialize()
 {
+    std::cerr << "GL debug? " << gldebug.initialize() << std::endl;
+    connect(&gldebug, SIGNAL(messageLogged(const QOpenGLDebugMessage &)),this,SLOT(messageLogged(const QOpenGLDebugMessage &)));
+    gldebug.startLogging();
+    
     program = new QOpenGLShaderProgram(this);
-    program->addShaderFromSourceCode(QOpenGLShader::Vertex, vertexShaderSource);
-    program->addShaderFromSourceCode(QOpenGLShader::Fragment, fragmentShaderSource);
+    program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex.glsl");
+    program->addShaderFromSourceFile(QOpenGLShader::Fragment,":/fragment.glsl");
+    
     program->link();
-    posAttr = program->attributeLocation("posAttr");
-    unAttr = program->attributeLocation("uncertainty");
-    normAttr = program->attributeLocation("normal");
+
     matrixUniform = program->uniformLocation("matrix");
     normMatrixUniform = program->uniformLocation("normMatrix");
     lightDirectionUniform = program->uniformLocation("lightDirection");
     minElevationUniform = program->uniformLocation("minElevation");
     maxElevationUniform = program->uniformLocation("maxElevation");
+    
+    elevationMapUniform = program->uniformLocation("elevationMap");
+    spacingUniform = program->uniformLocation("spacing");
+    lowerLeftUniform = program->uniformLocation("lowerLeft");
+    tileSizeUniform = program->uniformLocation("tileSize");
+    
     glEnable(GL_DEPTH_TEST);
-    glPointSize(2.0);
     glEnable(GL_PRIMITIVE_RESTART);
     glPrimitiveRestartIndex(primitiveReset);
     
     colormaps["topographic"] = QOpenGLTexturePtr(new QOpenGLTexture(QImage(QString(":/colormaps/topographic.png"))));
     colormaps["omnimap"] = QOpenGLTexturePtr(new QOpenGLTexture(QImage(QString(":/colormaps/omnimap.png"))));
+    
+    glGenVertexArrays(1,&tileVAO);
+    glBindVertexArray(tileVAO);
+
+    glGenBuffers(2,tileBuffers);
+
+    u32 ts = bag.getTileSize();
+    std::vector<GLfloat> verts;
+    std::vector<GLuint> indecies;
+    for(u32 row=0; row < ts; ++row)
+    {
+        for(u32 col=0; col < ts; ++col)
+        {
+            verts.push_back(col);
+            verts.push_back(row);
+            if(row>0)
+            {
+                indecies.push_back(((row-1)*ts+col));
+                indecies.push_back((row*ts+col));
+            }
+        }
+        if(row>0)
+            indecies.push_back(primitiveReset);
+    }
+    glBindBuffer(GL_ARRAY_BUFFER, tileBuffers[0]);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*verts.size(),verts.data(),GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
+    glEnableVertexAttribArray(0);
+    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tileBuffers[1]);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*indecies.size(),indecies.data(),GL_STATIC_DRAW);
+    tileIndeciesCount = indecies.size();
+    glBindAttribLocation(program->programId(),0,"inPosition");
 }
 
 QMatrix4x4 BagGL::genMatrix()
@@ -122,6 +119,7 @@ void BagGL::render()
         {
             translatePosition = translateEndPosition;
             translating = false;
+            setAnimating(rotating||translating||adjustingHeightExaggeration);
         }
         else
         {
@@ -147,67 +145,42 @@ void BagGL::render()
     program->setUniformValue(minElevationUniform, meta.minElevation);
     program->setUniformValue(maxElevationUniform, meta.maxElevation);
     
+    program->setUniformValue(spacingUniform,QVector2D(meta.dx,meta.dy));
+
+    program->setUniformValue(elevationMapUniform,0);
+    program->setUniformValue(colorMapUniform,1);
+    
+    GLuint tileSize = bag.getTileSize();
+    program->setUniformValue(tileSizeUniform,tileSize);
+    
     QVector3D lightDirection(0.0,0.0,1.0);
     program->setUniformValue(lightDirectionUniform,lightDirection);
     
-//     if(!bag.vrg.elevationVerticies.empty())
-//     {
-//         glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.elevationVerticies.data());
-//         glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.vrg.normals.data());
-//     }
-//     else
+    colormaps[currentColormap]->bind(1);
+    
+    glBindVertexArray(tileVAO);
+    
+    for(auto t: bag.getOverviewTiles())
     {
-//         glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.elevationVerticies.data());
-//         glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, bag.g.uncertainties.data());
-//         glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, bag.g.normals.data());
-    }    
-    glEnableVertexAttribArray(posAttr);
-    glEnableVertexAttribArray(unAttr);
-    glEnableVertexAttribArray(normAttr);
-    
-    colormaps[currentColormap]->bind();
-
-
-//     if(!bag.vrg.elevationVerticies.empty())
-//     {
-//         if(drawStyle == "points")
-//             glDrawArrays(GL_POINTS, 0, bag.vrg.elevationVerticies.size()/3);
-//         if(drawStyle == "solid")
-//             glDrawElements(GL_TRIANGLE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
-//         if(drawStyle == "wireframe")
-//             glDrawElements(GL_LINE_STRIP,bag.vrg.indecies.size(),GL_UNSIGNED_INT,bag.vrg.indecies.data());
-//     }
-//     else
-    {
-//         if(drawStyle == "points")
-//             glDrawArrays(GL_POINTS, 0, bag.g.elevationVerticies.size()/3);
-//         if(drawStyle == "solid")
-//             glDrawElements(GL_TRIANGLE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
-//         if(drawStyle == "wireframe")
-//             glDrawElements(GL_LINE_STRIP,bag.g.indecies.size(),GL_UNSIGNED_INT,bag.g.indecies.data());
-    
-    }
-    
-//     if(bag.vrg.elevationVerticies.empty())
-//     {
-        for(auto t: bag.getOverviewTiles())
+        if(!t->gl)
         {
-            glVertexAttribPointer(posAttr, 3, GL_FLOAT, GL_FALSE, 0, t->g.elevationVerticies.data());
-            glVertexAttribPointer(unAttr, 1, GL_FLOAT, GL_FALSE, 0, t->g.uncertainties.data());
-            glVertexAttribPointer(normAttr, 3, GL_FLOAT, GL_FALSE, 0, t->g.normals.data());
-
-            if(drawStyle == "points")
-                glDrawArrays(GL_POINTS, 0, t->g.elevationVerticies.size()/3);
-            if(drawStyle == "solid")
-                glDrawElements(GL_TRIANGLE_STRIP,t->g.indecies.size(),GL_UNSIGNED_INT,t->g.indecies.data());
-            if(drawStyle == "wireframe")
-                glDrawElements(GL_LINE_STRIP,t->g.indecies.size(),GL_UNSIGNED_INT,t->g.indecies.data());
+            t->gl = std::make_shared<TileGL>();
+            t->gl->elevations.setSize(tileSize,tileSize);
+            t->gl->elevations.setFormat(QOpenGLTexture::R32F);
+            t->gl->elevations.allocateStorage();
+            t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->g.elevations.data());
         }
-//    }
-    
-    glDisableVertexAttribArray(normAttr);
-    glDisableVertexAttribArray(unAttr);
-    glDisableVertexAttribArray(posAttr);
+        t->gl->elevations.bind(0);
+        QVector2D ll(t->index.first*meta.dx*tileSize,t->index.second*meta.dy*tileSize);
+        program->setUniformValue(lowerLeftUniform,ll);
+        if(drawStyle == "solid")
+            glDrawElements(GL_TRIANGLE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
+        if(drawStyle == "wireframe")
+            glDrawElements(GL_LINE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
+        if(drawStyle == "points")
+            glDrawElements(GL_POINTS, tileIndeciesCount,GL_UNSIGNED_INT,0);
+        //break;
+    }
     
     program->release();
 }
@@ -245,6 +218,7 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         adjustingHeightExaggeration = true;
         lastPosition = event->pos();
     }
+    setAnimating(rotating||translating||adjustingHeightExaggeration);
 }
 
 void BagGL::mouseReleaseEvent(QMouseEvent* event)
@@ -262,6 +236,7 @@ void BagGL::mouseReleaseEvent(QMouseEvent* event)
     {
         adjustingHeightExaggeration = false;
     }
+    setAnimating(rotating||translating||adjustingHeightExaggeration);
     
 }
 
@@ -291,6 +266,7 @@ void BagGL::wheelEvent(QWheelEvent* event)
         zoom *= 1.3f;
     else
         zoom /= 1.3f;
+    renderLater();
 }
 
 void BagGL::keyPressEvent(QKeyEvent* event)
@@ -326,18 +302,29 @@ void BagGL::resetView()
     translatePosition.setZ(0.0);
     pitch = 30.0;
     yaw = 0.0;
-    zoom = 2/std::max(meta.size.x(),meta.size.y());
+    float maxDim = std::max(meta.size.x(),meta.size.y());
+    if(maxDim > 0.0)
+        zoom = 2/maxDim;
+    else
+        zoom = 1.0;
     
     heightExaggeration = 1.0;
+    renderLater();
 }
 
 void BagGL::setColormap(const std::string& cm)
 {
     currentColormap = cm;
+    renderLater();
 }
 
 void BagGL::setDrawStyle(const std::string& ds)
 {
     drawStyle = ds;
+    renderLater();
 }
 
+void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
+{
+    std::cerr << debugMessage.message().toStdString() << std::endl;
+}

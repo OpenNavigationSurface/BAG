@@ -1,7 +1,7 @@
 #ifndef BAGIO_H
 #define BAGIO_H
 
-#include <GL/gl.h>
+#include <QOpenGLContext>
 #include <vector>
 #include <memory>
 #include <QVector3D>
@@ -10,17 +10,16 @@
 #include <QWaitCondition>
 #include "bag.h"
 
+class TileGL;
+
 class BagIO: public QThread
 {
     Q_OBJECT
 public:
     struct Geometry
     {
-        std::vector<GLfloat> elevationVerticies;
-        std::vector<GLfloat> normals;
+        std::vector<GLfloat> elevations;
         std::vector<GLfloat> uncertainties;
-        std::vector<GLuint> indecies;
-        
         void reset();
     };
     
@@ -30,6 +29,7 @@ public:
     {
         Geometry g;
         Index2D index;
+        std::shared_ptr<TileGL> gl;
     };
     
     typedef std::shared_ptr<Tile> TilePtr;
@@ -44,6 +44,16 @@ public:
         
         u32 ncols,nrows;
         double dx,dy;
+        
+        MetaData():
+            minElevation(0.0),
+            maxElevation(0.0),
+            ncols(0),
+            nrows(0),
+            dx(0.0),
+            dy(0.0)
+        {
+        }
     };
     
     BagIO(QObject *parent = 0);
@@ -52,10 +62,13 @@ public:
     bool open(QString const &bagFileName);
     void close();
     
+    u32 getTileSize() const;
+    
     std::vector<TilePtr> getOverviewTiles();
     MetaData getMeta();
 
     //Geometry vrg;
+    
     
 signals:
     void metaLoaded();
