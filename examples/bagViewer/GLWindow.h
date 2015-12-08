@@ -2,13 +2,13 @@
 #define GLWINDOW_H
 
 #include <QtGui/QWindow>
-#include <QtGui/QOpenGLFunctions_4_1_Core>
+#include <QtGui/QOpenGLFunctions_3_2_Core>
 
 class QPainter;
 class QOpenGLPaintDevice;
 class QOpenGLShaderProgram;
 
-class GLWindow: public QWindow, protected QOpenGLFunctions_4_1_Core
+class GLWindow: public QWindow, protected QOpenGLFunctions_3_2_Core
 {
     Q_OBJECT
 public:
@@ -21,6 +21,8 @@ public:
     virtual void initialize();
     
     void setAnimating(bool animating);
+    
+    void printFormat();
     
 public slots:
     void renderLater();

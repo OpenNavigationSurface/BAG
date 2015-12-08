@@ -1,4 +1,4 @@
-#version 410
+#version 150 core
 
 in float lighting;
 in float elevation;

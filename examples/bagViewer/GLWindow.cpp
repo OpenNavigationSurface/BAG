@@ -85,6 +85,7 @@ void GLWindow::renderNow()
             std::cerr << "Failed to create OpenGL context." << std::endl;
             exit(1);
         }
+        connect(context,SIGNAL(aboutToBeDestroyed()),this,SLOT(cleanup()));
         needInit = true;
     }
     
@@ -109,3 +110,22 @@ void GLWindow::setAnimating(bool a)
         renderLater();
 }
 
+void GLWindow::printFormat()
+{
+    QSurfaceFormat f = context->format();
+    std::cerr << "OpenGL version: " << f.majorVersion() << "." << f.minorVersion();
+    switch(f.profile())
+    {
+        case(QSurfaceFormat::NoProfile):
+            std::cerr << " No Profile" << std::endl;
+            break;
+        case(QSurfaceFormat::CoreProfile):
+            std::cerr << " Core Profile" << std::endl;
+            break;
+        case(QSurfaceFormat::CompatibilityProfile):
+            std::cerr << " Compatibility Profile" << std::endl;
+            break;
+        default:
+            std::cerr << " Unknown Profile" << std::endl;
+    }
+}

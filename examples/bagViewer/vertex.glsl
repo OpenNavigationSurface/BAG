@@ -1,4 +1,4 @@
-#version 410
+#version 150 core
 
 in vec2 inPosition;
 
@@ -13,8 +13,8 @@ out float lighting;
 out float vsUncertainty;
 out float isnull;
 
-uniform highp mat4 matrix;
-uniform highp mat3 normMatrix;
+uniform mat4 matrix;
+uniform mat3 normMatrix;
 uniform vec3 lightDirection;
 uniform float minElevation;
 uniform float maxElevation;
@@ -26,6 +26,7 @@ void main() {
     //vsUncertainty = uncertainty;
     vec2 tc = inPosition/float(tileSize);
     float e = texture(elevationMap,tc).r;
+
     if(e > 9999.0)
     {
         isnull = 1.0;

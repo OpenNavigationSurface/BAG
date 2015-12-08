@@ -22,14 +22,12 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     
     QSurfaceFormat format;
     format.setSamples(16);
-    format.setDepthBufferSize(24);
-    format.setVersion(4,1);
+    format.setDepthBufferSize(32);
+    format.setVersion(3,2);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setOption(QSurfaceFormat::DebugContext);
     
     bagGL->setFormat(format);
-    
-    //bagGL->setAnimating(true);
     
     QWidget *container = QWidget::createWindowContainer(bagGL);
     setCentralWidget(container);

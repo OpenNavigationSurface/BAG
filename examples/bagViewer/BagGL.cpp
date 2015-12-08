@@ -10,9 +10,11 @@ const GLuint BagGL::primitiveReset = 0xffffffff;
 
 BagGL::BagGL(): 
     program(0),
+#ifndef NDEBUG
+    gldebug(this),
+#endif
     currentColormap("omnimap"),
     drawStyle("solid"),
-    //gldebug(this),
     nearPlane(1.0),
     farPlane(100.0),
     zoom(1.0),
@@ -41,6 +43,8 @@ void BagGL::initialize()
     connect(&gldebug, SIGNAL(messageLogged(const QOpenGLDebugMessage &)),this,SLOT(messageLogged(const QOpenGLDebugMessage &)));
     gldebug.startLogging();
 #endif
+    
+    printFormat();
     
     program = new QOpenGLShaderProgram(this);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex.glsl");
@@ -165,7 +169,7 @@ void BagGL::render()
     
     glBindVertexArray(tileVAO);
     
-    for(auto t: bag.getOverviewTiles())
+    for(BagIO::TilePtr t: bag.getOverviewTiles())
     {
         if(!t->gl)
         {
@@ -175,6 +179,9 @@ void BagGL::render()
             t->gl->elevations.allocateStorage();
             t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->g.elevations.data());
             t->g.elevations.resize(0);
+            t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+            std::cerr << "texture created? " << t->gl->elevations.isCreated() << std::endl;
+            std::cerr << "allocated? " << t->gl->elevations.isStorageAllocated() << std::endl;
         }
         t->gl->elevations.bind(0);
         QVector2D ll(t->index.first*meta.dx*tileSize,t->index.second*meta.dy*tileSize);

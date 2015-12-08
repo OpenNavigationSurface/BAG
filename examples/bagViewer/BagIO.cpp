@@ -8,9 +8,9 @@
 
 BagIO::BagIO(QObject *parent):
     QThread(parent),
-    tileSize(100),
     restart(false),
-    abort(false)
+    abort(false),
+    tileSize(100)
 {
 
 }
