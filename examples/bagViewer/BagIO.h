@@ -10,7 +10,7 @@
 #include <QWaitCondition>
 #include "bag.h"
 
-class TileGL;
+struct TileGL;
 
 class BagIO: public QThread
 {
