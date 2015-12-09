@@ -60,6 +60,7 @@ void BagGL::initialize()
     
     elevationMapUniform = program->uniformLocation("elevationMap");
     colorMapUniform = program->uniformLocation("colorMap");
+    normalMapUniform = program->uniformLocation("normalMap");
     spacingUniform = program->uniformLocation("spacing");
     lowerLeftUniform = program->uniformLocation("lowerLeft");
     tileSizeUniform = program->uniformLocation("tileSize");
@@ -158,6 +159,7 @@ void BagGL::render()
 
     program->setUniformValue(elevationMapUniform,0);
     program->setUniformValue(colorMapUniform,1);
+    program->setUniformValue(normalMapUniform,2);
     
     GLuint tileSize = bag.getTileSize();
     program->setUniformValue(tileSizeUniform,tileSize);
@@ -180,10 +182,11 @@ void BagGL::render()
             t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->g.elevations.data());
             t->g.elevations.resize(0);
             t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-            std::cerr << "texture created? " << t->gl->elevations.isCreated() << std::endl;
-            std::cerr << "allocated? " << t->gl->elevations.isStorageAllocated() << std::endl;
+            t->gl->normals.setData(t->g.normalMap);
+            //t->g.normalMap.save("debugNormalMap.png");
         }
         t->gl->elevations.bind(0);
+        t->gl->normals.bind(2);
         QVector2D ll(t->index.first*meta.dx*tileSize,t->index.second*meta.dy*tileSize);
         program->setUniformValue(lowerLeftUniform,ll);
         if(drawStyle == "solid")
@@ -194,7 +197,6 @@ void BagGL::render()
             glDrawElements(GL_POINTS, tileIndeciesCount,GL_UNSIGNED_INT,0);
         //break;
     }
-    
     program->release();
 }
 

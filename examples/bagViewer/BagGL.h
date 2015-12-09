@@ -12,8 +12,9 @@
 struct TileGL
 {
     QOpenGLTexture elevations;
+    QOpenGLTexture normals;
     QOpenGLTexture uncertainties;
-    TileGL(): elevations(QOpenGLTexture::Target2D), uncertainties(QOpenGLTexture::Target2D) {}
+    TileGL(): elevations(QOpenGLTexture::Target2D), normals(QOpenGLTexture::Target2D), uncertainties(QOpenGLTexture::Target2D) {}
     ~TileGL(){}
 };
 
@@ -59,6 +60,7 @@ private:
     GLuint lowerLeftUniform;
     GLuint tileSizeUniform;
     GLuint colorMapUniform;
+    GLuint normalMapUniform;
     
     GLuint tileVAO;
     GLuint tileBuffers[2];

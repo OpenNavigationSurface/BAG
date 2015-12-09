@@ -102,12 +102,48 @@ void BagIO::run()
                 for(u32 j = 0; j < meta.ncols; j += tileSize)
                 {
                     Index2D tindex(j/tileSize,trow);
-                    std::cerr << "tile: " << tindex.first << "," << tindex.second;
+                    //std::cerr << "tile: " << tindex.first << "," << tindex.second;
                     TilePtr t = loadTile(bag,tindex,meta);
                     if(t)
-                        std::cerr << "\tsaved" << std::endl;
+                    {
+                        //std::cerr << "\tsaved" << std::endl;
+                        t->g.normalMap = QImage(tileSize, tileSize, QImage::Format_RGB888);
+                        for(u32 ti = 0; ti < tileSize; ++ti)
+                        {
+                            for(u32 tj = 0; tj < tileSize; ++tj)
+                            {
+                                if(ti == tileSize-1)
+                                {
+                                    // last row, copy previous
+                                    t->g.normalMap.setPixel(tj,ti,t->g.normalMap.pixel(tj,ti-1));
+                                }
+                                else
+                                {
+                                    if(tj == tileSize-1)
+                                        t->g.normalMap.setPixel(tj,ti,t->g.normalMap.pixel(tj-1,ti));
+                                    else
+                                    {
+                                        float p00 = t->g.elevations[ti*tileSize+tj];
+                                        float p10 = t->g.elevations[ti*tileSize+tj+1];
+                                        float p01 = t->g.elevations[(ti+1)*tileSize+tj];
+                                        if(p00 != BAG_NULL_ELEVATION && p10 != BAG_NULL_ELEVATION && p01 != BAG_NULL_ELEVATION)
+                                        {
+                                            QVector3D v1(meta.dx,0.0,p10-p00);
+                                            QVector3D v2(0.0,meta.dy,p01-p00);
+                                            QVector3D n = QVector3D::normal(v1,v2);
+                                            t->g.normalMap.setPixel(tj,ti,QColor(127+128*n.x(),127+128*n.y(),127+128*n.z()).rgb());
+                                        }
+                                        else
+                                            t->g.normalMap.setPixel(tj,ti,QColor(127,127,255).rgb());
+                                    }
+                                }
+                            }
+                        }
+                    }
                     else
-                        std::cerr << "\tdiscarded" << std::endl;
+                    {
+                        //std::cerr << "\tdiscarded" << std::endl;
+                    }
                     {
                         QMutexLocker locker(&mutex);
                         if (restart)

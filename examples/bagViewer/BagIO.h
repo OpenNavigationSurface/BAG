@@ -8,6 +8,7 @@
 #include <QThread>
 #include <QMutex>
 #include <QWaitCondition>
+#include <QImage>
 #include "bag.h"
 
 struct TileGL;
@@ -19,6 +20,7 @@ public:
     struct Geometry
     {
         std::vector<GLfloat> elevations;
+        QImage normalMap;
         std::vector<GLfloat> uncertainties;
         void reset();
     };

@@ -85,7 +85,6 @@ void GLWindow::renderNow()
             std::cerr << "Failed to create OpenGL context." << std::endl;
             exit(1);
         }
-        connect(context,SIGNAL(aboutToBeDestroyed()),this,SLOT(cleanup()));
         needInit = true;
     }
     
