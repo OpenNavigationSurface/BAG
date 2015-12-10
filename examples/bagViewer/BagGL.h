@@ -68,7 +68,8 @@ private:
     
     GLuint tileVAO;
     GLuint tileBuffers[2];
-    GLsizei tileIndeciesCount;
+    //GLsizei tileIndeciesCount;
+    std::vector<GLsizei> lodIndecies;
     
     BagIO bag;
 
@@ -156,6 +157,13 @@ private:
             r.set(nearPlane.lr, nearPlane.ur,  farPlane.lr);
             t.set(nearPlane.ul,  farPlane.ul, nearPlane.ur);
             b.set( farPlane.lr,  farPlane.ll, nearPlane.lr);
+        }
+        
+        QVector2D drawSize(QVector3D const &p0, QVector3D const &p1)
+        {
+            QVector3D p0p = matrix*p0;
+            QVector3D p1p = matrix*p1;
+            return QVector2D( viewportSize.x()*std::abs(p0p.x()-p1p.x())/2.0 , viewportSize.y()*std::abs(p0p.y()-p1p.y())/2.0);
         }
     };
     

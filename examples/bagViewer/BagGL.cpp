@@ -86,15 +86,43 @@ void BagGL::initialize()
         {
             verts.push_back(col);
             verts.push_back(row);
-            if(row>0)
-            {
-                indecies.push_back(((row-1)*ts+col));
-                indecies.push_back((row*ts+col));
-            }
+//             if(row>0)
+//             {
+//                 indecies.push_back(((row-1)*ts+col));
+//                 indecies.push_back((row*ts+col));
+//             }
         }
-        if(row>0)
-            indecies.push_back(primitiveReset);
+//         if(row>0)
+//             indecies.push_back(primitiveReset);
     }
+    
+    for(uint lod=1; lod < ts/2; lod*=2)
+    {
+        lodIndecies.push_back(indecies.size());
+        for(u32 row=0; row < ts; row+=lod)
+        {
+            for(u32 col=0; col < ts; col+=lod)
+            {
+                if(row>0)
+                {
+                    indecies.push_back(((row-lod)*ts+col));
+                    indecies.push_back((row*ts+col));
+                    if(col+lod >= ts && col < ts-1)
+                    {
+                        indecies.push_back(((row-lod)*ts+ts-1));
+                        indecies.push_back((row*ts+ts-1));
+                    }
+                }
+            }
+            if(row>0)
+                indecies.push_back(primitiveReset);
+            if (row+lod >= ts && row < ts-1)
+                row = ts-1-lod;
+        }
+    }
+    lodIndecies.push_back(indecies.size());
+    
+    
     glBindBuffer(GL_ARRAY_BUFFER, tileBuffers[0]);
     glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*verts.size(),verts.data(),GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
@@ -102,7 +130,6 @@ void BagGL::initialize()
     
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tileBuffers[1]);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*indecies.size(),indecies.data(),GL_STATIC_DRAW);
-    tileIndeciesCount = indecies.size();
     glBindAttribLocation(program->programId(),0,"inPosition");
 }
 
@@ -194,15 +221,51 @@ void BagGL::render()
         //std::cerr << "tile: " << t->index.first << "," << t->index.second << " culled? " << culled << std::endl;
         if(!culled)
         {
+            QVector2D ds = f.drawSize(t->lowerLeft,QVector3D(t->upperRight.x(),t->lowerLeft.y(),t->lowerLeft.z()));
+            float maxDS = std::max(ds.x(),ds.y());
+            ds = f.drawSize(QVector3D(t->lowerLeft.x(),t->lowerLeft.y(),t->upperRight.z()), QVector3D(t->upperRight.x(),t->lowerLeft.y(),t->upperRight.z()));
+            maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
+
+            ds = f.drawSize(QVector3D(t->lowerLeft.x(),t->upperRight.y(),t->upperRight.z()), QVector3D(t->upperRight.x(),t->upperRight.y(),t->upperRight.z()));
+            maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
+            ds = f.drawSize(QVector3D(t->lowerLeft.x(),t->upperRight.y(),t->lowerLeft.z()), QVector3D(t->upperRight.x(),t->upperRight.y(),t->lowerLeft.z()));
+            maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
+
+            ds = f.drawSize(QVector3D(t->lowerLeft.x(),t->lowerLeft.y(),t->lowerLeft.z()), QVector3D(t->lowerLeft.x(),t->upperRight.y(),t->lowerLeft.z()));
+            maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
+
+            ds = f.drawSize(QVector3D(t->lowerLeft.x(),t->lowerLeft.y(),t->upperRight.z()), QVector3D(t->lowerLeft.x(),t->upperRight.y(),t->upperRight.z()));
+            maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
+            
+
+            ds = f.drawSize(QVector3D(t->upperRight.x(),t->lowerLeft.y(),t->lowerLeft.z()), QVector3D(t->upperRight.x(),t->upperRight.y(),t->lowerLeft.z()));
+            maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
+            
+            ds = f.drawSize(QVector3D(t->upperRight.x(),t->lowerLeft.y(),t->upperRight.z()), QVector3D(t->upperRight.x(),t->upperRight.y(),t->upperRight.z()));
+            maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
+            
+            //std::cerr << "draw size (px): " << maxDS << ", (" << tileSize/maxDS << ")";// << std::endl;
+            
+            int lod = std::floor(log2f(tileSize/maxDS));
+            
+            lod+=2;
+            
+            lod = std::max(0, std::min(lod,int(lodIndecies.size()-2)));
+
+            GLsizei i0 = lodIndecies[lod];
+            GLsizei count = lodIndecies[lod+1]-lodIndecies[lod];
+
+            //std::cerr << "lod: " << lod << "\ti0 " << i0 << "\tcount " << count << std::endl;
+            
             drawCount++;
             t->gl->elevations.bind(0);
             t->gl->normals.bind(2);
-            QVector2D ll(t->index.first*meta.dx*tileSize,t->index.second*meta.dy*tileSize);
+            QVector2D ll(t->lowerLeft.x(),t->lowerLeft.y());
             program->setUniformValue(lowerLeftUniform,ll);
             if(drawStyle == "solid")
-                glDrawElements(GL_TRIANGLE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
+                glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
             if(drawStyle == "wireframe")
-                glDrawElements(GL_LINE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
+                glDrawElements(GL_LINE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
             if(drawStyle == "points")
                 glDrawArrays(GL_POINTS, 0, tileSize*tileSize);
         }

@@ -289,9 +289,9 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
     ret->index = tileIndex;
     
     
-    u32 startRow = tileIndex.second * tileSize;
+    u32 startRow = tileIndex.second * (tileSize-1);
     u32 endRow = std::min(startRow+tileSize-1,meta.nrows-1);
-    u32 startCol = tileIndex.first * tileSize;
+    u32 startCol = tileIndex.first * (tileSize-1);
     u32 endCol = std::min(startCol+tileSize-1,meta.ncols-1);
     
     bagReadRegion(bag, startRow, startCol, endRow, endCol, Elevation);
@@ -332,8 +332,8 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
                     maxElevation = e;
             }
         }
-        ret->lowerLeft = QVector3D(tileIndex.first * tileSize * meta.dx, tileIndex.second * tileSize * meta.dy, minElevation);
-        ret->upperRight = QVector3D((tileIndex.first+1) * tileSize * meta.dx, (tileIndex.second+1) * tileSize * meta.dy, maxElevation);
+        ret->lowerLeft = QVector3D(startCol * meta.dx, startRow * meta.dy, minElevation);
+        ret->upperRight = QVector3D((endCol+1) * meta.dx, (endRow+1) * meta.dy, maxElevation);
     }
     
     return ret;
