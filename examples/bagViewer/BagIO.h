@@ -13,30 +13,34 @@
 
 struct TileGL;
 
+struct TileGeometry
+{
+    std::vector<GLfloat> elevations;
+    QImage normalMap;
+    std::vector<GLfloat> uncertainties;
+    void reset();
+};
+
+typedef std::pair<u32,u32> TileIndex2D;
+
+struct Tile
+{
+    TileGeometry g;
+    TileIndex2D index;
+    std::shared_ptr<TileGL> gl;
+    QVector3D lowerLeft,upperRight;
+    //float minElevation, maxElevation;
+};
+
+typedef std::shared_ptr<Tile> TilePtr;
+
+typedef std::map<TileIndex2D,TilePtr> TileMap;
+
+
 class BagIO: public QThread
 {
     Q_OBJECT
 public:
-    struct Geometry
-    {
-        std::vector<GLfloat> elevations;
-        QImage normalMap;
-        std::vector<GLfloat> uncertainties;
-        void reset();
-    };
-    
-    typedef std::pair<u32,u32> Index2D;
-    
-    struct Tile
-    {
-        Geometry g;
-        Index2D index;
-        std::shared_ptr<TileGL> gl;
-    };
-    
-    typedef std::shared_ptr<Tile> TilePtr;
-    
-    typedef std::map<Index2D,TilePtr> TileMap;
     
     struct MetaData
     {
@@ -80,7 +84,7 @@ protected:
     void run() Q_DECL_OVERRIDE;
     
 private:
-    TilePtr loadTile(bagHandle &bag, Index2D tileIndex, MetaData &meta) const; 
+    TilePtr loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) const; 
     
     QMutex mutex;
     QWaitCondition condition;

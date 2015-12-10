@@ -27,7 +27,6 @@ void main() {
     vec3 normal = normalize((texture(normalMap,tc).rgb*2.0)-1.0);
     vec3 vsNormal = normalize(normMatrix*normal);
     lighting = max(dot(vsNormal,lightDirection), 0.0);
-    //lighting = 1.0;
     //vsUncertainty = uncertainty;
 
     if(e > 9999.0)

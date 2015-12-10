@@ -10,7 +10,7 @@ BagIO::BagIO(QObject *parent):
     QThread(parent),
     restart(false),
     abort(false),
-    tileSize(100)
+    tileSize(128)
 {
 
 }
@@ -101,7 +101,7 @@ void BagIO::run()
                 std::cerr << "tile row: " << trow << std::endl;
                 for(u32 j = 0; j < meta.ncols; j += tileSize)
                 {
-                    Index2D tindex(j/tileSize,trow);
+                    TileIndex2D tindex(j/tileSize,trow);
                     //std::cerr << "tile: " << tindex.first << "," << tindex.second;
                     TilePtr t = loadTile(bag,tindex,meta);
                     if(t)
@@ -283,7 +283,7 @@ bool BagIO::open(const QString& bagFileName)
     
 }
 
-BagIO::TilePtr BagIO::loadTile(bagHandle &bag, BagIO::Index2D tileIndex, MetaData &meta) const
+TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) const
 {
     TilePtr ret(new Tile);
     ret->index = tileIndex;
@@ -318,6 +318,23 @@ BagIO::TilePtr BagIO::loadTile(bagHandle &bag, BagIO::Index2D tileIndex, MetaDat
     
     if(!notEmpty)
         ret.reset();
+    else
+    {
+        float minElevation = BAG_NULL_ELEVATION;
+        float maxElevation = BAG_NULL_ELEVATION;
+        for(auto e:ret->g.elevations)
+        {
+            if(e != BAG_NULL_ELEVATION)
+            {
+                if(minElevation == BAG_NULL_ELEVATION || e < minElevation)
+                    minElevation = e;
+                if(maxElevation == BAG_NULL_ELEVATION || e > maxElevation)
+                    maxElevation = e;
+            }
+        }
+        ret->lowerLeft = QVector3D(tileIndex.first * tileSize * meta.dx, tileIndex.second * tileSize * meta.dy, minElevation);
+        ret->upperRight = QVector3D((tileIndex.first+1) * tileSize * meta.dx, (tileIndex.second+1) * tileSize * meta.dy, maxElevation);
+    }
     
     return ret;
 }
@@ -332,13 +349,14 @@ void BagIO::close()
 
 
 
-void BagIO::Geometry::reset()
+void TileGeometry::reset()
 {
     elevations.resize(0);
     uncertainties.resize(0);
+    normalMap = QImage();
 }
 
-std::vector< BagIO::TilePtr > BagIO::getOverviewTiles()
+std::vector< TilePtr > BagIO::getOverviewTiles()
 {
     std::vector<TilePtr> ret;
     QMutexLocker locker(&mutex);

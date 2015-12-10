@@ -8,6 +8,10 @@
 #include <memory>
 #include <QOpenGLTexture>
 #include <QOpenGLDebugLogger>
+#include <QMatrix4x4>
+#include <QVector2D>
+
+struct Tile;
 
 struct TileGL
 {
@@ -97,6 +101,66 @@ private:
     
     float heightExaggeration;
     bool adjustingHeightExaggeration;
+    
+    struct Frustum
+    {
+        struct Plane
+        {
+            QVector3D ll,lr,ul,ur;
+            Plane(float depth):
+                ll(-1.0,-1.0,depth),
+                lr(1.0,-1.0,depth),
+                ul(-1.0,1.0,depth),
+                ur(1.0,1.0,depth)
+                {}
+        };
+        
+        struct PlaneEq
+        {
+            QVector3D v1,v2,v3;
+
+            void set(QVector3D v1, QVector3D v2, QVector3D v3)
+            {
+                this->v1 = v1;
+                this->v2 = v2;
+                this->v3 = v3;
+            }
+
+            float whichSide(QVector3D p) const
+            {
+                return p.distanceToPlane(v1,v2,v3);
+            }
+        };
+        
+        QMatrix4x4 matrix,imatrix;
+        Plane nearPlane;
+        Plane farPlane;
+        PlaneEq l,r,t,b,n,f;
+        QVector2D viewportSize;
+        
+        Frustum(QMatrix4x4 m):matrix(m),imatrix(m.inverted()), nearPlane(-1.0),farPlane(1.0)
+        {
+            nearPlane.ll = imatrix*nearPlane.ll;
+            nearPlane.lr = imatrix*nearPlane.lr;
+            nearPlane.ul = imatrix*nearPlane.ul;
+            nearPlane.ur = imatrix*nearPlane.ur;
+
+            farPlane.ll = imatrix*farPlane.ll;
+            farPlane.lr = imatrix*farPlane.lr;
+            farPlane.ul = imatrix*farPlane.ul;
+            farPlane.ur = imatrix*farPlane.ur;
+            
+            n.set(nearPlane.ll, nearPlane.ul, nearPlane.lr);
+            f.set( farPlane.ur,  farPlane.ul,  farPlane.lr);
+            l.set( farPlane.ll,  farPlane.ul, nearPlane.ll);
+            r.set(nearPlane.lr, nearPlane.ur,  farPlane.lr);
+            t.set(nearPlane.ul,  farPlane.ul, nearPlane.ur);
+            b.set( farPlane.lr,  farPlane.ll, nearPlane.lr);
+        }
+    };
+    
+    bool isCulled(const BagGL::Frustum& f, const Tile& t, const BagIO::MetaData& meta) const;
+                  
 };
 
 #endif

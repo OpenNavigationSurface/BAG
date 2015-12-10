@@ -148,6 +148,9 @@ void BagGL::render()
     QMatrix4x4 normMatrix;
     normMatrix.scale(1.0,1.0,heightExaggeration);
     
+    Frustum f(matrix);
+    f.viewportSize = QVector2D(width() * retinaScale, height() * retinaScale);
+    
     BagIO::MetaData meta = bag.getMeta();
     
     program->setUniformValue(matrixUniform, matrix);
@@ -171,7 +174,10 @@ void BagGL::render()
     
     glBindVertexArray(tileVAO);
     
-    for(BagIO::TilePtr t: bag.getOverviewTiles())
+    uint cullCount = 0;
+    uint drawCount = 0;
+    
+    for(TilePtr t: bag.getOverviewTiles())
     {
         if(!t->gl)
         {
@@ -183,20 +189,29 @@ void BagGL::render()
             t->g.elevations.resize(0);
             t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
             t->gl->normals.setData(t->g.normalMap);
-            //t->g.normalMap.save("debugNormalMap.png");
         }
-        t->gl->elevations.bind(0);
-        t->gl->normals.bind(2);
-        QVector2D ll(t->index.first*meta.dx*tileSize,t->index.second*meta.dy*tileSize);
-        program->setUniformValue(lowerLeftUniform,ll);
-        if(drawStyle == "solid")
-            glDrawElements(GL_TRIANGLE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
-        if(drawStyle == "wireframe")
-            glDrawElements(GL_LINE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
-        if(drawStyle == "points")
-            glDrawElements(GL_POINTS, tileIndeciesCount,GL_UNSIGNED_INT,0);
+        bool culled = isCulled(f,*t,meta);
+        //std::cerr << "tile: " << t->index.first << "," << t->index.second << " culled? " << culled << std::endl;
+        if(!culled)
+        {
+            drawCount++;
+            t->gl->elevations.bind(0);
+            t->gl->normals.bind(2);
+            QVector2D ll(t->index.first*meta.dx*tileSize,t->index.second*meta.dy*tileSize);
+            program->setUniformValue(lowerLeftUniform,ll);
+            if(drawStyle == "solid")
+                glDrawElements(GL_TRIANGLE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
+            if(drawStyle == "wireframe")
+                glDrawElements(GL_LINE_STRIP, tileIndeciesCount,GL_UNSIGNED_INT,0);
+            if(drawStyle == "points")
+                glDrawArrays(GL_POINTS, 0, tileSize*tileSize);
+        }
+        else
+            cullCount++;
         //break;
     }
+    std::cerr << drawCount << " drawn, " << cullCount << " culled." << std::endl;
+    //std::cerr << std::endl;
     program->release();
 }
 
@@ -344,4 +359,44 @@ void BagGL::setDrawStyle(const std::string& ds)
 void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
 {
     std::cerr << debugMessage.message().toStdString() << std::endl;
+}
+
+bool BagGL::isCulled(const BagGL::Frustum& f, const Tile& t, BagIO::MetaData const &meta) const
+{
+//     std::cerr << "tile: " << t.index.first << "," << t.index.second;
+//     std::cerr << "\televation range: " << t.minElevation << ", " << t.maxElevation << std::endl;
+    QVector3D p0 = t.lowerLeft;
+    QVector3D p7 = t.upperRight;
+    QVector3D p1(p7.x(),p0.y(),p0.z());
+    QVector3D p2(p0.x(),p7.y(),p0.z());
+    QVector3D p3(p7.x(),p7.y(),p0.z());
+    QVector3D p4(p0.x(),p0.y(),p7.z());
+    QVector3D p5(p7.x(),p0.y(),p7.z());
+    QVector3D p6(p0.x(),p7.y(),p7.z());
+    
+    if(f.n.whichSide(p0)<0.0 && f.n.whichSide(p1)<0.0 && f.n.whichSide(p2)<0.0 && f.n.whichSide(p3)<0.0
+        && f.n.whichSide(p4)<0.0 && f.n.whichSide(p5)<0.0 && f.n.whichSide(p6)<0.0 && f.n.whichSide(p7)<0.0)
+        return true;
+
+    if(f.f.whichSide(p0)<0.0 && f.f.whichSide(p1)<0.0 && f.f.whichSide(p2)<0.0 && f.f.whichSide(p3)<0.0
+        && f.f.whichSide(p4)<0.0 && f.f.whichSide(p5)<0.0 && f.f.whichSide(p6)<0.0 && f.f.whichSide(p7)<0.0)
+        return true;
+    
+    if(f.l.whichSide(p0)<0.0 && f.l.whichSide(p1)<0.0 && f.l.whichSide(p2)<0.0 && f.l.whichSide(p3)<0.0
+        && f.l.whichSide(p4)<0.0 && f.l.whichSide(p5)<0.0 && f.l.whichSide(p6)<0.0 && f.l.whichSide(p7)<0.0)
+        return true;
+    
+    if(f.r.whichSide(p0)<0.0 && f.r.whichSide(p1)<0.0 && f.r.whichSide(p2)<0.0 && f.r.whichSide(p3)<0.0
+        && f.r.whichSide(p4)<0.0 && f.r.whichSide(p5)<0.0 && f.r.whichSide(p6)<0.0 && f.r.whichSide(p7)<0.0)
+        return true;
+    
+    if(f.t.whichSide(p0)<0.0 && f.t.whichSide(p1)<0.0 && f.t.whichSide(p2)<0.0 && f.t.whichSide(p3)<0.0
+        && f.t.whichSide(p4)<0.0 && f.t.whichSide(p5)<0.0 && f.t.whichSide(p6)<0.0 && f.t.whichSide(p7)<0.0)
+        return true;
+    
+    if(f.b.whichSide(p0)<0.0 && f.b.whichSide(p1)<0.0 && f.b.whichSide(p2)<0.0 && f.b.whichSide(p3)<0.0
+        && f.b.whichSide(p4)<0.0 && f.b.whichSide(p5)<0.0 && f.b.whichSide(p6)<0.0 && f.b.whichSide(p7)<0.0)
+        return true;
+    
+    return false;
 }
