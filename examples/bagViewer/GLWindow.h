@@ -33,6 +33,8 @@ protected:
     
     void exposeEvent(QExposeEvent *event) Q_DECL_OVERRIDE;
     
+    void makeContextCurrent();
+    
 private:
     bool updatePending;
     bool animating;

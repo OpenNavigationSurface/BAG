@@ -109,6 +109,13 @@ void GLWindow::setAnimating(bool a)
         renderLater();
 }
 
+void GLWindow::makeContextCurrent()
+{
+    if(context)
+        context->makeCurrent(this);
+}
+
+
 void GLWindow::printFormat()
 {
     QSurfaceFormat f = context->format();

@@ -86,14 +86,7 @@ void BagGL::initialize()
         {
             verts.push_back(col);
             verts.push_back(row);
-//             if(row>0)
-//             {
-//                 indecies.push_back(((row-1)*ts+col));
-//                 indecies.push_back((row*ts+col));
-//             }
         }
-//         if(row>0)
-//             indecies.push_back(primitiveReset);
     }
     
     for(uint lod=1; lod < ts/2; lod*=2)
@@ -216,6 +209,8 @@ void BagGL::render()
             t->g.elevations.resize(0);
             t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
             t->gl->normals.setData(t->g.normalMap);
+            //t->g.normalMap.save("debugNormalMap.png");
+            t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
         }
         bool culled = isCulled(f,*t,meta);
         //std::cerr << "tile: " << t->index.first << "," << t->index.second << " culled? " << culled << std::endl;
@@ -377,6 +372,7 @@ void BagGL::keyPressEvent(QKeyEvent* event)
 
 bool BagGL::openBag(const QString& bagFileName)
 {
+    closeBag();
     bool ret = bag.open(bagFileName);
     if(ret)
         resetView();
@@ -385,8 +381,10 @@ bool BagGL::openBag(const QString& bagFileName)
 
 void BagGL::closeBag()
 {
-    for(auto t: bag.getOverviewTiles())
-        t->gl.reset();
+//     for(TilePtr t: bag.getOverviewTiles())
+//     {
+//         t->gl.reset();
+//     }
     bag.close();
 }
 
