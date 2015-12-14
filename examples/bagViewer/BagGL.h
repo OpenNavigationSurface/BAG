@@ -11,6 +11,7 @@
 #include <QMatrix4x4>
 #include <QVector2D>
 
+struct TileBase;
 struct Tile;
 
 struct TileGL
@@ -21,6 +22,7 @@ struct TileGL
     TileGL(): elevations(QOpenGLTexture::Target2D), normals(QOpenGLTexture::Target2D), uncertainties(QOpenGLTexture::Target2D) {}
     ~TileGL(){}
 };
+
 
 class BagGL: public GLWindow
 {
@@ -39,6 +41,23 @@ public:
     void setDrawStyle(std::string const &ds);
     
     static const GLuint primitiveReset;
+
+    struct Grid
+    {
+        uint ncols, nrows;
+        
+        GLuint vao;
+        GLuint buffers[2];
+        std::vector<GLsizei> lodIndecies;
+        
+        void initialize(BagGL& gl, uint ncols, uint nrows);
+    };
+    
+    typedef std::shared_ptr<Grid> GridPtr;
+    
+    typedef std::pair<uint,uint> GridSize;
+    
+    typedef std::map<GridSize,GridPtr> GridMap;
     
 public slots:
     void resetView();
@@ -70,6 +89,8 @@ private:
     GLuint tileBuffers[2];
     //GLsizei tileIndeciesCount;
     std::vector<GLsizei> lodIndecies;
+    
+    GridMap grids;
     
     BagIO bag;
 
@@ -165,9 +186,10 @@ private:
             QVector3D p1p = matrix*p1;
             return QVector2D( viewportSize.x()*std::abs(p0p.x()-p1p.x())/2.0 , viewportSize.y()*std::abs(p0p.y()-p1p.y())/2.0);
         }
+        float maxDrawSize(TileBase const&t);
     };
     
-    bool isCulled(const BagGL::Frustum& f, const Tile& t, const BagIO::MetaData& meta) const;
+    bool isCulled(const BagGL::Frustum& f, const TileBase& t) const;
                   
 };
 

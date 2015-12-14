@@ -23,13 +23,27 @@ struct TileGeometry
 
 typedef std::pair<u32,u32> TileIndex2D;
 
-struct Tile
+struct TileBase
 {
     TileGeometry g;
     TileIndex2D index;
     std::shared_ptr<TileGL> gl;
     QVector3D lowerLeft,upperRight;
-    //float minElevation, maxElevation;
+};
+
+struct VarResTile: public TileBase
+{
+    float dx,dy;
+    uint ncols,nrows;
+};
+
+typedef std::shared_ptr<VarResTile> VarResTilePtr;
+typedef std::map<TileIndex2D,VarResTilePtr> VarResTileMap;
+
+struct Tile: public TileBase
+{
+    TileIndex2D lowerLeftIndex;
+    VarResTileMap varResTiles;
 };
 
 typedef std::shared_ptr<Tile> TilePtr;
@@ -50,6 +64,7 @@ public:
         
         u32 ncols,nrows;
         double dx,dy;
+        bool variableResolution;
         
         MetaData():
             minElevation(0.0),
@@ -85,6 +100,7 @@ protected:
     
 private:
     TilePtr loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) const; 
+    VarResTilePtr loadVarResTile(bagHandle &bag, TileIndex2D const tileIndex, MetaData const &meta, Tile const &parentTile) const; 
     
     QMutex mutex;
     QWaitCondition condition;
