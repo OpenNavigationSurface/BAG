@@ -13,16 +13,8 @@ BagGL::BagGL():
 #endif
     currentColormap("omnimap"),
     drawStyle("solid"),
-    nearPlane(1.0),
-    farPlane(100.0),
-    eyePosition(0.0, 0.0, -5.0),
-    zoom(1.0),
-    yaw(0.0),
-    pitch(30.0),
     rotating(false),
-    translatePosition(0.0,0.0,0.0),
     translating(false),
-    heightExaggeration(1.0),
     adjustingHeightExaggeration(false),
     lodBias(2)
 {
@@ -126,26 +118,6 @@ void BagGL::initialize()
     glBindAttribLocation(program->programId(),0,"inPosition");
 }
 
-QMatrix4x4 BagGL::genMatrix()
-{
-    QMatrix4x4 matrix;
-    matrix.perspective(60.0f, width()/float(height()), nearPlane, farPlane);
-    matrix *= genModelviewMatrix();
-    return matrix;
-}
-
-QMatrix4x4 BagGL::genModelviewMatrix()
-{
-    QMatrix4x4 matrix;
-    matrix.translate(eyePosition);
-    matrix.rotate(-90, 1, 0, 0);
-    matrix.scale(zoom,zoom,zoom);
-    matrix.rotate(pitch, 1, 0, 0);
-    matrix.rotate(yaw, 0, 0, 1);
-    matrix.scale(1.0,1.0,heightExaggeration);
-    matrix.translate(-translatePosition.x(),-translatePosition.y(),-translatePosition.z());
-    return matrix;
-}
 
 void BagGL::render()
 {
@@ -154,43 +126,28 @@ void BagGL::render()
         float p = translateStartTime.elapsed()/250.0;
         if(p >= 1.0)
         {
-            translatePosition = translateEndPosition;
+            camera.setCenterPosition(translateEndPosition);
             translating = false;
             setAnimating(rotating||translating||adjustingHeightExaggeration);
         }
         else
         {
             float ip = 1.0-p;
-            translatePosition = translateStartPosition*ip+translateEndPosition*p;
+            camera.setCenterPosition(translateStartPosition*ip+translateEndPosition*p);
         }
     }
     const qreal retinaScale = devicePixelRatio();
     glViewport(0, 0, width() * retinaScale, height() * retinaScale);
+    camera.setViewport(width() * retinaScale, height() * retinaScale);
     
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     
     program->bind();
     
-    QMatrix4x4 imv = genModelviewMatrix().inverted();
     
-    QVector3D eye = imv.column(3).toVector3D();
-    qDebug() << "eye position" << eye;
-    
-    QMatrix4x4 matrix = genMatrix();
-    QMatrix4x4 normMatrix;
-    normMatrix.scale(1.0,1.0,heightExaggeration);
+    QMatrix4x4 matrix = camera.genMatrix();
+    QMatrix4x4 normMatrix = camera.genNormalMatrix();
 
-    QMatrix4x4 imatrix = matrix.inverted();
-    QVector3D nearPlaneCenter = imatrix*QVector3D(0.0,0.0,-1.0);
-    float pixelSize = nearPlaneCenter.distanceToPoint(imatrix*QVector3D(1.0/(width() * retinaScale),0.0,-1.0));
-
-    float nearPlaneDistance = nearPlaneCenter.distanceToPoint(eye);
-    
-    qDebug() << "near plane center:" << nearPlaneCenter << "\tpixel size:" << pixelSize << "near plane distance:" << nearPlaneDistance;
-    
-    
-    Frustum f(matrix);
-    f.viewportSize = QVector2D(width() * retinaScale, height() * retinaScale);
     
     BagIO::MetaData meta = bag.getMeta();
     
@@ -229,17 +186,14 @@ void BagGL::render()
             //t->g.normalMap.save("debugNormalMap.png");
             t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
         }
-        bool culled = isCulled(f,*t);
+        bool culled = camera.isCulled(t->bounds);
         //qDebug() << "tile: " << t->index.first << "," << t->index.second << "culled? " << culled << "center" << t->bounds.center() << "radius" << t->bounds.radius();
         if(!culled)
         {
-            float eyed = std::max(0.0f, eye.distanceToPoint(t->bounds.center())-t->bounds.radius());
-            
-            float tpixSize = eyed*pixelSize/nearPlaneDistance;
-            
+            float pixelSize = camera.getPixelSize(t->bounds);
             //qDebug() << "eye distance:" << eyed << "pixel size:" << tpixSize;
             
-            int lod = std::floor(log2f(tpixSize/meta.dx));
+            int lod = std::floor(log2f(pixelSize/meta.dx));
             //qDebug() << "LOD (pre-bias):" << lod;
             
             
@@ -251,7 +205,7 @@ void BagGL::render()
                 {
                     VarResTilePtr vrt = vrtp.second;
                     
-                    bool vrCulled = isCulled(f,*vrt);
+                    bool vrCulled = camera.isCulled(vrt->bounds);
                     //qDebug() << "vrTile" << vrt->index.first << "," << vrt->index.second << "culled?" << vrCulled;
                     if(!vrCulled)
                     {
@@ -272,13 +226,10 @@ void BagGL::render()
                         program->setUniformValue(spacingUniform,QVector2D(vrt->dx,vrt->dy));
                         program->setUniformValue(tileSizeUniform,vrt->ncols);
                         
-                        float vreyed = std::max(0.0f, eye.distanceToPoint(vrt->bounds.center())-vrt->bounds.radius());
-                        
-                        float vrtpixSize = vreyed*pixelSize/nearPlaneDistance;
-                        
+                        float vrPixelSize = camera.getPixelSize(vrt->bounds);
                         //qDebug() << "vreye distance:" << vreyed << "pixel size:" << vrtpixSize;
                         
-                        int vrlod = std::floor(log2f(vrtpixSize/vrt->dx));
+                        int vrlod = std::floor(log2f(vrPixelSize/vrt->dx));
                         //qDebug() << "vrLOD (pre-bias):" << vrlod;
                         
                         //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
@@ -372,13 +323,13 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         GLfloat gz;
         glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
         gz = (gz-.5)*2.0;
-        QMatrix4x4 matrix = genMatrix().inverted();
+        QMatrix4x4 matrix = camera.genMatrix().inverted();
         QVector4D mousePos(gx,gy,gz,1.0);
         mousePos = matrix*mousePos;
         if (gz < 1.0)
         {
             translating = true;
-            translateStartPosition = translatePosition;
+            translateStartPosition = camera.getCenterPosition();
             translateEndPosition = QVector3D(mousePos.x()/mousePos.w(),mousePos.y()/mousePos.w(),mousePos.z()/mousePos.w());
             translateStartTime.start();
         }
@@ -417,25 +368,23 @@ void BagGL::mouseMoveEvent(QMouseEvent* event)
         int dx = event->pos().x() - lastPosition.x();
         int dy = event->pos().y()- lastPosition.y();
         lastPosition = event->pos();
-        pitch += dy;
-        pitch = std::max(-90.0f,std::min(90.0f,pitch));
-        yaw += dx;
+        camera.setPitch(camera.getPitch() + dy);
+        camera.setYaw(camera.getYaw() + dx);
     }
     if(adjustingHeightExaggeration)
     {
         int dy = event->pos().y()- lastPosition.y();
         lastPosition = event->pos();
-        heightExaggeration -= dy/10.0;
-        heightExaggeration = std::max(1.0f,std::min(heightExaggeration,500.0f));
+        camera.setHeightExaggeration(camera.getHeightExaggeration() - dy/10.0);
     }
 }
 
 void BagGL::wheelEvent(QWheelEvent* event)
 {
     if(event->angleDelta().y() > 0)
-        zoom *= 1.3f;
+        camera.setZoom(camera.getZoom() * 1.3f);
     else
-        zoom /= 1.3f;
+        camera.setZoom(camera.getZoom() / 1.3f);
     renderLater();
 }
 
@@ -473,17 +422,18 @@ void BagGL::closeBag()
 void BagGL::resetView()
 {
     BagIO::MetaData meta = bag.getMeta();
-    translatePosition = meta.size/2.0;
-    translatePosition.setZ(0.0);
-    pitch = 30.0;
-    yaw = 0.0;
+    QVector3D p = meta.size/2.0;
+    p.setZ(0.0);
+    camera.setCenterPosition(p);
+    camera.setPitch(30.0);
+    camera.setYaw(0.0);
     float maxDim = std::max(meta.size.x(),meta.size.y());
     if(maxDim > 0.0)
-        zoom = 2/maxDim;
+        camera.setZoom(2/maxDim);
     else
-        zoom = 1.0;
+        camera.setZoom(1.0);
     
-    heightExaggeration = 1.0;
+    camera.setHeightExaggeration(1.0);
     renderLater();
 }
 
@@ -504,46 +454,6 @@ void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
     qDebug() << debugMessage.message();
 }
 
-bool BagGL::isCulled(const BagGL::Frustum& f, const TileBase& t) const
-{
-    if(!f.bounds.sphericallyIntersects(t.bounds))
-        return true;
-    
-    QVector3D p0 = t.bounds.min();
-    QVector3D p7 = t.bounds.max();
-    QVector3D p1(p7.x(),p0.y(),p0.z());
-    QVector3D p2(p0.x(),p7.y(),p0.z());
-    QVector3D p3(p7.x(),p7.y(),p0.z());
-    QVector3D p4(p0.x(),p0.y(),p7.z());
-    QVector3D p5(p7.x(),p0.y(),p7.z());
-    QVector3D p6(p0.x(),p7.y(),p7.z());
-    
-    if(f.n.whichSide(p0)<0.0 && f.n.whichSide(p1)<0.0 && f.n.whichSide(p2)<0.0 && f.n.whichSide(p3)<0.0
-        && f.n.whichSide(p4)<0.0 && f.n.whichSide(p5)<0.0 && f.n.whichSide(p6)<0.0 && f.n.whichSide(p7)<0.0)
-        return true;
-
-    if(f.f.whichSide(p0)<0.0 && f.f.whichSide(p1)<0.0 && f.f.whichSide(p2)<0.0 && f.f.whichSide(p3)<0.0
-        && f.f.whichSide(p4)<0.0 && f.f.whichSide(p5)<0.0 && f.f.whichSide(p6)<0.0 && f.f.whichSide(p7)<0.0)
-        return true;
-    
-    if(f.l.whichSide(p0)<0.0 && f.l.whichSide(p1)<0.0 && f.l.whichSide(p2)<0.0 && f.l.whichSide(p3)<0.0
-        && f.l.whichSide(p4)<0.0 && f.l.whichSide(p5)<0.0 && f.l.whichSide(p6)<0.0 && f.l.whichSide(p7)<0.0)
-        return true;
-    
-    if(f.r.whichSide(p0)<0.0 && f.r.whichSide(p1)<0.0 && f.r.whichSide(p2)<0.0 && f.r.whichSide(p3)<0.0
-        && f.r.whichSide(p4)<0.0 && f.r.whichSide(p5)<0.0 && f.r.whichSide(p6)<0.0 && f.r.whichSide(p7)<0.0)
-        return true;
-    
-    if(f.t.whichSide(p0)<0.0 && f.t.whichSide(p1)<0.0 && f.t.whichSide(p2)<0.0 && f.t.whichSide(p3)<0.0
-        && f.t.whichSide(p4)<0.0 && f.t.whichSide(p5)<0.0 && f.t.whichSide(p6)<0.0 && f.t.whichSide(p7)<0.0)
-        return true;
-    
-    if(f.b.whichSide(p0)<0.0 && f.b.whichSide(p1)<0.0 && f.b.whichSide(p2)<0.0 && f.b.whichSide(p3)<0.0
-        && f.b.whichSide(p4)<0.0 && f.b.whichSide(p5)<0.0 && f.b.whichSide(p6)<0.0 && f.b.whichSide(p7)<0.0)
-        return true;
-    
-    return false;
-}
 
 void BagGL::Grid::initialize(BagGL& gl, uint ncols, uint nrows)
 {
