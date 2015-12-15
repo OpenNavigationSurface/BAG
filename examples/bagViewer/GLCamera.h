@@ -8,7 +8,7 @@
 
 class GLCamera
 {
-    float near, far;
+    float nearDist, farDist;
     QVector3D eyePosition;
     
     float zoom;
@@ -82,8 +82,8 @@ class GLCamera
     
 public:
     GLCamera():
-        near(1.0),
-        far(100.0),
+        nearDist(1.0),
+        farDist(100.0),
         eyePosition(0.0, 0.0, -5.0),
         zoom(1.0),
         yaw(0.0),
@@ -101,7 +101,7 @@ public:
     QMatrix4x4 genMatrix()
     {
         QMatrix4x4 matrix;
-        matrix.perspective(60.0f, viewportWidth/float(viewportHeight), near, far);
+        matrix.perspective(60.0f, viewportWidth/float(viewportHeight), nearDist, farDist);
         matrix *= genModelviewMatrix();
         return matrix;
     }
