@@ -83,7 +83,7 @@ void BagGL::initialize()
     
     for(uint lod=1; lod < ts/2; lod*=2)
     {
-        lodIndecies.push_back(indecies.size());
+        lodIndecies.push_back(static_cast<int>(indecies.size()));
         for(u32 row=0; row < ts; row+=lod)
         {
             for(u32 col=0; col < ts; col+=lod)
@@ -105,7 +105,7 @@ void BagGL::initialize()
                 row = ts-1-lod;
         }
     }
-    lodIndecies.push_back(indecies.size());
+    lodIndecies.push_back(static_cast<int>(indecies.size()));
     
     
     glBindBuffer(GL_ARRAY_BUFFER, tileBuffers[0]);
@@ -476,7 +476,7 @@ void BagGL::Grid::initialize(BagGL& gl, uint ncols, uint nrows)
     uint maxDim = std::max(ncols,nrows);
     for(uint lod=1; lod < maxDim; lod*=2)
     {
-        lodIndecies.push_back(indecies.size());
+        lodIndecies.push_back(static_cast<int>(indecies.size()));
         for(u32 row=0; row < nrows; row+=lod)
         {
             for(u32 col=0; col < ncols; col+=lod)
@@ -498,7 +498,7 @@ void BagGL::Grid::initialize(BagGL& gl, uint ncols, uint nrows)
                 row = nrows-1-lod;
         }
     }
-    lodIndecies.push_back(indecies.size());
+    lodIndecies.push_back(static_cast<int>(indecies.size()));
     
     gl.glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
     gl.glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*verts.size(),verts.data(),GL_STATIC_DRAW);

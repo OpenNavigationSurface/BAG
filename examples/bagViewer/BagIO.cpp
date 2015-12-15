@@ -269,7 +269,7 @@ VarResTilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex,
     refinements.resize(vrMetadata.dimensions*vrMetadata.dimensions);
     ret->g.normalMap = QImage(vrMetadata.dimensions, vrMetadata.dimensions, QImage::Format_RGB888);
     ret->g.normalMap.fill(QColor(127,127,255).rgb());
-    bagReadRow(bag,0,vrMetadata.index,vrMetadata.index+refinements.size()-1,VarRes_Refinement_Group,refinements.data());
+    bagReadRow(bag,0,vrMetadata.index,vrMetadata.index+(u32)refinements.size()-1,VarRes_Refinement_Group,refinements.data());
     float minz = BAG_NULL_ELEVATION;
     float maxz = BAG_NULL_ELEVATION;
     for(bagVarResRefinementGroup r:refinements)
