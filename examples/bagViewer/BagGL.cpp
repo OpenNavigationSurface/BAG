@@ -4,8 +4,6 @@
 #include <QMouseEvent>
 #include <QMessageBox>
 
-#include <iostream>
-
 const GLuint BagGL::primitiveReset = 0xffffffff;
 
 BagGL::BagGL(): 
@@ -17,6 +15,7 @@ BagGL::BagGL():
     drawStyle("solid"),
     nearPlane(1.0),
     farPlane(100.0),
+    eyePosition(0.0, 0.0, -5.0),
     zoom(1.0),
     yaw(0.0),
     pitch(30.0),
@@ -24,7 +23,8 @@ BagGL::BagGL():
     translatePosition(0.0,0.0,0.0),
     translating(false),
     heightExaggeration(1.0),
-    adjustingHeightExaggeration(false)
+    adjustingHeightExaggeration(false),
+    lodBias(2)
 {
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
     connect(&bag, SIGNAL(tileLoaded()), this, SLOT(renderLater()));
@@ -39,7 +39,7 @@ void BagGL::initialize()
 {
 
 #ifndef NDEBUG
-    std::cerr << "GL debug? " << gldebug.initialize() << std::endl;
+    qDebug() << "GL debug? " << gldebug.initialize();
     connect(&gldebug, SIGNAL(messageLogged(const QOpenGLDebugMessage &)),this,SLOT(messageLogged(const QOpenGLDebugMessage &)));
     gldebug.startLogging();
 #endif
@@ -130,7 +130,14 @@ QMatrix4x4 BagGL::genMatrix()
 {
     QMatrix4x4 matrix;
     matrix.perspective(60.0f, width()/float(height()), nearPlane, farPlane);
-    matrix.translate(0, 0, -5);
+    matrix *= genModelviewMatrix();
+    return matrix;
+}
+
+QMatrix4x4 BagGL::genModelviewMatrix()
+{
+    QMatrix4x4 matrix;
+    matrix.translate(eyePosition);
     matrix.rotate(-90, 1, 0, 0);
     matrix.scale(zoom,zoom,zoom);
     matrix.rotate(pitch, 1, 0, 0);
@@ -164,9 +171,23 @@ void BagGL::render()
     
     program->bind();
     
+    QMatrix4x4 imv = genModelviewMatrix().inverted();
+    
+    QVector3D eye = imv.column(3).toVector3D();
+    qDebug() << "eye position" << eye;
+    
     QMatrix4x4 matrix = genMatrix();
     QMatrix4x4 normMatrix;
     normMatrix.scale(1.0,1.0,heightExaggeration);
+
+    QMatrix4x4 imatrix = matrix.inverted();
+    QVector3D nearPlaneCenter = imatrix*QVector3D(0.0,0.0,-1.0);
+    float pixelSize = nearPlaneCenter.distanceToPoint(imatrix*QVector3D(1.0/(width() * retinaScale),0.0,-1.0));
+
+    float nearPlaneDistance = nearPlaneCenter.distanceToPoint(eye);
+    
+    qDebug() << "near plane center:" << nearPlaneCenter << "\tpixel size:" << pixelSize << "near plane distance:" << nearPlaneDistance;
+    
     
     Frustum f(matrix);
     f.viewportSize = QVector2D(width() * retinaScale, height() * retinaScale);
@@ -209,16 +230,20 @@ void BagGL::render()
             t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
         }
         bool culled = isCulled(f,*t);
-        std::cerr << "tile: " << t->index.first << "," << t->index.second << " culled? " << culled << std::endl;
+        //qDebug() << "tile: " << t->index.first << "," << t->index.second << "culled? " << culled << "center" << t->bounds.center() << "radius" << t->bounds.radius();
         if(!culled)
         {
-            float maxDS =f.maxDrawSize(*t);
+            float eyed = std::max(0.0f, eye.distanceToPoint(t->bounds.center())-t->bounds.radius());
             
-            int lod = std::floor(log2f(tileSize/maxDS));
+            float tpixSize = eyed*pixelSize/nearPlaneDistance;
             
-            std::cerr << "draw size (px): " << maxDS << ", preliminary lod: " << lod << std::endl;
+            //qDebug() << "eye distance:" << eyed << "pixel size:" << tpixSize;
             
-            lod+=4;
+            int lod = std::floor(log2f(tpixSize/meta.dx));
+            //qDebug() << "LOD (pre-bias):" << lod;
+            
+            
+            lod+=lodBias;
             
             if(lod < 0 && !t->varResTiles.empty())
             {
@@ -227,6 +252,7 @@ void BagGL::render()
                     VarResTilePtr vrt = vrtp.second;
                     
                     bool vrCulled = isCulled(f,*vrt);
+                    //qDebug() << "vrTile" << vrt->index.first << "," << vrt->index.second << "culled?" << vrCulled;
                     if(!vrCulled)
                     {
                         if(!vrt->gl)
@@ -246,12 +272,17 @@ void BagGL::render()
                         program->setUniformValue(spacingUniform,QVector2D(vrt->dx,vrt->dy));
                         program->setUniformValue(tileSizeUniform,vrt->ncols);
                         
-                        float vrMaxDS = f.maxDrawSize(*vrt);
+                        float vreyed = std::max(0.0f, eye.distanceToPoint(vrt->bounds.center())-vrt->bounds.radius());
                         
-                        int vrlod = std::floor(log2f(vrt->ncols/vrMaxDS));
+                        float vrtpixSize = vreyed*pixelSize/nearPlaneDistance;
+                        
+                        //qDebug() << "vreye distance:" << vreyed << "pixel size:" << vrtpixSize;
+                        
+                        int vrlod = std::floor(log2f(vrtpixSize/vrt->dx));
+                        //qDebug() << "vrLOD (pre-bias):" << vrlod;
                         
                         //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
-                        vrlod+=4;
+                        vrlod+=lodBias;
                         
                         
                         GridSize gs(vrt->ncols,vrt->nrows);
@@ -269,7 +300,7 @@ void BagGL::render()
 //                         rlod = std::max(0,rlod);
                         vrlod = std::max(0, std::min(vrlod,int(g->lodIndecies.size()-2)));
                         
-                        //std::cerr << " clamped: " << lod << std::endl;
+                        //qDebug() << "clamped:" << vrlod;
                         
                         
                         GLsizei i0 = g->lodIndecies[vrlod];
@@ -279,7 +310,7 @@ void BagGL::render()
                         
                         vrt->gl->elevations.bind(0);
                         vrt->gl->normals.bind(2);
-                        QVector2D ll(vrt->lowerLeft.x(),vrt->lowerLeft.y());
+                        QVector2D ll(vrt->bounds.min().x(),vrt->bounds.min().y());
                         program->setUniformValue(lowerLeftUniform,ll);
                         
                         if(drawStyle == "solid")
@@ -300,7 +331,7 @@ void BagGL::render()
                 
                 lod = std::max(0, std::min(lod,int(lodIndecies.size()-2)));
                 
-                std::cerr << " clamped: " << lod << std::endl;
+                //qDebug() << " clamped: " << lod;
 
                 GLsizei i0 = lodIndecies[lod];
                 GLsizei count = lodIndecies[lod+1]-lodIndecies[lod];
@@ -309,7 +340,7 @@ void BagGL::render()
                 
                 t->gl->elevations.bind(0);
                 t->gl->normals.bind(2);
-                QVector2D ll(t->lowerLeft.x(),t->lowerLeft.y());
+                QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
                 program->setUniformValue(lowerLeftUniform,ll);
                 if(drawStyle == "solid")
                     glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
@@ -470,13 +501,16 @@ void BagGL::setDrawStyle(const std::string& ds)
 
 void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
 {
-    std::cerr << debugMessage.message().toStdString() << std::endl;
+    qDebug() << debugMessage.message();
 }
 
 bool BagGL::isCulled(const BagGL::Frustum& f, const TileBase& t) const
 {
-    QVector3D p0 = t.lowerLeft;
-    QVector3D p7 = t.upperRight;
+    if(!f.bounds.sphericallyIntersects(t.bounds))
+        return true;
+    
+    QVector3D p0 = t.bounds.min();
+    QVector3D p7 = t.bounds.max();
     QVector3D p1(p7.x(),p0.y(),p0.z());
     QVector3D p2(p0.x(),p7.y(),p0.z());
     QVector3D p3(p7.x(),p7.y(),p0.z());
@@ -513,7 +547,7 @@ bool BagGL::isCulled(const BagGL::Frustum& f, const TileBase& t) const
 
 void BagGL::Grid::initialize(BagGL& gl, uint ncols, uint nrows)
 {
-    std::cerr << "grid init: " << ncols << "," << nrows << std::endl;
+    qDebug() << "grid init: " << ncols << "," << nrows;
     gl.glGenVertexArrays(1,&vao);
     gl.glBindVertexArray(vao);
     
@@ -565,28 +599,3 @@ void BagGL::Grid::initialize(BagGL& gl, uint ncols, uint nrows)
     gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*indecies.size(),indecies.data(),GL_STATIC_DRAW);
 }
 
-float BagGL::Frustum::maxDrawSize(const TileBase& t)
-{
-    QVector2D ds = drawSize(t.lowerLeft,QVector3D(t.upperRight.x(),t.lowerLeft.y(),t.lowerLeft.z()));
-    float maxDS = std::max(ds.x(),ds.y());
-    ds = drawSize(QVector3D(t.lowerLeft.x(),t.lowerLeft.y(),t.upperRight.z()), QVector3D(t.upperRight.x(),t.lowerLeft.y(),t.upperRight.z()));
-    maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
-    
-    ds = drawSize(QVector3D(t.lowerLeft.x(),t.upperRight.y(),t.upperRight.z()), QVector3D(t.upperRight.x(),t.upperRight.y(),t.upperRight.z()));
-    maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
-    ds = drawSize(QVector3D(t.lowerLeft.x(),t.upperRight.y(),t.lowerLeft.z()), QVector3D(t.upperRight.x(),t.upperRight.y(),t.lowerLeft.z()));
-    maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
-    
-    ds = drawSize(QVector3D(t.lowerLeft.x(),t.lowerLeft.y(),t.lowerLeft.z()), QVector3D(t.lowerLeft.x(),t.upperRight.y(),t.lowerLeft.z()));
-    maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
-    
-    ds = drawSize(QVector3D(t.lowerLeft.x(),t.lowerLeft.y(),t.upperRight.z()), QVector3D(t.lowerLeft.x(),t.upperRight.y(),t.upperRight.z()));
-    maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
-    
-    ds = drawSize(QVector3D(t.upperRight.x(),t.lowerLeft.y(),t.lowerLeft.z()), QVector3D(t.upperRight.x(),t.upperRight.y(),t.lowerLeft.z()));
-    maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
-    
-    ds = drawSize(QVector3D(t.upperRight.x(),t.lowerLeft.y(),t.upperRight.z()), QVector3D(t.upperRight.x(),t.upperRight.y(),t.upperRight.z()));
-    maxDS = std::max(maxDS, std::max(ds.x(),ds.y()));
-    return maxDS;
-}

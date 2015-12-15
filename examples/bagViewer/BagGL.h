@@ -10,6 +10,7 @@
 #include <QOpenGLDebugLogger>
 #include <QMatrix4x4>
 #include <QVector2D>
+#include "Bounds.h"
 
 struct TileBase;
 struct Tile;
@@ -72,6 +73,7 @@ protected:
     
 private:
     QMatrix4x4 genMatrix();
+    QMatrix4x4 genModelviewMatrix();
     
     GLuint matrixUniform;
     GLuint normMatrixUniform;
@@ -108,6 +110,7 @@ private:
     std::string drawStyle;
     
     float nearPlane, farPlane;
+    QVector3D eyePosition;
     
     float zoom;
     float yaw;
@@ -123,6 +126,8 @@ private:
     
     float heightExaggeration;
     bool adjustingHeightExaggeration;
+    
+    int lodBias;
     
     struct Frustum
     {
@@ -159,6 +164,7 @@ private:
         Plane farPlane;
         PlaneEq l,r,t,b,n,f;
         QVector2D viewportSize;
+        Bounds bounds;
         
         Frustum(QMatrix4x4 m):matrix(m),imatrix(m.inverted()), nearPlane(-1.0),farPlane(1.0)
         {
@@ -171,6 +177,15 @@ private:
             farPlane.lr = imatrix*farPlane.lr;
             farPlane.ul = imatrix*farPlane.ul;
             farPlane.ur = imatrix*farPlane.ur;
+            
+            bounds.add(nearPlane.ll);
+            bounds.add(nearPlane.lr);
+            bounds.add(nearPlane.ul);
+            bounds.add(nearPlane.ur);
+            bounds.add(farPlane.ll);
+            bounds.add(farPlane.lr);
+            bounds.add(farPlane.ul);
+            bounds.add(farPlane.ur);
             
             n.set(nearPlane.ll, nearPlane.ul, nearPlane.lr);
             f.set( farPlane.ur,  farPlane.ul,  farPlane.lr);
@@ -186,7 +201,6 @@ private:
             QVector3D p1p = matrix*p1;
             return QVector2D( viewportSize.x()*std::abs(p0p.x()-p1p.x())/2.0 , viewportSize.y()*std::abs(p0p.y()-p1p.y())/2.0);
         }
-        float maxDrawSize(TileBase const&t);
     };
     
     bool isCulled(const BagGL::Frustum& f, const TileBase& t) const;

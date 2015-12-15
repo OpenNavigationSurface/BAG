@@ -1,6 +1,5 @@
 #include "BagIO.h"
 
-#include <iostream>
 #include <memory>
 #include <QString>
 #include <QtConcurrent/QtConcurrent>
@@ -35,6 +34,13 @@ u32 BagIO::getTileSize() const
 void BagIO::run()
 {
     forever {
+        {
+            QMutexLocker locker(&mutex);
+            if (restart)
+                break;
+            if (abort)
+                return;
+        }
         bagHandle bag;
         
         mutex.lock();
@@ -48,7 +54,7 @@ void BagIO::run()
             
             Bool isVarRes, hasExtData;
             bagCheckVariableResolution(bag,&isVarRes,&hasExtData);
-            std::cerr << "variable resolution? " << isVarRes << " extended data? " << hasExtData << std::endl;
+            qDebug() << "variable resolution? " << isVarRes << " extended data? " << hasExtData;
            
             if(isVarRes)
             {
@@ -78,17 +84,17 @@ void BagIO::run()
             meta.swBottomCorner.setY(bd->def.swCornerY);
             meta.swBottomCorner.setZ(meta.minElevation);
             
-            std::cerr << bd->def.ncols << " columns, " << bd->def.nrows << " rows" << std::endl;
-            std::cerr << "spacing: " << bd->def.nodeSpacingX << " x " << bd->def.nodeSpacingY << std::endl;
-            std::cerr << "sw corner: " << bd->def.swCornerX << ", " << bd->def.swCornerY << std::endl;
-            std::cerr << "Horizontal coordinate system: " << bd->def.referenceSystem.horizontalReference << std::endl;
-            std::cerr << "Vertical coordinate system: " << bd->def.referenceSystem.verticalReference << std::endl;
+            qDebug() << bd->def.ncols << " columns, " << bd->def.nrows << " rows";
+            qDebug() << "spacing: " << bd->def.nodeSpacingX << " x " << bd->def.nodeSpacingY;
+            qDebug() << "sw corner: " << bd->def.swCornerX << ", " << bd->def.swCornerY;
+            qDebug() << "Horizontal coordinate system: " << QString((char*)(bd->def.referenceSystem.horizontalReference));
+            qDebug() << "Vertical coordinate system: " << QString((char*)(bd->def.referenceSystem.verticalReference));
             
             s32 numOptDatasets;
             int optDatasetEntities[BAG_OPT_SURFACE_LIMIT];
             bagGetOptDatasets(&bag,&numOptDatasets,optDatasetEntities);
             for(int i = 0; i < numOptDatasets; ++i)
-                std::cerr << "optional dataset type: " << optDatasetEntities[i] << std::endl;
+                qDebug() << "optional dataset type: " << optDatasetEntities[i];
             
             {
                 QMutexLocker locker(&mutex);
@@ -106,7 +112,7 @@ void BagIO::run()
                         return;
                 }
                 u32 trow = i/tileSize;
-                std::cerr << "tile row: " << trow << std::endl;
+                qDebug() << "tile row: " << trow;
                 for(u32 j = 0; j < meta.ncols; j += tileSize)
                 {
                     TileIndex2D tindex(j/tileSize,trow);
@@ -220,8 +226,8 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
                     maxElevation = e;
             }
         }
-        ret->lowerLeft = QVector3D(startCol * meta.dx, startRow * meta.dy, minElevation);
-        ret->upperRight = QVector3D((endCol+1) * meta.dx, (endRow+1) * meta.dy, maxElevation);
+        ret->bounds.add(QVector3D(startCol * meta.dx, startRow * meta.dy, minElevation));
+        ret->bounds.add(QVector3D((endCol+1) * meta.dx, (endRow+1) * meta.dy, maxElevation));
         
         ret->g.normalMap = QImage(tileSize, tileSize, QImage::Format_RGB888);
         for(u32 ti = 0; ti < tileSize && ti < endRow-startRow; ++ti)
@@ -312,9 +318,8 @@ VarResTilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex,
     ret->dy = vrMetadata.resolution;
     ret->ncols = vrMetadata.dimensions;
     ret->nrows = vrMetadata.dimensions;
-    ret->lowerLeft = QVector3D(llx,lly,minz);
-    ret->upperRight = QVector3D(llx+(vrMetadata.dimensions-1)*vrMetadata.resolution,lly+(vrMetadata.dimensions-1)*vrMetadata.resolution,maxz);
-    
+    ret->bounds.add(QVector3D(llx,lly,minz));
+    ret->bounds.add(QVector3D(llx+(vrMetadata.dimensions-1)*vrMetadata.resolution,lly+(vrMetadata.dimensions-1)*vrMetadata.resolution,maxz));
     return ret;
 }
 

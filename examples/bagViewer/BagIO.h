@@ -10,6 +10,7 @@
 #include <QWaitCondition>
 #include <QImage>
 #include "bag.h"
+#include "Bounds.h"
 
 struct TileGL;
 
@@ -28,7 +29,7 @@ struct TileBase
     TileGeometry g;
     TileIndex2D index;
     std::shared_ptr<TileGL> gl;
-    QVector3D lowerLeft,upperRight;
+    Bounds bounds;
 };
 
 struct VarResTile: public TileBase
