@@ -16,7 +16,7 @@ BagGL::BagGL():
     rotating(false),
     translating(false),
     adjustingHeightExaggeration(false),
-    lodBias(2)
+    lodBias(4)
 {
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
     connect(&bag, SIGNAL(tileLoaded()), this, SLOT(renderLater()));
@@ -145,7 +145,7 @@ void BagGL::render()
     program->bind();
     
     
-    QMatrix4x4 matrix = camera.genMatrix();
+    QMatrix4x4 matrix = camera.getMatrix();
     QMatrix4x4 normMatrix = camera.genNormalMatrix();
 
     
@@ -186,16 +186,15 @@ void BagGL::render()
             //t->g.normalMap.save("debugNormalMap.png");
             t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
         }
-        bool culled = camera.isCulled(t->bounds);
-        //qDebug() << "tile: " << t->index.first << "," << t->index.second << "culled? " << culled << "center" << t->bounds.center() << "radius" << t->bounds.radius();
-        if(!culled)
+        float sizeInPix = camera.getSizeInPixels(t->bounds);
+        //qDebug() << "tile: " << t->index.first << "," << t->index.second << "size (px)" << sizeInPix;
+        if(sizeInPix>0.0)
         {
-            float pixelSize = camera.getPixelSize(t->bounds);
+            //float pixelSize = camera.getPixelSize(t->bounds);
             //qDebug() << "eye distance:" << eyed << "pixel size:" << tpixSize;
             
-            int lod = std::floor(log2f(pixelSize/meta.dx));
+            int lod = std::floor(log2f(tileSize/sizeInPix));
             //qDebug() << "LOD (pre-bias):" << lod;
-            
             
             lod+=lodBias;
             
@@ -205,9 +204,9 @@ void BagGL::render()
                 {
                     VarResTilePtr vrt = vrtp.second;
                     
-                    bool vrCulled = camera.isCulled(vrt->bounds);
-                    //qDebug() << "vrTile" << vrt->index.first << "," << vrt->index.second << "culled?" << vrCulled;
-                    if(!vrCulled)
+                    float vrSizeInPix = camera.getSizeInPixels(vrt->bounds);
+                    //qDebug() << "vrTile" << vrt->index.first << "," << vrt->index.second << "size (px)" << vrSizeInPix;
+                    if(vrSizeInPix>0.0)
                     {
                         if(!vrt->gl)
                         {
@@ -226,10 +225,7 @@ void BagGL::render()
                         program->setUniformValue(spacingUniform,QVector2D(vrt->dx,vrt->dy));
                         program->setUniformValue(tileSizeUniform,vrt->ncols);
                         
-                        float vrPixelSize = camera.getPixelSize(vrt->bounds);
-                        //qDebug() << "vreye distance:" << vreyed << "pixel size:" << vrtpixSize;
-                        
-                        int vrlod = std::floor(log2f(vrPixelSize/vrt->dx));
+                        int vrlod = std::floor(log2f(vrt->ncols/vrSizeInPix));
                         //qDebug() << "vrLOD (pre-bias):" << vrlod;
                         
                         //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
@@ -323,7 +319,7 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         GLfloat gz;
         glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
         gz = (gz-.5)*2.0;
-        QMatrix4x4 matrix = camera.genMatrix().inverted();
+        QMatrix4x4 matrix = camera.getMatrix().inverted();
         QVector4D mousePos(gx,gy,gz,1.0);
         mousePos = matrix*mousePos;
         if (gz < 1.0)

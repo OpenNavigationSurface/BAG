@@ -8,7 +8,7 @@
 
 class GLCamera
 {
-    float nearDist, farDist;
+    float nearDistance, farDistance;
     QVector3D eyePosition;
     
     float zoom;
@@ -22,6 +22,8 @@ class GLCamera
     
     float heightExaggeration;
 
+    QMatrix4x4 matrix, modelviewMatrix;
+    
     struct Plane
     {
         QVector3D ll,lr,ul,ur;
@@ -39,10 +41,26 @@ class GLCamera
     QVector3D eyePositionInScene;
     float pixelSizeOnNearPlane;
     float nearPlaneDistance;
+    QVector3D nearPlaneNormal;
 
+    Bounds ndcBounds; // ndc - normalized device coordinates (cube from -1 to 1)
+    
     void update()
     {
-        QMatrix4x4 imatrix = genMatrix().inverted();
+        modelviewMatrix.setToIdentity();
+        modelviewMatrix.translate(eyePosition);
+        modelviewMatrix.rotate(-90, 1, 0, 0);
+        modelviewMatrix.scale(zoom,zoom,zoom);
+        modelviewMatrix.rotate(pitch, 1, 0, 0);
+        modelviewMatrix.rotate(yaw, 0, 0, 1);
+        modelviewMatrix.scale(1.0,1.0,heightExaggeration);
+        modelviewMatrix.translate(-centerPosition.x(),-centerPosition.y(),-centerPosition.z());
+        
+        matrix.setToIdentity();
+        matrix.perspective(60.0f, viewportWidth/float(viewportHeight), nearDistance, farDistance);
+        matrix *= modelviewMatrix;
+        
+        QMatrix4x4 imatrix = matrix.inverted();
         nearPlane = Plane(-1.0);
         nearPlane.ll = imatrix*nearPlane.ll;
         nearPlane.lr = imatrix*nearPlane.lr;
@@ -77,13 +95,14 @@ class GLCamera
         
         //qDebug() << "near plane center:" << nearPlaneCenter << "\tpixel size:" << pixelSizeOnNearPlane << "near plane distance:" << nearPlaneDistance;
         
+        nearPlaneNormal = QVector3D::normal(nearPlane.ll,nearPlane.ul,nearPlane.lr);
     }
         
     
 public:
     GLCamera():
-        nearDist(1.0),
-        farDist(100.0),
+        nearDistance(1.0),
+        farDistance(100.0),
         eyePosition(0.0, 0.0, -5.0),
         zoom(1.0),
         yaw(0.0),
@@ -93,31 +112,15 @@ public:
         centerPosition(0.0,0.0,0.0),
         heightExaggeration(1.0),
         nearPlane(-1.0),
-        farPlane(1.0)
+        farPlane(1.0),
+        ndcBounds(QVector3D(1.0,1.0,1.0),QVector3D(-1.0,-1.0,-1.0))
     {
         update();
     }
     
-    QMatrix4x4 genMatrix()
-    {
-        QMatrix4x4 matrix;
-        matrix.perspective(60.0f, viewportWidth/float(viewportHeight), nearDist, farDist);
-        matrix *= genModelviewMatrix();
-        return matrix;
-    }
+    QMatrix4x4 const &getMatrix() const {return matrix;}
     
-    QMatrix4x4 genModelviewMatrix()
-    {
-        QMatrix4x4 matrix;
-        matrix.translate(eyePosition);
-        matrix.rotate(-90, 1, 0, 0);
-        matrix.scale(zoom,zoom,zoom);
-        matrix.rotate(pitch, 1, 0, 0);
-        matrix.rotate(yaw, 0, 0, 1);
-        matrix.scale(1.0,1.0,heightExaggeration);
-        matrix.translate(-centerPosition.x(),-centerPosition.y(),-centerPosition.z());
-        return matrix;
-    }
+    QMatrix4x4 const &genModelviewMatrix() const {return modelviewMatrix;}
     
     QMatrix4x4 genNormalMatrix()
     {
@@ -143,20 +146,34 @@ public:
     
     void setViewport(int width, int height) {viewportWidth = width; viewportHeight = height; update();}
     
-    bool isCulled(const Bounds& b) const
+    // returns -1 if outside view frustum
+    float getSizeInPixels(Bounds const &b) const
     {
-        if(!bounds.sphericallyIntersects(b))
-            return true;
-        return false;
-    }
-    
-    float getPixelSize(Bounds const &b) const
-    {
-        float eyed = std::max(0.0f, eyePositionInScene.distanceToPoint(b.center())-b.radius());
+        if(!b.intersects(bounds))
+            return -1.0;
+
+        std::vector<Edge> edges = b.getEdges();
         
-        return std::max(pixelSizeOnNearPlane, eyed*pixelSizeOnNearPlane/nearPlaneDistance);
+        if(b.center().distanceToPlane(nearPlane.ll,nearPlaneNormal)<b.radius())
+            edges = trim(edges, nearPlane.ll,nearPlaneNormal);
+        
+        if(edges.empty())
+            return -1.0;
+        
+        Bounds ndcb;
+        
+        for(Edge const &e: edges)
+        {
+            ndcb.add(matrix*e.p1);
+            ndcb.add(matrix*e.p2);
+        }
+        
+        if(!ndcBounds.intersects(ndcb))
+            return -1.0;
+        
+        QVector3D s = ndcb.size();
+        return std::max(s.x()*viewportWidth,s.y()*viewportHeight);
     }
-    
 };
 
 #endif
