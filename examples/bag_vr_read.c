@@ -94,8 +94,10 @@ Bool write_bag_summary(bagHandle handle, Bool const has_extended_data)
     bagGetOptDatasetInfo(&handle, VarRes_Metadata_Group);
     bagVarResMetadataGroup min_meta_group, max_meta_group;
     bagReadMinMaxVarResMetadataGroup(handle, &min_meta_group, &max_meta_group);
-    printf("- Finest refinement %.2f m (%d cells).\n", min_meta_group.resolution, max_meta_group.dimensions);
-    printf("- Coarsest refinement %.2f m (%d cells).\n", max_meta_group.resolution, min_meta_group.dimensions);
+    printf("- Finest refinement X %.2f m (%d cells).\n", min_meta_group.resolution_x, max_meta_group.dimensions_x);
+    printf("- Finest refinement Y %.2f m (%d cells).\n", min_meta_group.resolution_y, max_meta_group.dimensions_y);
+    printf("- Coarsest refinement X %.2f m (%d cells).\n", max_meta_group.resolution_x, min_meta_group.dimensions_x);
+    printf("- Coarsest refinement Y %.2f m (%d cells).\n", max_meta_group.resolution_y, min_meta_group.dimensions_y);
     
     bagGetOptDatasetInfo(&handle, VarRes_Refinement_Group);
     printf("- Total %d refinement cells (not all may be active).\n", bag->opt[VarRes_Refinement_Group].ncols);
@@ -136,7 +138,9 @@ Bool dump_data(bagHandle handle, const char * const filename, Bool has_extended_
     bagVarResMetadataGroup minMetadataGroup, maxMetadataGroup;
     bagReadMinMaxVarResMetadataGroup(handle, &minMetadataGroup, &maxMetadataGroup);
     
-    u32 maximum_ref_nodes = maxMetadataGroup.dimensions * maxMetadataGroup.dimensions;
+    u32 max_dimensions = (maxMetadataGroup.dimensions_x > maxMetadataGroup.dimensions_y) ?
+                            maxMetadataGroup.dimensions_x : maxMetadataGroup.dimensions_y;
+    u32 maximum_ref_nodes = max_dimensions * max_dimensions;
     bagVarResRefinementGroup *estimates = (bagVarResRefinementGroup*)malloc(sizeof(bagVarResRefinementGroup)*maximum_ref_nodes);
     
     u32 n_rows = bag->def.nrows, n_cols = bag->def.ncols;
@@ -158,11 +162,16 @@ Bool dump_data(bagHandle handle, const char * const filename, Bool has_extended_
             return False;
         }
         for (u32 col = 0; col < n_cols; ++col) {
-            u32 n_nodes = metadata[col].dimensions*metadata[col].dimensions;
+            u32 n_nodes = metadata[col].dimensions_x*metadata[col].dimensions_y;
             u32 start_index = metadata[col].index;
             u32 end_index = start_index + n_nodes - 1;
             
-            fprintf(f, "Cell (%d, %d) metadata: width/height %d index base %d resolution %.3f m\n", row, col, metadata[col].dimensions, metadata[col].index, metadata[col].resolution);
+            fprintf(f, "Cell (%d, %d) metadata: width/height (%d,%d) index base %d, resolution (%.3f,%.3f) m, corner (%.3lf,%.3lf)\n",
+                    row, col,
+                    metadata[col].dimensions_x, metadata[col].dimensions_y,
+                    metadata[col].index,
+                    metadata[col].resolution_x, metadata[col].resolution_y,
+                    metadata[col].sw_corner_x, metadata[col].sw_corner_y);
             
             if (n_nodes == 0) {
                 /* There are no refinements in this cell */
@@ -193,7 +202,7 @@ Bool dump_data(bagHandle handle, const char * const filename, Bool has_extended_
             }
             /* Report some useful information on the refinements */
             for (u32 i = 0; i < n_nodes; ++i) {
-                fprintf(f, "%d %d %d", i, i/metadata[col].dimensions, i % metadata[col].dimensions);
+                fprintf(f, "%d %d %d", i, i/metadata[col].dimensions_x, i % metadata[col].dimensions_x);
                 if (estimates[i].depth == BAG_NULL_ELEVATION) {
                     fprintf(f, " - No valid refinement at this node");
                 } else {

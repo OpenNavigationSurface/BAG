@@ -1139,8 +1139,12 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
                 else if (type == VarRes_Metadata_Group)
                 {
                     ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->index = BAG_NULL_VARRES_INDEX;
-                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->dimensions = 0;
-                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->resolution = -1.0f;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->dimensions_x = 0;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->dimensions_y = 0;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->resolution_x = -1.0f;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->resolution_y = -1.0f;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->sw_corner_x = -1.0f;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->sw_corner_y = -1.0f;
                 }
                 else if (type == VarRes_Refinement_Group)
                 {

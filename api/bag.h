@@ -252,8 +252,12 @@ typedef struct _t_bag_optElevationSolutionGroup
 typedef struct _t_bag_varResMetadataGroup
 {
 	u32 index;
-	u32 dimensions;
-	f32 resolution;
+	u32 dimensions_x;   /*!< Number of nodes in easting */
+    u32 dimensions_y;   /*!< Number of nodes in northing */
+	f32 resolution_x;   /*!< Node spacing in easting */
+    f32 resolution_y;   /*!< Node spacing in northing */
+    f32 sw_corner_x;    /*!< Offset east from SW corner of surrounding low-res cell to SW-most node */
+    f32 sw_corner_y;    /*!< Offset north from SW corner of surrounding low-res cell to SW-most node */
 } bagVarResMetadataGroup;
 
 typedef struct _t_bag_varResRefinementGroup

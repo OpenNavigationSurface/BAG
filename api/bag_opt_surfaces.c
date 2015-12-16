@@ -51,8 +51,12 @@ static void InitVarResMetadataGroup(bagVarResMetadataGroup *g)
     memset(g, 0, sizeof(bagVarResMetadataGroup));
         /* This isn't technically required, but might sort of save us if the definition changes and the code isn't updated here */
     g->index = BAG_NULL_VARRES_INDEX;
-    g->dimensions = 0;
-    g->resolution = -1.0;
+    g->dimensions_x = 0;
+    g->dimensions_y = 0;
+    g->resolution_x = -1.0;
+    g->resolution_y = -1.0;
+    g->sw_corner_x = -1.0;
+    g->sw_corner_y = -1.0;
 }
 
 static void InitVarResRefinementGroup(bagVarResRefinementGroup *g)
@@ -306,10 +310,14 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
                 status = H5Fclose(file_id);
                 return BAG_HDF_CREATE_GROUP_FAILURE;
             }
-            DECLARE_MIN_ATTRIBUTE("min_dimensions", u32, BAG_ATTR_U32)
-            DECLARE_MAX_ATTRIBUTE("max_dimensions", u32, BAG_ATTR_U32)
-            DECLARE_MIN_ATTRIBUTE("min_resolution", f32, BAG_ATTR_F32)
-            DECLARE_MAX_ATTRIBUTE("max_resolution", f32, BAG_ATTR_F32)
+            DECLARE_MIN_ATTRIBUTE("min_dimensions_x", u32, BAG_ATTR_U32)
+            DECLARE_MAX_ATTRIBUTE("max_dimensions_x", u32, BAG_ATTR_U32)
+            DECLARE_MIN_ATTRIBUTE("min_resolution_x", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_resolution_x", f32, BAG_ATTR_F32)
+            DECLARE_MIN_ATTRIBUTE("min_dimensions_y", u32, BAG_ATTR_U32)
+            DECLARE_MAX_ATTRIBUTE("max_dimensions_y", u32, BAG_ATTR_U32)
+            DECLARE_MIN_ATTRIBUTE("min_resolution_y", f32, BAG_ATTR_F32)
+            DECLARE_MAX_ATTRIBUTE("max_resolution_y", f32, BAG_ATTR_F32)
             break;
             
         case VarRes_Refinement_Group:
@@ -919,10 +927,14 @@ static bagError ProcessVarResMetadataMinMax(bagHandle hnd, hid_t dataset_id)
     u32 row, col;
     herr_t status;
     
-    minGroup.dimensions = 0xFFFFFFFF;
-    minGroup.resolution = FLT_MAX;
-    maxGroup.dimensions = 0;
-    maxGroup.resolution = -1.0;
+    minGroup.dimensions_x = 0xFFFFFFFF;
+    minGroup.dimensions_y = 0xFFFFFFFF;
+    minGroup.resolution_x = FLT_MAX;
+    minGroup.resolution_y = FLT_MAX;
+    maxGroup.dimensions_x = 0;
+    maxGroup.dimensions_y = 0;
+    maxGroup.resolution_x = -1.0;
+    maxGroup.resolution_y = -1.0;
     
     d = (bagVarResMetadataGroup*)calloc(hnd->bag.opt[VarRes_Metadata_Group].ncols, sizeof(bagVarResMetadataGroup));
     if (d == NULL) return BAG_MEMORY_ALLOCATION_FAILED;
@@ -930,32 +942,63 @@ static bagError ProcessVarResMetadataMinMax(bagHandle hnd, hid_t dataset_id)
     for (row = 0; row < hnd->bag.opt[VarRes_Metadata_Group].nrows; ++row) {
         bagReadRow(hnd, row, 0, hnd->bag.opt[VarRes_Metadata_Group].ncols-1, VarRes_Metadata_Group, (void*)d);
         for (col = 0; col < hnd->bag.opt[VarRes_Metadata_Group].ncols; ++col) {
-            if (d[col].dimensions > 0) {
-                minGroup.dimensions = (d[col].dimensions < minGroup.dimensions) ? d[col].dimensions : minGroup.dimensions;
-                maxGroup.dimensions = (d[col].dimensions > maxGroup.dimensions) ? d[col].dimensions : maxGroup.dimensions;
+            if (d[col].dimensions_x > 0) {
+                minGroup.dimensions_x =
+                    (d[col].dimensions_x < minGroup.dimensions_x) ? d[col].dimensions_x : minGroup.dimensions_x;
+                maxGroup.dimensions_x =
+                    (d[col].dimensions_x > maxGroup.dimensions_x) ? d[col].dimensions_x : maxGroup.dimensions_x;
             }
-            if (d[col].resolution > 0) {
-                minGroup.resolution = (d[col].resolution < minGroup.resolution) ? d[col].resolution : minGroup.resolution;
-                maxGroup.resolution = (d[col].resolution > maxGroup.resolution) ? d[col].resolution : maxGroup.resolution;
+            if (d[col].dimensions_y > 0) {
+                minGroup.dimensions_y =
+                    (d[col].dimensions_y < minGroup.dimensions_y) ? d[col].dimensions_y : minGroup.dimensions_y;
+                maxGroup.dimensions_y =
+                    (d[col].dimensions_y > maxGroup.dimensions_y) ? d[col].dimensions_y : maxGroup.dimensions_y;
+            }
+            if (d[col].resolution_x > 0) {
+                minGroup.resolution_x =
+                    (d[col].resolution_x < minGroup.resolution_x) ? d[col].resolution_x : minGroup.resolution_x;
+                maxGroup.resolution_x =
+                    (d[col].resolution_x > maxGroup.resolution_x) ? d[col].resolution_x : maxGroup.resolution_x;
+            }
+            if (d[col].resolution_y > 0) {
+                minGroup.resolution_y =
+                    (d[col].resolution_y < minGroup.resolution_y) ? d[col].resolution_y : minGroup.resolution_y;
+                maxGroup.resolution_y =
+                    (d[col].resolution_y > maxGroup.resolution_y) ? d[col].resolution_y : maxGroup.resolution_y;
             }
         }
     }
     free(d);
     
-    if (minGroup.dimensions != 0xFFFFFFFF) {
-        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_dimensions", &minGroup.dimensions);
+    if (minGroup.dimensions_x != 0xFFFFFFFF) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_dimensions_x", &minGroup.dimensions_x);
         check_hdf_status();
     }
-    if (minGroup.resolution < FLT_MAX) {
-        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_resolution", &minGroup.resolution);
+    if (minGroup.dimensions_y != 0xFFFFFFFF) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_dimensions_y", &minGroup.dimensions_y);
         check_hdf_status();
     }
-    if (maxGroup.dimensions > 0) {
-        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_dimensions", &maxGroup.dimensions);
+    if (minGroup.resolution_x < FLT_MAX) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_resolution_x", &minGroup.resolution_x);
         check_hdf_status();
     }
-    if (maxGroup.resolution > 0) {
-        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_resolution", &maxGroup.resolution);
+    if (minGroup.resolution_y < FLT_MAX) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"min_resolution_y", &minGroup.resolution_y);
+    }
+    if (maxGroup.dimensions_x > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_dimensions_x", &maxGroup.dimensions_x);
+        check_hdf_status();
+    }
+    if (maxGroup.dimensions_y > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_dimensions_y", &maxGroup.dimensions_y);
+        check_hdf_status();
+    }
+    if (maxGroup.resolution_x > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_resolution_x", &maxGroup.resolution_x);
+        check_hdf_status();
+    }
+    if (maxGroup.resolution_y > 0) {
+        status = bagWriteAttribute(hnd, dataset_id, (u8*)"max_resolution_y", &maxGroup.resolution_y);
         check_hdf_status();
     }
     return BAG_SUCCESS;
