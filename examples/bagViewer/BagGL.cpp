@@ -16,7 +16,7 @@ BagGL::BagGL():
     rotating(false),
     translating(false),
     adjustingHeightExaggeration(false),
-    lodBias(5)
+    lodBias(3)
 {
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
     connect(&bag, SIGNAL(tileLoaded()), this, SLOT(renderLater()));
@@ -383,6 +383,16 @@ void BagGL::keyPressEvent(QKeyEvent* event)
     {
     case Qt::Key_R:
         resetView();
+        break;
+    case Qt::Key_BracketLeft:
+        lodBias--;
+        qDebug() << "lod bias:" << lodBias;
+        renderLater();
+        break;
+    case Qt::Key_BracketRight:
+        lodBias++;
+        qDebug() << "lod bias:" << lodBias;
+        renderLater();
         break;
     default:
         event->ignore();
