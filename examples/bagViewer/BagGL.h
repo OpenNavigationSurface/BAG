@@ -90,14 +90,16 @@ private:
     
     GLuint tileVAO;
     GLuint tileBuffers[2];
-    //GLsizei tileIndeciesCount;
     std::vector<GLsizei> lodIndecies;
+    
     
     GridMap grids;
     
     BagIO bag;
 
     QOpenGLShaderProgram *program;
+
+    GLuint polygonMode;
     
 #ifndef NDEBUG
     QOpenGLDebugLogger gldebug;
@@ -107,8 +109,6 @@ private:
     typedef std::map<std::string,QOpenGLTexturePtr> ColormapMap;
     ColormapMap colormaps;
     std::string currentColormap;
-    
-    std::string drawStyle;
     
     bool rotating;
     QPoint lastPosition;

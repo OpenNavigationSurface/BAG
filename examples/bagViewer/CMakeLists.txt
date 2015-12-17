@@ -40,7 +40,7 @@ add_custom_command(
   OUTPUT resources.cxx
   COMMAND ${QtRCC}
   ARGS    ${PROJECT_SOURCE_DIR}/resources.qrc -o ${PROJECT_BINARY_DIR}/resources.cxx
-  DEPENDS resources.qrc vertex.glsl fragment.glsl 
+  DEPENDS resources.qrc vertex.glsl geometry.glsl fragment.glsl 
 )
 
 

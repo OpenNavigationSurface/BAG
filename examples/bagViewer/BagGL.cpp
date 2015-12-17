@@ -8,15 +8,15 @@ const GLuint BagGL::primitiveReset = 0xffffffff;
 
 BagGL::BagGL(): 
     program(0),
+    polygonMode(GL_FILL),
 #ifndef NDEBUG
     gldebug(this),
 #endif
     currentColormap("omnimap"),
-    drawStyle("solid"),
     rotating(false),
     translating(false),
     adjustingHeightExaggeration(false),
-    lodBias(4)
+    lodBias(5)
 {
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
     connect(&bag, SIGNAL(tileLoaded()), this, SLOT(renderLater()));
@@ -40,6 +40,7 @@ void BagGL::initialize()
     
     program = new QOpenGLShaderProgram(this);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex.glsl");
+    program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/geometry.glsl");
     program->addShaderFromSourceFile(QOpenGLShader::Fragment,":/fragment.glsl");
     
     program->link();
@@ -141,6 +142,8 @@ void BagGL::render()
     camera.setViewport(width() * retinaScale, height() * retinaScale);
     
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+    
+    glPolygonMode(GL_FRONT_AND_BACK,polygonMode);
     
     program->bind();
     
@@ -260,12 +263,7 @@ void BagGL::render()
                         QVector2D ll(vrt->bounds.min().x(),vrt->bounds.min().y());
                         program->setUniformValue(lowerLeftUniform,ll);
                         
-                        if(drawStyle == "solid")
-                            glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
-                        if(drawStyle == "wireframe")
-                            glDrawElements(GL_LINE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
-                        if(drawStyle == "points")
-                            glDrawArrays(GL_POINTS, 0, tileSize*tileSize);
+                        glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
                         //break;
                     }
                 }
@@ -289,12 +287,7 @@ void BagGL::render()
                 t->gl->normals.bind(2);
                 QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
                 program->setUniformValue(lowerLeftUniform,ll);
-                if(drawStyle == "solid")
-                    glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
-                if(drawStyle == "wireframe")
-                    glDrawElements(GL_LINE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
-                if(drawStyle == "points")
-                    glDrawArrays(GL_POINTS, 0, tileSize*tileSize);
+                glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
             }
         }
         //break;
@@ -441,7 +434,12 @@ void BagGL::setColormap(const std::string& cm)
 
 void BagGL::setDrawStyle(const std::string& ds)
 {
-    drawStyle = ds;
+    if(ds == "solid")
+        polygonMode = GL_FILL;
+    if(ds == "wireframe")
+        polygonMode = GL_LINE;
+    if(ds == "points")
+        polygonMode = GL_POINT;
     renderLater();
 }
 

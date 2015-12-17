@@ -12,7 +12,7 @@ uniform vec2 lowerLeft;
 out float elevation;
 out float lighting;
 out float vsUncertainty;
-out float isnull;
+//out float isnull;
 
 uniform mat4 matrix;
 uniform mat3 normMatrix;
@@ -29,14 +29,15 @@ void main() {
     lighting = max(dot(vsNormal,lightDirection), 0.0);
     //vsUncertainty = uncertainty;
 
-    if(e > 9999.0)
-    {
-        isnull = 1.0;
-    }
-    else
-    {
-        isnull = 0.0;
-    }
+//     if(e > 9999.0)
+//     {
+//         //isnull = 1.0;
+//         isnull = 0.0;
+//     }
+//     else
+//     {
+//         isnull = 0.0;
+//     }
 
     elevation = (e-minElevation)/(maxElevation-minElevation);
     vec2 posMeters = inPosition*spacing+lowerLeft;

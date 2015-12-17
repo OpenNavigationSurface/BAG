@@ -1,21 +1,21 @@
 #version 150 core
 
-in float lighting;
-in float elevation;
-in float isnull;
+in float glighting;
+in float gelevation;
+//in float gisnull;
 
 uniform sampler2D colorMap;
 
 out vec4 fragColor;
 
 void main() {
-    if(isnull > 0.0)
-        discard;
+//    if(gisnull > 0.0)
+//        discard;
     vec2 tc;
-    tc.x = elevation;
+    tc.x = gelevation;
     tc.y = .5;
     vec4 color = texture(colorMap,tc);
-    color.rgb *= lighting;
+    color.rgb *= glighting;
     color.a = 1.0;
     fragColor = color;
 }
