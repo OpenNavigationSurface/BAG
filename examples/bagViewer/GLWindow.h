@@ -16,7 +16,7 @@ public:
     ~GLWindow();
 
     virtual void render(QPainter *painter);
-    virtual void render();
+    virtual void render(bool picking = false);
     
     virtual void initialize();
     
@@ -26,7 +26,7 @@ public:
     
 public slots:
     void renderLater();
-    void renderNow();
+    void renderNow(bool picking=false);
     
 protected:
     bool event(QEvent *event) Q_DECL_OVERRIDE;

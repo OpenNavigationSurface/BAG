@@ -36,7 +36,7 @@ public:
     ~BagGL();
     
     void initialize() Q_DECL_OVERRIDE;
-    void render() Q_DECL_OVERRIDE;
+    void render(bool picking=false) Q_DECL_OVERRIDE;
     
     bool openBag(QString const &bagFileName);
     void closeBag();

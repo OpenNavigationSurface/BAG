@@ -120,7 +120,7 @@ void BagGL::initialize()
 }
 
 
-void BagGL::render()
+void BagGL::render(bool picking)
 {
     if(translating)
     {
@@ -143,14 +143,16 @@ void BagGL::render()
     
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     
-    glPolygonMode(GL_FRONT_AND_BACK,polygonMode);
+    int passes = 1;
+    if(picking && polygonMode != GL_FILL)
+        passes = 2;
     
     program->bind();
     
     
     QMatrix4x4 matrix = camera.getMatrix();
     QMatrix4x4 normMatrix = camera.genNormalMatrix();
-
+    
     
     BagIO::MetaData meta = bag.getMeta();
     
@@ -159,7 +161,7 @@ void BagGL::render()
     program->setUniformValue(minElevationUniform, meta.minElevation);
     program->setUniformValue(maxElevationUniform, meta.maxElevation);
     
-
+    
     program->setUniformValue(elevationMapUniform,0);
     program->setUniformValue(colorMapUniform,1);
     program->setUniformValue(normalMapUniform,2);
@@ -174,123 +176,139 @@ void BagGL::render()
     
     glBindVertexArray(tileVAO);
     
-    for(TilePtr t: bag.getOverviewTiles())
+    
+    for(int pass = 0; pass < passes; ++pass)
     {
-        if(!t->gl)
+        if(pass == 1)
         {
-            t->gl = std::make_shared<TileGL>();
-            t->gl->elevations.setSize(tileSize,tileSize);
-            t->gl->elevations.setFormat(QOpenGLTexture::R32F);
-            t->gl->elevations.allocateStorage();
-            t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->g.elevations.data());
-            t->g.elevations.resize(0);
-            t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-            t->gl->normals.setData(t->g.normalMap);
-            //t->g.normalMap.save("debugNormalMap.png");
-            t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+            glPolygonMode(GL_FRONT_AND_BACK,GL_FILL);
+            glColorMaski(0,GL_FALSE,GL_FALSE,GL_FALSE,GL_FALSE);
         }
-        float sizeInPix = camera.getSizeInPixels(t->bounds);
-        //qDebug() << "tile: " << t->index.first << "," << t->index.second << "size (px)" << sizeInPix;
-        if(sizeInPix>0.0)
+        else
         {
-            //float pixelSize = camera.getPixelSize(t->bounds);
-            //qDebug() << "eye distance:" << eyed << "pixel size:" << tpixSize;
-            
-            int lod = std::floor(log2f(tileSize/sizeInPix));
-            //qDebug() << "LOD (pre-bias):" << lod;
-            
-            lod+=lodBias;
-            
-            if(lod < 0 && !t->varResTiles.empty())
+            glPolygonMode(GL_FRONT_AND_BACK,polygonMode);
+            glColorMaski(0,GL_TRUE,GL_TRUE,GL_TRUE,GL_TRUE);
+        }
+    
+    
+        for(TilePtr t: bag.getOverviewTiles())
+        {
+            if(!t->gl)
             {
-                for (auto vrtp: t->varResTiles)
+                t->gl = std::make_shared<TileGL>();
+                t->gl->elevations.setSize(tileSize,tileSize);
+                t->gl->elevations.setFormat(QOpenGLTexture::R32F);
+                t->gl->elevations.allocateStorage();
+                t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->g.elevations.data());
+                t->g.elevations.resize(0);
+                t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+                t->gl->normals.setData(t->g.normalMap);
+                //t->g.normalMap.save("debugNormalMap.png");
+                t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+            }
+            float sizeInPix = camera.getSizeInPixels(t->bounds);
+            //qDebug() << "tile: " << t->index.first << "," << t->index.second << "size (px)" << sizeInPix;
+            if(sizeInPix>0.0)
+            {
+                //float pixelSize = camera.getPixelSize(t->bounds);
+                //qDebug() << "eye distance:" << eyed << "pixel size:" << tpixSize;
+                
+                int lod = std::floor(log2f(tileSize/sizeInPix));
+                //qDebug() << "LOD (pre-bias):" << lod;
+                
+                lod+=lodBias;
+                
+                if(lod < 0 && !t->varResTiles.empty())
                 {
-                    VarResTilePtr vrt = vrtp.second;
-                    
-                    float vrSizeInPix = camera.getSizeInPixels(vrt->bounds);
-                    //qDebug() << "vrTile" << vrt->index.first << "," << vrt->index.second << "size (px)" << vrSizeInPix;
-                    if(vrSizeInPix>0.0)
+                    for (auto vrtp: t->varResTiles)
                     {
-                        if(!vrt->gl)
+                        VarResTilePtr vrt = vrtp.second;
+                        
+                        float vrSizeInPix = camera.getSizeInPixels(vrt->bounds);
+                        //qDebug() << "vrTile" << vrt->index.first << "," << vrt->index.second << "size (px)" << vrSizeInPix;
+                        if(vrSizeInPix>0.0)
                         {
-                            vrt->gl = std::make_shared<TileGL>();
-                            vrt->gl->elevations.setSize(vrt->ncols,vrt->nrows);
-                            vrt->gl->elevations.setFormat(QOpenGLTexture::R32F);
-                            vrt->gl->elevations.allocateStorage();
-                            vrt->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,vrt->g.elevations.data());
-                            vrt->g.elevations.resize(0);
-                            vrt->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-                            vrt->gl->normals.setData(vrt->g.normalMap);
-                            //vrt->g.normalMap.save("debugNormalMap.png");
-                            vrt->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+                            if(!vrt->gl)
+                            {
+                                vrt->gl = std::make_shared<TileGL>();
+                                vrt->gl->elevations.setSize(vrt->ncols,vrt->nrows);
+                                vrt->gl->elevations.setFormat(QOpenGLTexture::R32F);
+                                vrt->gl->elevations.allocateStorage();
+                                vrt->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,vrt->g.elevations.data());
+                                vrt->g.elevations.resize(0);
+                                vrt->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+                                vrt->gl->normals.setData(vrt->g.normalMap);
+                                //vrt->g.normalMap.save("debugNormalMap.png");
+                                vrt->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+                            }
+                            
+                            program->setUniformValue(spacingUniform,QVector2D(vrt->dx,vrt->dy));
+                            program->setUniformValue(tileSizeUniform,vrt->ncols);
+                            
+                            int vrlod = std::floor(log2f(vrt->ncols/vrSizeInPix));
+                            //qDebug() << "vrLOD (pre-bias):" << vrlod;
+                            
+                            //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
+                            vrlod+=lodBias;
+                            
+                            
+                            GridSize gs(vrt->ncols,vrt->nrows);
+                            if(!grids[gs])
+                            {
+                                grids[gs] = GridPtr(new Grid);
+                                grids[gs]->initialize(*this,vrt->ncols,vrt->nrows);
+                            }
+                            GridPtr g = grids[gs];
+                            
+                            glBindVertexArray(g->vao);
+                            
+    //                         int maxLOD = g->lodIndecies.size()-2;
+    //                         int rlod = maxLOD+lod;
+    //                         rlod = std::max(0,rlod);
+                            vrlod = std::max(0, std::min(vrlod,int(g->lodIndecies.size()-2)));
+                            
+                            //qDebug() << "clamped:" << vrlod;
+                            
+                            
+                            GLsizei i0 = g->lodIndecies[vrlod];
+                            GLsizei count = g->lodIndecies[vrlod+1]-g->lodIndecies[vrlod];
+                            
+                            //std::cerr << "lod: " << lod << "\ti0 " << i0 << "\tcount " << count << std::endl;
+                            
+                            vrt->gl->elevations.bind(0);
+                            vrt->gl->normals.bind(2);
+                            QVector2D ll(vrt->bounds.min().x(),vrt->bounds.min().y());
+                            program->setUniformValue(lowerLeftUniform,ll);
+                            
+                            glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
+                            //break;
                         }
-                        
-                        program->setUniformValue(spacingUniform,QVector2D(vrt->dx,vrt->dy));
-                        program->setUniformValue(tileSizeUniform,vrt->ncols);
-                        
-                        int vrlod = std::floor(log2f(vrt->ncols/vrSizeInPix));
-                        //qDebug() << "vrLOD (pre-bias):" << vrlod;
-                        
-                        //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
-                        vrlod+=lodBias;
-                        
-                        
-                        GridSize gs(vrt->ncols,vrt->nrows);
-                        if(!grids[gs])
-                        {
-                            grids[gs] = GridPtr(new Grid);
-                            grids[gs]->initialize(*this,vrt->ncols,vrt->nrows);
-                        }
-                        GridPtr g = grids[gs];
-                        
-                        glBindVertexArray(g->vao);
-                        
-//                         int maxLOD = g->lodIndecies.size()-2;
-//                         int rlod = maxLOD+lod;
-//                         rlod = std::max(0,rlod);
-                        vrlod = std::max(0, std::min(vrlod,int(g->lodIndecies.size()-2)));
-                        
-                        //qDebug() << "clamped:" << vrlod;
-                        
-                        
-                        GLsizei i0 = g->lodIndecies[vrlod];
-                        GLsizei count = g->lodIndecies[vrlod+1]-g->lodIndecies[vrlod];
-                        
-                        //std::cerr << "lod: " << lod << "\ti0 " << i0 << "\tcount " << count << std::endl;
-                        
-                        vrt->gl->elevations.bind(0);
-                        vrt->gl->normals.bind(2);
-                        QVector2D ll(vrt->bounds.min().x(),vrt->bounds.min().y());
-                        program->setUniformValue(lowerLeftUniform,ll);
-                        
-                        glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
-                        //break;
                     }
                 }
-            }
-            else
-            {
-                glBindVertexArray(tileVAO);
-                program->setUniformValue(tileSizeUniform,tileSize);
-                program->setUniformValue(spacingUniform,QVector2D(meta.dx,meta.dy));
-                
-                lod = std::max(0, std::min(lod,int(lodIndecies.size()-2)));
-                
-                //qDebug() << " clamped: " << lod;
+                else
+                {
+                    glBindVertexArray(tileVAO);
+                    program->setUniformValue(tileSizeUniform,tileSize);
+                    program->setUniformValue(spacingUniform,QVector2D(meta.dx,meta.dy));
+                    
+                    lod = std::max(0, std::min(lod,int(lodIndecies.size()-2)));
+                    
+                    //qDebug() << " clamped: " << lod;
 
-                GLsizei i0 = lodIndecies[lod];
-                GLsizei count = lodIndecies[lod+1]-lodIndecies[lod];
+                    GLsizei i0 = lodIndecies[lod];
+                    GLsizei count = lodIndecies[lod+1]-lodIndecies[lod];
 
-                //std::cerr << "lod: " << lod << "\ti0 " << i0 << "\tcount " << count << std::endl;
-                
-                t->gl->elevations.bind(0);
-                t->gl->normals.bind(2);
-                QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
-                program->setUniformValue(lowerLeftUniform,ll);
-                glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
+                    //std::cerr << "lod: " << lod << "\ti0 " << i0 << "\tcount " << count << std::endl;
+                    
+                    t->gl->elevations.bind(0);
+                    t->gl->normals.bind(2);
+                    QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
+                    program->setUniformValue(lowerLeftUniform,ll);
+                    glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
+                }
             }
+            //break;
         }
-        //break;
     }
     program->release();
 }
@@ -308,7 +326,8 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         int my = height()-event->pos().y();
         float gx = -1.0+mx/(width()/2.0);
         float gy = -1.0+my/(height()/2.0);
-        renderNow();
+        if(polygonMode != GL_FILL)
+            renderNow(true);
         GLfloat gz;
         glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
         gz = (gz-.5)*2.0;

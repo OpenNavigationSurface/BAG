@@ -29,7 +29,7 @@ void GLWindow::render(QPainter *painter)
     Q_UNUSED(painter)
 }
 
-void GLWindow::render()
+void GLWindow::render(bool picking)
 {
     if (!device)
         device = new QOpenGLPaintDevice;
@@ -71,7 +71,7 @@ void GLWindow::exposeEvent(QExposeEvent* event)
         renderNow();
 }
 
-void GLWindow::renderNow()
+void GLWindow::renderNow(bool picking)
 {
     if(!isExposed())
         return;
@@ -95,7 +95,7 @@ void GLWindow::renderNow()
         initialize();
     }
     
-    render();
+    render(picking);
     
     context->swapBuffers(this);
     if(animating)
