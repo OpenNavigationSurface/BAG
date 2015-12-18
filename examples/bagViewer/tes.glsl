@@ -1,6 +1,6 @@
-#version 150 core
+#version 400 core
 
-in vec2 inPosition;
+layout (quads, equal_spacing, ccw) in;
 
 uniform sampler2D elevationMap;
 uniform sampler2D normalMap;
@@ -23,15 +23,15 @@ out VertexData
     vec3 worldPosition;
 };
 
-void main() {
-    vec2 tc = inPosition/float(tileSize);
-    float e = texture(elevationMap,tc).r;
+void main()
+{
+    float e = texture(elevationMap,gl_TessCoord.xy).r;
 
-    vec3 normal = normalize((texture(normalMap,tc).rgb*2.0)-1.0);
+    vec3 normal = normalize((texture(normalMap,gl_TessCoord.xy).rgb*2.0)-1.0);
     vec3 vsNormal = normalize(normMatrix*normal);
     lighting = max(dot(vsNormal,lightDirection), 0.0);
     elevation = (e-minElevation)/(maxElevation-minElevation);
-    vec2 posMeters = inPosition*spacing+lowerLeft;
+    vec2 posMeters = gl_TessCoord.xy*(tileSize-1)*spacing+lowerLeft;
     worldPosition = vec3(posMeters,e);
     gl_Position = matrix * vec4(posMeters.x,posMeters.y,e,1.0);
 }

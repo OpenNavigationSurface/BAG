@@ -187,9 +187,9 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
     ret->index = tileIndex;
     
     
-    u32 startRow = tileIndex.second * (tileSize-1);
+    u32 startRow = tileIndex.second * tileSize;
     u32 endRow = std::min(startRow+tileSize,meta.nrows-1);
-    u32 startCol = tileIndex.first * (tileSize-1);
+    u32 startCol = tileIndex.first * tileSize;
     u32 endCol = std::min(startCol+tileSize,meta.ncols-1);
     
     ret->lowerLeftIndex = TileIndex2D(startCol,startRow);

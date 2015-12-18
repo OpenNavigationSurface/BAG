@@ -3,6 +3,7 @@
 #include <QScreen>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <cmath>
 
 const GLuint BagGL::primitiveReset = 0xffffffff;
 
@@ -40,6 +41,7 @@ void BagGL::initialize()
     
     program = new QOpenGLShaderProgram(this);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex.glsl");
+    program->addShaderFromSourceFile(QOpenGLShader::TessellationEvaluation, ":/tes.glsl");
     program->addShaderFromSourceFile(QOpenGLShader::Geometry, ":/geometry.glsl");
     program->addShaderFromSourceFile(QOpenGLShader::Fragment,":/fragment.glsl");
     
@@ -68,54 +70,14 @@ void BagGL::initialize()
     glGenVertexArrays(1,&tileVAO);
     glBindVertexArray(tileVAO);
 
-    glGenBuffers(2,tileBuffers);
+    glGenBuffers(1,&tileBuffer);
 
-    u32 ts = bag.getTileSize();
-    std::vector<GLfloat> verts;
-    std::vector<GLuint> indecies;
-    for(u32 row=0; row < ts; ++row)
-    {
-        for(u32 col=0; col < ts; ++col)
-        {
-            verts.push_back(col);
-            verts.push_back(row);
-        }
-    }
+    GLfloat vert[2] = {0.0,0.0};
     
-    for(uint lod=1; lod < ts/2; lod*=2)
-    {
-        lodIndecies.push_back(static_cast<int>(indecies.size()));
-        for(u32 row=0; row < ts; row+=lod)
-        {
-            for(u32 col=0; col < ts; col+=lod)
-            {
-                if(row>0)
-                {
-                    indecies.push_back(((row-lod)*ts+col));
-                    indecies.push_back((row*ts+col));
-                    if(col+lod >= ts && col < ts-1)
-                    {
-                        indecies.push_back(((row-lod)*ts+ts-1));
-                        indecies.push_back((row*ts+ts-1));
-                    }
-                }
-            }
-            if(row>0)
-                indecies.push_back(primitiveReset);
-            if (row+lod >= ts && row < ts-1)
-                row = ts-1-lod;
-        }
-    }
-    lodIndecies.push_back(static_cast<int>(indecies.size()));
-    
-    
-    glBindBuffer(GL_ARRAY_BUFFER, tileBuffers[0]);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*verts.size(),verts.data(),GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, tileBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*2,vert,GL_STATIC_DRAW);
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
-    
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, tileBuffers[1]);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*indecies.size(),indecies.data(),GL_STATIC_DRAW);
     glBindAttribLocation(program->programId(),0,"inPosition");
 }
 
@@ -149,7 +111,8 @@ void BagGL::render(bool picking)
     
     program->bind();
     
-    
+    glPatchParameteri(GL_PATCH_VERTICES,1);
+        
     QMatrix4x4 matrix = camera.getMatrix();
     QMatrix4x4 normMatrix = camera.genNormalMatrix();
     
@@ -238,6 +201,7 @@ void BagGL::render(bool picking)
                                 vrt->g.elevations.resize(0);
                                 vrt->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
                                 vrt->gl->normals.setData(vrt->g.normalMap);
+                                vrt->g.normalMap = QImage();
                                 //vrt->g.normalMap.save("debugNormalMap.png");
                                 vrt->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
                             }
@@ -251,60 +215,63 @@ void BagGL::render(bool picking)
                             //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
                             vrlod+=lodBias;
                             
-                            
-                            GridSize gs(vrt->ncols,vrt->nrows);
-                            if(!grids[gs])
-                            {
-                                grids[gs] = GridPtr(new Grid);
-                                grids[gs]->initialize(*this,vrt->ncols,vrt->nrows);
-                            }
-                            GridPtr g = grids[gs];
-                            
-                            glBindVertexArray(g->vao);
-                            
-    //                         int maxLOD = g->lodIndecies.size()-2;
-    //                         int rlod = maxLOD+lod;
-    //                         rlod = std::max(0,rlod);
-                            vrlod = std::max(0, std::min(vrlod,int(g->lodIndecies.size()-2)));
+                            vrlod = std::max(0, std::min(vrlod,int(log2f(vrt->ncols)-2)));
                             
                             //qDebug() << "clamped:" << vrlod;
-                            
-                            
-                            GLsizei i0 = g->lodIndecies[vrlod];
-                            GLsizei count = g->lodIndecies[vrlod+1]-g->lodIndecies[vrlod];
-                            
-                            //std::cerr << "lod: " << lod << "\ti0 " << i0 << "\tcount " << count << std::endl;
                             
                             vrt->gl->elevations.bind(0);
                             vrt->gl->normals.bind(2);
                             QVector2D ll(vrt->bounds.min().x(),vrt->bounds.min().y());
                             program->setUniformValue(lowerLeftUniform,ll);
                             
-                            glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
+                            GLfloat tl = (vrt->ncols/pow(2.0,vrlod)) -1.0;
+                            
+                            GLfloat tlOuter[4];
+                            GLfloat tlInner[2];
+                            tlOuter[0] = tl;
+                            tlOuter[1] = tl;
+                            tlOuter[2] = tl;
+                            tlOuter[3] = tl;
+                            tlInner[0] = tl;
+                            tlInner[1] = tl;
+                            glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
+                            glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
+                            
+                            glDrawArrays(GL_PATCHES,0,1);
+                            
+                            
                             //break;
                         }
                     }
                 }
                 else
                 {
-                    glBindVertexArray(tileVAO);
                     program->setUniformValue(tileSizeUniform,tileSize);
                     program->setUniformValue(spacingUniform,QVector2D(meta.dx,meta.dy));
                     
-                    lod = std::max(0, std::min(lod,int(lodIndecies.size()-2)));
+                    lod = std::max(0, std::min(lod,int(log2f(tileSize)-2)));
                     
                     //qDebug() << " clamped: " << lod;
-
-                    GLsizei i0 = lodIndecies[lod];
-                    GLsizei count = lodIndecies[lod+1]-lodIndecies[lod];
-
-                    //std::cerr << "lod: " << lod << "\ti0 " << i0 << "\tcount " << count << std::endl;
                     
                     t->gl->elevations.bind(0);
                     t->gl->normals.bind(2);
                     QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
                     program->setUniformValue(lowerLeftUniform,ll);
-                    glDrawElements(GL_TRIANGLE_STRIP, count,GL_UNSIGNED_INT,(void*)(i0*sizeof(GLuint)));
+                    
+                    GLfloat tl = (tileSize/pow(2.0,lod));// -1.0;
+                    
+                    GLfloat tlOuter[4];
+                    GLfloat tlInner[2];
+                    tlOuter[0] = tl;
+                    tlOuter[1] = tl;
+                    tlOuter[2] = tl;
+                    tlOuter[3] = tl;
+                    tlInner[0] = tl;
+                    tlInner[1] = tl;
+                    glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
+                    glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
+                    
+                    glDrawArrays(GL_PATCHES,0,1);
                 }
             }
             //break;
@@ -477,58 +444,4 @@ void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
     qDebug() << debugMessage.message();
 }
 
-
-void BagGL::Grid::initialize(BagGL& gl, uint ncols, uint nrows)
-{
-    qDebug() << "grid init: " << ncols << "," << nrows;
-    gl.glGenVertexArrays(1,&vao);
-    gl.glBindVertexArray(vao);
-    
-    gl.glGenBuffers(2,buffers);
-
-    std::vector<GLfloat> verts;
-    std::vector<GLuint> indecies;
-    for(u32 row=0; row < nrows; ++row)
-    {
-        for(u32 col=0; col < ncols; ++col)
-        {
-            verts.push_back(col);
-            verts.push_back(row);
-        }
-    }
-    uint maxDim = std::max(ncols,nrows);
-    for(uint lod=1; lod < maxDim; lod*=2)
-    {
-        lodIndecies.push_back(static_cast<int>(indecies.size()));
-        for(u32 row=0; row < nrows; row+=lod)
-        {
-            for(u32 col=0; col < ncols; col+=lod)
-            {
-                if(row>0)
-                {
-                    indecies.push_back(((row-lod)*ncols+col));
-                    indecies.push_back((row*ncols+col));
-                    if(col+lod >= ncols && col < ncols-1)
-                    {
-                        indecies.push_back(((row-lod)*ncols+ncols-1));
-                        indecies.push_back((row*ncols+ncols-1));
-                    }
-                }
-            }
-            if(row>0)
-                indecies.push_back(BagGL::primitiveReset);
-            if (row+lod >= nrows && row < nrows-1)
-                row = nrows-1-lod;
-        }
-    }
-    lodIndecies.push_back(static_cast<int>(indecies.size()));
-    
-    gl.glBindBuffer(GL_ARRAY_BUFFER, buffers[0]);
-    gl.glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat)*verts.size(),verts.data(),GL_STATIC_DRAW);
-    gl.glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
-    gl.glEnableVertexAttribArray(0);
-    
-    gl.glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, buffers[1]);
-    gl.glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint)*indecies.size(),indecies.data(),GL_STATIC_DRAW);
-}
 

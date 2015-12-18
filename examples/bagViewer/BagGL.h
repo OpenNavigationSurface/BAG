@@ -45,22 +45,9 @@ public:
     
     static const GLuint primitiveReset;
 
-    struct Grid
-    {
-        uint ncols, nrows;
-        
-        GLuint vao;
-        GLuint buffers[2];
-        std::vector<GLsizei> lodIndecies;
-        
-        void initialize(BagGL& gl, uint ncols, uint nrows);
-    };
-    
-    typedef std::shared_ptr<Grid> GridPtr;
     
     typedef std::pair<uint,uint> GridSize;
     
-    typedef std::map<GridSize,GridPtr> GridMap;
     
 public slots:
     void resetView();
@@ -89,11 +76,7 @@ private:
     GLuint normalMapUniform;
     
     GLuint tileVAO;
-    GLuint tileBuffers[2];
-    std::vector<GLsizei> lodIndecies;
-    
-    
-    GridMap grids;
+    GLuint tileBuffer;
     
     BagIO bag;
 

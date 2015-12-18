@@ -23,7 +23,7 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     QSurfaceFormat format;
     format.setSamples(16);
     format.setDepthBufferSize(32);
-    format.setVersion(3,3);
+    format.setVersion(4,0);
     format.setProfile(QSurfaceFormat::CoreProfile);
     format.setOption(QSurfaceFormat::DebugContext);
     

@@ -4,6 +4,7 @@
         <file>colormaps/omnimap.png</file>
         <file>icons/bagViewer.png</file>
         <file>vertex.glsl</file>
+        <file>tes.glsl</file>
         <file>geometry.glsl</file>
         <file>fragment.glsl</file>
     </qresource>

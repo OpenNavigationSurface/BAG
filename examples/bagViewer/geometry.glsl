@@ -8,13 +8,16 @@ in VertexData
     float elevation;
     float lighting;
     float uncertainty;
+    vec3 worldPosition;
 } inData[];
+
 
 out VertexData
 {
     float elevation;
     float lighting;
     float uncertainty;
+    vec3 worldPosition;
 } outData;
 
 void main()
@@ -26,11 +29,14 @@ void main()
             maxElevation = inData[n].elevation;
 
     if(maxElevation <= 1.0)
+    {
         for (n = 0; n < gl_in.length(); n++)
         {
             gl_Position = gl_in[n].gl_Position;
             outData.elevation = inData[n].elevation;
             outData.lighting = inData[n].lighting;
+            outData.worldPosition = inData[n].worldPosition;
             EmitVertex();
         }
+    }
 }
