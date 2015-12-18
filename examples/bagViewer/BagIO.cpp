@@ -126,9 +126,9 @@ void BagIO::run()
                             for (u32 ti = 0; ti < tileSize; ti++)
                                 for(u32 tj = 0; tj < tileSize; tj++)
                                 {
-                                    VarResTilePtr vrTile = loadVarResTile(bag,TileIndex2D(tj,ti),meta,*t);
+                                    TilePtr vrTile = loadVarResTile(bag,TileIndex2D(tj,ti),meta,*t);
                                     if(vrTile)
-                                        t->varResTiles[vrTile->index]=vrTile;
+                                        t->subTiles[vrTile->index]=vrTile;
                                 }
                         }
                     }
@@ -185,7 +185,10 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
 {
     TilePtr ret(new Tile);
     ret->index = tileIndex;
-    
+    ret->ncols = tileSize;
+    ret->nrows = tileSize;
+    ret->dx = meta.dx;
+    ret->dy = meta.dy;
     
     u32 startRow = tileIndex.second * tileSize;
     u32 endRow = std::min(startRow+tileSize,meta.nrows-1);
@@ -196,12 +199,13 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
     
     bagReadRegion(bag, startRow, startCol, endRow, endCol, Elevation);
     
-    ret->g.elevations.resize(tileSize*tileSize,BAG_NULL_ELEVATION);
+    ret->data = TileDataPtr(new TileData);
+    ret->data->elevations.resize(tileSize*tileSize,BAG_NULL_ELEVATION);
     for(uint i=0; i < endRow-startRow; ++i)
-        memcpy(&(ret->g.elevations.data()[i*tileSize]),bagGetDataPointer(bag)->elevation[i], (endCol-startCol)*sizeof(GLfloat));
+        memcpy(&(ret->data->elevations.data()[i*tileSize]),bagGetDataPointer(bag)->elevation[i], (endCol-startCol)*sizeof(GLfloat));
     
     bool notEmpty = false;
-    for(auto e: ret->g.elevations)
+    for(auto e: ret->data->elevations)
     {
         if(e != BAG_NULL_ELEVATION)
         {
@@ -216,7 +220,7 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
     {
         float minElevation = BAG_NULL_ELEVATION;
         float maxElevation = BAG_NULL_ELEVATION;
-        for(auto e:ret->g.elevations)
+        for(auto e:ret->data->elevations)
         {
             if(e != BAG_NULL_ELEVATION)
             {
@@ -229,7 +233,7 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
         ret->bounds.add(QVector3D(startCol * meta.dx, startRow * meta.dy, minElevation));
         ret->bounds.add(QVector3D((endCol+1) * meta.dx, (endRow+1) * meta.dy, maxElevation));
         
-        ret->g.normalMap = QImage(tileSize, tileSize, QImage::Format_RGB888);
+        ret->data->normalMap = QImage(tileSize, tileSize, QImage::Format_RGB888);
         for(u32 ti = 0; ti < tileSize && ti < endRow-startRow; ++ti)
         {
             for(u32 tj = 0; tj < tileSize && tj < endCol-startCol; ++tj)
@@ -242,10 +246,10 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
                     QVector3D v1(meta.dx,0.0,p10-p00);
                     QVector3D v2(0.0,meta.dy,p01-p00);
                     QVector3D n = QVector3D::normal(v1,v2);
-                    ret->g.normalMap.setPixel(tj,ti,QColor(127+128*n.x(),127+128*n.y(),127+128*n.z()).rgb());
+                    ret->data->normalMap.setPixel(tj,ti,QColor(127+128*n.x(),127+128*n.y(),127+128*n.z()).rgb());
                 }
                 else
-                    ret->g.normalMap.setPixel(tj,ti,QColor(127,127,255).rgb());
+                    ret->data->normalMap.setPixel(tj,ti,QColor(127,127,255).rgb());
             }
         }
     }
@@ -253,28 +257,31 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
     return ret;
 }
 
-VarResTilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex, const BagIO::MetaData& meta, const Tile& parentTile) const
+TilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex, const BagIO::MetaData& meta, const Tile& parentTile) const
 {
-    VarResTilePtr ret(new VarResTile);
+    TilePtr ret(new Tile);
+    ret->data = TileDataPtr(new TileData);
+    
     ret->index = tileIndex;
     bagVarResMetadataGroup vrMetadata;
     std::vector<bagVarResRefinementGroup> refinements;
     uint i = parentTile.lowerLeftIndex.first+tileIndex.first;
     uint j = parentTile.lowerLeftIndex.second+tileIndex.second;
     if(i >= meta.ncols || j >= meta.nrows)
-        return VarResTilePtr();
+        return TilePtr();
+    ret->lowerLeftIndex = TileIndex2D(i,j);
     bagReadNode(bag,j,i,VarRes_Metadata_Group,&vrMetadata);
     if(vrMetadata.dimensions == 0)
-        return VarResTilePtr();
+        return TilePtr();
     refinements.resize(vrMetadata.dimensions*vrMetadata.dimensions);
-    ret->g.normalMap = QImage(vrMetadata.dimensions, vrMetadata.dimensions, QImage::Format_RGB888);
-    ret->g.normalMap.fill(QColor(127,127,255).rgb());
+    ret->data->normalMap = QImage(vrMetadata.dimensions, vrMetadata.dimensions, QImage::Format_RGB888);
+    ret->data->normalMap.fill(QColor(127,127,255).rgb());
     bagReadRow(bag,0,vrMetadata.index,vrMetadata.index+(u32)refinements.size()-1,VarRes_Refinement_Group,refinements.data());
     float minz = BAG_NULL_ELEVATION;
     float maxz = BAG_NULL_ELEVATION;
     for(bagVarResRefinementGroup r:refinements)
     {
-        ret->g.elevations.push_back(r.depth);
+        ret->data->elevations.push_back(r.depth);
         if(minz == BAG_NULL_ELEVATION || r.depth < minz)
             minz = r.depth;
         if(maxz == BAG_NULL_ELEVATION || r.depth > maxz)
@@ -288,25 +295,25 @@ VarResTilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex,
             {
                 if(tj < vrMetadata.dimensions-1)
                 {
-                    float p00 = ret->g.elevations[ti*vrMetadata.dimensions+tj];
-                    float p10 = ret->g.elevations[ti*vrMetadata.dimensions+tj+1];
-                    float p01 = ret->g.elevations[(ti+1)*vrMetadata.dimensions+tj];
+                    float p00 = ret->data->elevations[ti*vrMetadata.dimensions+tj];
+                    float p10 = ret->data->elevations[ti*vrMetadata.dimensions+tj+1];
+                    float p01 = ret->data->elevations[(ti+1)*vrMetadata.dimensions+tj];
                     if(p00 != BAG_NULL_ELEVATION && p10 != BAG_NULL_ELEVATION && p01 != BAG_NULL_ELEVATION)
                     {
                         QVector3D v1(vrMetadata.resolution,0.0,p10-p00);
                         QVector3D v2(0.0,vrMetadata.resolution,p01-p00);
                         QVector3D n = QVector3D::normal(v1,v2);
-                        ret->g.normalMap.setPixel(tj,ti,QColor(127+128*n.x(),127+128*n.y(),127+128*n.z()).rgb());
+                        ret->data->normalMap.setPixel(tj,ti,QColor(127+128*n.x(),127+128*n.y(),127+128*n.z()).rgb());
                     }
                     else
-                        ret->g.normalMap.setPixel(tj,ti,QColor(127,127,255).rgb());
+                        ret->data->normalMap.setPixel(tj,ti,QColor(127,127,255).rgb());
                 }
                 else
-                    ret->g.normalMap.setPixel(tj,ti,ret->g.normalMap.pixel(tj-1,ti));
+                    ret->data->normalMap.setPixel(tj,ti,ret->data->normalMap.pixel(tj-1,ti));
             }
         else
             for(u32 tj = 0; tj < vrMetadata.dimensions; ++tj)
-                ret->g.normalMap.setPixel(tj,ti,ret->g.normalMap.pixel(tj,ti-1));
+                ret->data->normalMap.setPixel(tj,ti,ret->data->normalMap.pixel(tj,ti-1));
     }
     
     
@@ -328,15 +335,6 @@ void BagIO::close()
     mutex.lock();
     overviewTiles.clear();
     mutex.unlock();
-}
-
-
-
-void TileGeometry::reset()
-{
-    elevations.resize(0);
-    uncertainties.resize(0);
-    normalMap = QImage();
 }
 
 std::vector< TilePtr > BagIO::getOverviewTiles()

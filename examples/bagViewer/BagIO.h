@@ -14,43 +14,31 @@
 
 struct TileGL;
 
-struct TileGeometry
+struct TileData
 {
     std::vector<GLfloat> elevations;
     QImage normalMap;
     std::vector<GLfloat> uncertainties;
-    void reset();
 };
+
+typedef std::shared_ptr<TileData> TileDataPtr;
 
 typedef std::pair<u32,u32> TileIndex2D;
 
-struct TileBase
+struct Tile
 {
-    TileGeometry g;
     TileIndex2D index;
-    std::shared_ptr<TileGL> gl;
     Bounds bounds;
-};
-
-struct VarResTile: public TileBase
-{
-    float dx,dy;
     uint ncols,nrows;
-};
-
-typedef std::shared_ptr<VarResTile> VarResTilePtr;
-typedef std::map<TileIndex2D,VarResTilePtr> VarResTileMap;
-
-struct Tile: public TileBase
-{
+    float dx,dy;
+    TileDataPtr data;
+    std::shared_ptr<TileGL> gl;
     TileIndex2D lowerLeftIndex;
-    VarResTileMap varResTiles;
+    std::map<TileIndex2D,std::shared_ptr<Tile> > subTiles;
 };
 
 typedef std::shared_ptr<Tile> TilePtr;
-
 typedef std::map<TileIndex2D,TilePtr> TileMap;
-
 
 class BagIO: public QThread
 {
@@ -88,9 +76,6 @@ public:
     
     std::vector<TilePtr> getOverviewTiles();
     MetaData getMeta();
-
-    //Geometry vrg;
-    
     
 signals:
     void metaLoaded();
@@ -101,7 +86,7 @@ protected:
     
 private:
     TilePtr loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) const; 
-    VarResTilePtr loadVarResTile(bagHandle &bag, TileIndex2D const tileIndex, MetaData const &meta, Tile const &parentTile) const; 
+    TilePtr loadVarResTile(bagHandle &bag, TileIndex2D const tileIndex, MetaData const &meta, Tile const &parentTile) const; 
     
     QMutex mutex;
     QWaitCondition condition;

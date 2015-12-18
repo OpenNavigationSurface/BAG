@@ -156,129 +156,80 @@ void BagGL::render(bool picking)
     
         for(TilePtr t: bag.getOverviewTiles())
         {
-            if(!t->gl)
-            {
-                t->gl = std::make_shared<TileGL>();
-                t->gl->elevations.setSize(tileSize,tileSize);
-                t->gl->elevations.setFormat(QOpenGLTexture::R32F);
-                t->gl->elevations.allocateStorage();
-                t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->g.elevations.data());
-                t->g.elevations.resize(0);
-                t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-                t->gl->normals.setData(t->g.normalMap);
-                //t->g.normalMap.save("debugNormalMap.png");
-                t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-            }
-            float sizeInPix = camera.getSizeInPixels(t->bounds);
-            //qDebug() << "tile: " << t->index.first << "," << t->index.second << "size (px)" << sizeInPix;
-            if(sizeInPix>0.0)
-            {
-                //float pixelSize = camera.getPixelSize(t->bounds);
-                //qDebug() << "eye distance:" << eyed << "pixel size:" << tpixSize;
-                
-                int lod = std::floor(log2f(tileSize/sizeInPix));
-                //qDebug() << "LOD (pre-bias):" << lod;
-                
-                lod+=lodBias;
-                
-                if(lod < 0 && !t->varResTiles.empty())
-                {
-                    for (auto vrtp: t->varResTiles)
-                    {
-                        VarResTilePtr vrt = vrtp.second;
-                        
-                        float vrSizeInPix = camera.getSizeInPixels(vrt->bounds);
-                        //qDebug() << "vrTile" << vrt->index.first << "," << vrt->index.second << "size (px)" << vrSizeInPix;
-                        if(vrSizeInPix>0.0)
-                        {
-                            if(!vrt->gl)
-                            {
-                                vrt->gl = std::make_shared<TileGL>();
-                                vrt->gl->elevations.setSize(vrt->ncols,vrt->nrows);
-                                vrt->gl->elevations.setFormat(QOpenGLTexture::R32F);
-                                vrt->gl->elevations.allocateStorage();
-                                vrt->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,vrt->g.elevations.data());
-                                vrt->g.elevations.resize(0);
-                                vrt->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-                                vrt->gl->normals.setData(vrt->g.normalMap);
-                                vrt->g.normalMap = QImage();
-                                //vrt->g.normalMap.save("debugNormalMap.png");
-                                vrt->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-                            }
-                            
-                            program->setUniformValue(spacingUniform,QVector2D(vrt->dx,vrt->dy));
-                            program->setUniformValue(tileSizeUniform,vrt->ncols);
-                            
-                            int vrlod = std::floor(log2f(vrt->ncols/vrSizeInPix));
-                            //qDebug() << "vrLOD (pre-bias):" << vrlod;
-                            
-                            //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
-                            vrlod+=lodBias;
-                            
-                            vrlod = std::max(0, std::min(vrlod,int(log2f(vrt->ncols)-2)));
-                            
-                            //qDebug() << "clamped:" << vrlod;
-                            
-                            vrt->gl->elevations.bind(0);
-                            vrt->gl->normals.bind(2);
-                            QVector2D ll(vrt->bounds.min().x(),vrt->bounds.min().y());
-                            program->setUniformValue(lowerLeftUniform,ll);
-                            
-                            GLfloat tl = (vrt->ncols/pow(2.0,vrlod)) -1.0;
-                            
-                            GLfloat tlOuter[4];
-                            GLfloat tlInner[2];
-                            tlOuter[0] = tl;
-                            tlOuter[1] = tl;
-                            tlOuter[2] = tl;
-                            tlOuter[3] = tl;
-                            tlInner[0] = tl;
-                            tlInner[1] = tl;
-                            glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
-                            glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
-                            
-                            glDrawArrays(GL_PATCHES,0,1);
-                            
-                            
-                            //break;
-                        }
-                    }
-                }
-                else
-                {
-                    program->setUniformValue(tileSizeUniform,tileSize);
-                    program->setUniformValue(spacingUniform,QVector2D(meta.dx,meta.dy));
-                    
-                    lod = std::max(0, std::min(lod,int(log2f(tileSize)-2)));
-                    
-                    //qDebug() << " clamped: " << lod;
-                    
-                    t->gl->elevations.bind(0);
-                    t->gl->normals.bind(2);
-                    QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
-                    program->setUniformValue(lowerLeftUniform,ll);
-                    
-                    GLfloat tl = (tileSize/pow(2.0,lod));// -1.0;
-                    
-                    GLfloat tlOuter[4];
-                    GLfloat tlInner[2];
-                    tlOuter[0] = tl;
-                    tlOuter[1] = tl;
-                    tlOuter[2] = tl;
-                    tlOuter[3] = tl;
-                    tlInner[0] = tl;
-                    tlInner[1] = tl;
-                    glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
-                    glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
-                    
-                    glDrawArrays(GL_PATCHES,0,1);
-                }
-            }
+            drawTile(t);
             //break;
         }
     }
     program->release();
 }
+
+void BagGL::drawTile(TilePtr t)
+{
+    float sizeInPix = camera.getSizeInPixels(t->bounds);
+    if(sizeInPix>0.0)
+    {
+        if(!t->gl)
+        {
+            t->gl = std::make_shared<TileGL>();
+            t->gl->elevations.setSize(t->ncols,t->nrows);
+            t->gl->elevations.setFormat(QOpenGLTexture::R32F);
+            t->gl->elevations.allocateStorage();
+            t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->data->elevations.data());
+            t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+            t->gl->elevations.setWrapMode(QOpenGLTexture::ClampToEdge);
+            t->gl->normals.setData(t->data->normalMap);
+            t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+            t->gl->normals.setWrapMode(QOpenGLTexture::ClampToEdge);
+            
+            t->data.reset();
+        }
+        
+        program->setUniformValue(spacingUniform,QVector2D(t->dx,t->dy));
+        program->setUniformValue(tileSizeUniform,t->ncols);
+        
+        int lod = std::floor(log2f(t->ncols/sizeInPix));
+        //qDebug() << "vrLOD (pre-bias):" << vrlod;
+        
+        //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
+        lod+=lodBias;
+        
+        if(lod < 0 && !t->subTiles.empty())
+        {
+            for (auto tp: t->subTiles)
+            {
+                drawTile(tp.second);
+                //break;
+            }
+        }
+        else
+        {
+            lod = std::max(0, std::min(lod,int(log2f(t->ncols)-2)));
+            
+            //qDebug() << "clamped:" << vrlod;
+            
+            t->gl->elevations.bind(0);
+            t->gl->normals.bind(2);
+            QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
+            program->setUniformValue(lowerLeftUniform,ll);
+            
+            GLfloat tl = (t->ncols/pow(2.0,lod)) -1.0;
+            
+            GLfloat tlOuter[4];
+            GLfloat tlInner[2];
+            tlOuter[0] = tl;
+            tlOuter[1] = tl;
+            tlOuter[2] = tl;
+            tlOuter[3] = tl;
+            tlInner[0] = tl;
+            tlInner[1] = tl;
+            glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
+            glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
+            
+            glDrawArrays(GL_PATCHES,0,1);
+        }
+    }
+}
+
 
 void BagGL::mousePressEvent(QMouseEvent* event)
 {

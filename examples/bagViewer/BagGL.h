@@ -61,6 +61,8 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     
 private:
+    void drawTile(TilePtr t);
+    
     GLCamera camera;
     
     GLuint matrixUniform;
