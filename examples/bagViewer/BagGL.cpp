@@ -19,8 +19,9 @@ BagGL::BagGL():
     adjustingHeightExaggeration(false),
     lodBias(3)
 {
+    qRegisterMetaType<TilePtr>("TilePtr");
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
-    connect(&bag, SIGNAL(tileLoaded()), this, SLOT(renderLater()));
+    connect(&bag, SIGNAL(tileLoaded(TilePtr,bool)), this, SLOT(newTile(TilePtr,bool)));
 }
 
 BagGL::~BagGL()
@@ -59,6 +60,27 @@ void BagGL::initialize()
     spacingUniform = program->uniformLocation("spacing");
     lowerLeftUniform = program->uniformLocation("lowerLeft");
     tileSizeUniform = program->uniformLocation("tileSize");
+    
+    eastElevationMapUniform = program->uniformLocation("eastElevationMap");
+    eastNormalMapUniform = program->uniformLocation("eastNormalMap");
+    eastSpacingUniform = program->uniformLocation("eastSpacing");
+    eastLowerLeftUniform = program->uniformLocation("eastLowerLeft");
+    eastTileSizeUniform = program->uniformLocation("eastTileSize");
+    hasEastUniform = program->uniformLocation("hasEast");
+    
+    northElevationMapUniform = program->uniformLocation("northElevationMap");
+    northNormalMapUniform = program->uniformLocation("northNormalMap");
+    northSpacingUniform = program->uniformLocation("northSpacing");
+    northLowerLeftUniform = program->uniformLocation("northLowerLeft");
+    northTileSizeUniform = program->uniformLocation("northTileSize");
+    hasNorthUniform = program->uniformLocation("hasNorth");
+    
+    northEastElevationMapUniform = program->uniformLocation("northEastElevationMap");
+    northEastNormalMapUniform = program->uniformLocation("northEastNormalMap");
+    northEastSpacingUniform = program->uniformLocation("northEastSpacing");
+    northEastLowerLeftUniform = program->uniformLocation("northEastLowerLeft");
+    northEastTileSizeUniform = program->uniformLocation("northEastTileSize");
+    hasNorthEastUniform = program->uniformLocation("hasNorthEast");
     
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_PRIMITIVE_RESTART);
@@ -124,21 +146,25 @@ void BagGL::render(bool picking)
     program->setUniformValue(minElevationUniform, meta.minElevation);
     program->setUniformValue(maxElevationUniform, meta.maxElevation);
     
-    
-    program->setUniformValue(elevationMapUniform,0);
-    program->setUniformValue(colorMapUniform,1);
+    program->setUniformValue(colorMapUniform,0);
+    program->setUniformValue(elevationMapUniform,1);
     program->setUniformValue(normalMapUniform,2);
-    
-    GLuint tileSize = bag.getTileSize();
-    program->setUniformValue(tileSizeUniform,tileSize);
+    program->setUniformValue(eastElevationMapUniform,3);
+    program->setUniformValue(eastNormalMapUniform,4);
+    program->setUniformValue(northElevationMapUniform,5);
+    program->setUniformValue(northNormalMapUniform,6);
+    program->setUniformValue(northEastElevationMapUniform,7);
+    program->setUniformValue(northEastNormalMapUniform,8);
     
     QVector3D lightDirection(0.0,0.0,1.0);
     program->setUniformValue(lightDirectionUniform,lightDirection);
     
-    colormaps[currentColormap]->bind(1);
+    colormaps[currentColormap]->bind(0);
     
     glBindVertexArray(tileVAO);
     
+    for (auto t: overviewTiles)
+        updateLOD(t.second);
     
     for(int pass = 0; pass < passes; ++pass)
     {
@@ -154,46 +180,64 @@ void BagGL::render(bool picking)
         }
     
     
-        for(TilePtr t: bag.getOverviewTiles())
+        //for(TilePtr t: bag.getOverviewTiles())
+        for (auto t: overviewTiles)
         {
-            drawTile(t);
+            drawTile(t.second);
             //break;
         }
     }
     program->release();
 }
 
-void BagGL::drawTile(TilePtr t)
+void BagGL::checkGL(TilePtr t)
 {
+    if(!t->gl)
+    {
+        t->gl = std::make_shared<TileGL>();
+        t->gl->elevations.setSize(t->ncols,t->nrows);
+        t->gl->elevations.setFormat(QOpenGLTexture::R32F);
+        t->gl->elevations.allocateStorage();
+        t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->data->elevations.data());
+        t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+        t->gl->elevations.setWrapMode(QOpenGLTexture::ClampToEdge);
+        t->gl->normals.setData(t->data->normalMap);
+        t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
+        t->gl->normals.setWrapMode(QOpenGLTexture::ClampToEdge);
+        t->gl->maxLod = log2f(t->ncols);
+        t->gl->lod = t->gl->maxLod;
+        t->data.reset();
+    }
+}
+
+void BagGL::updateLOD(TilePtr t)
+{
+    checkGL(t);
     float sizeInPix = camera.getSizeInPixels(t->bounds);
     if(sizeInPix>0.0)
     {
-        if(!t->gl)
+        t->gl->lod = std::floor(log2f(t->ncols/sizeInPix));
+        t->gl->lod+=lodBias;
+        
+        if(t->gl->lod < 0 && !t->subTiles.empty())
         {
-            t->gl = std::make_shared<TileGL>();
-            t->gl->elevations.setSize(t->ncols,t->nrows);
-            t->gl->elevations.setFormat(QOpenGLTexture::R32F);
-            t->gl->elevations.allocateStorage();
-            t->gl->elevations.setData(QOpenGLTexture::Red,QOpenGLTexture::Float32,t->data->elevations.data());
-            t->gl->elevations.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-            t->gl->elevations.setWrapMode(QOpenGLTexture::ClampToEdge);
-            t->gl->normals.setData(t->data->normalMap);
-            t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
-            t->gl->normals.setWrapMode(QOpenGLTexture::ClampToEdge);
-            
-            t->data.reset();
+            for (auto tp: t->subTiles)
+            {
+                updateLOD(tp.second);
+            }
         }
-        
-        program->setUniformValue(spacingUniform,QVector2D(t->dx,t->dy));
-        program->setUniformValue(tileSizeUniform,t->ncols);
-        
-        int lod = std::floor(log2f(t->ncols/sizeInPix));
-        //qDebug() << "vrLOD (pre-bias):" << vrlod;
-        
-        //std::cerr << "vr draw size (px): " << vrMaxDS << ", preliminary VR lod: " << vrlod << std::endl;
-        lod+=lodBias;
-        
-        if(lod < 0 && !t->subTiles.empty())
+        else
+            t->gl->lod = std::max(0, std::min(t->gl->lod,t->gl->maxLod-1));
+    }
+    else
+        t->gl->lod = t->gl->maxLod;
+}
+
+void BagGL::drawTile(TilePtr t)
+{
+    if(t->gl->lod < t->gl->maxLod)
+    {
+        if(t->gl->lod < 0 && !t->subTiles.empty())
         {
             for (auto tp: t->subTiles)
             {
@@ -203,27 +247,68 @@ void BagGL::drawTile(TilePtr t)
         }
         else
         {
-            lod = std::max(0, std::min(lod,int(log2f(t->ncols)-2)));
-            
-            //qDebug() << "clamped:" << vrlod;
-            
-            t->gl->elevations.bind(0);
+            t->gl->elevations.bind(1);
             t->gl->normals.bind(2);
-            QVector2D ll(t->bounds.min().x(),t->bounds.min().y());
-            program->setUniformValue(lowerLeftUniform,ll);
+            program->setUniformValue(spacingUniform,QVector2D(t->dx,t->dy));
+            program->setUniformValue(tileSizeUniform,t->ncols);
+            program->setUniformValue(lowerLeftUniform,QVector2D(t->bounds.min().x(),t->bounds.min().y()));
             
-            GLfloat tl = (t->ncols/pow(2.0,lod)) -1.0;
+            GLfloat tl = (t->ncols/pow(2.0,t->gl->lod));
+            GLfloat tlEast = tl;
+            GLfloat tlNorth = tl;
             
-            GLfloat tlOuter[4];
+            if(t->east)
+            {
+                checkGL(t->east);
+                program->setUniformValue(hasEastUniform,true);
+                t->east->gl->elevations.bind(3);
+                t->east->gl->normals.bind(4);
+                program->setUniformValue(eastSpacingUniform,QVector2D(t->east->dx,t->east->dy));
+                program->setUniformValue(eastTileSizeUniform,t->east->ncols);
+                program->setUniformValue(eastLowerLeftUniform,QVector2D(t->east->bounds.min().x(),t->east->bounds.min().y()));
+                tlEast = (t->east->ncols/pow(2.0,t->east->gl->lod));
+            }
+            else
+                program->setUniformValue(hasEastUniform,false);
+
+            if(t->north)
+            {
+                checkGL(t->north);
+                program->setUniformValue(hasNorthUniform,true);
+                t->north->gl->elevations.bind(5);
+                t->north->gl->normals.bind(6);
+                program->setUniformValue(northSpacingUniform,QVector2D(t->north->dx,t->north->dy));
+                program->setUniformValue(northTileSizeUniform,t->north->ncols);
+                program->setUniformValue(northLowerLeftUniform,QVector2D(t->north->bounds.min().x(),t->north->bounds.min().y()));
+                tlNorth = (t->north->ncols/pow(2.0,t->north->gl->lod));
+            }
+            else
+                program->setUniformValue(hasNorthUniform,false);
+            
+            if(t->northEast)
+            {
+                checkGL(t->northEast);
+                program->setUniformValue(hasNorthEastUniform,true);
+                t->northEast->gl->elevations.bind(7);
+                t->northEast->gl->normals.bind(8);
+                program->setUniformValue(northEastSpacingUniform,QVector2D(t->northEast->dx,t->northEast->dy));
+                program->setUniformValue(northEastTileSizeUniform,t->northEast->ncols);
+                program->setUniformValue(northEastLowerLeftUniform,QVector2D(t->northEast->bounds.min().x(),t->northEast->bounds.min().y()));
+            }
+            else
+                program->setUniformValue(hasNorthEastUniform,false);
+
+            
             GLfloat tlInner[2];
-            tlOuter[0] = tl;
-            tlOuter[1] = tl;
-            tlOuter[2] = tl;
-            tlOuter[3] = tl;
+            GLfloat tlOuter[4];
             tlInner[0] = tl;
             tlInner[1] = tl;
-            glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
+            tlOuter[0] = tl;
+            tlOuter[1] = tl;
+            tlOuter[2] = tlEast;
+            tlOuter[3] = tlNorth;
             glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
+            glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
             
             glDrawArrays(GL_PATCHES,0,1);
         }
@@ -395,4 +480,56 @@ void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
     qDebug() << debugMessage.message();
 }
 
+void BagGL::newTile(TilePtr tile, bool isVR)
+{
+    if(isVR)
+    {
+        u32 ts = bag.getTileSize();
+        vrTiles[tile->lowerLeftIndex] = tile;
+        TileIndex2D parentIndex(tile->lowerLeftIndex.first/ts,tile->lowerLeftIndex.second/ts);
+        if(overviewTiles.count(parentIndex))
+            overviewTiles[parentIndex]->subTiles[tile->index]=tile;
+        TileIndex2D east(tile->lowerLeftIndex.first+1,tile->lowerLeftIndex.second);
+        if(vrTiles.count(east))
+            tile->east = vrTiles[east];
+        TileIndex2D north(tile->lowerLeftIndex.first,tile->lowerLeftIndex.second+1);
+        if(vrTiles.count(north))
+            tile->north = vrTiles[north];
+        TileIndex2D northEast(tile->lowerLeftIndex.first+1,tile->lowerLeftIndex.second+1);
+        if(vrTiles.count(northEast))
+            tile->northEast = vrTiles[northEast];
+        TileIndex2D west(tile->lowerLeftIndex.first-1,tile->lowerLeftIndex.second);
+        if(vrTiles.count(west))
+            vrTiles[west]->east = tile;
+        TileIndex2D south(tile->lowerLeftIndex.first,tile->lowerLeftIndex.second-1);
+        if(vrTiles.count(south))
+            vrTiles[south]->north = tile;
+        TileIndex2D southWest(tile->lowerLeftIndex.first-1,tile->lowerLeftIndex.second-1);
+        if(vrTiles.count(southWest))
+            vrTiles[southWest]->northEast = tile;
+    }
+    else
+    {
+        overviewTiles[tile->index] = tile;
+        TileIndex2D east(tile->index.first+1,tile->index.second);
+        if(overviewTiles.count(east))
+            tile->east = overviewTiles[east];
+        TileIndex2D north(tile->index.first,tile->index.second+1);
+        if(overviewTiles.count(north))
+            tile->north = overviewTiles[north];
+        TileIndex2D northEast(tile->index.first+1,tile->index.second+1);
+        if(overviewTiles.count(northEast))
+            tile->northEast = overviewTiles[northEast];
+        TileIndex2D west(tile->index.first-1,tile->index.second);
+        if(overviewTiles.count(west))
+            overviewTiles[west]->east = tile;
+        TileIndex2D south(tile->index.first,tile->index.second-1);
+        if(overviewTiles.count(south))
+            overviewTiles[south]->north = tile;
+        TileIndex2D southWest(tile->index.first-1,tile->index.second-1);
+        if(overviewTiles.count(southWest))
+            overviewTiles[southWest]->northEast = tile;
+    }
+    renderLater();
+}
 

@@ -14,14 +14,13 @@
 #include <QVector2D>
 #include "Bounds.h"
 
-struct TileBase;
-struct Tile;
-
 struct TileGL
 {
     QOpenGLTexture elevations;
     QOpenGLTexture normals;
     QOpenGLTexture uncertainties;
+    int lod;
+    int maxLod;
     TileGL(): elevations(QOpenGLTexture::Target2D), normals(QOpenGLTexture::Target2D), uncertainties(QOpenGLTexture::Target2D) {}
     ~TileGL(){}
 };
@@ -52,6 +51,7 @@ public:
 public slots:
     void resetView();
     void messageLogged(const QOpenGLDebugMessage & debugMessage);
+    void newTile(TilePtr tile, bool isVR);
     
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -61,6 +61,8 @@ protected:
     void keyPressEvent(QKeyEvent *event) Q_DECL_OVERRIDE;
     
 private:
+    void checkGL(TilePtr t);
+    void updateLOD(TilePtr t);
     void drawTile(TilePtr t);
     
     GLCamera camera;
@@ -76,6 +78,27 @@ private:
     GLuint tileSizeUniform;
     GLuint colorMapUniform;
     GLuint normalMapUniform;
+
+    GLuint eastElevationMapUniform;
+    GLuint eastNormalMapUniform;
+    GLuint eastSpacingUniform;
+    GLuint eastLowerLeftUniform;
+    GLuint eastTileSizeUniform;
+    GLuint hasEastUniform;
+    
+    GLuint northElevationMapUniform;
+    GLuint northNormalMapUniform;
+    GLuint northSpacingUniform;
+    GLuint northLowerLeftUniform;
+    GLuint northTileSizeUniform;
+    GLuint hasNorthUniform;
+    
+    GLuint northEastElevationMapUniform;
+    GLuint northEastNormalMapUniform;
+    GLuint northEastSpacingUniform;
+    GLuint northEastLowerLeftUniform;
+    GLuint northEastTileSizeUniform;
+    GLuint hasNorthEastUniform;
     
     GLuint tileVAO;
     GLuint tileBuffer;
@@ -107,8 +130,9 @@ private:
     
     int lodBias;
     
+    TileMap overviewTiles;
+    TileMap vrTiles;
     
-                  
 };
 
 #endif

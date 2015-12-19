@@ -102,6 +102,8 @@ void BagIO::run()
             }
             emit metaLoaded();
             
+            std::vector<TilePtr> goodOverviewTiles;
+            
             for(u32 i = 0; i < meta.nrows; i += tileSize)
             {
                 {
@@ -120,17 +122,8 @@ void BagIO::run()
                     TilePtr t = loadTile(bag,tindex,meta);
                     if(t)
                     {
+                        goodOverviewTiles.push_back(t);
                         //std::cerr << "\tsaved" << std::endl;
-                        if(meta.variableResolution)
-                        {
-                            for (u32 ti = 0; ti < tileSize; ti++)
-                                for(u32 tj = 0; tj < tileSize; tj++)
-                                {
-                                    TilePtr vrTile = loadVarResTile(bag,TileIndex2D(tj,ti),meta,*t);
-                                    if(vrTile)
-                                        t->subTiles[vrTile->index]=vrTile;
-                                }
-                        }
                     }
                     else
                     {
@@ -144,12 +137,25 @@ void BagIO::run()
                             return;
                         if(t)
                         {
-                            overviewTiles[tindex]=t;
-                            emit tileLoaded();
+                            //overviewTiles[tindex]=t;
+                            emit tileLoaded(t,false);
                         }
                     }
                 }
             }
+            if(meta.variableResolution)
+            {
+                for(TilePtr t: goodOverviewTiles)
+                    for (u32 ti = 0; ti < tileSize; ti++)
+                        for(u32 tj = 0; tj < tileSize; tj++)
+                        {
+                            TilePtr vrTile = loadVarResTile(bag,TileIndex2D(tj,ti),meta,*t);
+                            if(vrTile)
+                                //t->subTiles[vrTile->index]=vrTile;
+                                emit tileLoaded(vrTile,true);
+                        }
+            }
+            
         }
         bagFileClose(bag);
         bag = 0;
@@ -332,19 +338,11 @@ TilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex, const
 
 void BagIO::close()
 {
-    mutex.lock();
-    overviewTiles.clear();
-    mutex.unlock();
+    //mutex.lock();
+    //overviewTiles.clear();
+    //mutex.unlock();
 }
 
-std::vector< TilePtr > BagIO::getOverviewTiles()
-{
-    std::vector<TilePtr> ret;
-    QMutexLocker locker(&mutex);
-    for(auto it: overviewTiles)
-        ret.push_back(it.second);
-    return ret;
-}
 
 BagIO::MetaData BagIO::getMeta()
 {

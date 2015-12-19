@@ -35,6 +35,10 @@ struct Tile
     std::shared_ptr<TileGL> gl;
     TileIndex2D lowerLeftIndex;
     std::map<TileIndex2D,std::shared_ptr<Tile> > subTiles;
+    
+    std::shared_ptr<Tile> north;
+    std::shared_ptr<Tile> east;
+    std::shared_ptr<Tile> northEast;
 };
 
 typedef std::shared_ptr<Tile> TilePtr;
@@ -74,12 +78,12 @@ public:
     
     u32 getTileSize() const;
     
-    std::vector<TilePtr> getOverviewTiles();
+    //std::vector<TilePtr> getOverviewTiles();
     MetaData getMeta();
     
 signals:
     void metaLoaded();
-    void tileLoaded();
+    void tileLoaded(TilePtr tile, bool isVR);
     
 protected:
     void run() Q_DECL_OVERRIDE;
@@ -94,7 +98,7 @@ private:
     bool abort;
     
     u32 tileSize;
-    TileMap overviewTiles;
+    //TileMap overviewTiles;
     MetaData meta;
     QString filename;
 };
