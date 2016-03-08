@@ -58,6 +58,6 @@ endif()
 add_executable(bagViewer ${HDR} ${SRC})
 
 qt5_use_modules(bagViewer Widgets OpenGL)
-target_link_libraries(bagViewer ${QT_LIBRARIES} ${OPENGL_gl_LIBRARY} bag)
+target_link_libraries(bagViewer ${OPENGL_gl_LIBRARY} bag ${QT_LIBRARIES})
 
 INSTALL(TARGETS bagViewer RUNTIME DESTINATION bin)

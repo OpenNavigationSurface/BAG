@@ -24,7 +24,14 @@ void report_library_error(char *prelude, bagError errcode)
 Bool write_bag_summary(bagHandle handle, Bool const has_extended_data)
 {
     bagData *bag = bagGetDataPointer(handle);
-    
+
+	bagError errcode;
+    s32 n_opt_datasets;
+    s32 opt_dataset_names[BAG_OPT_SURFACE_LIMIT];
+    u32 n;
+    bagVarResMetadataGroup min_meta_group, max_meta_group;
+    bagVarResRefinementGroup min_ref_group, max_ref_group;
+
     printf("BAG File summary:\n");
     printf("- Dimensions: %d rows, %d cols.\n", bag->def.nrows, bag->def.ncols);
     printf("- Southwest corner: (%lf, %lf).\n", bag->def.swCornerX, bag->def.swCornerY);
@@ -35,16 +42,13 @@ Bool write_bag_summary(bagHandle handle, Bool const has_extended_data)
     /* Report on the optional datasets that are available within the BAG (may be more
      * than just the VR-related ones).
      */
-    bagError errcode;
-    s32 n_opt_datasets;
-    s32 opt_dataset_names[BAG_OPT_SURFACE_LIMIT];
     errcode = bagGetOptDatasets(&handle, &n_opt_datasets, opt_dataset_names);
     printf("- Optional datasets: %d found.\n", n_opt_datasets);
     if (n_opt_datasets == 0) {
         printf("BAG-VR file claims to have no optional datasets?!\n");
         return False;
     }
-    for (u32 n = 0; n < (u32)n_opt_datasets; ++n) {
+    for (n = 0; n < (u32)n_opt_datasets; ++n) {
         printf("-  [%d] ID %d = ", n, opt_dataset_names[n]);
         switch(opt_dataset_names[n]) {
             case Num_Hypotheses:
@@ -92,21 +96,19 @@ Bool write_bag_summary(bagHandle handle, Bool const has_extended_data)
      * the summary routine is called.
      */
     bagGetOptDatasetInfo(&handle, VarRes_Metadata_Group);
-    bagVarResMetadataGroup min_meta_group, max_meta_group;
     bagReadMinMaxVarResMetadataGroup(handle, &min_meta_group, &max_meta_group);
     printf("- Finest refinement %.2f m (%d cells).\n", min_meta_group.resolution, max_meta_group.dimensions);
     printf("- Coarsest refinement %.2f m (%d cells).\n", max_meta_group.resolution, min_meta_group.dimensions);
     
     bagGetOptDatasetInfo(&handle, VarRes_Refinement_Group);
     printf("- Total %d refinement cells (not all may be active).\n", bag->opt[VarRes_Refinement_Group].ncols);
-    bagVarResRefinementGroup min_ref_group, max_ref_group;
     bagReadMinMaxVarResRefinementGroup(handle, &min_ref_group, &max_ref_group);
     printf("- Refined depth range [%.2f, %.2f]m\n", min_ref_group.depth, max_ref_group.depth);
     printf("- Refined uncertainty range [%.2f, %.2f]m (1sd).\n", min_ref_group.depth_uncrt, max_ref_group.depth_uncrt);
     
     if (has_extended_data) {
-        bagGetOptDatasetInfo(&handle, VarRes_Node_Group);
         bagVarResNodeGroup min_node_group, max_node_group;
+        bagGetOptDatasetInfo(&handle, VarRes_Node_Group);
         bagReadMinMaxVarResNodeGroup(handle, &min_node_group, &max_node_group);
         printf("- Refined num. hypo. range [%d, %d].\n", min_node_group.num_hypotheses, max_node_group.num_hypotheses);
         printf("- Refined sample count range [%d, %d].\n", min_node_group.n_samples, max_node_group.n_samples);
@@ -121,34 +123,41 @@ Bool dump_data(bagHandle handle, const char * const filename, Bool has_extended_
 {
     FILE *f;
     bagError errcode;
-    
+	bagData *bag;
+    bagVarResMetadataGroup minMetadataGroup, maxMetadataGroup;
+    u32 maximum_ref_nodes;
+	bagVarResRefinementGroup *estimates;
+	u32 n_rows, n_cols;
+	bagVarResMetadataGroup *metadata;
+    bagVarResNodeGroup *auxinfo = NULL;
+	u32 row, col, i;
+
     if ((f = fopen(filename, "w")) == NULL) {
         printf("error: failed to open \"%s\" for output.\n", filename);
         return False;
     }
-    bagData *bag = bagGetDataPointer(handle);
+    bag = bagGetDataPointer(handle);
     
     bagGetOptDatasetInfo(&handle, VarRes_Metadata_Group);
     bagGetOptDatasetInfo(&handle, VarRes_Refinement_Group);
     if (has_extended_data)
         bagGetOptDatasetInfo(&handle, VarRes_Node_Group);
     
-    bagVarResMetadataGroup minMetadataGroup, maxMetadataGroup;
     bagReadMinMaxVarResMetadataGroup(handle, &minMetadataGroup, &maxMetadataGroup);
     
-    u32 maximum_ref_nodes = maxMetadataGroup.dimensions * maxMetadataGroup.dimensions;
-    bagVarResRefinementGroup *estimates = (bagVarResRefinementGroup*)malloc(sizeof(bagVarResRefinementGroup)*maximum_ref_nodes);
+    maximum_ref_nodes = maxMetadataGroup.dimensions * maxMetadataGroup.dimensions;
+    estimates = (bagVarResRefinementGroup*)malloc(sizeof(bagVarResRefinementGroup)*maximum_ref_nodes);
     
-    u32 n_rows = bag->def.nrows, n_cols = bag->def.ncols;
-    bagVarResMetadataGroup *metadata = (bagVarResMetadataGroup*)malloc(sizeof(bagVarResMetadataGroup)*n_cols);
+    n_rows = bag->def.nrows;
+	n_cols = bag->def.ncols;
+    metadata = (bagVarResMetadataGroup*)malloc(sizeof(bagVarResMetadataGroup)*n_cols);
     
-    bagVarResNodeGroup *auxinfo = NULL;
     if (has_extended_data) {
         auxinfo = (bagVarResNodeGroup*)malloc(sizeof(bagVarResNodeGroup)*maximum_ref_nodes);
     }
     
     fprintf(f, "Total %d rows, %d columns, with at most %d refined nodes per cell.\n", n_rows, n_cols, maximum_ref_nodes);
-    for (u32 row = 0; row < n_rows; ++row) {
+    for (row = 0; row < n_rows; ++row) {
         if ((errcode = bagReadRow(handle, row, 0, n_cols-1, VarRes_Metadata_Group, metadata)) != BAG_SUCCESS) {
             report_library_error("failed reading VR metadata row", errcode);
             fclose(f);
@@ -157,7 +166,7 @@ Bool dump_data(bagHandle handle, const char * const filename, Bool has_extended_
             if (auxinfo != NULL) free(auxinfo);
             return False;
         }
-        for (u32 col = 0; col < n_cols; ++col) {
+        for (col = 0; col < n_cols; ++col) {
             u32 n_nodes = metadata[col].dimensions*metadata[col].dimensions;
             u32 start_index = metadata[col].index;
             u32 end_index = start_index + n_nodes - 1;
@@ -192,7 +201,7 @@ Bool dump_data(bagHandle handle, const char * const filename, Bool has_extended_
                 }
             }
             /* Report some useful information on the refinements */
-            for (u32 i = 0; i < n_nodes; ++i) {
+            for (i = 0; i < n_nodes; ++i) {
                 fprintf(f, "%d %d %d", i, i/metadata[col].dimensions, i % metadata[col].dimensions);
                 if (estimates[i].depth == BAG_NULL_ELEVATION) {
                     fprintf(f, " - No valid refinement at this node");

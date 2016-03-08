@@ -19,6 +19,7 @@ IF(MSVC)
 	#if we are building against a shared HDF5, then we need to define this symbol.
 	IF(BUILD_WITH_SHARED_HDF5)
 		add_definitions(/D _HDF5USEDLL_)
+		add_definitions(-D H5_BUILT_AS_DYNAMIC_LIB)
 	ENDIF(BUILD_WITH_SHARED_HDF5)
 
 ENDIF(MSVC)
@@ -55,8 +56,11 @@ FOREACH (example ${examples})
         RELEASE_OUTPUT_NAME ${example}
     )
 
+    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+
+
     INSTALL(TARGETS ${example} RUNTIME DESTINATION bin)
-    
+
 ENDFOREACH (example ${examples})
 
 OPTION (BUILD_BAGVIEWER "Build bagViewer" OFF)

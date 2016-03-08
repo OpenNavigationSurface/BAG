@@ -204,7 +204,7 @@ void BagGL::checkGL(TilePtr t)
         t->gl->normals.setData(t->data->normalMap);
         t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
         t->gl->normals.setWrapMode(QOpenGLTexture::ClampToEdge);
-        t->gl->maxLod = log2f(t->ncols);
+        t->gl->maxLod = log2f(t->ncols)+1;
         t->gl->lod = t->gl->maxLod;
         t->data.reset();
     }

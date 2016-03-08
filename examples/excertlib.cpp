@@ -56,6 +56,10 @@ static const char *modrev = "$Revision: 1.2 $";
 #include <io.h>  // required for mktemp
 #endif
 
+#ifdef __MINGW32__
+#include <io.h>  // required for mktemp
+#endif
+
 #undef __DEBUG_HASH__
 #undef __DEBUG__
 
