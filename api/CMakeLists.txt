@@ -13,7 +13,7 @@ ELSEIF(UNIX)
     # The name of the Hdf5 release library.
     # SET(HDF5_LIB "hdf5" CACHE STRING "The name of the hdf5 release library.")
     find_package(HDF5 REQUIRED)
-    set(HDF5_INCLUDE_DIR ${HDF5_C_INCLUDE_DIR})
+    set(HDF5_INCLUDE_DIR ${HDF5_C_INCLUDE_DIR} CACHE PATH "Location of hdf5 header files.")
     if(HDF5_C_LIBRARY)
         set(HDF5_LIB ${HDF5_C_LIBRARY})
     else(HDF5_C_LIBRARY)

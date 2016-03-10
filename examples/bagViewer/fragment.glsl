@@ -5,6 +5,7 @@ in VertexData
     float elevation;
     float lighting;
     float uncertainty;
+    vec3 worldPosition;
 };
 
 uniform sampler2D colorMap;
