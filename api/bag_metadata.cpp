@@ -249,7 +249,7 @@ Bool initSourceInfo(BAG_SOURCE * sourceInfo)
     (*sourceInfo).dateType = NULL;
 
     (*sourceInfo).responsibleParties = NULL;
-    (*sourceInfo).numberOfResponsibleParties = NULL;
+    (*sourceInfo).numberOfResponsibleParties = 0; // Number of resp. par. isn't a pointer, shouldn't use NULL
 
     return True;
 }
@@ -818,7 +818,7 @@ bagError bagGetDepthCorrectionType(
     if (metaData->identificationInfo == NULL)
         return BAG_METADTA_NOT_INITIALIZED;
 
-    *depthCorrectionType = (u32)NULL_GENERIC;
+    *depthCorrectionType = (u32)BAG_NULL_GENERIC;
 
     if (metaData->identificationInfo->depthCorrectionType != NULL)
     {

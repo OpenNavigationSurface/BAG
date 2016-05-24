@@ -30,7 +30,7 @@ int main( int argc, char **argv )
     int summaryOnly;
     FILE *oFile;
 	s32 num_opt_datasets; 
-	int opt_dataset_entities[10];
+	int opt_dataset_entities[BAG_OPT_SURFACE_LIMIT];
 	bagData    xml_data;
 	int NominalFound =0, sepFound = 0;
 

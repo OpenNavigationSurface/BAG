@@ -247,6 +247,9 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
 	case Surface_Correction:
 	case Node_Group:
 	case Elevation_Solution_Group:
+    case VarRes_Metadata_Group:
+    case VarRes_Refinement_Group:
+    case VarRes_Node_Group:
         if (bagHandle->opt_memspace_id[type] >= 0)
         {
             nct = (u32)H5Sget_select_npoints (bagHandle->opt_memspace_id[type]);
@@ -273,6 +276,9 @@ bagError bagAlignNode (bagHandle bagHandle, u32 row, u32 col, s32 type, void *da
         filespace_id = bagHandle->opt_filespace_id[type];
         dataset_id   = bagHandle->opt_dataset_id[type];
         break;
+    case VarRes_Tracking_List:
+        fprintf(stderr, "error: cannot write variable resolution tracking list through generic interface!\n");
+        return BAG_INVALID_FUNCTION_ARGUMENT;
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -498,6 +504,9 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
 	case Surface_Correction: 
 	case Node_Group:
 	case Elevation_Solution_Group:
+    case VarRes_Metadata_Group:
+    case VarRes_Refinement_Group:
+    case VarRes_Node_Group:
         if (bagHandle->opt_memspace_id[type] >= 0)
         {
             nct = (u32) H5Sget_select_npoints (bagHandle->opt_memspace_id[type]);
@@ -522,7 +531,12 @@ bagError bagAlignRow (bagHandle bagHandle, u32 row, u32 start_col,
         filespace_id = bagHandle->opt_filespace_id[type];
         dataset_id   = bagHandle->opt_dataset_id[type];
         break;
-       
+            
+    case VarRes_Tracking_List:
+        fprintf(stderr, "error: cannot access variable-resolution tracking list through generic interface!\n");
+        return BAG_INVALID_FUNCTION_ARGUMENT;
+        break;
+        
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -839,6 +853,9 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
 	case Surface_Correction:
 	case Node_Group:
 	case Elevation_Solution_Group:
+    case VarRes_Metadata_Group:
+    case VarRes_Refinement_Group:
+    case VarRes_Node_Group:
         if (read_or_write == READ_BAG)
         {
             if (bagAllocArray (bagHandle,  start_row,  start_col, 
@@ -872,6 +889,11 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
         filespace_id = bagHandle->opt_filespace_id[type];
         dataset_id   = bagHandle->opt_dataset_id[type];
         break;
+    case VarRes_Tracking_List:
+        fprintf(stderr, "error: cannot access variable-resolution tracking list through generic interface!\n");
+        return BAG_INVALID_FUNCTION_ARGUMENT;
+        break;
+            
     default:
         return BAG_HDF_TYPE_NOT_FOUND;
         break;
@@ -950,7 +972,7 @@ bagError bagAlignRegion (bagHandle bagHandle, u32 start_row, u32 start_col,
  *            \li On failure, \a bagError is set to a proper code from \a BAG_ERRORS.
  * 
  ********************************************************************/
-bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col, 
+bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
                         u32 end_row, u32 end_col, s32 type)
 {
     u32 i, srow, scol;
@@ -961,13 +983,13 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
     u32 numRow = end_row - start_row + 1;
     u32 numElements = numRow * numCol;
     char *dataBuffer = NULL;
-
+    
     if (hnd == NULL)
         return BAG_INVALID_BAG_HANDLE;
-
+    
     if (type >= BAG_OPT_SURFACE_LIMIT)
         return  BAG_INVALID_FUNCTION_ARGUMENT;
-
+    
     if (type > Uncertainty)
     {
         srow=hnd->bag.opt[type].nrows;
@@ -978,10 +1000,10 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
         srow=hnd->bag.def.nrows;
         scol=hnd->bag.def.ncols;
     }
-
+    
     if (end_col >= scol ||
         end_row >= srow ||
-        start_row > end_row || 
+        start_row > end_row ||
         start_col > end_col)
     {
         fprintf(stderr, "Internal error, bad parameters given to access surface extents! Aborting...\n");
@@ -990,116 +1012,163 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
         fflush(stderr);
         return BAG_HDF_ACCESS_EXTENTS_ERROR;
     }
-
+    
     /*! free previously allocated buffer if present */
     status = bagFreeArray (hnd, type);
     if (status != BAG_SUCCESS)
         return status;
-
-    switch (type) 
+    
+    switch (type)
     {
-    case Uncertainty:
-        
-        /* alloc the contiguous 1d array */
-        hnd->uncertaintyArray = (f32 *)calloc(numElements, sizeof(f32));
-        if (hnd->uncertaintyArray == NULL)
-            return BAG_MEMORY_ALLOCATION_FAILED;
-
-        /*! alloc the array of pointers to floats */
-        hnd->bag.uncertainty = (f32 **)calloc (numRow, sizeof (f32 *));
-        if (hnd->bag.uncertainty == NULL)
-            return BAG_MEMORY_ALLOCATION_FAILED;
-
-        /*! now the 2d is tied to the contiguous 1d */
-        dataBuffer = (char *)hnd->uncertaintyArray;
-        for (i = 0; i < numRow; ++i)
-        {
-            hnd->bag.uncertainty[i] = dataBuffer + (i * numCol * elementSize);
-        }
-
-        /*! init data to NULL values */
-        for (i = 0; i < numElements; i++)
-            hnd->uncertaintyArray [i] = NULL_UNCERTAINTY;
-        break;
-
-    case Elevation:
-        
-        /*! alloc the contiguous 1d array */
-        hnd->elevationArray = (f32 *)calloc(numElements, sizeof(f32));
-        if (hnd->elevationArray == NULL)
-            return BAG_MEMORY_ALLOCATION_FAILED;
-
-        /*! alloc the array of pointers to floats */
-        hnd->bag.elevation = (f32 **)calloc (numRow, sizeof (f32 *));
-        if (hnd->bag.elevation == NULL)
-            return BAG_MEMORY_ALLOCATION_FAILED;
-
-        /*! now the 2d is tied to the contiguous 1d */
-        dataBuffer = (char *)hnd->elevationArray;
-        for (i = 0; i < numRow; ++i)
-        {
-            hnd->bag.elevation[i] = dataBuffer + (i * numCol * elementSize);
-        }
-
-        /*! init data to NULL values */
-        for (i = 0; i < numElements; i++)
-            hnd->elevationArray [i] = NULL_ELEVATION;
-        break;
-
-    default:
-        if (type == Node_Group)
-        {
-            elementSize = sizeof(bagOptNodeGroup);
-            elementPointerSize = sizeof(bagOptNodeGroup *);
-        }
-        else if (type == Elevation_Solution_Group)
-        {
-            elementSize = sizeof(bagOptElevationSolutionGroup);
-            elementPointerSize = sizeof(bagOptElevationSolutionGroup *);
-        }
-        else
-        {
-            elementSize = sizeof(f32);
-            elementPointerSize = sizeof(f32 *);
-        }
-
-        /* alloc the contiguous 1d array */
-        hnd->dataArray[type] = (f32 *)calloc((numCol)*numRow, elementSize);
-        if (hnd->dataArray[type] == NULL)
-            return BAG_MEMORY_ALLOCATION_FAILED;
-
-        /*! alloc the array of pointers to floats */
-        hnd->bag.opt[type].data = (f32 **)calloc(numRow, elementPointerSize);
-        if (hnd->bag.opt[type].data == NULL)
-            return BAG_MEMORY_ALLOCATION_FAILED;
-
-        /*! now the 2d is tied to the contiguous 1d */
-        dataBuffer = (char *)hnd->dataArray[type];
-        for (i = 0; i < numRow; ++i)
-        {
-            hnd->bag.opt[type].data[i] = dataBuffer + (i * numCol * elementSize);
-        }
-
-        /*! init data to NULL values */
-        for (i = 0; i < numElements; i++)
-        {
+        case Uncertainty:
+            
+            /* alloc the contiguous 1d array */
+            hnd->uncertaintyArray = (f32 *)calloc(numElements, sizeof(f32));
+            if (hnd->uncertaintyArray == NULL)
+                return BAG_MEMORY_ALLOCATION_FAILED;
+            
+            /*! alloc the array of pointers to floats */
+            hnd->bag.uncertainty = (f32 **)calloc (numRow, sizeof (f32 *));
+            if (hnd->bag.uncertainty == NULL)
+                return BAG_MEMORY_ALLOCATION_FAILED;
+            
+            /*! now the 2d is tied to the contiguous 1d */
+            dataBuffer = (char *)hnd->uncertaintyArray;
+            for (i = 0; i < numRow; ++i)
+            {
+                hnd->bag.uncertainty[i] = (f32*)(dataBuffer + (i * numCol * elementSize));
+            }
+            
+            /*! init data to NULL values */
+            for (i = 0; i < numElements; i++)
+                hnd->uncertaintyArray [i] = BAG_NULL_UNCERTAINTY;
+            break;
+            
+        case Elevation:
+            
+            /*! alloc the contiguous 1d array */
+            hnd->elevationArray = (f32 *)calloc(numElements, sizeof(f32));
+            if (hnd->elevationArray == NULL)
+                return BAG_MEMORY_ALLOCATION_FAILED;
+            
+            /*! alloc the array of pointers to floats */
+            hnd->bag.elevation = (f32 **)calloc (numRow, sizeof (f32 *));
+            if (hnd->bag.elevation == NULL)
+                return BAG_MEMORY_ALLOCATION_FAILED;
+            
+            /*! now the 2d is tied to the contiguous 1d */
+            dataBuffer = (char *)hnd->elevationArray;
+            for (i = 0; i < numRow; ++i)
+            {
+                hnd->bag.elevation[i] = (f32*)(dataBuffer + (i * numCol * elementSize));
+            }
+            
+            /*! init data to NULL values */
+            for (i = 0; i < numElements; i++)
+                hnd->elevationArray [i] = BAG_NULL_ELEVATION;
+            break;
+            
+        default:
             if (type == Node_Group)
             {
-                ((bagOptNodeGroup*)&hnd->dataArray[type][i])->hyp_strength = NULL_ELEVATION;
-                ((bagOptNodeGroup*)&hnd->dataArray[type][i])->num_hypotheses = NULL_ELEVATION;
+                elementSize = sizeof(bagOptNodeGroup);
+                elementPointerSize = sizeof(bagOptNodeGroup *);
             }
             else if (type == Elevation_Solution_Group)
             {
-                ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->shoal_elevation = NULL_ELEVATION;
-                ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->stddev = NULL_ELEVATION;
-                ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->num_soundings = NULL_ELEVATION;
+                elementSize = sizeof(bagOptElevationSolutionGroup);
+                elementPointerSize = sizeof(bagOptElevationSolutionGroup *);
+            }
+            else if (type == VarRes_Metadata_Group)
+            {
+                elementSize = sizeof(bagVarResMetadataGroup);
+                elementPointerSize = sizeof(bagVarResMetadataGroup *);
+            }
+            else if (type == VarRes_Refinement_Group)
+            {
+                elementSize = sizeof(bagVarResRefinementGroup);
+                elementPointerSize = sizeof(bagVarResRefinementGroup*);
+            }
+            else if (type == VarRes_Node_Group)
+            {
+                elementSize = sizeof(bagVarResNodeGroup);
+                elementPointerSize = sizeof(bagVarResNodeGroup*);
+            }
+            else if (type == VarRes_Tracking_List)
+            {
+                fprintf(stderr, "error: do not access the variable resolution tracking list through the generic interface: use the API!\n");
+                return BAG_INVALID_FUNCTION_ARGUMENT;
             }
             else
             {
-                hnd->dataArray[type][i] = NULL_ELEVATION;
+                elementSize = sizeof(f32);
+                elementPointerSize = sizeof(f32 *);
             }
-        }
-        break;
+            
+            /* alloc the contiguous 1d array */
+            hnd->dataArray[type] = (f32 *)calloc(numCol*numRow, elementSize);
+            if (hnd->dataArray[type] == NULL)
+                return BAG_MEMORY_ALLOCATION_FAILED;
+            
+            /*! alloc the array of pointers to floats */
+            hnd->bag.opt[type].data = (f32 **)calloc(numRow, elementPointerSize);
+            if (hnd->bag.opt[type].data == NULL)
+                return BAG_MEMORY_ALLOCATION_FAILED;
+            
+            /*! now the 2d is tied to the contiguous 1d */
+            dataBuffer = (char *)hnd->dataArray[type];
+            for (i = 0; i < numRow; ++i)
+            {
+                hnd->bag.opt[type].data[i] = (f32*)(dataBuffer + (i * numCol * elementSize));
+            }
+            
+            /*! init data to NULL values */
+            for (i = 0; i < numElements; i++)
+            {
+                if (type == Node_Group)
+                {
+                    ((bagOptNodeGroup*)&hnd->dataArray[type][i])->hyp_strength = BAG_NULL_ELEVATION;
+                    ((bagOptNodeGroup*)&hnd->dataArray[type][i])->num_hypotheses = BAG_NULL_ELEVATION;
+                }
+                else if (type == Elevation_Solution_Group)
+                {
+                    ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->shoal_elevation = BAG_NULL_ELEVATION;
+                    ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->stddev = BAG_NULL_ELEVATION;
+                    ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->num_soundings = BAG_NULL_ELEVATION;
+                }
+                else if (type == VarRes_Metadata_Group)
+                {
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->index = BAG_NULL_VARRES_INDEX;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->dimensions_x = 0;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->dimensions_y = 0;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->resolution_x = -1.0f;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->resolution_y = -1.0f;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->sw_corner_x = -1.0f;
+                    ((bagVarResMetadataGroup*)(hnd->dataArray[type] + i))->sw_corner_y = -1.0f;
+                }
+                else if (type == VarRes_Refinement_Group)
+                {
+                    ((bagVarResRefinementGroup*)(hnd->dataArray[type] + i))->depth = BAG_NULL_ELEVATION;
+                    ((bagVarResRefinementGroup*)(hnd->dataArray[type] + i))->depth_uncrt = BAG_NULL_UNCERTAINTY;
+                }
+                else if (type == VarRes_Node_Group)
+                {
+                    ((bagVarResNodeGroup*)(hnd->dataArray[type] + i))->hyp_strength = BAG_NULL_GENERIC;
+                    ((bagVarResNodeGroup*)(hnd->dataArray[type] + i))->num_hypotheses = 0;
+                    ((bagVarResNodeGroup*)(hnd->dataArray[type] + i))->n_samples = 0;
+                }
+                else if (type == VarRes_Tracking_List)
+                {
+                    /* Shouldn't get to here after check above, but just in case ... */
+                    fprintf(stderr, "error: do not access the variable resolution tracking list through the generic interface: use the API!\n");
+                    return BAG_INVALID_FUNCTION_ARGUMENT;
+                }
+                else
+                {
+                    hnd->dataArray[type][i] = BAG_NULL_ELEVATION;
+                }
+            }
+            break;
     }
     
     return BAG_SUCCESS;
@@ -1489,7 +1558,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
         dataset_id    = hnd->elv_dataset_id;
         max_name      = (u8 *)MAX_ELEVATION_NAME;
         min_name      = (u8 *)MIN_ELEVATION_NAME;
-        null_val      = NULL_ELEVATION;
+        null_val      = BAG_NULL_ELEVATION;
         surface_array = &hnd->elevationArray;
         break;
 
@@ -1499,7 +1568,7 @@ bagError bagUpdateMinMax (bagHandle hnd, u32 type)
         dataset_id    = hnd->unc_dataset_id;
         max_name      = (u8 *)MAX_UNCERTAINTY_NAME;
         min_name      = (u8 *)MIN_UNCERTAINTY_NAME;
-        null_val      = NULL_UNCERTAINTY;
+        null_val      = BAG_NULL_UNCERTAINTY;
         surface_array = &hnd->uncertaintyArray;
         break;
     default:

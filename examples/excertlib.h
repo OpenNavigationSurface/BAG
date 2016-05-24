@@ -62,7 +62,7 @@ typedef enum _objtype {
 } ExcertObject;
 
 typedef struct _cert_tag {
-	char	*tag;
+	const char	*tag;
 	char	*value;
 } CertTag;
 
@@ -176,7 +176,7 @@ extern ExcertErr excert_put_object(FILE *op, u8 *obj, ExcertObject obtype);
  *			anything important) and that the memory is freed after use.
  */
 
-extern s32 excert_parse_certificate(char *cert, char *section, CertTag *table);
+extern s32 excert_parse_certificate(const char *cert, const char *section, CertTag *table);
 
 /* Routine:	excert_hash_certificate
  * Purpose:	Compute the signature hash of the certificate

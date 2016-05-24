@@ -28,13 +28,17 @@ ENDIF(MSVC)
 #-----------------------------------------------------------------------------
 SET (examples
     bag_create
+	bag_vr_create
     bag_gencert
     bag_read
+	bag_vr_read
     bag_signcert
     bag_signfile
     bag_verifycert
     bag_verifyfile
 )
+
+link_directories(/Users/brc/lib)
 
 FOREACH (example ${examples})
   

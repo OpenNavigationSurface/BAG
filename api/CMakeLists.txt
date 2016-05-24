@@ -104,7 +104,7 @@ set (BAG_SOURCE_FILES
  bag_metadata.cpp
  bag_metadata_export.cpp
  bag_metadata_import.cpp
- bag_legacy.cpp
+ bag_legacy.c
  bag_opt_group.c
  bag_opt_surfaces.c
  bag_reference_system.cpp
@@ -130,9 +130,9 @@ source_group("Header Files" FILES ${BAG_HEADER_FILES})
  
 add_library (bag ${LIB_TYPE} ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} )
 
-target_link_libraries(bag ${HDF5_LIB})
-target_link_libraries(bag ${BEECRYPT_LIB})
-target_link_libraries(bag ${LIBXML_LIB})
+target_link_libraries(bag ${HDF5_LIB_DIR}/${HDF5_LIB})
+target_link_libraries(bag ${BEECRYPT_LIB_DIR}/${BEECRYPT_LIB})
+target_link_libraries(bag ${LIBXML_LIB_DIR}/${LIBXML_LIB})
 
 IF(MSVC)
 
