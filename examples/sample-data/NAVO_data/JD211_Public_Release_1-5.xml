@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- BAG Metadata - Created with: -vSABER_5.1.3.6.0ISO TC211 schema -->
+<gmi:MI_Metadata xmlns:gmi="http://www.isotc211.org/2005/gmi" xmlns:gmd="http://www.isotc211.org/2005/gmd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:gml="http://www.opengis.net/gml/3.2" xmlns:gco="http://www.isotc211.org/2005/gco" xmlns:xlink="http://www.w3.org/1999/xlink"  xmlns:bag="http://www.opennavsurf.org/schema/bag">
+	<gmd:fileIdentifier><gco:CharacterString>19495cff-1e71-1b03-0ad9-03766b8b4567</gco:CharacterString></gmd:fileIdentifier>
+	<gmd:language>
+		<gmd:LanguageCode codeList="http://www.loc.gov/standards/iso639-2/" codeListValue="eng">eng</gmd:LanguageCode>
+	</gmd:language>
+	<gmd:characterSet>
+		<gmd:MD_CharacterSetCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8">utf8</gmd:MD_CharacterSetCode>
+	</gmd:characterSet>
+	<gmd:hierarchyLevel>
+		<gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">dataset</gmd:MD_ScopeCode>
+	</gmd:hierarchyLevel>
+	<gmd:contact>
+		<gmd:CI_ResponsibleParty>
+			<gmd:individualName>
+				<gco:CharacterString>Name of individual responsible for BAG</gco:CharacterString>
+			</gmd:individualName>
+		<gmd:positionName><gco:CharacterString>Lead Hydrographer</gco:CharacterString> </gmd:positionName> 
+	<gmd:role>
+				<gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="pointOfContact">pointOfContact</gmd:CI_RoleCode>
+			</gmd:role>
+		</gmd:CI_ResponsibleParty>
+	</gmd:contact>
+	<gmd:dateStamp><gco:Date>2013-08-01</gco:Date></gmd:dateStamp>
+	<gmd:metadataStandardName>
+		<gco:CharacterString>ISO 19115</gco:CharacterString>
+	</gmd:metadataStandardName>
+	<gmd:metadataStandardVersion>
+		<gco:CharacterString>2003/Cor.1:2006</gco:CharacterString>
+	</gmd:metadataStandardVersion>
+	<gmd:spatialRepresentationInfo>
+		<gmd:MD_Georectified>
+			<gmd:numberOfDimensions>
+				<gco:Integer>2</gco:Integer>
+			</gmd:numberOfDimensions>
+			<gmd:axisDimensionProperties>
+				<gmd:MD_Dimension>
+<gmd:dimensionName>
+	<gmd:MD_DimensionNameTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="row">row</gmd:MD_DimensionNameTypeCode>
+</gmd:dimensionName>
+<gmd:dimensionSize><gco:Integer>3435</gco:Integer></gmd:dimensionSize>
+<gmd:resolution><gco:Measure uom="Metres">2.0000000000000000</gco:Measure></gmd:resolution>
+				</gmd:MD_Dimension>
+			</gmd:axisDimensionProperties>
+			<gmd:axisDimensionProperties>
+				<gmd:MD_Dimension>
+<gmd:dimensionName>
+	<gmd:MD_DimensionNameTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_DimensionNameTypeCode" codeListValue="column">column</gmd:MD_DimensionNameTypeCode>
+</gmd:dimensionName>
+<gmd:dimensionSize><gco:Integer>3996</gco:Integer></gmd:dimensionSize>
+<gmd:resolution><gco:Measure uom="Metres">2.0000000000000000</gco:Measure></gmd:resolution>
+				</gmd:MD_Dimension>
+			</gmd:axisDimensionProperties>
+			<gmd:cellGeometry>
+				<gmd:MD_CellGeometryCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CellGeometryCode" codeListValue="point">point</gmd:MD_CellGeometryCode>
+			</gmd:cellGeometry>
+			<gmd:transformationParameterAvailability>
+				<gco:Boolean>1</gco:Boolean>
+			</gmd:transformationParameterAvailability>
+			<gmd:checkPointAvailability>
+				<gco:Boolean>0</gco:Boolean>
+			</gmd:checkPointAvailability>
+			<gmd:cornerPoints>
+				<gml:Point gml:id="id1">
+<gml:coordinates decimal="." cs="," ts=" ">-18748566.4222941659390926,9647015.3623049072921276 -18740574.4222941659390926,9653885.3623049072921276</gml:coordinates>
+				</gml:Point>
+			</gmd:cornerPoints>
+			<gmd:pointInPixel>
+				<gmd:MD_PixelOrientationCode>center</gmd:MD_PixelOrientationCode>
+			</gmd:pointInPixel>
+		</gmd:MD_Georectified>
+	</gmd:spatialRepresentationInfo>
+	<gmd:referenceSystemInfo>
+		<gmd:MD_ReferenceSystem>
+			<gmd:referenceSystemIdentifier>
+				<gmd:RS_Identifier>
+<gmd:code><gco:CharacterString>PROJCS["UTM Zone 03, Northern Hemisphere",GEOGCS["WGS 84",DATUM["WGS_1984",SPHEROID["WGS 84",6378137,298.257223563,AUTHORITY["EPSG","7030"]],TOWGS84[0,0,0,0,0,0,0],AUTHORITY["EPSG","6326"]],PRIMEM["Greenwich",0,AUTHORITY["EPSG","8901"]],UNIT["degree",0.0174532925199433,AUTHORITY["EPSG","9108"]],AUTHORITY["EPSG","4326"]],PROJECTION["Mercator_2SP"],PARAMETER["standard_parallel_1",0],PARAMETER["central_meridian",0],PARAMETER["false_easting",0],PARAMETER["false_northing",0]]</gco:CharacterString></gmd:code>
+<gmd:codeSpace>
+	<gco:CharacterString>WKT</gco:CharacterString>
+</gmd:codeSpace>
+				</gmd:RS_Identifier>
+			</gmd:referenceSystemIdentifier>
+		</gmd:MD_ReferenceSystem>
+	</gmd:referenceSystemInfo>
+	<gmd:referenceSystemInfo>
+		<gmd:MD_ReferenceSystem>
+			<gmd:referenceSystemIdentifier>
+				<gmd:RS_Identifier>
+<gmd:code><gco:CharacterString>VERT_CS["Mean lower low water", VERT_DATUM["Mean lower low water",2000]]</gco:CharacterString></gmd:code>
+<gmd:codeSpace>
+	<gco:CharacterString>WKT</gco:CharacterString>
+</gmd:codeSpace>
+				</gmd:RS_Identifier>
+			</gmd:referenceSystemIdentifier>
+		</gmd:MD_ReferenceSystem>
+	</gmd:referenceSystemInfo>
+	<gmd:identificationInfo>
+		<bag:BAG_DataIdentification>
+			<gmd:citation>
+				<gmd:CI_Citation>
+<gmd:title><gco:CharacterString>JD211_Public_Release_1-5.bag</gco:CharacterString></gmd:title>
+   <gmd:date>
+	<gmd:CI_Date>
+		<gmd:date gco:nilReason="unknown"/>
+		<gmd:dateType>
+			<gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</gmd:CI_DateTypeCode>
+		</gmd:dateType>
+	</gmd:CI_Date>
+</gmd:date>
+<gmd:citedResponsibleParty>
+	<gmd:CI_ResponsibleParty>
+			<gmd:individualName><gco:CharacterString>Name of individual responsible for BAG</gco:CharacterString>
+		</gmd:individualName>
+		<gmd:positionName><gco:CharacterString>Lead Hydrographer</gco:CharacterString> </gmd:positionName> 
+		<gmd:role>
+			<gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator">originator</gmd:CI_RoleCode>
+		</gmd:role>
+	</gmd:CI_ResponsibleParty>
+</gmd:citedResponsibleParty>
+		<gmd:collectiveTitle> <gco:CharacterString>H12345</gco:CharacterString>  </gmd:collectiveTitle>
+		</gmd:CI_Citation>
+			</gmd:citation>
+			<gmd:abstract>
+				<gco:CharacterString>Abstract</gco:CharacterString>
+			</gmd:abstract>
+			<gmd:status>
+				<gmd:MD_ProgressCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ProgressCode" codeListValue="completed">completed</gmd:MD_ProgressCode>
+			</gmd:status>
+			<gmd:spatialRepresentationType>
+				<gmd:MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">grid</gmd:MD_SpatialRepresentationTypeCode>
+			</gmd:spatialRepresentationType>
+			<gmd:language>
+				<gmd:LanguageCode codeList="http://www.loc.gov/standards/iso639-2/" codeListValue="eng">eng</gmd:LanguageCode>
+			</gmd:language>
+			<gmd:characterSet>
+				<gmd:MD_CharacterSetCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8">utf8</gmd:MD_CharacterSetCode>
+			</gmd:characterSet>
+			<gmd:topicCategory>
+				<gmd:MD_TopicCategoryCode>elevation</gmd:MD_TopicCategoryCode>
+			</gmd:topicCategory>
+			<gmd:extent>
+				<gmd:EX_Extent>
+<gmd:geographicElement>
+	<gmd:EX_GeographicBoundingBox>
+		<gmd:westBoundLongitude><gco:Decimal>-168.43</gco:Decimal></gmd:westBoundLongitude>
+		<gmd:eastBoundLongitude><gco:Decimal>-168.34</gco:Decimal></gmd:eastBoundLongitude>
+		<gmd:southBoundLatitude><gco:Decimal>65.29</gco:Decimal></gmd:southBoundLatitude>
+		<gmd:northBoundLatitude><gco:Decimal>65.32</gco:Decimal></gmd:northBoundLatitude>
+	</gmd:EX_GeographicBoundingBox>
+</gmd:geographicElement>
+				</gmd:EX_Extent>
+			</gmd:extent>
+			<bag:verticalUncertaintyType><bag:BAG_VertUncertCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_VertUncertCode" codeListValue="ProductUncert">ProductUncert</bag:BAG_VertUncertCode></bag:verticalUncertaintyType>
+<bag:depthCorrectionType>
+				<bag:BAG_DepthCorrectCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_DepthCorrectCode" codeListValue="trueDepth">trueDepth</bag:BAG_DepthCorrectCode>
+			</bag:depthCorrectionType>
+		<bag:elevationSolutionGroupType>
+				<bag:BAG_OptGroupCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_OptGroupCode" codeListValue="unknown">unknown</bag:BAG_OptGroupCode>
+			</bag:elevationSolutionGroupType>
+<bag:nodeGroupType>
+				<bag:BAG_OptGroupCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_OptGroupCode" codeListValue="unknown">unknown</bag:BAG_OptGroupCode>
+			</bag:nodeGroupType>
+			</bag:BAG_DataIdentification>
+	</gmd:identificationInfo>
+	<gmd:dataQualityInfo>
+		<gmd:DQ_DataQuality>
+			<gmd:scope>
+				<gmd:DQ_Scope>
+<gmd:level>
+	<gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">dataset</gmd:MD_ScopeCode>
+</gmd:level>
+				</gmd:DQ_Scope>
+			</gmd:scope>
+			<gmd:lineage>
+				<gmd:LI_Lineage>
+<gmd:processStep>
+	<bag:BAG_ProcessStep>
+		<gmd:description><gco:CharacterString>Software: SAIC -vSABER_5.1.3.6.0</gco:CharacterString></gmd:description>
+		<gmd:dateTime>
+	<gco:DateTime>2013-08-01T16:35:38</gco:DateTime>
+</gmd:dateTime>
+<gmd:processor>
+	<gmd:CI_ResponsibleParty>
+					<gmd:individualName><gco:CharacterString>Name of individual responsible for BAG</gco:CharacterString>
+		</gmd:individualName>
+	<gmd:positionName><gco:CharacterString>Lead Hydrographer</gco:CharacterString> </gmd:positionName> 
+	<gmd:role>
+			<gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="processor">processor</gmd:CI_RoleCode>
+		</gmd:role>
+	</gmd:CI_ResponsibleParty>
+</gmd:processor>
+<gmd:source>
+	<gmd:LI_Source>
+		<gmd:description><gco:CharacterString>BAG Elevation = PFM CUBE Depth         ;    BAG Uncertainty = PFM Hyp Final Uncertainty </gco:CharacterString></gmd:description>
+		<gmd:sourceCitation>
+			<gmd:CI_Citation>
+				<gmd:title><gco:CharacterString>Source=/data1/datasets/Henry/training/public_release/610612/layers/JD211_Public_Release.pfm</gco:CharacterString></gmd:title>
+		<gmd:date>
+<gmd:CI_Date>
+	<gmd:date gco:nilReason="unknown"/>
+	<gmd:dateType>
+<gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</gmd:CI_DateTypeCode>
+	</gmd:dateType>
+</gmd:CI_Date>
+				</gmd:date>
+		<gmd:collectiveTitle> <gco:CharacterString>H12345</gco:CharacterString>  </gmd:collectiveTitle>
+	</gmd:CI_Citation>
+		</gmd:sourceCitation>
+	</gmd:LI_Source>
+</gmd:source>
+<bag:trackingId>
+	<gco:CharacterString>1</gco:CharacterString>
+</bag:trackingId>
+	</bag:BAG_ProcessStep>
+</gmd:processStep>
+				</gmd:LI_Lineage>
+			</gmd:lineage>
+		</gmd:DQ_DataQuality>
+	</gmd:dataQualityInfo>
+	<gmd:metadataConstraints>
+		<gmd:MD_LegalConstraints>
+			<gmd:useConstraints>
+				<gmd:MD_RestrictionCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_RestrictionCode" codeListValue="otherRestrictions">otherRestrictions</gmd:MD_RestrictionCode>
+			</gmd:useConstraints>
+			<gmd:otherConstraints>
+				<gco:CharacterString>Not for Navigation</gco:CharacterString>
+			</gmd:otherConstraints>
+		</gmd:MD_LegalConstraints>
+	</gmd:metadataConstraints>
+	<gmd:metadataConstraints>
+		<gmd:MD_SecurityConstraints>
+			<gmd:classification>
+				<gmd:MD_ClassificationCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ClassificationCode" codeListValue="unclassified">Public Release</gmd:MD_ClassificationCode>
+			</gmd:classification>
+			<gmd:userNote>
+				<gco:CharacterString>Distribution Unlimited</gco:CharacterString>
+			</gmd:userNote>
+		</gmd:MD_SecurityConstraints>
+	</gmd:metadataConstraints>
+</gmi:MI_Metadata>
