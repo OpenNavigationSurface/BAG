@@ -29,8 +29,6 @@ int main (int argc, char *argv[])
 	float	   nominal_depthRange[2];
 	float	   sep_depthRange[2];
     
-    int        nrows, ncols;
- 
     /* Supporting variables */
     int        i;
     int        j;
@@ -39,9 +37,6 @@ int main (int argc, char *argv[])
     bagHandle  bagHandle;       /* Primary Pointer to BAG object */
     char       outFileName[256];
     char       xmlFileName[256];   
-    FILE *xmlF;
-    s32  xmlLength;
-    char *xmlBuffer;
 
     if( argc != 3 )
     {
@@ -121,7 +116,7 @@ int main (int argc, char *argv[])
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -129,11 +124,11 @@ int main (int argc, char *argv[])
 
     data.compressionLevel = 1;
 
-    err = bagFileCreate( outFileName, &data, &bagHandle);
+    err = bagFileCreate((u8*)outFileName, &data, &bagHandle);
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -166,7 +161,7 @@ int main (int argc, char *argv[])
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -175,7 +170,7 @@ int main (int argc, char *argv[])
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -205,7 +200,7 @@ int main (int argc, char *argv[])
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -220,7 +215,7 @@ int main (int argc, char *argv[])
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -229,7 +224,7 @@ int main (int argc, char *argv[])
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -238,7 +233,7 @@ int main (int argc, char *argv[])
 	if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }
@@ -255,7 +250,7 @@ int main (int argc, char *argv[])
     if( err != BAG_SUCCESS )
     {
         char *errstr;
-        if( bagGetErrorString( err, &errstr ) == BAG_SUCCESS )
+        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
         {
             fprintf( stderr, "Error create Bag: {%s}\n", errstr );
         }

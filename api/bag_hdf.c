@@ -88,8 +88,8 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     hid_t        datatype_id; 
     hid_t        bagGroupID; 
     hid_t        plist_id;
-    f32          null_elv = NULL_ELEVATION;
-    f32          null_unc = NULL_UNCERTAINTY;
+    f32          null_elv = BAG_NULL_ELEVATION;
+    f32          null_unc = BAG_NULL_UNCERTAINTY;
 
     /* chunking data block */
     hsize_t      chunk_dims[1];
@@ -532,6 +532,125 @@ bagError bagFileCreate(const u8 *file_name, bagData *data, bagHandle *bag_handle
     return (status >= 0) ? BAG_SUCCESS : BAG_HDF_INTERNAL_ERROR;
 }
 
+bagError bagCreateVariableResolutionLayers(bagHandle handle, u32 const nRefinements, Bool aux_layers)
+{
+    bagError err;
+    
+    if (aux_layers) {
+        bagGetDataPointer(handle)->opt[Node_Group].nrows = handle->bag.def.nrows;
+        bagGetDataPointer(handle)->opt[Node_Group].ncols = handle->bag.def.ncols;
+        err = bagCreateNodeGroup(handle, bagGetDataPointer(handle));
+        if (err != BAG_SUCCESS) {
+            u8* errstr;
+            if (bagGetErrorString(err, &errstr) == BAG_SUCCESS) {
+                fprintf(stderr, "error: BAG Failed to generate refined NodeGroup set: %s", errstr);
+            } else {
+                fprintf(stderr, "error: BAG Failed to generate refined NodeGroup (reason unknown).");
+            }
+            return err;
+        }
+    }
+    
+    bagGetDataPointer(handle)->opt[VarRes_Metadata_Group].nrows = handle->bag.def.nrows;
+    bagGetDataPointer(handle)->opt[VarRes_Metadata_Group].ncols = handle->bag.def.ncols;
+    err = bagCreateVarResMetadataGroup(handle, bagGetDataPointer(handle));
+    if (err != BAG_SUCCESS) {
+        u8* errstr;
+        if (bagGetErrorString(err, &errstr) == BAG_SUCCESS) {
+            fprintf(stderr, "error: BAG Failed to generate variable resolution group: %s\n",errstr);
+        } else {
+            fprintf(stderr, "error: BAG Failed to generate variable resolution group (reason unknown).");
+        }
+        return err;
+    }
+    
+    err = bagCreateVarResRefinementGroup(handle, bagGetDataPointer(handle), nRefinements);
+    if (err != BAG_SUCCESS) {
+        u8* errstr;
+        if (bagGetErrorString(err, &errstr) == BAG_SUCCESS) {
+            fprintf(stderr, "error: BAG Failed to generate variable resolution refinement group: %s\n", errstr);
+        } else {
+            fprintf(stderr, "error: BAG Failed to generate variable resolution refinement group (reason unknown).");
+        }
+        return err;
+    }
+    
+    if (aux_layers) {
+        err = bagCreateVarResNodeGroup(handle, bagGetDataPointer(handle), nRefinements);
+        if (err != BAG_SUCCESS) {
+            u8* errstr;
+            if (bagGetErrorString(err, &errstr) == BAG_SUCCESS) {
+                fprintf(stderr, "error: BAG Failed to generate variable resolution node group: %s\n", errstr);
+            } else {
+                fprintf(stderr, "error: BAG Failed to generate variable resolution node group (reason unknown).");
+            }
+            return err;
+        }
+    }
+    
+    err = bagCreateVarResTrackingList(handle, bagGetDataPointer(handle));
+    if (err != BAG_SUCCESS) {
+        u8* errstr;
+        if (bagGetErrorString(err, &errstr) == BAG_SUCCESS) {
+            fprintf(stderr, "error: BAG Failed to generate variable resolution tracking list: %s\n", errstr);
+        } else {
+            fprintf(stderr, "error: BAG Failed to generate variable resolution tracking list (reason unknown).");
+        }
+        return err;
+    }
+    return BAG_SUCCESS;
+}
+
+bagError bagCheckVariableResolution(bagHandle handle, Bool * const is_var_res, Bool * const has_extended_data)
+{
+    bagError errcode;
+    s32 n_opt_datasets;
+    s32 opt_dataset_names[BAG_OPT_SURFACE_LIMIT];
+    
+    *is_var_res = False;
+    *has_extended_data = False;
+    
+    errcode = bagGetOptDatasets(&handle, &n_opt_datasets, opt_dataset_names);
+    if (errcode != BAG_SUCCESS) return errcode;
+    
+    if (n_opt_datasets == 0)
+        return BAG_SUCCESS;
+    
+    Bool metadata_found = False, refinements_found = False,
+         tracking_list_found = False, nodes_found = False;
+    
+    for (u32 n = 0; n < n_opt_datasets; ++n) {
+        switch (opt_dataset_names[n]) {
+            case VarRes_Metadata_Group:
+                metadata_found = True;
+                break;
+            case VarRes_Refinement_Group:
+                refinements_found = True;
+                break;
+            case VarRes_Node_Group:
+                nodes_found = True;
+                break;
+            case VarRes_Tracking_List:
+                tracking_list_found = True;
+                break;
+            default:
+                break;
+        }
+    }
+    
+    if (metadata_found && refinements_found && tracking_list_found) {
+        /* This is the minimal requirement for a variable resolution extension */
+        *is_var_res = True;
+        if (nodes_found) {
+            /* Has all of the useful auxiliary info for the nodes, but can only be
+             * used if the rest of the data is there.
+             */
+            *has_extended_data = True;
+        }
+    }
+    return BAG_SUCCESS;
+}
+
 /********************************************************************/
 /*! \brief bagFileOpen
  *
@@ -554,6 +673,7 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     bagError     status;
     u8           version[BAG_VERSION_LENGTH+16];
     hsize_t      max_dims[RANK];
+    hsize_t      chunk_size[RANK] = { 0, 0 };
     hid_t        plist_id;
 
     /*! chunking data block */
@@ -714,7 +834,8 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     }
 
     (* bag_handle)->bag.compressionLevel = 0;
-    /*! Obtain the compression level from the dataset property list if set */
+    (*bag_handle)->bag.chunkSize = 0;
+    /*! Obtain the compression level and chunk size from the dataset property list if set */
     if ((plist_id = H5Dget_create_plist((* bag_handle)->unc_dataset_id)) >= 0)
     {
         s32 nfilt = H5Pget_nfilters(plist_id);
@@ -735,6 +856,14 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
             }
         }
         
+        if (H5Pget_layout(plist_id) == H5D_CHUNKED)
+        {
+            if (H5Pget_chunk(plist_id, RANK, chunk_size) == 2)
+            {
+                (*bag_handle)->bag.chunkSize = chunk_size[0];
+            }
+        }
+
         H5Pclose(plist_id);
     }
 

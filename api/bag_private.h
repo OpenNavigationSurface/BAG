@@ -46,9 +46,10 @@
 #endif
 
 #define RANK 2
-#define TRACKING_LIST_BLOCK_SIZE       10
+#define TRACKING_LIST_BLOCK_SIZE        10
+#define VARRES_TRACKING_LIST_BLOCK_SIZE 1024 /*!< Quantum for reads from the variable-resolution tracking list */
 
-/*! Path names for BAG entities */
+/*! Path names for mandatory BAG entities */
 #define ROOT_PATH          "/BAG_root"
 #define METADATA_PATH      ROOT_PATH"/metadata"
 #define ELEVATION_PATH     ROOT_PATH"/elevation"
@@ -56,14 +57,18 @@
 #define TRACKING_LIST_PATH ROOT_PATH"/tracking_list"
 
 /*! Path names for optional BAG entities */
-#define NOMINAL_ELEVATION_PATH  ROOT_PATH"/nominal_elevation"
-#define VERT_DATUM_CORR_PATH    ROOT_PATH"/vertical_datum_corrections"
-#define NUM_HYPOTHESES_PATH		ROOT_PATH"/num_hypotheses"
-#define AVERAGE_PATH			ROOT_PATH"/average"
-#define AVERAGE_PATH			ROOT_PATH"/average"
-#define NODE_GROUP_PATH			ROOT_PATH"/node"
-#define ELEVATION_SOLUTION_GROUP_PATH			ROOT_PATH"/elevation_solution"
-#define STANDARD_DEV_PATH		ROOT_PATH"/standard_dev"
+#define NOMINAL_ELEVATION_PATH          ROOT_PATH"/nominal_elevation"
+#define VERT_DATUM_CORR_PATH            ROOT_PATH"/vertical_datum_corrections"
+#define NUM_HYPOTHESES_PATH             ROOT_PATH"/num_hypotheses"
+#define AVERAGE_PATH                    ROOT_PATH"/average"
+#define AVERAGE_PATH                    ROOT_PATH"/average"
+#define NODE_GROUP_PATH                 ROOT_PATH"/node"
+#define ELEVATION_SOLUTION_GROUP_PATH	ROOT_PATH"/elevation_solution"
+#define STANDARD_DEV_PATH               ROOT_PATH"/standard_dev"
+#define VARRES_METADATA_GROUP_PATH      ROOT_PATH"/varres_metadata"
+#define VARRES_REFINEMENT_GROUP_PATH    ROOT_PATH"/varres_refinements"
+#define VARRES_NODE_GROUP_PATH          ROOT_PATH"/varres_nodes"
+#define VARRES_TRACKING_LIST_PATH       ROOT_PATH"/varres_tracking_list"
 
 /*! Names for BAG Attributes */
 #define BAG_VERSION_NAME     "Bag Version"                /*!< Name for version attribute, value set in bag.h */
@@ -77,8 +82,9 @@
 #define VERT_DATUM_CORR_SWX "SW Corner X"                 /*!<Name for the sw corner X attribute for vert datum set */
 #define VERT_DATUM_CORR_SWY "SW Corner Y"                 /*!<Name for the sw corner Y attribute for vert datum set */
 
-#define check_hdf_status()  if (status < 0) return BAG_HDF_INTERNAL_ERROR
+#define VARRES_TRACKING_LIST_LENGTH_NAME    "VR Tracking List Length"
 
+#define check_hdf_status()  if (status < 0) return BAG_HDF_INTERNAL_ERROR
 
 /* Structs */
 /*! \brief The internal BagHandle object is only accessed within the library 
@@ -132,10 +138,6 @@ typedef struct _t_bagHandle {
             mta_cparms_id;
 } BagHandle;
 
-
-
-/* enums */
-
 /*! \brief bagAttrTypes define the available attribute datatypes
  *
  *  The attributes are created along with the datasets in bagFileCreate().
@@ -150,7 +152,6 @@ enum bagAttrTypes {
     BAG_ATTR_CS1         = 6  /*!< Character string */
 };
 
-
 /*! \brief READ_WRITE_BAG define modes for accessing the dataset Bag surfaces */
 enum READ_WRITE_BAG {
     READ_BAG             = 0, /*!< Read from the bag dataset */
@@ -160,12 +161,11 @@ enum READ_WRITE_BAG {
 
 /*! \brief READ_TRACK_MODE define modes for ordering tracking list items */
 enum READ_TRACK_MODE {
-    READ_TRACK_RC     = 0, /*!< Row-Column mode */
-    READ_TRACK_SERIES = 1, /*!< List-Series mode */
-    READ_TRACK_CODE   = 2  /*!< Track-Code mode */
+    READ_TRACK_RC       = 0, /*!< Row-Column mode */
+    READ_TRACK_SERIES   = 1, /*!< List-Series mode */
+    READ_TRACK_CODE     = 2,  /*!< Track-Code mode */
+    READ_TRACK_SUBRC    = 3 /*!< Sub-Row/Sub-Column mode for variable-resolution surfaces */
 };
-
-
 
 /*! private function prototypes */
 bagError bagCreateAttribute (bagHandle hnd, hid_t lid, u8 *attr_name, u32 max, u32 type);
