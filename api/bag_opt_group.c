@@ -65,15 +65,33 @@ bagError bagCreateVarResMetadataGroup(bagHandle hnd, bagData *data)
 	bagError	err;
 	herr_t		herr;
 	
-	if ((data->opt[VarRes_Metadata_Group].datatype = H5Tcreate(H5T_COMPOUND, sizeof(bagVarResMetadataGroup))) < 0) {
+	if ((data->opt[VarRes_Metadata_Group].datatype = H5Tcreate(H5T_COMPOUND, sizeof(bagVarResMetadataGroup))) < 0)
 		return BAG_HDF_TYPE_CREATE_FAILURE;
-	}
-	herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "index", HOFFSET(bagVarResMetadataGroup, index), H5T_NATIVE_UINT);
+	
+	herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "index",
+                     HOFFSET(bagVarResMetadataGroup, index), H5T_NATIVE_UINT);
 	if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
-	herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "dimensions", HOFFSET(bagVarResMetadataGroup, dimensions), H5T_NATIVE_UINT);
-	if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
-	herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "resolution", HOFFSET(bagVarResMetadataGroup, resolution), H5T_NATIVE_FLOAT);
-	if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+        
+    herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "dimensions_x",
+                     HOFFSET(bagVarResMetadataGroup, dimensions_x), H5T_NATIVE_UINT);
+    if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "dimensions_y",
+                     HOFFSET(bagVarResMetadataGroup, dimensions_y), H5T_NATIVE_UINT);
+    if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+        
+    herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "resolution_x",
+                     HOFFSET(bagVarResMetadataGroup, resolution_x), H5T_NATIVE_FLOAT);
+    if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "resolution_y",
+                     HOFFSET(bagVarResMetadataGroup, resolution_y), H5T_NATIVE_FLOAT);
+    if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+        
+    herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "sw_corner_x",
+                     HOFFSET(bagVarResMetadataGroup, sw_corner_x), H5T_NATIVE_FLOAT);
+    if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
+    herr = H5Tinsert(data->opt[VarRes_Metadata_Group].datatype, "sw_corner_y",
+                     HOFFSET(bagVarResMetadataGroup, sw_corner_y), H5T_NATIVE_FLOAT);
+    if (herr < 0) return BAG_HDF_TYPE_CREATE_FAILURE;
 	
 	err = bagCreateOptionalDataset(hnd, data, VarRes_Metadata_Group);
 	
@@ -368,13 +386,29 @@ bagError bagReadMinMaxVarResMetadataGroup(bagHandle hnd, bagVarResMetadataGroup 
     if (hnd == NULL) return BAG_INVALID_BAG_HANDLE;
     if (minGroup == NULL || maxGroup == NULL) return BAG_INVALID_FUNCTION_ARGUMENT;
     
-    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group], (u8*)"min_dimensions", &(minGroup->dimensions))) != BAG_SUCCESS)
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"min_dimensions_x", &(minGroup->dimensions_x))) != BAG_SUCCESS)
         return status;
-    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group], (u8*)"max_dimensions", &(maxGroup->dimensions))) != BAG_SUCCESS)
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"max_dimensions_x", &(maxGroup->dimensions_x))) != BAG_SUCCESS)
         return status;
-    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group], (u8*)"min_resolution", &(minGroup->resolution))) != BAG_SUCCESS)
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"min_dimensions_y", &(minGroup->dimensions_y))) != BAG_SUCCESS)
         return status;
-    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group], (u8*)"max_resolution", &(maxGroup->resolution))) != BAG_SUCCESS)
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"max_dimensions_y", &(maxGroup->dimensions_y))) != BAG_SUCCESS)
+        return status;
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"min_resolution_x", &(minGroup->resolution_x))) != BAG_SUCCESS)
+        return status;
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"max_resolution_x", &(maxGroup->resolution_x))) != BAG_SUCCESS)
+        return status;
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"min_resolution_y", &(minGroup->resolution_y))) != BAG_SUCCESS)
+        return status;
+    if ((status = bagReadAttribute(hnd, hnd->opt_dataset_id[VarRes_Metadata_Group],
+                                   (u8*)"max_resolution_y", &(maxGroup->resolution_y))) != BAG_SUCCESS)
         return status;
     check_hdf_status();
     

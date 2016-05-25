@@ -676,6 +676,7 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     bagError     status;
     u8           version[BAG_VERSION_LENGTH+16];
     hsize_t      max_dims[RANK];
+    hsize_t      chunk_size[RANK] = { 0, 0 };
     hid_t        plist_id;
 
     /*! chunking data block */
@@ -836,7 +837,8 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
     }
 
     (* bag_handle)->bag.compressionLevel = 0;
-    /*! Obtain the compression level from the dataset property list if set */
+    (*bag_handle)->bag.chunkSize = 0;
+    /*! Obtain the compression level and chunk size from the dataset property list if set */
     if ((plist_id = H5Dget_create_plist((* bag_handle)->unc_dataset_id)) >= 0)
     {
         s32 nfilt = H5Pget_nfilters(plist_id);
@@ -857,6 +859,14 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
             }
         }
         
+        if (H5Pget_layout(plist_id) == H5D_CHUNKED)
+        {
+            if (H5Pget_chunk(plist_id, RANK, chunk_size) == 2)
+            {
+                (*bag_handle)->bag.chunkSize = chunk_size[0];
+            }
+        }
+
         H5Pclose(plist_id);
     }
 

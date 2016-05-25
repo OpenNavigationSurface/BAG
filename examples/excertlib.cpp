@@ -45,10 +45,6 @@
 #include "crc32.h"
 #include "excertlib.h"
 
-
-static const char *modname = "excertlib";
-static const char *modrev = "$Revision: 1.2 $";
-
 #ifndef _MSC_VER
 #define _strdup strdup
 #define stricmp strcasecmp
@@ -56,9 +52,8 @@ static const char *modrev = "$Revision: 1.2 $";
 #include <io.h>  // required for mktemp
 #endif
 
-#ifdef __MINGW32__
-#include <io.h>  // required for mktemp
-#endif
+static const char *modname = "excertlib";
+static const char *modrev = "$Revision: 1.2 $";
 
 #undef __DEBUG_HASH__
 #undef __DEBUG__
@@ -79,8 +74,6 @@ static const char *modrev = "$Revision: 1.2 $";
 #define PUBLIC_KEY_STRING		"------ OpenNavigationSurface Public Key ------"
 #define SECRET_KEY_STRING		"------ OpenNavigationSurface Secret Key ------"
 #define SIGNATURE_KEY_STRING	"------ OpenNavigationSurface Signature ------"
-
-#define _strdup strdup
 
 namespace {
 //! Utility class to convert an encoded XML string.

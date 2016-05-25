@@ -209,8 +209,12 @@ Bool augment_vr_bag(bagHandle handle, bagData *data)
     for (row = 0; row < lowres_rows; ++row) {
         for(col = 0; col < lowres_cols; ++col) {
             vr_metadata[col].index = n_cells;
-            vr_metadata[col].dimensions = refinement_cols[col];
-            vr_metadata[col].resolution = (f32)(data->def.nodeSpacingX - 0.1)/(refinement_cols[col] - 1);
+            vr_metadata[col].dimensions_x = refinement_cols[col];
+			vr_metadata[col].dimensions_y = refinement_cols[col];
+            vr_metadata[col].resolution_x = (data->def.nodeSpacingX - 0.1)/(refinement_cols[col] - 1);
+            vr_metadata[col].resolution_y = (data->def.nodeSpacingY - 0.1)/(refinement_cols[col] - 1);
+			vr_metadata[col].sw_corner_x = (data->def.nodeSpacingX - (vr_metadata[col].dimensions_x - 1)*vr_metadata[col].resolution_x)/2.0;
+			vr_metadata[col].sw_corner_y = (data->def.nodeSpacingY - (vr_metadata[col].dimensions_y - 1)*vr_metadata[col].resolution_y)/2.0;
 
             /* Refinement information */
             total_refinements = refinement_cols[col]*refinement_cols[col];

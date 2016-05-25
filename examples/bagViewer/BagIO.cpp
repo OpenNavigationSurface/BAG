@@ -277,10 +277,10 @@ TilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex, const
         return TilePtr();
     ret->lowerLeftIndex = TileIndex2D(i,j);
     bagReadNode(bag,j,i,VarRes_Metadata_Group,&vrMetadata);
-    if(vrMetadata.dimensions == 0)
+    if(vrMetadata.dimensions_x == 0)
         return TilePtr();
-    refinements.resize(vrMetadata.dimensions*vrMetadata.dimensions);
-    ret->data->normalMap = QImage(vrMetadata.dimensions, vrMetadata.dimensions, QImage::Format_RGB888);
+    refinements.resize(vrMetadata.dimensions_x*vrMetadata.dimensions_y);
+    ret->data->normalMap = QImage(vrMetadata.dimensions_x, vrMetadata.dimensions_y, QImage::Format_RGB888);
     ret->data->normalMap.fill(QColor(127,127,255).rgb());
     bagReadRow(bag,0,vrMetadata.index,vrMetadata.index+(u32)refinements.size()-1,VarRes_Refinement_Group,refinements.data());
     float minz = BAG_NULL_ELEVATION;
@@ -294,20 +294,20 @@ TilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex, const
             maxz = r.depth;
     }
     
-    for(u32 ti = 0; ti < vrMetadata.dimensions; ++ti)
+    for(u32 ti = 0; ti < vrMetadata.dimensions_y; ++ti)
     {
-        if(ti < vrMetadata.dimensions-1)
-            for(u32 tj = 0; tj < vrMetadata.dimensions; ++tj)
+        if(ti < vrMetadata.dimensions_y-1)
+            for(u32 tj = 0; tj < vrMetadata.dimensions_x; ++tj)
             {
-                if(tj < vrMetadata.dimensions-1)
+                if(tj < vrMetadata.dimensions_x-1)
                 {
-                    float p00 = ret->data->elevations[ti*vrMetadata.dimensions+tj];
-                    float p10 = ret->data->elevations[ti*vrMetadata.dimensions+tj+1];
-                    float p01 = ret->data->elevations[(ti+1)*vrMetadata.dimensions+tj];
+                    float p00 = ret->data->elevations[ti*vrMetadata.dimensions_x+tj];
+                    float p10 = ret->data->elevations[ti*vrMetadata.dimensions_x+tj+1];
+                    float p01 = ret->data->elevations[(ti+1)*vrMetadata.dimensions_x+tj];
                     if(p00 != BAG_NULL_ELEVATION && p10 != BAG_NULL_ELEVATION && p01 != BAG_NULL_ELEVATION)
                     {
-                        QVector3D v1(vrMetadata.resolution,0.0,p10-p00);
-                        QVector3D v2(0.0,vrMetadata.resolution,p01-p00);
+                        QVector3D v1(vrMetadata.resolution_x,0.0,p10-p00);
+                        QVector3D v2(0.0,vrMetadata.resolution_y,p01-p00);
                         QVector3D n = QVector3D::normal(v1,v2);
                         ret->data->normalMap.setPixel(tj,ti,QColor(127+128*n.x(),127+128*n.y(),127+128*n.z()).rgb());
                     }
@@ -318,21 +318,21 @@ TilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex, const
                     ret->data->normalMap.setPixel(tj,ti,ret->data->normalMap.pixel(tj-1,ti));
             }
         else
-            for(u32 tj = 0; tj < vrMetadata.dimensions; ++tj)
+            for(u32 tj = 0; tj < vrMetadata.dimensions_x; ++tj)
                 ret->data->normalMap.setPixel(tj,ti,ret->data->normalMap.pixel(tj,ti-1));
     }
     
     
     float cx = i*meta.dx;
     float cy = j*meta.dy;
-    float llx = cx - (vrMetadata.dimensions-1)*vrMetadata.resolution/2.0;
-    float lly = cy - (vrMetadata.dimensions-1)*vrMetadata.resolution/2.0;
-    ret->dx = vrMetadata.resolution;
-    ret->dy = vrMetadata.resolution;
-    ret->ncols = vrMetadata.dimensions;
-    ret->nrows = vrMetadata.dimensions;
+    float llx = cx - (vrMetadata.dimensions_x-1)*vrMetadata.resolution_x/2.0;
+    float lly = cy - (vrMetadata.dimensions_y-1)*vrMetadata.resolution_y/2.0;
+    ret->dx = vrMetadata.resolution_x;
+    ret->dy = vrMetadata.resolution_y;
+    ret->ncols = vrMetadata.dimensions_x;
+    ret->nrows = vrMetadata.dimensions_y;
     ret->bounds.add(QVector3D(llx,lly,minz));
-    ret->bounds.add(QVector3D(llx+(vrMetadata.dimensions-1)*vrMetadata.resolution,lly+(vrMetadata.dimensions-1)*vrMetadata.resolution,maxz));
+    ret->bounds.add(QVector3D(llx+(vrMetadata.dimensions_x-1)*vrMetadata.resolution_x,lly+(vrMetadata.dimensions_y-1)*vrMetadata.resolution_y,maxz));
     return ret;
 }
 

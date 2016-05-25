@@ -152,9 +152,9 @@ source_group("Header Files" FILES ${BAG_HEADER_FILES})
  
 add_library (bag ${LIB_TYPE} ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} )
 
-target_link_libraries(bag ${HDF5_LIB})
-target_link_libraries(bag ${BEECRYPT_LIB})
-target_link_libraries(bag ${LIBXML_LIB})
+target_link_libraries(bag ${HDF5_LIB_DIR}/${HDF5_LIB})
+target_link_libraries(bag ${BEECRYPT_LIB_DIR}/${BEECRYPT_LIB})
+target_link_libraries(bag ${LIBXML_LIB_DIR}/${LIBXML_LIB})
 
 IF(MINGW)
     set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")

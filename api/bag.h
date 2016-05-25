@@ -69,11 +69,11 @@ typedef unsigned long long HDF_size_t;
 /* This typedef must match the hid_t type defined in HDF5 */
 typedef int HDF_hid_t;
 
-#define BAG_VERSION         "1.5.4"
+#define BAG_VERSION         "1.6.0"
 #define BAG_VERSION_LENGTH  32              /* 32 bytes of space reserved in BAG attribute for VERSION string */
 #define BAG_VER_MAJOR       1
-#define BAG_VER_MINOR       5
-#define BAG_VER_REVISION    4
+#define BAG_VER_MINOR       6
+#define BAG_VER_REVISION    0
 
 #define XML_METADATA_MIN_LENGTH     1024    /* Encoded XML string expected to be at least this long to be valid */
 #define XML_METADATA_MAX_LENGTH     1000000
@@ -252,8 +252,12 @@ typedef struct _t_bag_optElevationSolutionGroup
 typedef struct _t_bag_varResMetadataGroup
 {
 	u32 index;
-	u32 dimensions;
-	f32 resolution;
+	u32 dimensions_x;   /*!< Number of nodes in easting */
+    u32 dimensions_y;   /*!< Number of nodes in northing */
+	f32 resolution_x;   /*!< Node spacing in easting */
+    f32 resolution_y;   /*!< Node spacing in northing */
+    f32 sw_corner_x;    /*!< Offset east from SW corner of surrounding low-res cell to SW-most node */
+    f32 sw_corner_y;    /*!< Offset north from SW corner of surrounding low-res cell to SW-most node */
 } bagVarResMetadataGroup;
 
 typedef struct _t_bag_varResRefinementGroup
