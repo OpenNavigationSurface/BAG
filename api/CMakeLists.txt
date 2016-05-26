@@ -2,10 +2,12 @@
 # Hdf5 Settings
 #
 IF(MSVC)
+# Definition required by HDF5 lib
+ADD_DEFINITIONS(-D H5_BUILT_AS_DYNAMIC_LIB)
 # The location of the Hdf5 header files.
 SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE PATH "Location of hdf5 header files.")
 # The name of the Hdf5 release library.
-SET(HDF5_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5dll.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5ddll.lib" CACHE STRING "The name of the hdf5 release library.")
+SET(HDF5_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5_D.lib" CACHE STRING "The name of the hdf5 release library.")
 ELSEIF(UNIX)
 # The location of the Hdf5 header files.
 SET(HDF5_INCLUDE_DIR "/usr/include" CACHE PATH "Location of hdf5 header files.")
@@ -130,9 +132,9 @@ source_group("Header Files" FILES ${BAG_HEADER_FILES})
  
 add_library (bag ${LIB_TYPE} ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} )
 
-target_link_libraries(bag ${HDF5_LIB_DIR}/${HDF5_LIB})
-target_link_libraries(bag ${BEECRYPT_LIB_DIR}/${BEECRYPT_LIB})
-target_link_libraries(bag ${LIBXML_LIB_DIR}/${LIBXML_LIB})
+target_link_libraries(bag ${HDF5_LIB})
+target_link_libraries(bag ${BEECRYPT_LIB})
+target_link_libraries(bag ${LIBXML_LIB})
 
 IF(MSVC)
 

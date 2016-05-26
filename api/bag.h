@@ -102,10 +102,10 @@ typedef int HDF_hid_t;
  */
 
 /* Definitions for NULL values */
-#define BAG_NULL_ELEVATION      1e6
-#define BAG_NULL_UNCERTAINTY    1e6
-#define BAG_NULL_STD_DEV        1e6
-#define BAG_NULL_GENERIC	    1e6
+#define BAG_NULL_ELEVATION      1000000  // 1e6
+#define BAG_NULL_UNCERTAINTY    1000000
+#define BAG_NULL_STD_DEV        1000000
+#define BAG_NULL_GENERIC	    1000000
 #define BAG_NULL_VARRES_INDEX   0xFFFFFFFF
 
 /* Define convenience data structure for BAG geographic definitions */

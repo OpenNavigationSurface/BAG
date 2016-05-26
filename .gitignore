@@ -1,0 +1,25 @@
+# temp files
+*.sh~
+*.*~
+.DS_Store
+*desktop.ini
+
+# Microsoft installers
+*.msi
+
+# Windows executable
+*.exe
+
+# Mac OS X installers
+*.dmg
+
+# Library building folders
+build*/
+bin/
+lib/
+
+# External libs building folders
+extlibs/hdf5/
+extlibs/beecrypt/
+extlibs/libxml2/
+extlibs/zlib/
