@@ -863,7 +863,7 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         {
             if (H5Pget_chunk(plist_id, RANK, chunk_size) == 2)
             {
-                (*bag_handle)->bag.chunkSize = chunk_size[0];
+                (*bag_handle)->bag.chunkSize = (u32)chunk_size[0];
             }
         }
 

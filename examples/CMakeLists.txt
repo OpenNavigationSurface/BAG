@@ -56,7 +56,9 @@ FOREACH (example ${examples})
         RELEASE_OUTPUT_NAME ${example}
     )
 
-    set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+    IF(NOT MSVC)
+        set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
+    ENDIF()
 
 
     INSTALL(TARGETS ${example} RUNTIME DESTINATION bin)

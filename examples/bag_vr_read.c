@@ -130,7 +130,7 @@ Bool dump_data(bagHandle handle, const char * const filename, Bool has_extended_
 	u32 n_rows, n_cols;
 	bagVarResMetadataGroup *metadata;
     bagVarResNodeGroup *auxinfo = NULL;
-	u32 row, col, i;
+	u32 row;
 
     if ((f = fopen(filename, "w")) == NULL) {
         printf("error: failed to open \"%s\" for output.\n", filename);
