@@ -93,6 +93,9 @@ bagError bagCreateCorrectorDataset  (bagHandle hnd, bagData *data, u32 numCorrec
     }
 
 	err = bagCreateOptionalDataset (hnd, data, Surface_Correction);
+    if (err != BAG_SUCCESS) {
+        return err;
+    }
 
     dataset_id = (hnd)->opt_dataset_id[Surface_Correction];   
     if (dataset_id < 0)

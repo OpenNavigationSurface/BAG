@@ -17,6 +17,14 @@
 #define GRD_SIZE 100
 #define SEP_SIZE 3
 
+void report_fatal_bag_error(const char *preamble, bagError const err)
+{
+    u8 *errstr;
+    bagGetErrorString(err, &errstr);
+    fprintf(stderr, "%s: %s\n", preamble, (char *)errstr);
+    exit(1);
+}
+
 int main (int argc, char *argv[])
 {
     /* Fake data - normally read from a file */
@@ -48,17 +56,12 @@ int main (int argc, char *argv[])
     strncpy( outFileName, argv[2], 255 );   /* Store the BAG fileName to write */
      
     memset (&data, 0, sizeof(data));
-
-
-    /* for (i=0; i<GRD_SIZE; i++) */
-/*     { */
-/*         for (j=0; j<GRD_SIZE; j++) */
-/*         { */
-/*             surf[i][j] = 0 - (10.0 + (float)(GRD_SIZE*i + j) / 10.0); */
-/*             uncert[i][j] =   1.0 + (float)(GRD_SIZE*i + j) / 100.0;  */
-/* 			nominal_depth[i][j] = 20.0 + (float)(GRD_SIZE*i + j) / 20.0; */
-/*         } */
-/*     } */
+    
+    /* Configure the dynamic ranges for the data layers that we're going to write,
+     * and set up the separation surface parameters.  We generate the elevation and
+     * uncertainty layers one row at a time, and therefore don't have to make the
+     * whole thing now.
+     */
 
     surfRange[0] = -10.0;
     surfRange[1] = -10.0 - (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/10.0;
@@ -83,61 +86,35 @@ int main (int argc, char *argv[])
     sep_depthRange[0] = 0.3333;
     sep_depthRange[1] = 103.333;
 
-    printf( "Attempting to initialize a BAG!\n" );
+    /* Convert dynamic ranges into the data for the BAG construction */
 
     data.min_elevation = surfRange[0];
     data.max_elevation = surfRange[1];
     data.min_uncertainty = uncertRange[0];
     data.max_uncertainty = uncertRange[1];
 
-    printf( "Attempting to read the XML file for Bagination of it!\n" );
-/*    
-    if( (xmlF = fopen( xmlFileName, "rb" )) == NULL )
-    {
-        fprintf( stderr, "ERROR: Failed to open XML file to read into buffer\n" );
-        exit(-1);
-    }
-    fseek( xmlF, SEEK_END, 0 );
-    xmlLength = ftell(xmlF) + 1;
-    xmlBuffer = (char *)malloc( sizeof(char)*(xmlLength+1) );
-    rewind( xmlF );
-    fread( xmlBuffer, sizeof(char), xmlLength, xmlF );
-    xmlBuffer[xmlLength] = '\0';
-    fclose( xmlF );
+    /* Initial construction from the XML metadata example file provided */
     
-    printf( "   ---> Read XML data into buffer\n" );
-//    bagValidateMetadataBuffer( xmlBuffer, xmlLength, &err );
-    printf( "   ---> Finished validating xml, errCode = %d\n", err );
-*/
-    printf( "Creating the BAG, " );    
+    printf( "Creating the BAG from XML file metadata, " );
   
     err = bagInitDefinitionFromFile(&data, xmlFileName);
-    printf( "    ErrorCode for bagInitDefinition = %d\n", err );
     if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error initialising BAG from metadata", err);
 
     data.compressionLevel = 1;
 
     err = bagFileCreate((u8*)outFileName, &data, &bagHandle);
     if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error creating BAG file", err);
+
     printf( "    finished initial creation of the bag, errCode = %d\n", err );
 
     printf( "Dims from XML r,c = [%d, %d]\n", 
             bagGetDataPointer(bagHandle)->def.nrows,
             bagGetDataPointer(bagHandle)->def.ncols );
+    
+    /* Write the elevation layer, constructing bogus data as we do so */
+    
     for( i=0; i<GRD_SIZE; i++ )
     {
         for (j=0; j < GRD_SIZE; j++)
@@ -146,8 +123,12 @@ int main (int argc, char *argv[])
         }
         
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Elevation, (void *)surf );
+        if (err != BAG_SUCCESS)
+            report_fatal_bag_error("Error writing elevation row", err);
     }
 
+    /* Write the uncertainty layer, constructing bogus data as we do so */
+    
     for( i=0; i<GRD_SIZE; i++ )
     {
         for (j=0; j < GRD_SIZE; j++)
@@ -156,35 +137,28 @@ int main (int argc, char *argv[])
         }
         
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Uncertainty, (void *)uncert );
+        if (err != BAG_SUCCESS)
+            report_fatal_bag_error("Error writing uncertainty row", err);
     }
     err = bagUpdateSurface( bagHandle, Elevation );
     if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error updating elevation surface", err);
+
     err = bagUpdateSurface( bagHandle, Uncertainty );
     if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error updating uncertainty surface", err);
 
-	/* adding optional nominal elevation dataset */
+	/* Add optional nominal elevation dataset */
+    
     bagGetDataPointer(bagHandle)->opt[Nominal_Elevation].datatype = H5T_NATIVE_FLOAT; 
     bagGetDataPointer(bagHandle)->opt[Nominal_Elevation].nrows = GRD_SIZE;
     bagGetDataPointer(bagHandle)->opt[Nominal_Elevation].ncols = GRD_SIZE;
             
 	err = bagCreateOptionalDataset (bagHandle, bagGetDataPointer(bagHandle), Nominal_Elevation);
+    if (err != BAG_SUCCESS)
+        report_fatal_bag_error("Error creating nominal elevation dataset", err);
 
-	bagAllocArray (bagHandle, 0, 0,
-                   GRD_SIZE-1, GRD_SIZE-1, Nominal_Elevation);
+	bagAllocArray (bagHandle, 0, 0, GRD_SIZE-1, GRD_SIZE-1, Nominal_Elevation);
 	
 	for( i=0; i < GRD_SIZE; i++ )
     {
@@ -193,69 +167,49 @@ int main (int argc, char *argv[])
             nominal_depth[j] = (f32)((j * (i )) % GRD_SIZE) + 1.0 + ((f32)j / (f32)GRD_SIZE);
         }
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth );
-		
+		if (err != BAG_SUCCESS)
+            report_fatal_bag_error("Error writing nominal depth row", err);
     }
 
 	err = bagUpdateSurface (bagHandle, Nominal_Elevation);
     if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error updating nominal elevation surface", err);
+
     bagFreeArray (bagHandle, Nominal_Elevation);
 
-    /* adding optional sep elevation dataset */
+    /* Add optional sep elevation dataset */
+    
     bagGetDataPointer(bagHandle)->opt[Surface_Correction].nrows = SEP_SIZE;
     bagGetDataPointer(bagHandle)->opt[Surface_Correction].ncols = SEP_SIZE;
 
 	err = bagCreateCorrectorDataset (bagHandle, bagGetDataPointer(bagHandle), 2, BAG_SURFACE_IRREGULARLY_SPACED);
     if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error creating separation corrector dataset", err);
+
     err = bagWriteCorrectorVerticalDatum (bagHandle, 1, (u8 *)"Test");
     if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error writing vertical datum for corrector", err);
+
     err = bagWriteCorrectorVerticalDatum (bagHandle, 2, (u8 *)"Unknown");
 	if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
+        report_fatal_bag_error("Error writing vertical datum for corrector", err);
 
 	for( i=0; i < SEP_SIZE; i++ )
     {
         err = bagWriteRow( bagHandle, i, 0, SEP_SIZE-1, Surface_Correction, (void *)sep_depth[i] );
-		
+		if (err != BAG_SUCCESS)
+            report_fatal_bag_error("Error writing corrector surface row", err);
     }
+    
+    /* Close out the BAG file */
 
-    err = bagFileClose( bagHandle );  
+    err = bagFileClose( bagHandle );
+    if (err != BAG_SUCCESS)
+        report_fatal_bag_error("Error closing BAG file", err);
+    
     free (data.metadata);
-    if( err != BAG_SUCCESS )
-    {
-        char *errstr;
-        if( bagGetErrorString( err, (u8**)&errstr ) == BAG_SUCCESS )
-        {
-            fprintf( stderr, "Error create Bag: {%s}\n", errstr );
-        }
-    }
-    printf(    "Excellent... our bag is cooked!, Final ErrorCode = %d\n", err );
+
+    printf("BAG created, Final ErrorCode = %d\n", err);
 
     return (0);
 }
