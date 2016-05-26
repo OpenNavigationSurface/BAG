@@ -5,7 +5,7 @@ IF(MSVC)
     # The location of the Hdf5 header files.
     SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE PATH "Location of hdf5 header files.")
     # The name of the Hdf5 release library.
-    SET(HDF5_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5dll.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5ddll.lib" CACHE STRING "The name of the hdf5 release library.")
+    SET(HDF5_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5_D.lib" CACHE STRING "The name of the hdf5 release library.")
 	add_definitions(-D H5_BUILT_AS_DYNAMIC_LIB)
 ELSEIF(UNIX)
     # The location of the Hdf5 header files.
