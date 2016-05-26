@@ -48,7 +48,7 @@ int main (int argc, char *argv[])
 
     if( argc != 3 )
     {
-        fprintf( stderr, "Usage is: bagcreate <inputXMLFile> <outputBagFile> \n" );
+        fprintf( stderr, "Usage is: bag_create <inputXMLFile> <outputBagFile> \n" );
         exit(-1);
     }
     
