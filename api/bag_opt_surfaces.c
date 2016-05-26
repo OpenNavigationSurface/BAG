@@ -96,6 +96,20 @@ static void InitVarResNodeGroup(bagVarResNodeGroup *g)
         return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;\
     }
 
+hsize_t estimate_chunk_size(hsize_t const dimension_size)
+{
+    hsize_t rc;
+    
+    if (dimension_size > 100) {
+        rc = 100;
+    } else if (dimension_size > 10) {
+        rc = 10;
+    } else {
+        rc = 0;
+    }
+    return rc;
+}
+
 /****************************************************************************************/
 /*! \brief bagCreateOptionalDataset creates a dataset for an optional bag surface
  *
@@ -144,24 +158,33 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
     bag_hnd->bag.opt[type].nrows = (u32)dims[0];
     bag_hnd->bag.opt[type].ncols = (u32)dims[1];
 
+    /* We need to handle chunk sizes a little more carefully for optional datasets, because they can be
+     * of different size/shape than the standard arrays used in the mandatory layers.  Because we only have
+     * a single chunkSize, therefore, it can be inappropriate for the layer being created.  Therefore, we
+     * use the chunkSize if it's supportable by the layer dimensions, but otherwise reset the internals to
+     * something more appropriate.
+     */
     if (data->chunkSize > 0)
     {
-        chunk_size[0] = chunk_size[1] = data->chunkSize;
+        if (data->chunkSize >= dims[0] || data->chunkSize >= dims[1]) {
+            /* We need to re-estimate the local chunk size for this layer */
+            chunk_size[0] = estimate_chunk_size(dims[0]);
+            chunk_size[1] = estimate_chunk_size(dims[1]);
+            /* Check that there is compression to be done, so that chunk sizes are important */
+            if (chunk_size[0] == 0 || chunk_size[1] == 0)
+                data->compressionLevel = 0;
+        } else {
+            chunk_size[0] = chunk_size[1] = data->chunkSize;
+        }
     }
     else
     {
-        if (dims[0] > 100 && dims[1] > 100)
-        {
-            chunk_size[0] = chunk_size[1] = 100;
-        }        
-        else if (dims[0] > 10 && dims[1] > 10)
-        {
-            chunk_size[0] = chunk_size[1] = 10;
-        }
-        else
-        {
+        /* We need to re-estimate the local chunk size for this layer */
+        chunk_size[0] = estimate_chunk_size(dims[0]);
+        chunk_size[1] = estimate_chunk_size(dims[1]);
+        /* Check that there is compression to be done, so that chunk sizes are important */
+        if (chunk_size[0] == 0 || chunk_size[1] == 0)
             data->compressionLevel = 0;
-        }
     }
 
     if ((dataspace_id = H5Screate_simple(RANK, dims, NULL)) < 0)
@@ -236,7 +259,7 @@ bagError bagCreateOptionalDataset (bagHandle bag_hnd, bagData *data, s32 type)
             check_hdf_status();
 
 			if ((dataset_id = H5Dcreate(file_id, VERT_DATUM_CORR_PATH, datatype_id, dataspace_id, plist_id)) < 0)
-			{    
+			{
 				status = H5Fclose (file_id);
 				return (BAG_HDF_CREATE_GROUP_FAILURE);
 			}
