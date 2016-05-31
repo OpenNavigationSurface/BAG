@@ -40,7 +40,7 @@ void Syntax(void)
 void report_library_error(char *prelude, bagError errcode)
 {
     char *errstr = NULL;
-    bagGetErrorString(errcode, (u8**)errstr);
+    bagGetErrorString(errcode, (u8**)&errstr);
     printf("error: %s (BAG library said: \"%s\").\n", prelude, errstr);
 }
 
