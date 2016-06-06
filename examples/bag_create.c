@@ -48,7 +48,7 @@ int main (int argc, char *argv[])
 
     if( argc != 3 )
     {
-        fprintf( stderr, "Usage is: bagcreate <inputXMLFile> <outputBagFile> \n" );
+        fprintf( stderr, "Usage is: bag_create <inputXMLFile> <outputBagFile> \n" );
         exit(-1);
     }
     
@@ -63,28 +63,28 @@ int main (int argc, char *argv[])
      * whole thing now.
      */
 
-    surfRange[0] = -10.0;
-    surfRange[1] = -10.0 - (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/10.0;
+    surfRange[0] = -10.0f;
+    surfRange[1] = -10.0f - (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/10.0f;
 
-    uncertRange[0] = 1.0;
-    uncertRange[1] = 1.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/100.0;
+    uncertRange[0] = 1.0f;
+    uncertRange[1] = 1.0f + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/100.0f;
 
-	nominal_depthRange[0] = 20.0;
-    nominal_depthRange[1] = 20.0 + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/20.0;
+	nominal_depthRange[0] = 20.0f;
+    nominal_depthRange[1] = 20.0f + (float)((GRD_SIZE-1)*(GRD_SIZE-1)+GRD_SIZE)/20.0f;
 
     for (i=0; i<SEP_SIZE; i++)
     {
         for (j=0; j<SEP_SIZE; j++)
         {
-			sep_depth[i][j].z[0] =  -(i +0.3333) * (j+1);
-			sep_depth[i][j].z[1] =  (i +0.55) * (j+1);
-			sep_depth[i][j].x =  (i +10.3333) * (j+1);
-			sep_depth[i][j].y =  (i +180.3333) * (j+1);
+			sep_depth[i][j].z[0] =  -(i +0.3333f) * (j+1);
+			sep_depth[i][j].z[1] =  (i +0.55f) * (j+1);
+			sep_depth[i][j].x =  (i +10.3333f) * (j+1);
+			sep_depth[i][j].y =  (i +180.3333f) * (j+1);
         }
     }
 
-    sep_depthRange[0] = 0.3333;
-    sep_depthRange[1] = 103.333;
+    sep_depthRange[0] = 0.3333f;
+    sep_depthRange[1] = 103.333f;
 
     /* Convert dynamic ranges into the data for the BAG construction */
 
@@ -133,7 +133,7 @@ int main (int argc, char *argv[])
     {
         for (j=0; j < GRD_SIZE; j++)
         {
-            uncert[j] = (f32)((j * (i )) % GRD_SIZE)/1000.0;
+            uncert[j] = (f32)((j * (i )) % GRD_SIZE)/1000.0f;
         }
         
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Uncertainty, (void *)uncert );
@@ -164,7 +164,7 @@ int main (int argc, char *argv[])
     {
         for (j=0; j < GRD_SIZE; j++)
         {
-            nominal_depth[j] = (f32)((j * (i )) % GRD_SIZE) + 1.0 + ((f32)j / (f32)GRD_SIZE);
+            nominal_depth[j] = (f32)((j * (i )) % GRD_SIZE) + 1.0f + ((f32)j / (f32)GRD_SIZE);
         }
         err = bagWriteRow( bagHandle, i, 0, GRD_SIZE-1, Nominal_Elevation, (void *)nominal_depth );
 		if (err != BAG_SUCCESS)

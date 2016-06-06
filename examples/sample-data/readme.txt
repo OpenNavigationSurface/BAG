@@ -1,5 +1,7 @@
 
-This directory contains two files:
+This directory contains pairs of files for testing. 
+
+For instance:
 
 sample.xml and sample.bag
 
@@ -8,7 +10,7 @@ sample bag file. From a console, assuming you are in the sample-data
 directory then the command to do this under Windows is:
      ..\bagcreate\debug\bagcreate.exe sample.xml testoutput.bag
      
-This will combine the XML file with some internally generated create to create
+This will combine the XML file with some internally generated data to create
 a bag file. 
 
 This directory also includes a produced bag file called sample.bag which is in

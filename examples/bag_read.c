@@ -123,7 +123,7 @@ int main( int argc, char **argv )
         printf("\nOptional datasets have been found\n");
     }
 
-	for(i=0; i<num_opt_datasets; i++)
+	for(i=0; i < (u32) num_opt_datasets; i++)
 	{
 		if(opt_dataset_entities[i] == Nominal_Elevation)
 		{

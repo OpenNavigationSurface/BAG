@@ -479,7 +479,7 @@ static bagError bagReadCorrectedRowBalance (bagHandle bagHandle, u32 row, u32 st
             /*! is not a constant SEP with one point? */
             if (sum_sep != 0.0 && sum != 0.0)
             {
-                data[indx] += sum_sep / sum;
+                data[indx] += (f32)(sum_sep / sum);
             }
             else 
             {
