@@ -48,7 +48,7 @@ int main (int argc, char *argv[])
 
     if( argc != 3 )
     {
-        fprintf( stderr, "Usage is: bagcreate <inputXMLFile> <outputBagFile> \n" );
+        fprintf( stderr, "Usage is: bag_create <inputXMLFile> <outputBagFile> \n" );
         exit(-1);
     }
     
@@ -78,8 +78,8 @@ int main (int argc, char *argv[])
         {
 			sep_depth[i][j].z[0] =  -(i +0.3333f) * (j+1);
 			sep_depth[i][j].z[1] =  (i +0.55f) * (j+1);
-			sep_depth[i][j].x =  (i +10.3333) * (j+1);
-			sep_depth[i][j].y =  (i +180.3333) * (j+1);
+			sep_depth[i][j].x =  (i +10.3333f) * (j+1);
+			sep_depth[i][j].y =  (i +180.3333f) * (j+1);
         }
     }
 

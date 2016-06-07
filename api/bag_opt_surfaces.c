@@ -1202,8 +1202,8 @@ bagError bagUpdateOptMinMax (bagHandle hnd, u32 type)
     case Node_Group:
         minNode.hyp_strength = null_val;
         maxNode.hyp_strength = null_val;
-        minNode.num_hypotheses = (u32) null_val;
-        maxNode.num_hypotheses = (u32) null_val;
+        minNode.num_hypotheses = (u32)null_val;
+        maxNode.num_hypotheses = (u32)null_val;
 
         nodeSurf = (bagOptNodeGroup *) calloc (hnd->bag.opt[type].ncols, sizeof (bagOptNodeGroup));
         if (nodeSurf == NULL)

@@ -69,6 +69,12 @@ static const char *modrev = "$Revision: 1.2 $";
 #define HASP_PASS2			9632	/* Standard value for DemoMA M4 HASP */
 #endif
 
+// the POSIX function is deprecated since Visual Studio 2005
+#if defined( _WIN64 ) || defined(_WIN32)
+#include <io.h>
+#define mktemp _mktemp
+#endif
+
 #define STRING_BREAK_LENGTH	60	/* Number of bytes to output before doing a newline */
 
 #define PUBLIC_KEY_STRING		"------ OpenNavigationSurface Public Key ------"

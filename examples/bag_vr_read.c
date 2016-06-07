@@ -48,7 +48,7 @@ Bool write_bag_summary(bagHandle handle, Bool const has_extended_data)
         printf("BAG-VR file claims to have no optional datasets?!\n");
         return False;
     }
-    for (n = 0; n < (u32)n_opt_datasets; ++n) {
+    for (u32 n = 0; n < (u32) n_opt_datasets; ++n) {
         printf("-  [%d] ID %d = ", n, opt_dataset_names[n]);
         switch(opt_dataset_names[n]) {
             case Num_Hypotheses:

@@ -1,8 +1,27 @@
-/bin/
-/lib/
-/installed/
+# temp files
+*.sh~
+*.*~
+.DS_Store
+*desktop.ini
 
-/extlibs/beecrypt/
-/extlibs/hdf5/
-/extlibs/libxml2/
-/extlibs/zlib/
+# Microsoft installers
+*.msi
+
+# Windows executable
+*.exe
+
+# Mac OS X installers
+*.dmg
+
+# Library building folders
+build*/
+bin/
+lib/
+installed/
+
+
+# External libs building folders
+extlibs/hdf5/
+extlibs/beecrypt/
+extlibs/libxml2/
+extlibs/zlib/

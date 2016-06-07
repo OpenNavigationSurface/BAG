@@ -622,7 +622,7 @@ bagError bagCheckVariableResolution(bagHandle handle, Bool * const is_var_res, B
         return BAG_SUCCESS;
     
     
-    for (n = 0; n < n_opt_datasets; ++n) {
+    for (u32 n = 0; n < (u32) n_opt_datasets; ++n) {
         switch (opt_dataset_names[n]) {
             case VarRes_Metadata_Group:
                 metadata_found = True;
@@ -863,7 +863,7 @@ bagError bagFileOpen(bagHandle *bag_handle, s32 access_mode, const u8 *file_name
         {
             if (H5Pget_chunk(plist_id, RANK, chunk_size) == 2)
             {
-                (*bag_handle)->bag.chunkSize = (u32)chunk_size[0];
+                (*bag_handle)->bag.chunkSize = (u32) chunk_size[0];
             }
         }
 
