@@ -19,6 +19,11 @@
 
 #include "bag.h"
 
+// Not always defined
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 typedef enum {
     XML_FILENAME = 1,
     OUTPUT_BAG,
@@ -59,6 +64,10 @@ Bool construct_basic_bag(bagHandle *handle, bagData *data, char *xml_file, char 
     bagError    errcode;
     
     u32 row, lowres_rows, lowres_cols;
+
+    f32 *depth;
+    f32 *uncrt;
+
     
     memset(data, 0, sizeof(bagData));
     
@@ -81,8 +90,8 @@ Bool construct_basic_bag(bagHandle *handle, bagData *data, char *xml_file, char 
     lowres_rows = bagGetDataPointer(*handle)->def.nrows;
     lowres_cols = bagGetDataPointer(*handle)->def.ncols;
     
-    f32 *depth = (f32*)malloc(sizeof(f32)*lowres_cols);
-    f32 *uncrt = (f32*)malloc(sizeof(f32)*lowres_cols);
+    depth = (f32*)malloc(sizeof(f32)*lowres_cols);
+    uncrt = (f32*)malloc(sizeof(f32)*lowres_cols);
     
     for (row = 0; row < lowres_rows; ++row) {
         generate_data(row, lowres_cols, min_elevation, max_elevation, depth);

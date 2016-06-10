@@ -17,6 +17,8 @@
 build*/
 bin/
 lib/
+installed/
+
 
 # External libs building folders
 extlibs/hdf5/

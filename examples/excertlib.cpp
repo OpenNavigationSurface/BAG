@@ -48,6 +48,8 @@
 #ifndef _MSC_VER
 #define _strdup strdup
 #define stricmp strcasecmp
+#else
+#include <io.h>  // required for mktemp
 #endif
 
 static const char *modname = "excertlib";

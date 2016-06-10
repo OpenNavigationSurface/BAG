@@ -606,7 +606,12 @@ bagError bagCheckVariableResolution(bagHandle handle, Bool * const is_var_res, B
     bagError errcode;
     s32 n_opt_datasets;
     s32 opt_dataset_names[BAG_OPT_SURFACE_LIMIT];
+
+	Bool metadata_found = False, refinements_found = False,
+         tracking_list_found = False, nodes_found = False;
     
+	s32 n;
+
     *is_var_res = False;
     *has_extended_data = False;
     
@@ -616,8 +621,6 @@ bagError bagCheckVariableResolution(bagHandle handle, Bool * const is_var_res, B
     if (n_opt_datasets == 0)
         return BAG_SUCCESS;
     
-    Bool metadata_found = False, refinements_found = False,
-         tracking_list_found = False, nodes_found = False;
     
     for (u32 n = 0; n < (u32) n_opt_datasets; ++n) {
         switch (opt_dataset_names[n]) {

@@ -231,7 +231,7 @@ bagError bagReadCorrectedRegion (bagHandle bagHandle,
     {
         if (i >= startrow && i <= endrow)
         {
-            memset (sepData, BAG_NULL_GENERIC, sizeof(f32) * endcol-startcol+1);
+            memset (sepData, (int) BAG_NULL_GENERIC, sizeof(f32) * endcol-startcol+1);
             
             /*! By row at a time, fill the whole buffer */
             err = bagReadCorrectedRowBalance (bagHandle,  i, startcol, endcol,

@@ -1128,13 +1128,13 @@ bagError bagAllocArray (bagHandle hnd, u32 start_row, u32 start_col,
                 if (type == Node_Group)
                 {
                     ((bagOptNodeGroup*)&hnd->dataArray[type][i])->hyp_strength = BAG_NULL_ELEVATION;
-                    ((bagOptNodeGroup*)&hnd->dataArray[type][i])->num_hypotheses = BAG_NULL_ELEVATION;
+                    ((bagOptNodeGroup*)&hnd->dataArray[type][i])->num_hypotheses = (u32) BAG_NULL_ELEVATION;
                 }
                 else if (type == Elevation_Solution_Group)
                 {
                     ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->shoal_elevation = BAG_NULL_ELEVATION;
                     ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->stddev = BAG_NULL_ELEVATION;
-                    ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->num_soundings = BAG_NULL_ELEVATION;
+                    ((bagOptElevationSolutionGroup*)&hnd->dataArray[type][i])->num_soundings = (u32) BAG_NULL_ELEVATION;
                 }
                 else if (type == VarRes_Metadata_Group)
                 {
