@@ -28,7 +28,6 @@ Bool write_bag_summary(bagHandle handle, Bool const has_extended_data)
 	bagError errcode;
     s32 n_opt_datasets;
     s32 opt_dataset_names[BAG_OPT_SURFACE_LIMIT];
-    u32 n;
     bagVarResMetadataGroup min_meta_group, max_meta_group;
     bagVarResRefinementGroup min_ref_group, max_ref_group;
 

@@ -609,8 +609,6 @@ bagError bagCheckVariableResolution(bagHandle handle, Bool * const is_var_res, B
 
 	Bool metadata_found = False, refinements_found = False,
          tracking_list_found = False, nodes_found = False;
-    
-	s32 n;
 
     *is_var_res = False;
     *has_extended_data = False;
