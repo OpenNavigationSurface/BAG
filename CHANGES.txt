@@ -1,4 +1,11 @@
 =========================
+BAG v.1.6.1 Release Notes
+=========================
+
+November 28, 2016
+1. Bug fix in bag_opt_group.c to close HDF handles correctly.
+
+=========================
 BAG v.1.6.0 Release Notes
 =========================
 
