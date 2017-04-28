@@ -232,6 +232,9 @@ bagError bagCreateVarResTrackingList(bagHandle hnd, bagData *data)
         return BAG_HDF_CREATE_ATTRIBUTE_FAILURE;
     }
     status = H5Pclose(cparams);
+    status = H5Dclose(dataset_id);
+    status = H5Sclose(dataspace_id);
+    status = H5Tclose(datatype_id);
     
     printf("done\n");
     return err;

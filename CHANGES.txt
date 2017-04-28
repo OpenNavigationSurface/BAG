@@ -1,3 +1,32 @@
+=========================
+BAG v.1.6.1 Release Notes
+=========================
+
+November 28, 2016
+1. Bug fix in bag_opt_group.c to close HDF handles correctly.
+
+=========================
+BAG v.1.6.0 Release Notes
+=========================
+
+June 10, 2016.
+1.  Addition of optional layers and API functionality to support
+variable-resolution grids in BAGs, along with a fixed resolution
+mandatory layer, intended to be an approximate version of the
+variable-resolution data.
+2.  Addition of bagViewer application.  Note that since this requires
+Qt libraries, it is an optional build in the CMake system.  This needs
+to be turned on manually in the CMake GUI.
+3.  Updates to allow for code build on Microsoft Visual Studio 2015.
+4.  Modifications to build on Linux Mint.
+5.  Added missing BAG file examples from NAVO.
+6.  Updates to sections of the FSD to reflect changes since it was
+drafted.  Addition of documentation for BAG-VR implementation as a
+separate document.
+7.  Updates to library versions of HDF5 (1.8.17) and libXML2 (2.9.4) to
+allow for cleaner builds on MSVS 2015.
+8.  Minor fixes to CMake system to handle installation better.
+
 
 =========================
 BAG v.1.5.0 Release Notes
