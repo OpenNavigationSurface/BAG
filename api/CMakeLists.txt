@@ -22,25 +22,11 @@ ELSEIF(MINGW)
     SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE PATH "Location of hdf5 header files.")
 ENDIF()
 
-# 
-# beecrypt Settings
+# Crypto++
 #
-IF(MSVC)
-    # The location of the beecrypt header files.
-    SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/" CACHE PATH "Location of beecrypt header files.")
-    # The name of the beecrypt release library.
-    SET(BEECRYPT_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecryptd.lib" CACHE STRING "The name of the beecrypt release library.")
-ELSEIF(UNIX)
-    # The location of the beecrypt header files.
-    FIND_PATH(BEECRYPT_INCLUDE_DIR beecrypt/aes.h)
-    # The name of the beecrypt release library.
-    FIND_LIBRARY(BEECRYPT_LIB beecrypt DOC "The name of the beecrypt release library.")
-ELSEIF(MINGW)
-    # The location of the beecrypt header files.
-    SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/include/" CACHE PATH "Location of beecrypt header files.")
-    # The name of the beecrypt release library.
-    SET(BEECRYPT_LIB "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/lib/beecrypt" CACHE STRING "The name of the beecrypt release library.")
-ENDIF()
+
+FIND_LIBRARY(CRYPTOPP_LIB crypto++)
+FIND_PATH(CRYPTOPP_INCLUDE_DIR sha.h PATH_SUFFIXES crypto++)
 
 # 
 # libxml Settings
@@ -73,7 +59,7 @@ ELSEIF(MINGW)
     ENDIF()
 ENDIF()
 
-include_directories (${HDF5_INCLUDE_DIR} ${BEECRYPT_INCLUDE_DIR} ${LIBXML_INCLUDE_DIR}) 
+include_directories (${HDF5_INCLUDE_DIR} ${CRYPTOPP_INCLUDE_DIR} ${LIBXML_INCLUDE_DIR}) 
 
 # The debug build will have a 'd' postfix
 SET(CMAKE_DEBUG_POSTFIX  "d")
@@ -121,7 +107,7 @@ set (BAG_SOURCE_FILES
  bag_surfaces.c
  bag_tracking_list.c
  crc32.c
- onscrypto.c)
+ onscrypto.cpp)
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
  
 set (BAG_HEADER_FILES 
@@ -141,7 +127,7 @@ source_group("Header Files" FILES ${BAG_HEADER_FILES})
 add_library (bag ${LIB_TYPE} ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} )
 
 target_link_libraries(bag ${HDF5_LIB})
-target_link_libraries(bag ${BEECRYPT_LIB})
+target_link_libraries(bag ${CRYPTOPP_LIB})
 target_link_libraries(bag ${LIBXML_LIB})
 
 IF(MSVC)

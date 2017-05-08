@@ -46,12 +46,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "crc32.h"
-#include "beecrypt/aes.h"
-#include "beecrypt/dsa.h"
-#include "beecrypt/sha1.h"
-#include "beecrypt/sha256.h"
-#include "beecrypt/mpnumber.h"
-#include "beecrypt/mpbarrett.h"
+//#include "beecrypt/aes.h"
+//#include "beecrypt/dsa.h"
+//#include "beecrypt/sha1.h"
+//#include "beecrypt/sha256.h"
+//#include "beecrypt/mpnumber.h"
+//#include "beecrypt/mpbarrett.h"
+
+#include <sha.h>
+#include <dsa.h>
+#include <osrng.h>
+#include <aes.h>
+#include <modes.h>
+#include <filters.h>
 
 #define DEFAULT_MD_BUFFER_LEN	40960			/*!< The default length of blocks to digest in the Message Digest */
 #define DEFAULT_KEY_LEN		1024				/*!< Maximum bit length allowed for asymmetric keys */
@@ -148,7 +155,9 @@ Bool ons_check_cblock(char *file)
 	swap_4((void*)&file_magic);
 #endif
 	fclose(f);
-	return(file_magic == ONS_CRYPTO_BLOCK_MAGIC);
+        if (file_magic == ONS_CRYPTO_BLOCK_MAGIC)
+            return True;
+	return False;
 }
 
 /*! \brief Compute a Message Digest from a file, including arbitrary user data.
@@ -169,14 +178,15 @@ Bool ons_check_cblock(char *file)
 
 u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 {
-	static sha1Param	mdparam;
-	FILE		*f;
-	u8   		*rtn;
-    const u8    *buffer;
-	u32			n_read, tot_read, buffer_len = DEFAULT_MD_BUFFER_LEN;
-	u32			len;
-	Bool		done = False, has_crypto_block;
-    size_t elsize;
+    //static sha1Param	mdparam;
+    CryptoPP::SHA1 hash;
+    FILE           *f;
+    u8             *rtn;
+    const u8       *buffer;
+    u32            n_read, tot_read, buffer_len = DEFAULT_MD_BUFFER_LEN;
+    u32	           len;
+    Bool           done = False, has_crypto_block;
+    size_t         elsize;
 	
 #ifdef __DEBUG_HASH__
 	fprintf(stderr, "debug: computing message digest for \"%s\"\n", file);
@@ -206,10 +216,10 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 		file, len, has_crypto_block ? "has" : "has no");
 #endif
 
-	if (sha1Reset(&mdparam)) {
-		fprintf(stderr, "error: failed to set up SHA-256 for MD of \"%s\".\n", file);
-		return(NULL);
-	}
+//	if (sha1Reset(&mdparam)) {
+//		fprintf(stderr, "error: failed to set up SHA-256 for MD of \"%s\".\n", file);
+//		return(NULL);
+//	}
 
 	tot_read = 0;
 	while (!done && !feof(f)) {
@@ -232,11 +242,11 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 
         elsize = (size_t)(n_read * sizeof(u8));
 
-        
-		if (sha1Update(&mdparam, buffer, (size_t)elsize)) {
-			fprintf(stderr, "error: failed to add block to MD for \"%s\".\n", file);
-			return(NULL);
-		}
+        hash.Update(buffer,(size_t)elsize);
+		//if (sha1Update(&mdparam, buffer, (size_t)elsize)) {
+		//	fprintf(stderr, "error: failed to add block to MD for \"%s\".\n", file);
+		//	return(NULL);
+		//}
 		/* ungetc(getc(f), f); */
 	}
 
@@ -248,15 +258,10 @@ u8 *ons_gen_digest(char *file, u8 *user_data, u32 user_data_len, u32 *nbytes)
 			file, *nbytes);
 		return(NULL);
 	}
-	if (user_data != NULL && sha1Update(&mdparam, user_data, user_data_len)) {
-		fprintf(stderr, "error: failed to add user data to MD for \"%s\".\n", file);
-		return(NULL);
+	if (user_data != NULL){
+            hash.Update(user_data,user_data_len);
 	}
-	if (sha1Digest(&mdparam, rtn)) {
-		fprintf(stderr, "error: failed to compute MD from \"%s\".\n", file);
-		free(rtn);
-		return(NULL);
-	}
+	hash.Final(rtn);
 #ifdef __DEBUG_HASH__
 	fprintf(stderr, "debug: hash of \"%s\" is: ", file);
 	for (len = 0; len < 20; ++len)
@@ -673,22 +678,22 @@ u8 *ons_ascii_to_key(char *key, OnsCryptErr *errcd)
  * \return		Pointer to the ONS internal format number, or NULL on failure.
  */
 
-static u8 *ons_mpn_to_int(mpnumber *mpi)
-{
-	u8	*buffer;
-	u32	nbits, nbytes;
-	
-	nbits = (u32)mpnbits(mpi);
-	nbytes = ((nbits + 7)>>3) + (((nbits & 7) == 0) ? 1 : 0);
-	
-	if ((buffer = (u8*)malloc(nbytes + 1)) == NULL) {
-		fprintf(stderr, "error: no memory for MPI conversion (need %d bytes).\n", nbytes);
-		return(NULL);
-	}
-	i2osp(buffer+1, nbytes, mpi->data, mpi->size);
-	buffer[0] = (u8)(nbytes & 0xFF);
-	return(buffer);
-}
+// static u8 *ons_mpn_to_int(mpnumber *mpi)
+// {
+// 	u8	*buffer;
+// 	u32	nbits, nbytes;
+// 	
+// 	nbits = (u32)mpnbits(mpi);
+// 	nbytes = ((nbits + 7)>>3) + (((nbits & 7) == 0) ? 1 : 0);
+// 	
+// 	if ((buffer = (u8*)malloc(nbytes + 1)) == NULL) {
+// 		fprintf(stderr, "error: no memory for MPI conversion (need %d bytes).\n", nbytes);
+// 		return(NULL);
+// 	}
+// 	i2osp(buffer+1, nbytes, mpi->data, mpi->size);
+// 	buffer[0] = (u8)(nbytes & 0xFF);
+// 	return(buffer);
+// }
 
 /*! \brief Convert from BeeCrypt MPB ormat to ONS internal format
  *
@@ -699,22 +704,22 @@ static u8 *ons_mpn_to_int(mpnumber *mpi)
  * \return			Pointer to the ONS internal format bytestream, or NULL on failure.
  */
 
-static u8 *ons_mpb_to_int(mpbarrett *mpb)
-{
-	u8	*buffer;
-	u32	nbits, nbytes;
-	
-	nbits = (u32)mpbbits(mpb);
-	nbytes = ((nbits + 7)>>3) + (((nbits & 7) == 0) ? 1 : 0);
-	
-	if ((buffer = (u8*)malloc(nbytes + 1)) == NULL) {
-		fprintf(stderr, "error: no memory for MPI conversion (need %d bytes).\n", nbytes);
-		return(NULL);
-	}
-	i2osp(buffer+1, nbytes, mpb->modl, mpb->size);
-	buffer[0] = (u8)(nbytes & 0xFF);
-	return(buffer);
-}
+// static u8 *ons_mpb_to_int(mpbarrett *mpb)
+// {
+// 	u8	*buffer;
+// 	u32	nbits, nbytes;
+// 	
+// 	nbits = (u32)mpbbits(mpb);
+// 	nbytes = ((nbits + 7)>>3) + (((nbits & 7) == 0) ? 1 : 0);
+// 	
+// 	if ((buffer = (u8*)malloc(nbytes + 1)) == NULL) {
+// 		fprintf(stderr, "error: no memory for MPI conversion (need %d bytes).\n", nbytes);
+// 		return(NULL);
+// 	}
+// 	i2osp(buffer+1, nbytes, mpb->modl, mpb->size);
+// 	buffer[0] = (u8)(nbytes & 0xFF);
+// 	return(buffer);
+// }
 
 /*! \brief Convert from ONS internal format to BeeCrypt MPN format
  *
@@ -726,22 +731,22 @@ static u8 *ons_mpb_to_int(mpbarrett *mpb)
  * \return			Pointer to the BeeCrypt MPN, or NULL on failure.
  */
 
-static mpnumber *ons_int_to_mpn(u8 *num)
-{
-	u32			nbytes = (u32)(num[0]);
-	mpnumber	*mpi;
-	
-	if ((mpi = (mpnumber *)malloc(sizeof(mpnumber))) == NULL) {
-		fprintf(stderr, "error: failed to get memory for MPI.\n");
-		return(NULL);
-	}
-	
-	mpnzero(mpi);
-	mpnsetbin(mpi, num+1, nbytes);
-
-	
-	return(mpi);
-}
+// static mpnumber *ons_int_to_mpn(u8 *num)
+// {
+// 	u32			nbytes = (u32)(num[0]);
+// 	mpnumber	*mpi;
+// 	
+// 	if ((mpi = (mpnumber *)malloc(sizeof(mpnumber))) == NULL) {
+// 		fprintf(stderr, "error: failed to get memory for MPI.\n");
+// 		return(NULL);
+// 	}
+// 	
+// 	mpnzero(mpi);
+// 	mpnsetbin(mpi, num+1, nbytes);
+// 
+// 	
+// 	return(mpi);
+// }
 
 /*! \brief Convert from ONS internal format number to BeeCrypt MPB number.
  *
@@ -752,21 +757,21 @@ static mpnumber *ons_int_to_mpn(u8 *num)
  * \return			Pointer to the BeeCrypt MPB number, or NULL on failure.
  */
 
-static mpbarrett *ons_int_to_mpb(u8 *num)
-{
-	u32			nbytes = (u32)(num[0]);
-	mpbarrett	*mpb;
-	
-	if ((mpb = (mpbarrett *)malloc(sizeof(mpbarrett))) == NULL) {
-		fprintf(stderr, "error: failed to get memory for MPB.\n");
-		return(NULL);
-	}
-	
-	mpbzero(mpb);
-	mpbsetbin(mpb, num+1, nbytes);
-	
-	return(mpb);
-}
+// static mpbarrett *ons_int_to_mpb(u8 *num)
+// {
+// 	u32			nbytes = (u32)(num[0]);
+// 	mpbarrett	*mpb;
+// 	
+// 	if ((mpb = (mpbarrett *)malloc(sizeof(mpbarrett))) == NULL) {
+// 		fprintf(stderr, "error: failed to get memory for MPB.\n");
+// 		return(NULL);
+// 	}
+// 	
+// 	mpbzero(mpb);
+// 	mpbsetbin(mpb, num+1, nbytes);
+// 	
+// 	return(mpb);
+// }
 
 /*! \brief Convert from an BeeCrypt format into ONS internal key bytestreamm.
  *
@@ -781,38 +786,38 @@ static mpbarrett *ons_int_to_mpb(u8 *num)
  * \return			Pointer to the ONS internal format bytestream, or NULL on failure.
  */
 
-static u8 *ons_key_to_int(dsaparam *param, mpnumber *key)
-{
-	u32		nbytes, offset;
-	u8		*inp, *inq, *ing, *ink, *rtn;
-	
-	inp = inq = ing = ink = NULL;
-	if ((inp = ons_mpb_to_int(&param->p)) == NULL || (inq = ons_mpb_to_int(&param->q)) == NULL ||
-		(ing = ons_mpn_to_int(&param->g)) == NULL || (ink = ons_mpn_to_int(key)) == NULL) {
-		fprintf(stderr, "error: failed to convert key to internal format.\n");
-		free(inp); free(inq); free(ing); free(ink);
-		return(NULL);
-	}
-	nbytes = 1 + (inp[0] + 1) + (inq[0] + 1) + (ing[0] + 1) + (ink[0] + 1);
-	if ((rtn = (u8*)malloc(nbytes + 4 /* CRC */)) == NULL) {
-		fprintf(stderr, "error: failed to get memory for internal format key.\n");
-		free(inp); free(inq); free(ing); free(ink);	
-		return(NULL);
-	}
-	rtn[0] = 4; offset = 1;
-	memcpy(rtn + offset, inp, inp[0] + 1); offset += inp[0] + 1;
-	memcpy(rtn + offset, inq, inq[0] + 1); offset += inq[0] + 1;
-	memcpy(rtn + offset, ing, ing[0] + 1); offset += ing[0] + 1;
-	memcpy(rtn + offset, ink, ink[0] + 1); offset += ink[0] + 1;
-	*((u32*)(rtn + offset)) = crc32_calc_buffer((char *)rtn, nbytes);
-
-#ifdef __BAG_BIG_ENDIAN__
-	swap_4((void*)(rtn + offset));
-#endif
-
-	free(inp); free(inq); free(ing); free(ink);	
-	return(rtn);
-}
+// static u8 *ons_key_to_int(dsaparam *param, mpnumber *key)
+// {
+// 	u32		nbytes, offset;
+// 	u8		*inp, *inq, *ing, *ink, *rtn;
+// 	
+// 	inp = inq = ing = ink = NULL;
+// 	if ((inp = ons_mpb_to_int(&param->p)) == NULL || (inq = ons_mpb_to_int(&param->q)) == NULL ||
+// 		(ing = ons_mpn_to_int(&param->g)) == NULL || (ink = ons_mpn_to_int(key)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert key to internal format.\n");
+// 		free(inp); free(inq); free(ing); free(ink);
+// 		return(NULL);
+// 	}
+// 	nbytes = 1 + (inp[0] + 1) + (inq[0] + 1) + (ing[0] + 1) + (ink[0] + 1);
+// 	if ((rtn = (u8*)malloc(nbytes + 4 /* CRC */)) == NULL) {
+// 		fprintf(stderr, "error: failed to get memory for internal format key.\n");
+// 		free(inp); free(inq); free(ing); free(ink);	
+// 		return(NULL);
+// 	}
+// 	rtn[0] = 4; offset = 1;
+// 	memcpy(rtn + offset, inp, inp[0] + 1); offset += inp[0] + 1;
+// 	memcpy(rtn + offset, inq, inq[0] + 1); offset += inq[0] + 1;
+// 	memcpy(rtn + offset, ing, ing[0] + 1); offset += ing[0] + 1;
+// 	memcpy(rtn + offset, ink, ink[0] + 1); offset += ink[0] + 1;
+// 	*((u32*)(rtn + offset)) = crc32_calc_buffer((char *)rtn, nbytes);
+// 
+// #ifdef __BAG_BIG_ENDIAN__
+// 	swap_4((void*)(rtn + offset));
+// #endif
+// 
+// 	free(inp); free(inq); free(ing); free(ink);	
+// 	return(rtn);
+// }
 
 /*! \brief Convert from ONS internal bytestream key to BeeCrypt key parameters.
  *
@@ -828,40 +833,40 @@ static u8 *ons_key_to_int(dsaparam *param, mpnumber *key)
  * \return			True on success, otherwise False.
  */
 
-static Bool ons_int_to_key(u8 *in, mpbarrett **p, mpbarrett **q, mpnumber **g, mpnumber **key)
-{
-	u32	offset;
-	
-	if (in[0] != 4) {
-		fprintf(stderr, "error: internal format doesn't have four integers!\n");
-		return(False);
-	}
-	offset = 1;
-	if ((*p = ons_int_to_mpb(in + offset)) == NULL) {
-		fprintf(stderr, "error: failed to convert P element for DSA signature.\n");
-		return(False);
-	}
-	offset += in[offset] + 1;
-	if ((*q = ons_int_to_mpb(in + offset)) == NULL) {
-		fprintf(stderr, "error: failed to convert Q element for DSA signature.\n");
-		mpbfree(*p); free(*p);
-		return(False);
-	}
-	offset += in[offset] + 1;
-	if ((*g = ons_int_to_mpn(in + offset)) == NULL) {
-		fprintf(stderr, "error: failed to convert G element for DSA signature.\n");
-		mpbfree(*p); free(*p); mpbfree(*q); free(*q);
-		return(False);
-	}
-	offset += in[offset] + 1;
-	if ((*key = ons_int_to_mpn(in + offset)) == NULL) {
-		fprintf(stderr, "error: failed to convert key element for DSA signature.\n");
-		mpbfree(*p); free(*p); mpbfree(*q); free(*q); mpnfree(*g); free(*g);
-		return(False);
-	}
-
-	return(True);
-}
+// static Bool ons_int_to_key(u8 *in, mpbarrett **p, mpbarrett **q, mpnumber **g, mpnumber **key)
+// {
+// 	u32	offset;
+// 	
+// 	if (in[0] != 4) {
+// 		fprintf(stderr, "error: internal format doesn't have four integers!\n");
+// 		return(False);
+// 	}
+// 	offset = 1;
+// 	if ((*p = ons_int_to_mpb(in + offset)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert P element for DSA signature.\n");
+// 		return(False);
+// 	}
+// 	offset += in[offset] + 1;
+// 	if ((*q = ons_int_to_mpb(in + offset)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert Q element for DSA signature.\n");
+// 		mpbfree(*p); free(*p);
+// 		return(False);
+// 	}
+// 	offset += in[offset] + 1;
+// 	if ((*g = ons_int_to_mpn(in + offset)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert G element for DSA signature.\n");
+// 		mpbfree(*p); free(*p); mpbfree(*q); free(*q);
+// 		return(False);
+// 	}
+// 	offset += in[offset] + 1;
+// 	if ((*key = ons_int_to_mpn(in + offset)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert key element for DSA signature.\n");
+// 		mpbfree(*p); free(*p); mpbfree(*q); free(*q); mpnfree(*g); free(*g);
+// 		return(False);
+// 	}
+// 
+// 	return(True);
+// }
 
 /*! \brief Generate an asymmetric key-pair for DSA usage.
  *
@@ -880,35 +885,22 @@ static Bool ons_int_to_key(u8 *in, mpbarrett **p, mpbarrett **q, mpnumber **g, m
 
 OnsCryptErr ons_generate_keys(u8 **pkey, u8 **skey)
 {
-	dsaparam				param;
-	randomGeneratorContext	rgc;
-	mpnumber				priv, pub;
-	
-	if (randomGeneratorContextInit(&rgc, randomGeneratorDefault()) != 0) {
-		fprintf(stderr, "error: failed to initialise RNG for DSA signature.\n");
-		return(ONS_CRYPTO_ERR);
-	}
-	dldp_pInit(&param);
-	if (dsaparamMake(&param, &rgc, DEFAULT_KEY_LEN)) {
-		fprintf(stderr, "error: failed to make key for DSA signature (length %d bits).\n", DEFAULT_KEY_LEN);
-		randomGeneratorContextFree(&rgc);
-		return(ONS_CRYPTO_ERR);
-	}
-	mpnzero(&priv); mpnzero(&pub);
-	if (dldp_pPair(&param, &rgc, &priv, &pub)) {
-		fprintf(stderr, "error: failed to make keys for DSA signature (length %d bits).\n", DEFAULT_KEY_LEN);
-		randomGeneratorContextFree(&rgc);
-		return(ONS_CRYPTO_ERR);
-	}
-	randomGeneratorContextFree(&rgc);
-	
-	*pkey = *skey = NULL;
-	if ((*pkey = ons_key_to_int(&param, &pub)) == NULL || (*skey = ons_key_to_int(&param, &priv)) == NULL) {
-		fprintf(stderr, "error: failed to convert keys into internal format for DSA algorithm.\n");
-		free(*pkey); free(*skey);
-		return(ONS_CRYPTO_ERR);
-	}
-	return(ONS_CRYPTO_OK);
+    
+    CryptoPP::AutoSeededRandomPool rng;
+
+   // Generate Private Key
+   CryptoPP::DSA::PrivateKey *privateKey = new CryptoPP::DSA::PrivateKey();
+   privateKey->GenerateRandomWithKeySize(rng, DEFAULT_KEY_LEN);
+   
+   // Generate Public Key   
+   CryptoPP::DSA::PublicKey *publicKey = new CryptoPP::DSA::PublicKey();
+   publicKey->AssignFrom(*privateKey);
+   
+   *skey = reinterpret_cast<u8*>(privateKey);
+   *pkey = reinterpret_cast<u8*>(publicKey);
+   
+   return(ONS_CRYPTO_OK);
+   
 }
 
 /*! \brief Convert from a BeeCypt signature into an ONS internal format bytestream.
@@ -924,31 +916,31 @@ OnsCryptErr ons_generate_keys(u8 **pkey, u8 **skey)
  *				on failure.
  */
 
-static u8 *ons_sig_to_int(mpnumber *r, mpnumber *s)
-{
-	u32	nbytes, offset;
-	u8	*inr, *ins, *rtn;
-	
-	inr = ins = NULL;
-	if ((inr = ons_mpn_to_int(r)) == NULL || (ins = ons_mpn_to_int(s)) == NULL) {
-		fprintf(stderr, "error: failed to convert signature to internal format.\n");
-		free(inr); free(ins);
-		return(NULL);
-	}
-	nbytes = 1 + (inr[0] + 1) + (ins[0] + 1);
-	if ((rtn = (u8*)malloc(nbytes + sizeof(u32))) == NULL) {
-		fprintf(stderr, "error: failed to get memory for internal format signature.\n");
-		return(NULL);
-	}
-	rtn[0] = 2; offset = 1;
-	memcpy(rtn + offset, inr, inr[0] + 1); offset += inr[0] + 1;
-	memcpy(rtn + offset, ins, ins[0] + 1); offset += ins[0] + 1;
-	*((u32*)(rtn + offset)) = crc32_calc_buffer((char *)rtn, nbytes);
-#ifdef __BAG_BIG_ENDIAN__
-	swap_4((void*)(rtn + offset));
-#endif
-	return(rtn);
-}
+// static u8 *ons_sig_to_int(mpnumber *r, mpnumber *s)
+// {
+// 	u32	nbytes, offset;
+// 	u8	*inr, *ins, *rtn;
+// 	
+// 	inr = ins = NULL;
+// 	if ((inr = ons_mpn_to_int(r)) == NULL || (ins = ons_mpn_to_int(s)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert signature to internal format.\n");
+// 		free(inr); free(ins);
+// 		return(NULL);
+// 	}
+// 	nbytes = 1 + (inr[0] + 1) + (ins[0] + 1);
+// 	if ((rtn = (u8*)malloc(nbytes + sizeof(u32))) == NULL) {
+// 		fprintf(stderr, "error: failed to get memory for internal format signature.\n");
+// 		return(NULL);
+// 	}
+// 	rtn[0] = 2; offset = 1;
+// 	memcpy(rtn + offset, inr, inr[0] + 1); offset += inr[0] + 1;
+// 	memcpy(rtn + offset, ins, ins[0] + 1); offset += ins[0] + 1;
+// 	*((u32*)(rtn + offset)) = crc32_calc_buffer((char *)rtn, nbytes);
+// #ifdef __BAG_BIG_ENDIAN__
+// 	swap_4((void*)(rtn + offset));
+// #endif
+// 	return(rtn);
+// }
 
 /*! \brief Convert from ONS internal bytestream format to BeeCrypt compatible numbers.
  *
@@ -961,40 +953,40 @@ static u8 *ons_sig_to_int(mpnumber *r, mpnumber *s)
  * \return			Suitable error code, or ONS_CRYPTO_OK on success.
  */
 
-static OnsCryptErr ons_int_to_sig(u8 *sig, mpnumber **r, mpnumber **s)
-{
-	u32	n_ints, in_crc, sig_crc, sig_len, offset;
-	
-	sig_len = ons_compute_int_len(sig);
-	sig_crc = *((u32*)(sig + sig_len));
-
-#ifdef __BAG_BIG_ENDIAN__
-	swap_4((void*)&sig_crc);
-#endif
-
-	in_crc = crc32_calc_buffer((char *)sig, sig_len);
-	if (sig_crc != in_crc) {
-		fprintf(stderr, "error: failed CRC32 check on signature on input.\n");
-		return(ONS_CRYPTO_ERR);
-	}
-	n_ints = (u32)sig[0];
-	if (n_ints != 2) {
-		fprintf(stderr, "error: internal data is not a signature (not two elements).\n");
-		return(ONS_CRYPTO_ERR);
-	}
-	offset = 1; *r = *s = NULL;
-	if ((*r = ons_int_to_mpn(sig + offset)) == NULL) {
-		fprintf(stderr, "error: failed to convert R component of DSA signature.\n");
-		return(ONS_CRYPTO_ERR);
-	}
-	offset += sig[offset] + 1;
-	if ((*s = ons_int_to_mpn(sig + offset)) == NULL) {
-		fprintf(stderr, "error: failed to convert S component of DSA signature.\n");
-		mpnfree(*r);
-		return(ONS_CRYPTO_ERR);
-	}
-	return(ONS_CRYPTO_OK);
-}
+// static OnsCryptErr ons_int_to_sig(u8 *sig, mpnumber **r, mpnumber **s)
+// {
+// 	u32	n_ints, in_crc, sig_crc, sig_len, offset;
+// 	
+// 	sig_len = ons_compute_int_len(sig);
+// 	sig_crc = *((u32*)(sig + sig_len));
+// 
+// #ifdef __BAG_BIG_ENDIAN__
+// 	swap_4((void*)&sig_crc);
+// #endif
+// 
+// 	in_crc = crc32_calc_buffer((char *)sig, sig_len);
+// 	if (sig_crc != in_crc) {
+// 		fprintf(stderr, "error: failed CRC32 check on signature on input.\n");
+// 		return(ONS_CRYPTO_ERR);
+// 	}
+// 	n_ints = (u32)sig[0];
+// 	if (n_ints != 2) {
+// 		fprintf(stderr, "error: internal data is not a signature (not two elements).\n");
+// 		return(ONS_CRYPTO_ERR);
+// 	}
+// 	offset = 1; *r = *s = NULL;
+// 	if ((*r = ons_int_to_mpn(sig + offset)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert R component of DSA signature.\n");
+// 		return(ONS_CRYPTO_ERR);
+// 	}
+// 	offset += sig[offset] + 1;
+// 	if ((*s = ons_int_to_mpn(sig + offset)) == NULL) {
+// 		fprintf(stderr, "error: failed to convert S component of DSA signature.\n");
+// 		mpnfree(*r);
+// 		return(ONS_CRYPTO_ERR);
+// 	}
+// 	return(ONS_CRYPTO_OK);
+// }
 
 /*! \brief Sign a digest (or other data) using the Digital Signature Algorithm.
  *
@@ -1013,43 +1005,21 @@ static OnsCryptErr ons_int_to_sig(u8 *sig, mpnumber **r, mpnumber **s)
 
 u8 *ons_sign_digest(u8 *md, u32 nbytes, u8 *skey, OnsCryptErr *errcd)
 {
-	u8			*rtn;
-	mpbarrett	*p, *q;
-	mpnumber	*x, *g, r, s, digest;
-	randomGeneratorContext	rgc;
-	
-	if (!ons_int_to_key(skey, &p, &q, &g, &x)) {
-		fprintf(stderr, "error: failed to convert key to gcrypt format.\n");
-		return(NULL);
-	}
-	if (randomGeneratorContextInit(&rgc, randomGeneratorDefault()) != 0) {
-		fprintf(stderr, "error: failed to initialise RNG for DSA signature.\n");
-		mpnfree(x); free(x);
-		mpbfree(p); free(p); mpbfree(q); free(q); mpnfree(g); free(g);
-		return(NULL);
-	}
-
-	mpnzero(&digest);
-	mpnsetbin(&digest, md, nbytes);
-	mpnzero(&r); mpnzero(&s);
-
-	if (dsasign(p, q, g, &rgc, &digest, x, &r, &s) != 0) {
-		fprintf(stderr, "error: failed to sign digest with DSA method.\n");
-		mpnfree(x); free(x); mpnfree(&digest); mpnfree(&r); mpnfree(&s);
-		mpbfree(p); free(p); mpbfree(q); free(q); mpnfree(g); free(g);
-		return(NULL);
-	}
-
-	randomGeneratorContextFree(&rgc);
-	mpnfree(x); free(x); mpnfree(&digest);
-	mpbfree(p); free(p); mpbfree(q); free(q); mpnfree(g); free(g);
-	if ((rtn = ons_sig_to_int(&r, &s)) == NULL) {
-		fprintf(stderr, "error: failed to convert signature into internal format.\n");
-		*errcd = ONS_CRYPTO_ERR;
-		return(NULL);
-	}
-	mpnfree(&r); mpnfree(&s);
-	return(rtn);
+    u8  *rtn;
+    CryptoPP::AutoSeededRandomPool rng;
+    
+    
+    CryptoPP::DSA::PrivateKey *privateKey = reinterpret_cast<CryptoPP::DSA::PrivateKey*>(skey);
+    
+    std::string mdString(md,&md[nbytes]);
+    
+    CryptoPP::DSA::Signer signer(*privateKey);
+    
+    std::string* signature = new std::string;
+    CryptoPP::StringSource ss(mdString, true, new CryptoPP::SignerFilter(rng, signer, new CryptoPP::StringSink(*signature)));
+    
+    rtn = reinterpret_cast<u8*>(signature);
+    return rtn;
 }
 
 /*! \brief Compute the signature for a file, avoiding the ONSCrypto block if reqquired.
@@ -1132,33 +1102,20 @@ Bool ons_sign_file(char *name, u8 *skey, u32 sigid)
 
 Bool ons_verify_signature(u8 *sig, u8 *pkey, u8 *digest, u32 dig_len)
 {
-	mpnumber	*r = NULL, *s = NULL, *g = NULL, *y = NULL, md;
-	mpbarrett	*p = NULL, *q = NULL;
-	Bool		rc;
-	
-	if (ons_int_to_sig(sig, &r, &s) != ONS_CRYPTO_OK) {
-		fprintf(stderr, "error: failed to convert signature to check format.\n");
-		return(False);
-	}
-	if (!ons_int_to_key(pkey, &p, &q, &g, &y)) {
-		fprintf(stderr, "error: failed to convert key to check format.\n");
-		mpnfree(r); mpnfree(s); free(r); free(s);
-		return(False);
-	}
-	mpnzero(&md);
-	mpnsetbin(&md, digest, dig_len);
-	if (dsavrfy(p, q, g, &md, y, r, s) == 0) {
-		rc = False;
-		fprintf(stderr, "error: verification failed.\n");
-	} else
-		rc = True;
-	if (r != NULL) { mpnfree(r); free(r); }
-	if (s != NULL) { mpnfree(s); free(s); }
-	if (y != NULL) { mpnfree(y); free(y); }
-	if (p != NULL) { mpbfree(p); free(p); }
-	if (q != NULL) { mpbfree(q); free(q); }
-	if (g != NULL) { mpnfree(g); free(g); }
-	return(rc);
+    CryptoPP::DSA::PublicKey *publicKey = reinterpret_cast<CryptoPP::DSA::PublicKey *>(pkey);
+    CryptoPP::DSA::Verifier verifier(*publicKey);
+    
+    std::string digestString(digest,&digest[dig_len]);
+    std::string *signature = reinterpret_cast<std::string *>(sig);
+    
+    CryptoPP::StringSource ss( digestString+ (*signature), true,
+        new CryptoPP::SignatureVerificationFilter(
+            verifier, NULL, CryptoPP::SignatureVerificationFilter::THROW_EXCEPTION
+            /* SIGNATURE_AT_END */
+        )
+    );
+
+    return True;
 }
 
 /*! \brief Verify the signature in a file using the public key and Sequentual Signature ID.
@@ -1222,17 +1179,18 @@ Bool ons_verify_file(char *name, u8 *pkey, u32 sig_id)
 
 u8 *ons_phrase_to_key(char *phrase)
 {
-	u8			*rtn;
-	sha256Param	param;
-	
-	if ((rtn = (u8*)malloc(32)) == NULL) {
-		fprintf(stderr, "error: no memory for symcrypt key buffer.\n");
-		return(NULL);
-	}
-	sha256Reset(&param);
-	sha256Update(&param, (unsigned char *) phrase, strlen(phrase));
-	sha256Digest(&param, rtn);
-	return(rtn);
+    u8 *rtn;
+    
+    if ((rtn = (u8*)malloc(32)) == NULL) {
+        fprintf(stderr, "error: no memory for symcrypt key buffer.\n");
+        return(NULL);
+    }
+    
+    CryptoPP::SHA256 hash;
+    hash.Update((byte *)phrase,strlen(phrase));
+    hash.Final(rtn);
+    
+    return(rtn);
 }
 
 /*! \brief Encrypts the secret key passed with a suitable symmetric crypotgraphy scheme.
@@ -1254,8 +1212,10 @@ u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
 {
 	u32			seckey_len, in_crc, crc, block, n_blocks, nbytes, residual, b;
 	u8			feedback[16], *rtn, *dst;
-	aesParam	param;
-	randomGeneratorContext	rgc;
+        
+	//aesParam	param;
+	//randomGeneratorContext	rgc;
+        CryptoPP::AutoSeededRandomPool rng;
 	
 	seckey_len = ons_compute_int_len(seckey);
 	/* Check that the input seckey is a valid internal format (CRC32) */
@@ -1285,40 +1245,55 @@ u8 *ons_encrypt_key(u8 *seckey, u8 *aeskey, u32 *out_len)
 	/* Generate 16-bytes (128-bit) of random input to initialise the CBC feedback register, and
 	 * write out to output.
 	 */
-	randomGeneratorContextInit(&rgc, randomGeneratorDefault());
-	randomGeneratorContextNext(&rgc, feedback, 16);
-	randomGeneratorContextFree(&rgc);
+	//randomGeneratorContextInit(&rgc, randomGeneratorDefault());
+	//randomGeneratorContextNext(&rgc, feedback, 16);
+	//randomGeneratorContextFree(&rgc);
+	rng.GenerateBlock(feedback,16);
 	
 	memcpy(rtn, feedback, 16);
 	dst = rtn + 16;
 	
+        
+        CryptoPP::AES::Encryption aesEncription(aeskey,32);
+        CryptoPP::CBC_Mode_ExternalCipher::Encryption cbcEncryption(aesEncription, feedback);
+        
+        std::string ciphertext;
+        
+        CryptoPP::StreamTransformationFilter stfEncryptor(cbcEncryption, new CryptoPP::StringSink(ciphertext));
+        stfEncryptor.Put(seckey,seckey_len);
+        stfEncryptor.MessageEnd();
+        
+        memcpy(dst,ciphertext.c_str(),ciphertext.length());
+        dst += ciphertext.length();
+        
+        
 	/* Generate the context for AES implementation, then run CBC feedback over all blocks */
-	if (aesSetup(&param, aeskey, 256, ENCRYPT) != 0) {
-		fprintf(stderr, "error: failed to setup for AES256 encryption.\n");
-		return(NULL);
-	}
+// 	if (aesSetup(&param, aeskey, 256, ENCRYPT) != 0) {
+// 		fprintf(stderr, "error: failed to setup for AES256 encryption.\n");
+// 		return(NULL);
+// 	}
 	
-	for (block = 0; block < n_blocks; ++block) {
-		for (b = 0; b < 16; ++b)
-			feedback[b] ^= *seckey++;
-		if (aesEncrypt(&param, (u32*)dst, (u32*)feedback) != 0) {
-			fprintf(stderr, "error: failed to encrypt block %d of AES words.\n", block);
-			free(rtn);
-			return(NULL);
-		}
-		memcpy(feedback, dst, 16);
-		dst += 16;
-	}
-	if (residual != 0) {
-		for (b = 0; b < residual; ++b)
-			feedback[b] ^= *seckey++;
-		if (aesEncrypt(&param, (u32*)dst, (u32*)feedback) != 0) {
-			fprintf(stderr, "error: failed to encrypt last block of AES words.\n");
-			free(rtn);
-			return(NULL);
-		}
-		dst += 16;
-	}
+// 	for (block = 0; block < n_blocks; ++block) {
+// 		for (b = 0; b < 16; ++b)
+// 			feedback[b] ^= *seckey++;
+// 		if (aesEncrypt(&param, (u32*)dst, (u32*)feedback) != 0) {
+// 			fprintf(stderr, "error: failed to encrypt block %d of AES words.\n", block);
+// 			free(rtn);
+// 			return(NULL);
+// 		}
+// 		memcpy(feedback, dst, 16);
+// 		dst += 16;
+// 	}
+// 	if (residual != 0) {
+// 		for (b = 0; b < residual; ++b)
+// 			feedback[b] ^= *seckey++;
+// 		if (aesEncrypt(&param, (u32*)dst, (u32*)feedback) != 0) {
+// 			fprintf(stderr, "error: failed to encrypt last block of AES words.\n");
+// 			free(rtn);
+// 			return(NULL);
+// 		}
+// 		dst += 16;
+// 	}
 	
 	/* Tag end of sequence with CRC32 to provide some transmission protection */
 	*((u32*)dst) = crc32_calc_buffer((char *)rtn, nbytes-4);
@@ -1349,7 +1324,9 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 {
 	u8			*rtn, *buffer, feedback[16], *src, *dst;
 	u32			crc, in_crc, block, n_blocks, seckey_len, nbytes, b;
-	aesParam	param;
+	//aesParam	param;
+        
+        
 	
 	crc = crc32_calc_buffer((char *)ctext, nin-4);
 	in_crc = *((u32*)(ctext + nin - 4));
@@ -1378,33 +1355,44 @@ u8 *ons_decrypt_key(u8 *ctext, u32 nin, u8 *aeskey, OnsCryptErr *errc)
 	src = ctext + 16;
 	dst = buffer;
 	
-	if (aesSetup(&param, aeskey, 256, DECRYPT) != 0) {
-		fprintf(stderr, "error: failed to initialise AES for decryption of secret key.\n");
-		free(buffer);
-		*errc = ONS_CRYPTO_ERR;
-		return(NULL);
-	}
-	
-	/* Run all blocks, using CBC feedback */
-	for (block = 0; block < n_blocks; ++block) {
-		if (aesDecrypt(&param, (u32*)dst, (u32*)src) != 0) {
-			fprintf(stderr, "error: failed to decrypt block %d of secret key.\n", block);
-			free(buffer);
-			*errc = ONS_CRYPTO_ERR;
-			return(NULL);
-		}
-		for (b = 0; b < 16; ++b)
-			*dst++ ^= feedback[b];
-		memcpy(feedback, src, 16); src += 16;
-	}	
-	
-	/* Size output, allocate final return space and compute CRC */
-	if ((u32)buffer[0] != 4) {
-		fprintf(stderr, "error: decrypted secret key is not a valid secret key.\n");
-		free(buffer);
-		*errc = ONS_CRYPTO_BAD_KEY;
-		return(NULL);
-	}
+        CryptoPP::AES::Decryption aesDecryption(aeskey,32);
+        CryptoPP::CBC_Mode_ExternalCipher::Decryption cbcDecyption(aesDecryption, feedback);
+        
+// 	if (aesSetup(&param, aeskey, 256, DECRYPT) != 0) {
+// 		fprintf(stderr, "error: failed to initialise AES for decryption of secret key.\n");
+// 		free(buffer);
+// 		*errc = ONS_CRYPTO_ERR;
+// 		return(NULL);
+// 	}
+        
+        std::string decryptedtext;
+
+        CryptoPP::StreamTransformationFilter stfDecryptor(cbcDecyption, new CryptoPP::StringSink(decryptedtext));
+        stfDecryptor.Put(src,nin-4);
+        stfDecryptor.MessageEnd();
+        
+        memcpy(dst,decryptedtext.c_str(),nin-4);
+        
+// 	/* Run all blocks, using CBC feedback */
+// 	for (block = 0; block < n_blocks; ++block) {
+// 		if (aesDecrypt(&param, (u32*)dst, (u32*)src) != 0) {
+// 			fprintf(stderr, "error: failed to decrypt block %d of secret key.\n", block);
+// 			free(buffer);
+// 			*errc = ONS_CRYPTO_ERR;
+// 			return(NULL);
+// 		}
+// 		for (b = 0; b < 16; ++b)
+// 			*dst++ ^= feedback[b];
+// 		memcpy(feedback, src, 16); src += 16;
+// 	}	
+// 	
+// 	/* Size output, allocate final return space and compute CRC */
+// 	if ((u32)buffer[0] != 4) {
+// 		fprintf(stderr, "error: decrypted secret key is not a valid secret key.\n");
+// 		free(buffer);
+// 		*errc = ONS_CRYPTO_BAD_KEY;
+// 		return(NULL);
+// 	}
 	seckey_len = ons_compute_int_len(buffer);
 	nbytes = seckey_len + 4 /* CRC */;
 	if ((rtn = (u8*)malloc(nbytes)) == NULL) {
