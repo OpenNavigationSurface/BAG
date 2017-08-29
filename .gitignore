@@ -14,14 +14,26 @@
 *.dmg
 
 # Library building folders
+*.build
+*.xcodeproj
 build*/
 bin/
 lib/
 installed/
+api/Debug
+api/Release
+examples/Debug
+examples/Release
 
+# CMake nonsense
+api/CMakeScripts
+CMakeFiles
+CMakeScripts
+cmake_install.cmake
+CMakeCache.txt
 
 # External libs building folders
-extlibs/hdf5/
+extlibs/hdf5-*
 extlibs/beecrypt/
 extlibs/libxml2/
 extlibs/zlib/
