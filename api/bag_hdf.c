@@ -1179,7 +1179,7 @@ bagError bagGetErrorString(bagError code, u8 **error)
         strncpy (str, "The BAG_HOME environment variable must be set to the configdata directory of the openns distribution", MAX_STR-1);
         break;
     case BAG_METADTA_SCHEMA_FILE_MISSING:
-        strncpy (str, "Metadata schema file(s) (*.xsd) was missing, they should be within configdata under smXML. Check BAG_HOME path", MAX_STR-1);
+        strncpy (str, "Metadata schema file(s) (*.xsd) was missing, they should be within configdata under smXML or ISO19139/bag. Check BAG_HOME path", MAX_STR-1);
         break;
     case BAG_METADTA_PARSE_MEM_EXCEPTION:
         strncpy (str, "Metadata exceeded memory limit during parsing", MAX_STR-1);
