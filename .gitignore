@@ -33,7 +33,7 @@ cmake_install.cmake
 CMakeCache.txt
 
 # External libs building folders
-extlibs/hdf5-*
+extlibs/hdf5*/
 extlibs/beecrypt/
 extlibs/libxml2/
 extlibs/zlib/
