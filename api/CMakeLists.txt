@@ -170,3 +170,12 @@ install(TARGETS bag
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib/static)
+        
+if(MSVC)
+
+    #Copy the DLL dependencies
+    install(FILES ${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/bin/hdf5.dll DESTINATION bin)
+    install(DIRECTORY ${PROJECT_SOURCE_DIR}/extlibs/zlib/installed/bin/ DESTINATION bin)
+    install(FILES ${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.dll DESTINATION bin)
+    install(FILES ${PROJECT_SOURCE_DIR}/extlibs/libxml2/bin/release/libxml2.dll DESTINATION bin)
+endif()
