@@ -178,4 +178,7 @@ if(MSVC)
     install(DIRECTORY ${PROJECT_SOURCE_DIR}/extlibs/zlib/installed/bin/ DESTINATION bin)
     install(FILES ${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.dll DESTINATION bin)
     install(FILES ${PROJECT_SOURCE_DIR}/extlibs/libxml2/bin/release/libxml2.dll DESTINATION bin)
+    
 endif()
+
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/configdata/ DESTINATION configdata)
