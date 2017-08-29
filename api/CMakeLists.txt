@@ -164,6 +164,8 @@ IF(MSVC)
     
 ENDIF(MSVC)
 
+install(FILES ${BAG_HEADER_FILES} DESTINATION include)
+
 install(TARGETS bag
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION lib
