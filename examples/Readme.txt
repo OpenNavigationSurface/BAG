@@ -84,7 +84,13 @@ export	XERCESCROOT=$PWD/../extlibs/xerces-c-src_2_6_0
 setenv  XERCESCROOT $PWD/../extlibs/xerces-c-src_2_6_0
 
 
-Also, don't forget the requirement for BAG_HOME before trying the examples:
+Also, don't forget the requirement for BAG_HOME before trying the examples.
+
+On Linux/OS X:
 
 export	BAG_HOME=$PWD/../configdata
 setenv  BAG_HOME $PWD/../configdata
+
+On Windows:
+
+set BAG_HOME=%CD%\..\configdata
