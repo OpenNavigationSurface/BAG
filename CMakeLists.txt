@@ -36,7 +36,7 @@ SET (OPENNS_PACKAGE_VERSION_MINOR "${OPENNS_VERS_RELEASE}")
 SET (OPENNS_PACKAGE_STRING "${OPENNS_PACKAGE_NAME} ${OPENNS_PACKAGE_VERSION}")
 SET (OPENNS_PACKAGE_TARNAME "bag")
 SET (OPENNS_PACKAGE_URL "http://www.opennavsurf.org")
-SET (VERSION 1.5 OPENNS_PACKAGE_VERSION)
+SET (VERSION 1.6.2 OPENNS_PACKAGE_VERSION)
 
 #-----------------------------------------------------------------------------
 # Option to Build Shared/Static libs, default is shared

@@ -1,4 +1,17 @@
 =========================
+BAG v.1.6.2 Release Notes
+=========================
+
+August 29, 2017
+1.  Updated documentation of Variable Resolution extensions to confirm
+that refinement nodes can be placed on the east/north boundary of the
+super-cell.
+2.  Updated documentation in FSD to indicate that XERCES is no longer used.
+3.  Updated documentation in FSD to make EPSG 9606 the axiomatic
+interpretation of any datum transform parameters encoded into the file
+metadata.
+
+=========================
 BAG v.1.6.1 Release Notes
 =========================
 

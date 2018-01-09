@@ -69,11 +69,11 @@ typedef unsigned long long HDF_size_t;
 /* This typedef must match the hid_t type defined in HDF5 */
 typedef int HDF_hid_t;
 
-#define BAG_VERSION         "1.6.0"
+#define BAG_VERSION         "1.6.2"
 #define BAG_VERSION_LENGTH  32              /* 32 bytes of space reserved in BAG attribute for VERSION string */
 #define BAG_VER_MAJOR       1
 #define BAG_VER_MINOR       6
-#define BAG_VER_REVISION    0
+#define BAG_VER_REVISION    2
 
 #define XML_METADATA_MIN_LENGTH     1024    /* Encoded XML string expected to be at least this long to be valid */
 #define XML_METADATA_MAX_LENGTH     1000000
