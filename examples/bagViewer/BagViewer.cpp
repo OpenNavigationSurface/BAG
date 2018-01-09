@@ -28,6 +28,7 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     format.setOption(QSurfaceFormat::DebugContext);
     
     bagGL->setFormat(format);
+    bagGL->setStatusBar(ui->statusbar);
     
     QWidget *container = QWidget::createWindowContainer(bagGL);
     setCentralWidget(container);

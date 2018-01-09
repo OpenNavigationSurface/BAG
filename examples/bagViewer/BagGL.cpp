@@ -3,6 +3,8 @@
 #include <QScreen>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <QLabel>
+#include <QStatusBar>
 #include <cmath>
 
 const GLuint BagGL::primitiveReset = 0xffffffff;
@@ -17,7 +19,9 @@ BagGL::BagGL():
     rotating(false),
     translating(false),
     adjustingHeightExaggeration(false),
-    lodBias(3)
+    lodBias(3),
+    statusBar(nullptr),
+    statusLabel(new QLabel())
 {
     qRegisterMetaType<TilePtr>("TilePtr");
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
@@ -374,6 +378,27 @@ void BagGL::mouseReleaseEvent(QMouseEvent* event)
 
 void BagGL::mouseMoveEvent(QMouseEvent* event)
 {
+    QString posText = "Mouse: " + QString::number(event->pos().x())+","+QString::number(event->pos().y());
+    
+    int mx = event->pos().x();
+    int my = height()-event->pos().y();
+    float gx = -1.0+mx/(width()/2.0);
+    float gy = -1.0+my/(height()/2.0);
+    if(polygonMode != GL_FILL)
+        renderNow(true);
+    GLfloat gz;
+    glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
+    gz = (gz-.5)*2.0;
+    QMatrix4x4 matrix = camera.getMatrix().inverted();
+    QVector4D mousePos(gx,gy,gz,1.0);
+    mousePos = matrix*mousePos;
+    if (gz < 1.0)
+    {
+        posText += " World: "+QString::number(mousePos.x()/mousePos.w(),'f')+","+QString::number(mousePos.y()/mousePos.w(),'f')+","+QString::number(mousePos.z()/mousePos.w(),'f');    
+    }
+    statusLabel->setText(posText);
+    
+    
     if(rotating)
     {
         int dx = event->pos().x() - lastPosition.x();
@@ -532,4 +557,11 @@ void BagGL::newTile(TilePtr tile, bool isVR)
     }
     renderLater();
 }
+
+void BagGL::setStatusBar(QStatusBar* sb)
+{
+    statusBar = sb;
+    statusBar->addWidget(statusLabel);
+}
+
 
