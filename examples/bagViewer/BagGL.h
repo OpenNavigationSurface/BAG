@@ -14,6 +14,9 @@
 #include <QVector2D>
 #include "Bounds.h"
 
+class QStatusBar;
+class QLabel;
+
 struct TileGL
 {
     QOpenGLTexture elevations;
@@ -46,6 +49,8 @@ public:
 
     
     typedef std::pair<uint,uint> GridSize;
+    
+    void setStatusBar(QStatusBar *sb);
     
     
 public slots:
@@ -132,6 +137,9 @@ private:
     
     TileMap overviewTiles;
     TileMap vrTiles;
+    
+    QStatusBar * statusBar;
+    QLabel * statusLabel;
     
 };
 
