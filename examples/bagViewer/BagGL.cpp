@@ -394,7 +394,8 @@ void BagGL::mouseMoveEvent(QMouseEvent* event)
     mousePos = matrix*mousePos;
     if (gz < 1.0)
     {
-        posText += " World: "+QString::number(mousePos.x()/mousePos.w(),'f')+","+QString::number(mousePos.y()/mousePos.w(),'f')+","+QString::number(mousePos.z()/mousePos.w(),'f');    
+        auto swCorner = bag.getMeta().swBottomCorner;
+        posText += " World: "+QString::number(swCorner.x()+mousePos.x()/mousePos.w(),'f')+","+QString::number(swCorner.y()+mousePos.y()/mousePos.w(),'f')+","+QString::number(mousePos.z()/mousePos.w(),'f');    
     }
     statusLabel->setText(posText);
     
