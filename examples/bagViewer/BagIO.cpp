@@ -325,8 +325,10 @@ TilePtr BagIO::loadVarResTile(bagHandle& bag, const TileIndex2D tileIndex, const
     
     float cx = i*meta.dx;
     float cy = j*meta.dy;
-    float llx = cx - (vrMetadata.dimensions_x-1)*vrMetadata.resolution_x/2.0;
-    float lly = cy - (vrMetadata.dimensions_y-1)*vrMetadata.resolution_y/2.0;
+    float pllx = cx-meta.dx/2.0;
+    float plly = cy-meta.dy/2.0;
+    float llx = pllx+vrMetadata.sw_corner_x;
+    float lly = plly+vrMetadata.sw_corner_y;
     ret->dx = vrMetadata.resolution_x;
     ret->dy = vrMetadata.resolution_y;
     ret->ncols = vrMetadata.dimensions_x;
