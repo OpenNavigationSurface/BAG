@@ -73,6 +73,16 @@ void BagIO::run()
             meta.minElevation = bd->min_elevation;
             meta.maxElevation = bd->max_elevation;
             
+            if(isVarRes)
+            {
+                bagVarResRefinementGroup vrmin, vrmax;
+                if(bagReadMinMaxVarResRefinementGroup(bag, &vrmin, &vrmax) == BAG_SUCCESS)
+                {
+                    meta.minElevation = vrmin.depth;
+                    meta.maxElevation = vrmax.depth;
+                }
+            }
+            
             meta.ncols = bd->def.ncols;
             meta.nrows = bd->def.nrows;
             
