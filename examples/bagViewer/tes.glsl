@@ -37,10 +37,10 @@ uniform float maxElevation;
 
 out VertexData
 {
-    float elevation;
+    float elevation; // normalized elevation (0-1)
     float lighting;
     float uncertainty;
-    vec3 worldPosition;
+    vec3 worldPosition; // position in meters
 };
 
 void main()

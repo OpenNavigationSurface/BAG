@@ -28,6 +28,7 @@ void main()
         if(inData[n].elevation > maxElevation)
             maxElevation = inData[n].elevation;
 
+    // only generate a triangle if all verticies have a valid elevation.
     if(maxElevation <= 1.0)
     {
         for (n = 0; n < gl_in.length(); n++)

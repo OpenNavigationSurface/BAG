@@ -98,6 +98,7 @@ void BagGL::initialize()
 
     glGenBuffers(1,&tileBuffer);
 
+    // Verticies get generated and displaced by the Tessellation and Geometry shaders so we only need one token vertex to draw a tile.
     GLfloat vert[2] = {0.0,0.0};
     
     glBindBuffer(GL_ARRAY_BUFFER, tileBuffer);
@@ -136,7 +137,8 @@ void BagGL::render(bool picking)
         passes = 2;
     
     program->bind();
-    
+
+    // only one token vertex needed to specify a patch for the tessellation engine.
     glPatchParameteri(GL_PATCH_VERTICES,1);
         
     QMatrix4x4 matrix = camera.getMatrix();
@@ -302,18 +304,21 @@ void BagGL::drawTile(TilePtr t)
             else
                 program->setUniformValue(hasNorthEastUniform,false);
 
-            
+            // Tessellation parameters used to generate quads.
+            // They specify the number of edges for a specific side of the patch.
+            // Outer edges can differ from inner ones to help in stitching tiles of different resolution together.
             GLfloat tlInner[2];
             GLfloat tlOuter[4];
-            tlInner[0] = tl;
-            tlInner[1] = tl;
-            tlOuter[0] = tl;
-            tlOuter[1] = tl;
-            tlOuter[2] = tlEast;
-            tlOuter[3] = tlNorth;
+            tlInner[0] = tl; // number of inner edges in the y direction.
+            tlInner[1] = tl; // number of inner edges in the x direction.
+            tlOuter[0] = tl; // number of segments on the left edge.
+            tlOuter[1] = tl; // number of segments on the bottom edge.
+            tlOuter[2] = tlEast; // number of segments on the right edge.
+            tlOuter[3] = tlNorth; // number of segments on the top edge.
             glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
             glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
             
+            // Drawing this single vertex launches the Tessellation shader and get expanded into the verticies for the tile. 
             glDrawArrays(GL_PATCHES,0,1);
         }
     }
