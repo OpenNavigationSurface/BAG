@@ -259,9 +259,11 @@ void BagGL::drawTile(TilePtr t)
             program->setUniformValue(tileSizeUniform,t->ncols);
             program->setUniformValue(lowerLeftUniform,QVector2D(t->bounds.min().x(),t->bounds.min().y()));
             
-            GLfloat tl = (t->ncols/pow(2.0,t->gl->lod));
-            GLfloat tlEast = tl;
-            GLfloat tlNorth = tl;
+            // For a stand alone tile, we would normally have n-1 segments where n is the number of vertices,
+            // but we must account for the seam so number of segments == number of vertices
+            GLfloat tessLevel = (t->ncols/pow(2.0,t->gl->lod));
+            GLfloat tlEast = tessLevel;
+            GLfloat tlNorth = tessLevel;
             
             if(t->east)
             {
@@ -309,10 +311,10 @@ void BagGL::drawTile(TilePtr t)
             // Outer edges can differ from inner ones to help in stitching tiles of different resolution together.
             GLfloat tlInner[2];
             GLfloat tlOuter[4];
-            tlInner[0] = tl; // number of inner edges in the y direction.
-            tlInner[1] = tl; // number of inner edges in the x direction.
-            tlOuter[0] = tl; // number of segments on the left edge.
-            tlOuter[1] = tl; // number of segments on the bottom edge.
+            tlInner[0] = tessLevel; // number of inner edges in the y direction.
+            tlInner[1] = tessLevel; // number of inner edges in the x direction.
+            tlOuter[0] = tessLevel; // number of segments on the left edge.
+            tlOuter[1] = tessLevel; // number of segments on the bottom edge.
             tlOuter[2] = tlEast; // number of segments on the right edge.
             tlOuter[3] = tlNorth; // number of segments on the top edge.
             glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
