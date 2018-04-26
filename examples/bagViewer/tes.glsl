@@ -46,7 +46,7 @@ out VertexData
 void main()
 {
     float e = 1e6;
-    vec2 posMeters = gl_TessCoord.xy*(tileSize-1)*spacing+lowerLeft;
+    vec2 posMeters = gl_TessCoord.xy*tileSize*spacing+lowerLeft;
     vec3 normal = normalize((texture(normalMap,gl_TessCoord.xy).rgb*2.0)-1.0);
 
     if(gl_TessCoord.x == 1.0 && gl_TessCoord.y == 1.0)
@@ -64,7 +64,7 @@ void main()
         {
             e = texture(eastElevationMap,vec2(0.0,gl_TessCoord.y)).r;
             posMeters.x = eastLowerLeft.x;
-            posMeters.y = gl_TessCoord.y*(eastTileSize-1)*eastSpacing.y+eastLowerLeft.y;
+            posMeters.y = gl_TessCoord.y*eastTileSize*eastSpacing.y+eastLowerLeft.y;
             normal = normalize((texture(eastNormalMap,vec2(0.0,gl_TessCoord.y)).rgb*2.0)-1.0);
         }
     }
@@ -73,7 +73,7 @@ void main()
         if(hasNorth)
         {
             e = texture(northElevationMap,vec2(gl_TessCoord.x,0.0)).r;
-            posMeters.x = gl_TessCoord.x*(northTileSize-1)*northSpacing.x+northLowerLeft.x;
+            posMeters.x = gl_TessCoord.x*northTileSize*northSpacing.x+northLowerLeft.x;
             posMeters.y = northLowerLeft.y;
             normal = normalize((texture(northNormalMap,vec2(gl_TessCoord.x,0.0)).rgb*2.0)-1.0);
         }
