@@ -210,7 +210,7 @@ void BagGL::checkGL(TilePtr t)
         t->gl->normals.setData(t->data->normalMap);
         t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
         t->gl->normals.setWrapMode(QOpenGLTexture::ClampToEdge);
-        t->gl->maxLod = log2f(t->ncols)+1;
+        t->gl->maxLod = log2f(t->ncols)-1;
         t->gl->lod = t->gl->maxLod;
         t->data.reset();
     }
@@ -256,7 +256,7 @@ void BagGL::drawTile(TilePtr t)
             t->gl->elevations.bind(1);
             t->gl->normals.bind(2);
             program->setUniformValue(spacingUniform,QVector2D(t->dx,t->dy));
-            program->setUniformValue(tileSizeUniform,t->ncols);
+            program->setUniformValue(tileSizeUniform,QSize(t->ncols,t->nrows));
             program->setUniformValue(lowerLeftUniform,QVector2D(t->bounds.min().x(),t->bounds.min().y()));
             
             // For a stand alone tile, we would normally have n-1 segments where n is the number of vertices,

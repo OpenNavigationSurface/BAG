@@ -201,8 +201,6 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
 {
     TilePtr ret(new Tile);
     ret->index = tileIndex;
-    ret->ncols = tileSize;
-    ret->nrows = tileSize;
     ret->dx = meta.dx;
     ret->dy = meta.dy;
     
@@ -211,14 +209,17 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
     u32 startCol = tileIndex.first * tileSize;
     u32 endCol = std::min(startCol+tileSize,meta.ncols-1);
     
+    ret->ncols = endCol-startCol+1;
+    ret->nrows = endRow-startRow+1;
+    
     ret->lowerLeftIndex = TileIndex2D(startCol,startRow);
     
     bagReadRegion(bag, startRow, startCol, endRow, endCol, Elevation);
     
     ret->data = TileDataPtr(new TileData);
-    ret->data->elevations.resize(tileSize*tileSize,BAG_NULL_ELEVATION);
-    for(uint i=0; i < endRow-startRow; ++i)
-        memcpy(&(ret->data->elevations.data()[i*tileSize]),bagGetDataPointer(bag)->elevation[i], (endCol-startCol)*sizeof(GLfloat));
+    ret->data->elevations.resize(ret->nrows*ret->ncols,BAG_NULL_ELEVATION);
+    for(uint i=0; i < ret->nrows; ++i)
+        memcpy(&(ret->data->elevations.data()[i*ret->ncols]),bagGetDataPointer(bag)->elevation[i], (ret->ncols)*sizeof(GLfloat));
     
     bool notEmpty = false;
     for(auto e: ret->data->elevations)
@@ -249,14 +250,16 @@ TilePtr BagIO::loadTile(bagHandle &bag, TileIndex2D tileIndex, MetaData &meta) c
         ret->bounds.add(QVector3D(startCol * meta.dx, startRow * meta.dy, minElevation));
         ret->bounds.add(QVector3D((endCol+1) * meta.dx, (endRow+1) * meta.dy, maxElevation));
         
-        ret->data->normalMap = QImage(tileSize, tileSize, QImage::Format_RGB888);
-        for(u32 ti = 0; ti < tileSize && ti < endRow-startRow; ++ti)
+        ret->data->normalMap = QImage(ret->ncols, ret->nrows, QImage::Format_RGB888);
+        for(u32 ti = 0; ti < ret->nrows; ++ti)
         {
-            for(u32 tj = 0; tj < tileSize && tj < endCol-startCol; ++tj)
+            for(u32 tj = 0; tj < ret->ncols; ++tj)
             {
                 float p00 = bagGetDataPointer(bag)->elevation[ti][tj];
                 float p10 = bagGetDataPointer(bag)->elevation[ti][tj+1];
-                float p01 = bagGetDataPointer(bag)->elevation[ti+1][tj];
+                float p01 = p00;
+                if (ti < ret->nrows-1)
+                    p01 = bagGetDataPointer(bag)->elevation[ti+1][tj];
                 if(p00 != BAG_NULL_ELEVATION && p10 != BAG_NULL_ELEVATION && p01 != BAG_NULL_ELEVATION)
                 {
                     QVector3D v1(meta.dx,0.0,p10-p00);
