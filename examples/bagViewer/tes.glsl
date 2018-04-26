@@ -5,7 +5,7 @@ layout (quads, equal_spacing, ccw) in;
 uniform sampler2D elevationMap;
 uniform sampler2D normalMap;
 uniform vec2 spacing;
-uniform int tileSize;
+uniform vec2 tileSize;
 uniform vec2 lowerLeft;
 
 uniform sampler2D eastElevationMap;
@@ -47,7 +47,8 @@ void main()
 {
     float e = 1e6;
     vec2 posMeters = gl_TessCoord.xy*tileSize*spacing+lowerLeft;
-    vec3 normal = normalize((texture(normalMap,gl_TessCoord.xy).rgb*2.0)-1.0);
+    vec2 texCoordFactor = (tileSize+1)/tileSize;
+    vec3 normal = normalize((texture(normalMap,gl_TessCoord.xy*texCoordFactor).rgb*2.0)-1.0);
 
     if(gl_TessCoord.x == 1.0 && gl_TessCoord.y == 1.0)
     {
@@ -80,7 +81,7 @@ void main()
     }
     else
     {
-        e = texture(elevationMap,gl_TessCoord.xy).r;
+        e = texture(elevationMap,gl_TessCoord.xy*texCoordFactor).r;
     }
 
     vec3 vsNormal = normalize(normMatrix*normal);
