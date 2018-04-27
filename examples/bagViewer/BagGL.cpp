@@ -83,7 +83,6 @@ void BagGL::initialize()
     northEastNormalMapUniform = program->uniformLocation("northEastNormalMap");
     northEastSpacingUniform = program->uniformLocation("northEastSpacing");
     northEastLowerLeftUniform = program->uniformLocation("northEastLowerLeft");
-    northEastTileSizeUniform = program->uniformLocation("northEastTileSize");
     hasNorthEastUniform = program->uniformLocation("hasNorthEast");
     
     glEnable(GL_DEPTH_TEST);
@@ -272,7 +271,7 @@ void BagGL::drawTile(TilePtr t)
                 t->east->gl->elevations.bind(3);
                 t->east->gl->normals.bind(4);
                 program->setUniformValue(eastSpacingUniform,QVector2D(t->east->dx,t->east->dy));
-                program->setUniformValue(eastTileSizeUniform,t->east->ncols);
+                program->setUniformValue(eastTileSizeUniform,QSize(t->east->ncols,t->east->nrows));
                 program->setUniformValue(eastLowerLeftUniform,QVector2D(t->east->bounds.min().x(),t->east->bounds.min().y()));
                 tlEast = (t->east->ncols/pow(2.0,t->east->gl->lod));
             }
@@ -286,7 +285,7 @@ void BagGL::drawTile(TilePtr t)
                 t->north->gl->elevations.bind(5);
                 t->north->gl->normals.bind(6);
                 program->setUniformValue(northSpacingUniform,QVector2D(t->north->dx,t->north->dy));
-                program->setUniformValue(northTileSizeUniform,t->north->ncols);
+                program->setUniformValue(northTileSizeUniform,QSize(t->north->ncols,t->north->nrows));
                 program->setUniformValue(northLowerLeftUniform,QVector2D(t->north->bounds.min().x(),t->north->bounds.min().y()));
                 tlNorth = (t->north->ncols/pow(2.0,t->north->gl->lod));
             }
@@ -300,7 +299,6 @@ void BagGL::drawTile(TilePtr t)
                 t->northEast->gl->elevations.bind(7);
                 t->northEast->gl->normals.bind(8);
                 program->setUniformValue(northEastSpacingUniform,QVector2D(t->northEast->dx,t->northEast->dy));
-                program->setUniformValue(northEastTileSizeUniform,t->northEast->ncols);
                 program->setUniformValue(northEastLowerLeftUniform,QVector2D(t->northEast->bounds.min().x(),t->northEast->bounds.min().y()));
             }
             else

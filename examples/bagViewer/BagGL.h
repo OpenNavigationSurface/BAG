@@ -102,7 +102,6 @@ private:
     GLuint northEastNormalMapUniform;
     GLuint northEastSpacingUniform;
     GLuint northEastLowerLeftUniform;
-    GLuint northEastTileSizeUniform;
     GLuint hasNorthEastUniform;
     
     GLuint tileVAO;
