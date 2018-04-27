@@ -43,9 +43,11 @@ IF(MSVC)
     SET(BEECRYPT_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecryptd.lib" CACHE STRING "The name of the beecrypt release library.")
 ELSEIF(UNIX)
     # The location of the beecrypt header files.
-    SET(BEECRYPT_INCLUDE_DIR "/usr/include" CACHE PATH "Location of beecrypt header files.")
+    #SET(BEECRYPT_INCLUDE_DIR "/usr/include" CACHE PATH "Location of beecrypt header files.")
+    FIND_PATH(BEECRYPT_INCLUDE_DIR beecrypt/aes.h)
     # The name of the beecrypt release library.
-    SET(BEECRYPT_LIB "beecrypt" CACHE STRING "The name of the beecrypt release library.")
+    #SET(BEECRYPT_LIB "beecrypt" CACHE STRING "The name of the beecrypt release library.")
+    FIND_LIBRARY(BEECRYPT_LIB beecrypt DOC "The name of the beecrypt release library.")
 ELSEIF(MINGW)
     # The location of the beecrypt header files.
     SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/include/" CACHE PATH "Location of beecrypt header files.")
