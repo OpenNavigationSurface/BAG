@@ -17,7 +17,6 @@ public:
     ~BagViewer();
     void openBag(std::string const &fname);
 private:
-    BagGL *bagGL;
     Ui::BagViewer *ui;
     QActionGroup *colormapActionGroup;
     QActionGroup *drawStyleActionGroup;

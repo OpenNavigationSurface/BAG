@@ -1,9 +1,8 @@
 #ifndef BAGGL_H
 #define BAGGL_H
 
+#include <QOpenGLWidget>
 #include "GLCamera.h"
-
-#include "GLWindow.h"
 #include "BagIO.h"
 #include <QVector3D>
 #include <QTime>
@@ -13,6 +12,8 @@
 #include <QMatrix4x4>
 #include <QVector2D>
 #include "Bounds.h"
+#include <QOpenGLShader>
+#include <QtGui/QOpenGLFunctions_4_0_Core>
 
 class QStatusBar;
 class QLabel;
@@ -29,16 +30,19 @@ struct TileGL
 };
 
 
-class BagGL: public GLWindow
+class BagGL: public QOpenGLWidget, protected QOpenGLFunctions_4_0_Core
 {
     Q_OBJECT
     
 public:
-    BagGL();
+    BagGL(QWidget *parent=nullptr);
     ~BagGL();
     
-    void initialize() Q_DECL_OVERRIDE;
-    void render(bool picking=false) Q_DECL_OVERRIDE;
+    void initializeGL() override;
+    void paintGL() override;
+    void resizeGL(int w, int h) override;
+    
+    void render(bool picking=false);
     
     bool openBag(QString const &bagFileName);
     void closeBag();
@@ -57,6 +61,7 @@ public slots:
     void resetView();
     void messageLogged(const QOpenGLDebugMessage & debugMessage);
     void newTile(TilePtr tile, bool isVR);
+    void checkAnimation();
     
 protected:
     void mousePressEvent(QMouseEvent *event) Q_DECL_OVERRIDE;
@@ -139,6 +144,8 @@ private:
     
     QStatusBar * statusBar;
     QLabel * statusLabel;
+    
+    bool m_animating;
     
 };
 

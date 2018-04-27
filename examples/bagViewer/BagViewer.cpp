@@ -5,11 +5,10 @@
 #include <QFileDialog>
 #include <QMessageBox>
 
-BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
-    bagGL(new BagGL), ui(new Ui::BagViewer)
+BagViewer::BagViewer(QWidget* parent): QMainWindow(parent), ui(new Ui::BagViewer)
 {
     ui->setupUi(this);
-	this->setWindowIcon(QIcon(QString(":/icons/bagViewer.png")));
+    this->setWindowIcon(QIcon(QString(":/icons/bagViewer.png")));
 
     colormapActionGroup = new QActionGroup(this);
     colormapActionGroup->addAction(ui->actionTopographic);
@@ -20,30 +19,17 @@ BagViewer::BagViewer(QWidget* parent): QMainWindow(parent),
     drawStyleActionGroup->addAction(ui->actionWireframe);
     drawStyleActionGroup->addAction(ui->actionPoints);
     
-    QSurfaceFormat format;
-    format.setSamples(16);
-    format.setDepthBufferSize(32);
-    format.setVersion(4,0);
-    format.setProfile(QSurfaceFormat::CoreProfile);
-    format.setOption(QSurfaceFormat::DebugContext);
-    
-    bagGL->setFormat(format);
-    bagGL->setStatusBar(ui->statusbar);
-    
-    QWidget *container = QWidget::createWindowContainer(bagGL);
-    setCentralWidget(container);
-    container->setFocusPolicy(Qt::StrongFocus );
+    ui->bagGL->setStatusBar(ui->statusbar);
 }
 
 BagViewer::~BagViewer()
 {
-    delete bagGL;
     delete ui;
 }
 
 void BagViewer::openBag(const std::string& fname)
 {
-    bagGL->openBag(QString(fname.c_str()));
+    ui->bagGL->openBag(QString(fname.c_str()));
 }
 
 
@@ -62,33 +48,33 @@ void BagViewer::on_actionOpen_triggered()
             QMessageBox::critical(this, tr("Error"), tr("Could not open file"));
             return;
         }
-        if(!bagGL->openBag(fileName))
+        if(!ui->bagGL->openBag(fileName))
             QMessageBox::critical(this, tr("Error"), tr("Could not open bag file"));
     }
 }
 
 void BagViewer::on_actionTopographic_triggered()
 {
-    bagGL->setColormap("topographic");
+    ui->bagGL->setColormap("topographic");
 }
 
 void BagViewer::on_actionOmnimap_triggered()
 {
-    bagGL->setColormap("omnimap");
+    ui->bagGL->setColormap("omnimap");
 }
 
 void BagViewer::on_actionSolid_triggered()
 {
-    bagGL->setDrawStyle("solid");
+    ui->bagGL->setDrawStyle("solid");
 }
 
 void BagViewer::on_actionWireframe_triggered()
 {
-    bagGL->setDrawStyle("wireframe");
+    ui->bagGL->setDrawStyle("wireframe");
 }
 
 void BagViewer::on_actionPoints_triggered()
 {
-    bagGL->setDrawStyle("points");
+    ui->bagGL->setDrawStyle("points");
 }
 

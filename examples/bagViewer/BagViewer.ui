@@ -13,37 +13,45 @@
   <property name="windowTitle">
    <string>bagViewer</string>
   </property>
-  <widget class="QWidget" name="centralwidget"/>
+  <widget class="BagGL" name="bagGL">
+   <property name="mouseTracking">
+    <bool>true</bool>
+   </property>
+   <property name="focusPolicy">
+    <enum>Qt::StrongFocus</enum>
+   </property>
+   <layout class="QVBoxLayout" name="verticalLayout_2"/>
+  </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>20</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
     <property name="title">
-     <string>File</string>
+     <string>Fi&amp;le</string>
     </property>
     <addaction name="actionOpen"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>View</string>
+     <string>&amp;View</string>
     </property>
     <widget class="QMenu" name="menuColormap">
      <property name="title">
-      <string>Colormap</string>
+      <string>&amp;Colormap</string>
      </property>
      <addaction name="actionTopographic"/>
      <addaction name="actionOmnimap"/>
     </widget>
     <widget class="QMenu" name="menuDraw_style">
      <property name="title">
-      <string>Draw style</string>
+      <string>&amp;Draw style</string>
      </property>
      <addaction name="actionSolid"/>
      <addaction name="actionWireframe"/>
@@ -58,12 +66,12 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionOpen">
    <property name="text">
-    <string>Open</string>
+    <string>&amp;Open</string>
    </property>
   </action>
   <action name="actionExit">
    <property name="text">
-    <string>Exit</string>
+    <string>&amp;Exit</string>
    </property>
   </action>
   <action name="actionTopographic">
@@ -71,7 +79,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Topographic</string>
+    <string>&amp;Topographic</string>
    </property>
   </action>
   <action name="actionOmnimap">
@@ -82,7 +90,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Omnimap</string>
+    <string>&amp;Omnimap</string>
    </property>
   </action>
   <action name="actionSolid">
@@ -93,7 +101,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Solid</string>
+    <string>&amp;Solid</string>
    </property>
   </action>
   <action name="actionWireframe">
@@ -101,7 +109,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Wireframe</string>
+    <string>&amp;Wireframe</string>
    </property>
   </action>
   <action name="actionPoints">
@@ -109,10 +117,18 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Points</string>
+    <string>&amp;Points</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>BagGL</class>
+   <extends>QWidget</extends>
+   <header>BagGL.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

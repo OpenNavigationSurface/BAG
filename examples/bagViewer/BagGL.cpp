@@ -9,7 +9,7 @@
 
 const GLuint BagGL::primitiveReset = 0xffffffff;
 
-BagGL::BagGL(): 
+BagGL::BagGL(QWidget *parent): QOpenGLWidget(parent),
     program(0),
     polygonMode(GL_FILL),
 #ifndef NDEBUG
@@ -21,11 +21,13 @@ BagGL::BagGL():
     adjustingHeightExaggeration(false),
     lodBias(3),
     statusBar(nullptr),
-    statusLabel(new QLabel())
+    statusLabel(new QLabel()),
+    m_animating(false)
 {
     qRegisterMetaType<TilePtr>("TilePtr");
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
     connect(&bag, SIGNAL(tileLoaded(TilePtr,bool)), this, SLOT(newTile(TilePtr,bool)));
+    connect(this, SIGNAL(frameSwapped()), this, SLOT(checkAnimation()));
 }
 
 BagGL::~BagGL()
@@ -33,7 +35,7 @@ BagGL::~BagGL()
     closeBag();
 }
 
-void BagGL::initialize()
+void BagGL::initializeGL()
 {
 
 #ifndef NDEBUG
@@ -41,8 +43,29 @@ void BagGL::initialize()
     connect(&gldebug, SIGNAL(messageLogged(const QOpenGLDebugMessage &)),this,SLOT(messageLogged(const QOpenGLDebugMessage &)));
     gldebug.startLogging();
 #endif
+
+    QSurfaceFormat f = format();
+    qDebug() << "OpenGL version: " << QString::number(f.majorVersion())+"."+QString::number(f.minorVersion());
+    switch(f.profile())
+    {
+        case(QSurfaceFormat::NoProfile):
+            qDebug() << " No Profile";
+            break;
+        case(QSurfaceFormat::CoreProfile):
+            qDebug() << " Core Profile";
+            break;
+        case(QSurfaceFormat::CompatibilityProfile):
+            qDebug() << " Compatibility Profile";
+            break;
+        default:
+            qDebug() << " Unknown Profile";
+    }
+    qDebug() << "samples:" << f.samples();
+    qDebug() << "depth buffer size:" << f.depthBufferSize();
+
+    qDebug() << "valid context?" << context()->isValid();
     
-    printFormat();
+    qDebug() << "initialize functions succesful?" <<  initializeOpenGLFunctions();
     
     program = new QOpenGLShaderProgram(this);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex.glsl");
@@ -105,8 +128,34 @@ void BagGL::initialize()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
     glBindAttribLocation(program->programId(),0,"inPosition");
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    program->release();
 }
 
+
+void BagGL::resizeGL(int w, int h)
+{
+    camera.setViewport(w,h);
+}
+
+
+void BagGL::paintGL()
+{
+    render();
+}
+
+void BagGL::checkAnimation()
+{
+    if(m_animating)
+    {
+        //qDebug() << "animating!";
+        update();
+    }
+    else
+    {
+        //qDebug() << "NOT animating!";
+    }
+}
 
 void BagGL::render(bool picking)
 {
@@ -117,7 +166,7 @@ void BagGL::render(bool picking)
         {
             camera.setCenterPosition(translateEndPosition);
             translating = false;
-            setAnimating(rotating||translating||adjustingHeightExaggeration);
+            m_animating = rotating||translating||adjustingHeightExaggeration;
         }
         else
         {
@@ -125,10 +174,6 @@ void BagGL::render(bool picking)
             camera.setCenterPosition(translateStartPosition*ip+translateEndPosition*p);
         }
     }
-    const qreal retinaScale = devicePixelRatio();
-    glViewport(0, 0, width() * retinaScale, height() * retinaScale);
-    camera.setViewport(width() * retinaScale, height() * retinaScale);
-    
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     
     int passes = 1;
@@ -338,8 +383,9 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         int my = height()-event->pos().y();
         float gx = -1.0+mx/(width()/2.0);
         float gy = -1.0+my/(height()/2.0);
+        makeCurrent();
         if(polygonMode != GL_FILL)
-            renderNow(true);
+            render(true);
         GLfloat gz;
         glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
         gz = (gz-.5)*2.0;
@@ -359,7 +405,8 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         adjustingHeightExaggeration = true;
         lastPosition = event->pos();
     }
-    setAnimating(rotating||translating||adjustingHeightExaggeration);
+    m_animating = rotating||translating||adjustingHeightExaggeration;
+    checkAnimation();
 }
 
 void BagGL::mouseReleaseEvent(QMouseEvent* event)
@@ -377,8 +424,8 @@ void BagGL::mouseReleaseEvent(QMouseEvent* event)
     {
         adjustingHeightExaggeration = false;
     }
-    setAnimating(rotating||translating||adjustingHeightExaggeration);
-    
+    m_animating = rotating||translating||adjustingHeightExaggeration;
+    checkAnimation();
 }
 
 void BagGL::mouseMoveEvent(QMouseEvent* event)
@@ -389,8 +436,9 @@ void BagGL::mouseMoveEvent(QMouseEvent* event)
     int my = height()-event->pos().y();
     float gx = -1.0+mx/(width()/2.0);
     float gy = -1.0+my/(height()/2.0);
+    makeCurrent();
     if(polygonMode != GL_FILL)
-        renderNow(true);
+        render(true);
     GLfloat gz;
     glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
     gz = (gz-.5)*2.0;
@@ -427,7 +475,7 @@ void BagGL::wheelEvent(QWheelEvent* event)
         camera.setZoom(camera.getZoom() * 1.3f);
     else
         camera.setZoom(camera.getZoom() / 1.3f);
-    renderLater();
+    update();
 }
 
 void BagGL::keyPressEvent(QKeyEvent* event)
@@ -440,12 +488,12 @@ void BagGL::keyPressEvent(QKeyEvent* event)
     case Qt::Key_BracketLeft:
         lodBias--;
         qDebug() << "lod bias:" << lodBias;
-        renderLater();
+        update();
         break;
     case Qt::Key_BracketRight:
         lodBias++;
         qDebug() << "lod bias:" << lodBias;
-        renderLater();
+        update();
         break;
     default:
         event->ignore();
@@ -486,13 +534,13 @@ void BagGL::resetView()
         camera.setZoom(1.0);
     
     camera.setHeightExaggeration(1.0);
-    renderLater();
+    update();
 }
 
 void BagGL::setColormap(const std::string& cm)
 {
     currentColormap = cm;
-    renderLater();
+    update();
 }
 
 void BagGL::setDrawStyle(const std::string& ds)
@@ -503,7 +551,7 @@ void BagGL::setDrawStyle(const std::string& ds)
         polygonMode = GL_LINE;
     if(ds == "points")
         polygonMode = GL_POINT;
-    renderLater();
+    update();
 }
 
 void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
@@ -561,7 +609,7 @@ void BagGL::newTile(TilePtr tile, bool isVR)
         if(overviewTiles.count(southWest))
             overviewTiles[southWest]->northEast = tile;
     }
-    renderLater();
+    update();
 }
 
 void BagGL::setStatusBar(QStatusBar* sb)
