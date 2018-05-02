@@ -3,11 +3,13 @@
 #include <QScreen>
 #include <QMouseEvent>
 #include <QMessageBox>
+#include <QLabel>
+#include <QStatusBar>
 #include <cmath>
 
 const GLuint BagGL::primitiveReset = 0xffffffff;
 
-BagGL::BagGL(): 
+BagGL::BagGL(QWidget *parent): QOpenGLWidget(parent),
     program(0),
     polygonMode(GL_FILL),
 #ifndef NDEBUG
@@ -17,11 +19,15 @@ BagGL::BagGL():
     rotating(false),
     translating(false),
     adjustingHeightExaggeration(false),
-    lodBias(3)
+    lodBias(3),
+    statusBar(nullptr),
+    statusLabel(new QLabel()),
+    m_animating(false)
 {
     qRegisterMetaType<TilePtr>("TilePtr");
     connect(&bag, SIGNAL(metaLoaded()), this, SLOT(resetView()));
     connect(&bag, SIGNAL(tileLoaded(TilePtr,bool)), this, SLOT(newTile(TilePtr,bool)));
+    connect(this, SIGNAL(frameSwapped()), this, SLOT(checkAnimation()));
 }
 
 BagGL::~BagGL()
@@ -29,7 +35,7 @@ BagGL::~BagGL()
     closeBag();
 }
 
-void BagGL::initialize()
+void BagGL::initializeGL()
 {
 
 #ifndef NDEBUG
@@ -37,8 +43,29 @@ void BagGL::initialize()
     connect(&gldebug, SIGNAL(messageLogged(const QOpenGLDebugMessage &)),this,SLOT(messageLogged(const QOpenGLDebugMessage &)));
     gldebug.startLogging();
 #endif
+
+    QSurfaceFormat f = format();
+    qDebug() << "OpenGL version: " << QString::number(f.majorVersion())+"."+QString::number(f.minorVersion());
+    switch(f.profile())
+    {
+        case(QSurfaceFormat::NoProfile):
+            qDebug() << " No Profile";
+            break;
+        case(QSurfaceFormat::CoreProfile):
+            qDebug() << " Core Profile";
+            break;
+        case(QSurfaceFormat::CompatibilityProfile):
+            qDebug() << " Compatibility Profile";
+            break;
+        default:
+            qDebug() << " Unknown Profile";
+    }
+    qDebug() << "samples:" << f.samples();
+    qDebug() << "depth buffer size:" << f.depthBufferSize();
+
+    qDebug() << "valid context?" << context()->isValid();
     
-    printFormat();
+    qDebug() << "initialize functions succesful?" <<  initializeOpenGLFunctions();
     
     program = new QOpenGLShaderProgram(this);
     program->addShaderFromSourceFile(QOpenGLShader::Vertex, ":/vertex.glsl");
@@ -79,7 +106,6 @@ void BagGL::initialize()
     northEastNormalMapUniform = program->uniformLocation("northEastNormalMap");
     northEastSpacingUniform = program->uniformLocation("northEastSpacing");
     northEastLowerLeftUniform = program->uniformLocation("northEastLowerLeft");
-    northEastTileSizeUniform = program->uniformLocation("northEastTileSize");
     hasNorthEastUniform = program->uniformLocation("hasNorthEast");
     
     glEnable(GL_DEPTH_TEST);
@@ -94,6 +120,7 @@ void BagGL::initialize()
 
     glGenBuffers(1,&tileBuffer);
 
+    // Verticies get generated and displaced by the Tessellation and Geometry shaders so we only need one token vertex to draw a tile.
     GLfloat vert[2] = {0.0,0.0};
     
     glBindBuffer(GL_ARRAY_BUFFER, tileBuffer);
@@ -101,8 +128,34 @@ void BagGL::initialize()
     glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, 0);
     glEnableVertexAttribArray(0);
     glBindAttribLocation(program->programId(),0,"inPosition");
+    glClearColor(0.0, 0.0, 0.0, 0.0);
+    program->release();
 }
 
+
+void BagGL::resizeGL(int w, int h)
+{
+    camera.setViewport(w,h);
+}
+
+
+void BagGL::paintGL()
+{
+    render();
+}
+
+void BagGL::checkAnimation()
+{
+    if(m_animating)
+    {
+        //qDebug() << "animating!";
+        update();
+    }
+    else
+    {
+        //qDebug() << "NOT animating!";
+    }
+}
 
 void BagGL::render(bool picking)
 {
@@ -113,7 +166,7 @@ void BagGL::render(bool picking)
         {
             camera.setCenterPosition(translateEndPosition);
             translating = false;
-            setAnimating(rotating||translating||adjustingHeightExaggeration);
+            m_animating = rotating||translating||adjustingHeightExaggeration;
         }
         else
         {
@@ -121,10 +174,6 @@ void BagGL::render(bool picking)
             camera.setCenterPosition(translateStartPosition*ip+translateEndPosition*p);
         }
     }
-    const qreal retinaScale = devicePixelRatio();
-    glViewport(0, 0, width() * retinaScale, height() * retinaScale);
-    camera.setViewport(width() * retinaScale, height() * retinaScale);
-    
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     
     int passes = 1;
@@ -132,7 +181,8 @@ void BagGL::render(bool picking)
         passes = 2;
     
     program->bind();
-    
+
+    // only one token vertex needed to specify a patch for the tessellation engine.
     glPatchParameteri(GL_PATCH_VERTICES,1);
         
     QMatrix4x4 matrix = camera.getMatrix();
@@ -204,7 +254,7 @@ void BagGL::checkGL(TilePtr t)
         t->gl->normals.setData(t->data->normalMap);
         t->gl->normals.setMinMagFilters(QOpenGLTexture::Nearest,QOpenGLTexture::Nearest);
         t->gl->normals.setWrapMode(QOpenGLTexture::ClampToEdge);
-        t->gl->maxLod = log2f(t->ncols)+1;
+        t->gl->maxLod = log2f(t->ncols)-1;
         t->gl->lod = t->gl->maxLod;
         t->data.reset();
     }
@@ -250,12 +300,14 @@ void BagGL::drawTile(TilePtr t)
             t->gl->elevations.bind(1);
             t->gl->normals.bind(2);
             program->setUniformValue(spacingUniform,QVector2D(t->dx,t->dy));
-            program->setUniformValue(tileSizeUniform,t->ncols);
+            program->setUniformValue(tileSizeUniform,QSize(t->ncols,t->nrows));
             program->setUniformValue(lowerLeftUniform,QVector2D(t->bounds.min().x(),t->bounds.min().y()));
             
-            GLfloat tl = (t->ncols/pow(2.0,t->gl->lod));
-            GLfloat tlEast = tl;
-            GLfloat tlNorth = tl;
+            // For a stand alone tile, we would normally have n-1 segments where n is the number of vertices,
+            // but we must account for the seam so number of segments == number of vertices
+            GLfloat tessLevel = (t->ncols/pow(2.0,t->gl->lod));
+            GLfloat tlEast = tessLevel;
+            GLfloat tlNorth = tessLevel;
             
             if(t->east)
             {
@@ -264,7 +316,7 @@ void BagGL::drawTile(TilePtr t)
                 t->east->gl->elevations.bind(3);
                 t->east->gl->normals.bind(4);
                 program->setUniformValue(eastSpacingUniform,QVector2D(t->east->dx,t->east->dy));
-                program->setUniformValue(eastTileSizeUniform,t->east->ncols);
+                program->setUniformValue(eastTileSizeUniform,QSize(t->east->ncols,t->east->nrows));
                 program->setUniformValue(eastLowerLeftUniform,QVector2D(t->east->bounds.min().x(),t->east->bounds.min().y()));
                 tlEast = (t->east->ncols/pow(2.0,t->east->gl->lod));
             }
@@ -278,7 +330,7 @@ void BagGL::drawTile(TilePtr t)
                 t->north->gl->elevations.bind(5);
                 t->north->gl->normals.bind(6);
                 program->setUniformValue(northSpacingUniform,QVector2D(t->north->dx,t->north->dy));
-                program->setUniformValue(northTileSizeUniform,t->north->ncols);
+                program->setUniformValue(northTileSizeUniform,QSize(t->north->ncols,t->north->nrows));
                 program->setUniformValue(northLowerLeftUniform,QVector2D(t->north->bounds.min().x(),t->north->bounds.min().y()));
                 tlNorth = (t->north->ncols/pow(2.0,t->north->gl->lod));
             }
@@ -292,24 +344,26 @@ void BagGL::drawTile(TilePtr t)
                 t->northEast->gl->elevations.bind(7);
                 t->northEast->gl->normals.bind(8);
                 program->setUniformValue(northEastSpacingUniform,QVector2D(t->northEast->dx,t->northEast->dy));
-                program->setUniformValue(northEastTileSizeUniform,t->northEast->ncols);
                 program->setUniformValue(northEastLowerLeftUniform,QVector2D(t->northEast->bounds.min().x(),t->northEast->bounds.min().y()));
             }
             else
                 program->setUniformValue(hasNorthEastUniform,false);
 
-            
+            // Tessellation parameters used to generate quads.
+            // They specify the number of edges for a specific side of the patch.
+            // Outer edges can differ from inner ones to help in stitching tiles of different resolution together.
             GLfloat tlInner[2];
             GLfloat tlOuter[4];
-            tlInner[0] = tl;
-            tlInner[1] = tl;
-            tlOuter[0] = tl;
-            tlOuter[1] = tl;
-            tlOuter[2] = tlEast;
-            tlOuter[3] = tlNorth;
+            tlInner[0] = tessLevel; // number of inner edges in the y direction.
+            tlInner[1] = tessLevel; // number of inner edges in the x direction.
+            tlOuter[0] = tessLevel; // number of segments on the left edge.
+            tlOuter[1] = tessLevel; // number of segments on the bottom edge.
+            tlOuter[2] = tlEast; // number of segments on the right edge.
+            tlOuter[3] = tlNorth; // number of segments on the top edge.
             glPatchParameterfv(GL_PATCH_DEFAULT_INNER_LEVEL,tlInner);
             glPatchParameterfv(GL_PATCH_DEFAULT_OUTER_LEVEL,tlOuter);
             
+            // Drawing this single vertex launches the Tessellation shader and get expanded into the verticies for the tile. 
             glDrawArrays(GL_PATCHES,0,1);
         }
     }
@@ -329,8 +383,9 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         int my = height()-event->pos().y();
         float gx = -1.0+mx/(width()/2.0);
         float gy = -1.0+my/(height()/2.0);
+        makeCurrent();
         if(polygonMode != GL_FILL)
-            renderNow(true);
+            render(true);
         GLfloat gz;
         glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
         gz = (gz-.5)*2.0;
@@ -350,7 +405,8 @@ void BagGL::mousePressEvent(QMouseEvent* event)
         adjustingHeightExaggeration = true;
         lastPosition = event->pos();
     }
-    setAnimating(rotating||translating||adjustingHeightExaggeration);
+    m_animating = rotating||translating||adjustingHeightExaggeration;
+    checkAnimation();
 }
 
 void BagGL::mouseReleaseEvent(QMouseEvent* event)
@@ -368,12 +424,35 @@ void BagGL::mouseReleaseEvent(QMouseEvent* event)
     {
         adjustingHeightExaggeration = false;
     }
-    setAnimating(rotating||translating||adjustingHeightExaggeration);
-    
+    m_animating = rotating||translating||adjustingHeightExaggeration;
+    checkAnimation();
 }
 
 void BagGL::mouseMoveEvent(QMouseEvent* event)
 {
+    QString posText = "Mouse: " + QString::number(event->pos().x())+","+QString::number(event->pos().y());
+    
+    int mx = event->pos().x();
+    int my = height()-event->pos().y();
+    float gx = -1.0+mx/(width()/2.0);
+    float gy = -1.0+my/(height()/2.0);
+    makeCurrent();
+    if(polygonMode != GL_FILL)
+        render(true);
+    GLfloat gz;
+    glReadPixels(mx, my, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &gz);
+    gz = (gz-.5)*2.0;
+    QMatrix4x4 matrix = camera.getMatrix().inverted();
+    QVector4D mousePos(gx,gy,gz,1.0);
+    mousePos = matrix*mousePos;
+    if (gz < 1.0)
+    {
+        auto swCorner = bag.getMeta().swBottomCorner;
+        posText += " World: "+QString::number(swCorner.x()+mousePos.x()/mousePos.w(),'f')+","+QString::number(swCorner.y()+mousePos.y()/mousePos.w(),'f')+","+QString::number(mousePos.z()/mousePos.w(),'f');    
+    }
+    statusLabel->setText(posText);
+    
+    
     if(rotating)
     {
         int dx = event->pos().x() - lastPosition.x();
@@ -396,7 +475,7 @@ void BagGL::wheelEvent(QWheelEvent* event)
         camera.setZoom(camera.getZoom() * 1.3f);
     else
         camera.setZoom(camera.getZoom() / 1.3f);
-    renderLater();
+    update();
 }
 
 void BagGL::keyPressEvent(QKeyEvent* event)
@@ -409,12 +488,12 @@ void BagGL::keyPressEvent(QKeyEvent* event)
     case Qt::Key_BracketLeft:
         lodBias--;
         qDebug() << "lod bias:" << lodBias;
-        renderLater();
+        update();
         break;
     case Qt::Key_BracketRight:
         lodBias++;
         qDebug() << "lod bias:" << lodBias;
-        renderLater();
+        update();
         break;
     default:
         event->ignore();
@@ -455,13 +534,13 @@ void BagGL::resetView()
         camera.setZoom(1.0);
     
     camera.setHeightExaggeration(1.0);
-    renderLater();
+    update();
 }
 
 void BagGL::setColormap(const std::string& cm)
 {
     currentColormap = cm;
-    renderLater();
+    update();
 }
 
 void BagGL::setDrawStyle(const std::string& ds)
@@ -472,7 +551,7 @@ void BagGL::setDrawStyle(const std::string& ds)
         polygonMode = GL_LINE;
     if(ds == "points")
         polygonMode = GL_POINT;
-    renderLater();
+    update();
 }
 
 void BagGL::messageLogged(const QOpenGLDebugMessage& debugMessage)
@@ -530,6 +609,13 @@ void BagGL::newTile(TilePtr tile, bool isVR)
         if(overviewTiles.count(southWest))
             overviewTiles[southWest]->northEast = tile;
     }
-    renderLater();
+    update();
 }
+
+void BagGL::setStatusBar(QStatusBar* sb)
+{
+    statusBar = sb;
+    statusBar->addWidget(statusLabel);
+}
+
 
