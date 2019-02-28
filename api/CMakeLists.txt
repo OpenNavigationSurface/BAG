@@ -131,6 +131,7 @@ source_group("Source Files" FILES ${BAG_SOURCE_FILES})
  
 set (BAG_HEADER_FILES 
  bag.h
+ bag_config.h
  bag_errors.h
  bag_metadata.h
  bag_legacy.h
