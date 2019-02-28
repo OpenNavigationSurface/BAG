@@ -45,8 +45,8 @@ out VertexData
 void main()
 {
     float e = 1e6;
-    vec2 posMeters = gl_TessCoord.xy*tileSize*spacing+lowerLeft;
     vec2 texCoordFactor = (tileSize+1)/tileSize;
+    vec2 posMeters = gl_TessCoord.xy*texCoordFactor*tileSize*spacing+lowerLeft;
     vec2 eastTexCoordFactor = (eastTileSize+1)/eastTileSize;
     vec2 northTexCoordFactor = (northTileSize+1)/northTileSize;
     vec3 normal = normalize((texture(normalMap,gl_TessCoord.xy*texCoordFactor).rgb*2.0)-1.0);
