@@ -1354,6 +1354,18 @@ bagError bagAlignXMLStream (bagHandle hnd, s32 read_or_write)
     else
     {
       extend[0] = strlen((char *)hnd->bag.metadata);
+
+      //If we are doing a read, and not trying to read zero bytes, and the allocated memory might not
+      //be adequate, do a realloc to make sure that we have enough memory to accommodate.
+      if (read_or_write == READ_BAG && count[0] != 0 && extend[0] < count[0])
+      {
+          hnd->bag.metadata = realloc(hnd->bag.metadata, count[0] + 1); //, sizeof(u8));
+          if (hnd->bag.metadata == NULL)
+          {
+              return BAG_MEMORY_ALLOCATION_FAILED;
+          }
+          extend[0] = count[0];
+      }
     }
     
     /*! 

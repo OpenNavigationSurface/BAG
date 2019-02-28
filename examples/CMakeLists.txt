@@ -66,8 +66,3 @@ FOREACH (example ${examples})
     INSTALL(TARGETS ${example} RUNTIME DESTINATION bin)
 
 ENDFOREACH (example ${examples})
-
-OPTION (BUILD_BAGVIEWER "Build bagViewer" OFF)
-IF (BUILD_BAGVIEWER)
-    add_subdirectory(bagViewer)
-ENDIF (BUILD_BAGVIEWER)
