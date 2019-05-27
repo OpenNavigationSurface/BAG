@@ -16,18 +16,18 @@ matrix:
     dist: xenial
     compiler: gcc
     env: PYTHON_VERSION=3.7
-  - os: osx
-    compiler: clang
-    env: PYTHON_VERSION=3.6
+  #- os: osx
+  #  compiler: clang
+  #  env: PYTHON_VERSION=3.6
     
   allow_failures:
   - os: linux
     dist: xenial
     compiler: gcc
     env: PYTHON_VERSION=3.7
-  - os: osx
-    compiler: clang
-    env: PYTHON_VERSION=3.6
+  #- os: osx
+  #  compiler: clang
+  #  env: PYTHON_VERSION=3.6
 
 install:
 
@@ -61,7 +61,7 @@ script:
   - tar -xzf beecrypt-4.2.1.tar.gz
   - mv beecrypt-4.2.1 beecrypt
   - cd beecrypt
-  - ./configure CFLAGS='-arch x86_64' --without-java --without-python --without-cplusplus --disable-static
+  - ./configure --without-java --without-python --without-cplusplus --disable-static
   - sudo make install
   - cd ..
   - cd ..
