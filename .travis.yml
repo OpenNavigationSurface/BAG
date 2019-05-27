@@ -61,8 +61,8 @@ script:
   - tar -xzf beecrypt-4.2.1.tar.gz
   - mv beecrypt-4.2.1 beecrypt
   - cd beecrypt
-  - ./configure CC='-arch x86_64' CXX='-arch x86_64' --without-java --without-python --without-cplusplus --disable-static
-  - sudo make CXXFLAGS='-fpermissive' install
+  - ./configure CFLAGS='-arch x86_64' --without-java --without-python --without-cplusplus --disable-static
+  - sudo make install
   - cd ..
   - cd ..
   - mkdir -p build
