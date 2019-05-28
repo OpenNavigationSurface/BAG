@@ -1,5 +1,8 @@
 .. image:: https://travis-ci.com/OpenNavigationSurface/BAG.svg?branch=master
     :target: https://travis-ci.com/OpenNavigationSurface/BAG
+	
+.. image:: https://ci.appveyor.com/api/projects/status/b4y9lmrhvhlntgo2?svg=true
+    :target: https://ci.appveyor.com/project/giumas/bag
 
 |
 	

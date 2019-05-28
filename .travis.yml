@@ -48,11 +48,10 @@ install:
   - conda update -q conda
   # Useful for debugging any issues with conda
   - conda info -a
-  - conda install cmake hdf5 libxml2
   # Create conda test environment
   - conda create -q -n test-environment python=$PYTHON_VERSION
   - source activate test-environment
-  
+  - conda install cmake hdf5 libxml2
   - conda list --show-channel-urls
   
 script:

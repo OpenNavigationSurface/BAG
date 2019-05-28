@@ -2,17 +2,11 @@
 # Hdf5 Settings
 #
 IF(MSVC)
-    # Definition required by HDF5 lib
-    ADD_DEFINITIONS(-D H5_BUILT_AS_DYNAMIC_LIB)
-    # The location of the Hdf5 header files.
-    SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE PATH "Location of hdf5 header files.")
-    # The name of the Hdf5 release library.
-    SET(HDF5_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5_D.lib" CACHE STRING "The name of the hdf5 release library.")
+    add_definitions(-D H5_BUILT_AS_DYNAMIC_LIB) # Definition required on MSVC
+    find_package(HDF5 REQUIRED)
+    set(HDF5_INCLUDE_DIR ${HDF5_INCLUDE_DIRS} CACHE PATH "Location of hdf5 header files.")
+    set(HDF5_LIB ${HDF5_LIBRARIES})	
 ELSEIF(UNIX)
-    # The location of the Hdf5 header files.
-    # SET(HDF5_INCLUDE_DIR "/usr/include" CACHE PATH "Location of hdf5 header files.")
-    # The name of the Hdf5 release library.
-    # SET(HDF5_LIB "hdf5" CACHE STRING "The name of the hdf5 release library.")
     find_package(HDF5 REQUIRED)
     set(HDF5_INCLUDE_DIR ${HDF5_INCLUDE_DIRS} CACHE PATH "Location of hdf5 header files.")
     set(HDF5_LIB ${HDF5_LIBRARIES})
@@ -24,10 +18,9 @@ ELSEIF(MINGW)
         # The name of the Hdf5 release library.
         SET(HDF5_LIB "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5" CACHE STRING "The name of the hdf5 release library.")
     endif(HDF5_C_LIBRARY)
-
     # The location of the Hdf5 header files.
     SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE PATH "Location of hdf5 header files.")
-ENDIF(MSVC)
+ENDIF()
 
 # 
 # beecrypt Settings
@@ -39,29 +32,24 @@ IF(MSVC)
     SET(BEECRYPT_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecryptd.lib" CACHE STRING "The name of the beecrypt release library.")
 ELSEIF(UNIX)
     # The location of the beecrypt header files.
-    #SET(BEECRYPT_INCLUDE_DIR "/usr/include" CACHE PATH "Location of beecrypt header files.")
     FIND_PATH(BEECRYPT_INCLUDE_DIR beecrypt/aes.h)
     # The name of the beecrypt release library.
-    #SET(BEECRYPT_LIB "beecrypt" CACHE STRING "The name of the beecrypt release library.")
     FIND_LIBRARY(BEECRYPT_LIB beecrypt DOC "The name of the beecrypt release library.")
 ELSEIF(MINGW)
     # The location of the beecrypt header files.
     SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/include/" CACHE PATH "Location of beecrypt header files.")
     # The name of the beecrypt release library.
     SET(BEECRYPT_LIB "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/lib/beecrypt" CACHE STRING "The name of the beecrypt release library.")
-ENDIF(MSVC)
+ENDIF()
 
 # 
 # libxml Settings
 #
 IF(MSVC)
-    # The location of the libxml2 header files.
-    SET(LIBXML_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/libxml2/include" CACHE PATH "Location of libxml2 header files.")
-    # The name of the libxml2 release library.
-    SET(LIBXML_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/libxml2/lib/release/libxml2.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/libxml2/lib/debug/libxml2.lib" CACHE STRING "The name of the libxml2 library.")
+    FIND_PACKAGE(LibXml2)
+    SET(LIBXML_INCLUDE_DIR ${LIBXML2_INCLUDE_DIR} CACHE PATH "Location of libxml2 header files.")
+    SET(LIBXML_LIB ${LIBXML2_LIBRARIES} CACHE STRING "The name of the libxml2 release library.")
 ELSEIF(UNIX)
-
-    # The location of the libxml2 header files.
     FIND_PACKAGE(LibXml2)
     IF(LIBXML2_INCLUDE_DIR)
         SET(LIBXML_INCLUDE_DIR ${LIBXML2_INCLUDE_DIR} CACHE PATH "Location of libxml2 header files.")
@@ -70,7 +58,7 @@ ELSEIF(UNIX)
         SET(LIBXML_INCLUDE_DIR "/usr/include" CACHE PATH "Location of libxml2 header files.")
         # The name of the libxml2 release library.
         SET(LIBXML_LIB "libxml2" CACHE STRING "The name of the libxml2 release library.")
-    ENDIF(LIBXML2_INCLUDE_DIR)
+    ENDIF()
 
 ELSEIF(MINGW)
     # The location of the libxml2 header files.
@@ -82,8 +70,8 @@ ELSEIF(MINGW)
         SET(LIBXML_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/libxml2/installed/include/" CACHE PATH "Location of libxml2 header files.")
         # The name of the libxml2 release library.
         SET(LIBXML_LIB "${PROJECT_SOURCE_DIR}/extlibs/libxml2/installed/lib/libxml2" CACHE STRING "The name of the libxml2 release library.")
-    ENDIF(LIBXML2_INCLUDE_DIR)
-ENDIF(MSVC)
+    ENDIF()
+ENDIF()
 
 include_directories (${HDF5_INCLUDE_DIR} ${BEECRYPT_INCLUDE_DIR} ${LIBXML_INCLUDE_DIR}) 
 
@@ -170,14 +158,4 @@ install(TARGETS bag
         LIBRARY DESTINATION lib
         ARCHIVE DESTINATION lib/static)
         
-if(MSVC)
-
-    #Copy the DLL dependencies
-    install(FILES ${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/bin/hdf5.dll DESTINATION bin)
-    install(DIRECTORY ${PROJECT_SOURCE_DIR}/extlibs/zlib/installed/bin/ DESTINATION bin)
-    install(FILES ${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.dll DESTINATION bin)
-    install(FILES ${PROJECT_SOURCE_DIR}/extlibs/libxml2/bin/release/libxml2.dll DESTINATION bin)
-    
-endif()
-
 install(DIRECTORY ${PROJECT_SOURCE_DIR}/configdata/ DESTINATION configdata)
