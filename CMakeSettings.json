@@ -1,0 +1,69 @@
+﻿{
+    "environments": [ { "PATH": "${env.PATH};D:\\caris_work\\BAG\\third_party\\build\\bin" } ],
+    "configurations": [
+        {
+            "name": "x64-Debug",
+            "generator": "Ninja",
+            "configurationType": "Debug",
+            "inheritEnvironments": [ "msvc_x64_x64" ],
+            "buildRoot": "${projectDir}\\build-d-x64",
+            "installRoot": "${projectDir}\\install-d-x64",
+            "cmakeCommandArgs": "-DHDF5_hdf5_cpp_LIBRARY_DEBUG:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5_cpp_D.lib\" -DHDF5_hdf5_cpp_LIBRARY_RELEASE:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5_cpp.lib\" -DHDF5_hdf5_LIBRARY_DEBUG:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5_D.lib\" -DHDF5_hdf5_LIBRARY_RELEASE:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5.lib\" -DHDF5_INCLUDE_DIRS:PATH=\"${projectDir}/../third_party/build/include\" -DHDF5_LIBRARIES:PATH=\"${projectDir}/../third_party/build/lib\" -DHDF5_DIR:PATH=\"${projectDir}/../third_party/hdf5\" -DHDF5_CXX_INCLUDE_DIR:PATH=\"${projectDir}/../third_party/build/include\" -DLIBXML2_INCLUDE_DIR:PATH=\"${projectDir}/../third_party/build/include/libxml2\" -DLIBXML2_LIBRARY:FILEPATH=\"${projectDir}/../third_party/build/lib/libxml2d.lib\"",
+            "buildCommandArgs": "-v",
+            "ctestCommandArgs": "",
+            "intelliSenseMode": "windows-msvc-x64",
+            "variables": [
+                {
+                    "name": "HDF5_hdf5_cpp_LIBRARY_DEBUG",
+                    "value": "D:/caris_work/BAG/third_party/build/lib/hdf5_cpp_D.lib",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "HDF5_hdf5_cpp_LIBRARY_RELEASE",
+                    "value": "D:/caris_work/BAG/third_party/build/lib/hdf5_cpp.lib",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "HDF5_hdf5_LIBRARY_DEBUG",
+                    "value": "D:/caris_work/BAG/third_party/build/lib/hdf5_D.lib",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "HDF5_hdf5_LIBRARY_RELEASE",
+                    "value": "D:/caris_work/BAG/third_party/build/lib/hdf5.lib",
+                    "type": "FILEPATH"
+                },
+                {
+                    "name": "HDF5_INCLUDE_DIRS",
+                    "value": "D:/caris_work/BAG/third_party/build/include",
+                    "type": "PATH"
+                },
+                {
+                    "name": "HDF5_LIBRARIES",
+                    "value": "D:/caris_work/BAG/third_party/build/lib",
+                    "type": "PATH"
+                },
+                {
+                    "name": "HDF5_DIR",
+                    "value": "D:/caris_work/BAG/third_party/hdf5",
+                    "type": "PATH"
+                },
+                {
+                    "name": "HDF5_CXX_INCLUDE_DIR",
+                    "value": "D:/caris_work/BAG/third_party/build/include",
+                    "type": "PATH"
+                },
+                {
+                    "name": "LIBXML2_INCLUDE_DIR",
+                    "value": "D:/caris_work/BAG/third_party/build/include/libxml2",
+                    "type": "PATH"
+                },
+                {
+                    "name": "LIBXML2_LIBRARY",
+                    "value": "D:/caris_work/BAG/third_party/build/lib/libxml2d.lib",
+                    "type": "FILEPATH"
+                }
+            ]
+        }
+    ]
+}
