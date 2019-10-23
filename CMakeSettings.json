@@ -12,6 +12,7 @@
             "buildCommandArgs": "-v",
             "ctestCommandArgs": "",
             "intelliSenseMode": "windows-msvc-x64",
+            "codeAnalysisRuleset": "D:/caris_work/code_analysis_rules.ruleset",
             "variables": [
                 {
                     "name": "HDF5_hdf5_cpp_LIBRARY_DEBUG",

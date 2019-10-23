@@ -86,3 +86,10 @@ endif()
 add_subdirectory(api)
 add_subdirectory(examples)
 
+# Testing
+option(OPENNS_BUILD_TESTS "Build Tests" ON)
+
+if(OPENNS_BUILD_TESTS)
+    add_subdirectory(tests)
+endif()
+
