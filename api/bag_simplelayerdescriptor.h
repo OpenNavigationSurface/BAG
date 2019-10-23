@@ -1,0 +1,51 @@
+#ifndef BAG_SIMPLELAYERDESCRIPTOR_H
+#define BAG_SIMPLELAYERDESCRIPTOR_H
+
+#include "bag_config.h"
+#include "bag_fordec.h"
+#include "bag_types.h"
+
+#include <memory>
+
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)
+#endif
+
+namespace BAG {
+
+class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
+{
+public:
+    static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type);
+    static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
+        const Dataset& dataset);
+
+    //TODO Temp, make sure only move operations are used until development is done.
+    SimpleLayerDescriptor(const SimpleLayerDescriptor&) = delete;
+    SimpleLayerDescriptor(SimpleLayerDescriptor&&) = delete;
+    SimpleLayerDescriptor& operator=(const SimpleLayerDescriptor&) = delete;
+    SimpleLayerDescriptor& operator=(SimpleLayerDescriptor&&) = delete;
+
+protected:
+    SimpleLayerDescriptor(LayerType type);
+    SimpleLayerDescriptor(LayerType type, const Dataset& dataset);
+
+private:
+    uint8_t getElementSizeProxy() const noexcept override;
+    SimpleLayerDescriptor& setElementSizeProxy(uint8_t) & noexcept override;
+
+    uint8_t m_elementSize = 0;
+
+    //friend SimpleLayer;
+};
+
+}  // namespace BAG
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
+
+#endif  // BAG_LAYERDESCRIPTOR_H
+
