@@ -66,7 +66,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
 
     std::array<float, kExpectedNumNodes> kExpectedBuffer{
         1'000'000.0f, -52.161003f, -52.172005f,
-        1'000'000.0f, -52.177002f, -52.174004};
+        1'000'000.0f, -52.177002f, -52.174004f};
 
     const float* floats = reinterpret_cast<const float*>(buffer.get());
     for (size_t i=0; i<kExpectedNumNodes; ++i)

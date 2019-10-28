@@ -88,7 +88,7 @@ TEST_CASE("test layer descriptor get/set min max",
     "[simplelayerdescriptor][getMinMax][setMinMax]")
 {
     auto descriptor = SimpleLayerDescriptor::create(Elevation);
-    const std::tuple<float, float> kExpectedMinMax{1.2345, 9876.54321};
+    const std::tuple<float, float> kExpectedMinMax{1.2345f, 9876.54321f};
 
     UNSCOPED_INFO("Verify setting min max does not throw.");
     REQUIRE_NOTHROW(descriptor->setMinMax(kExpectedMinMax));
