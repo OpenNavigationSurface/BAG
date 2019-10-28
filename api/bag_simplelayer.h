@@ -31,12 +31,16 @@ protected:
     SimpleLayer& operator=(SimpleLayer&&) = delete;
 
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
-        const LayerDescriptor& descriptor);
+        LayerType type);
 
+    //TODO redo this with LayerType?
     static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
         const LayerDescriptor& descriptor);
 
 private:
+    static std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
+        createH5dataSet(const Dataset& inDataSet,
+            const LayerDescriptor& descriptor);
 
     std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;

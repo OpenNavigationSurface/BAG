@@ -26,8 +26,8 @@ class BAG_API Layer
 public:
     virtual ~Layer() = default;
 
-    constexpr static DataType getDataType(LayerType layerType) noexcept;
-    constexpr static uint8_t getElementSize(DataType type) noexcept;
+    static DataType getDataType(LayerType layerType) noexcept;
+    static uint8_t getElementSize(DataType type) noexcept;
     static std::string getInternalPath(LayerType type);
 
     // Interface

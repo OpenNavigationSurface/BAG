@@ -64,13 +64,13 @@ struct BagTrackingItem
     uint16_t list_series;
 };
 
-#define BAG_SURFACE_CORRECTOR_LIMIT 10  // The maximum number of datum correctors per BagVerticalDatumCorrections
-
 enum BAG_SURFACE_CORRECTION_TOPOGRAPHY {
     BAG_SURFACE_UNKNOWN = 0,        /* Unknown */
     BAG_SURFACE_GRID_EXTENTS,       /* Optional corrector dataset grid coordinates, spanning the required BAG surface extents */
     BAG_SURFACE_IRREGULARLY_SPACED, /* Irregularly spaced corrector values in optional corrector dataset */
 };
+
+#define BAG_SURFACE_CORRECTOR_LIMIT 10  // The maximum number of datum correctors per BagVerticalDatumCorrections
 
 struct BagVerticalDatumCorrections
 {
@@ -78,6 +78,8 @@ struct BagVerticalDatumCorrections
     double y;
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
+
+#define BAG_NULL_ELEVATION 1000000
 
 #ifdef __cplusplus
 }  // extern "C"

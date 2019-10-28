@@ -19,9 +19,7 @@ namespace BAG {
 
 class BAG_API InterleavedLayer final : public Layer
 {
-
 protected:
-
     InterleavedLayer(Dataset& dataset,
         const InterleavedLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet);
@@ -32,12 +30,16 @@ protected:
     InterleavedLayer& operator=(InterleavedLayer&&) = delete;
 
     static std::unique_ptr<InterleavedLayer> create(Dataset& dataset,
-        const InterleavedLayerDescriptor& descriptor);
+        LayerType layerType, GroupType groupType);
 
+    //TODO redo this with LayerType, GroupType?
     static std::unique_ptr<InterleavedLayer> open(Dataset& dataset,
         const InterleavedLayerDescriptor& descriptor);
 
 private:
+    static std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
+        createH5dataSet(const Dataset& inDataSet,
+            const LayerDescriptor& descriptor);
 
     std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;

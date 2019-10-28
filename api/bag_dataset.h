@@ -35,7 +35,7 @@ public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,
         OpenMode openMode);
     static std::shared_ptr<Dataset> create(const std::string &fileName,
-        const Metadata& metadata/*, Descriptor descriptor*/);
+        Metadata& metadata/*, Descriptor descriptor*/);
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
@@ -81,9 +81,7 @@ private:
         void operator()(::H5::DataSet* ptr) noexcept;
     };
 
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> createH5DataSet(
-        const LayerDescriptor& descriptor);
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> openH5DataSet(
+    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> openLayerH5DataSet(
         const LayerDescriptor& descriptor);
 
     //! Custom deleter to not require knowledge of ::H5::H5File destructor here.

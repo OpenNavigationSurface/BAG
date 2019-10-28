@@ -1,6 +1,8 @@
 #include "bag_dataset.h"
+#include "bag_exceptions.h"
 #include "bag_layer.h"
 #include "bag_metadata.h"
+#include "bag_metadata_export.h"
 #include "bag_metadata_import.h"
 #include "bag_private.h"
 
@@ -9,6 +11,7 @@
 #pragma warning(disable: 4251)
 #endif
 
+#include <fstream>
 #include <h5cpp.h>
 
 #ifdef _MSC_VER
@@ -18,6 +21,8 @@
 
 namespace BAG
 {
+
+constexpr hsize_t kMetadataChunkSize = 1024;
 
 Metadata::Metadata() noexcept
 {
@@ -32,7 +37,7 @@ Metadata::~Metadata() noexcept
         bagFreeMetadata(m_metaStruct);
     }
     catch(...)
-    {};
+    {}
 }
 
 Metadata::Metadata(Dataset& dataset)
@@ -42,8 +47,15 @@ Metadata::Metadata(Dataset& dataset)
 
     const auto& h5file = dataset.getH5file();
 
-    m_pH5DataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
-        new ::H5::DataSet{h5file.openDataSet(METADATA_PATH)}, DeleteH5DataSet{});
+    try
+    {
+        m_pH5DataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
+            new ::H5::DataSet{h5file.openDataSet(METADATA_PATH)}, DeleteH5DataSet{});
+    }
+    catch(...)
+    {
+        throw MetadataNotFound{};
+    }
 
     H5std_string buffer;
     const ::H5::StrType stringType{*m_pH5DataSet};
@@ -58,9 +70,37 @@ double Metadata::columnResolution() const noexcept
     return m_metaStruct.spatialRepresentationInfo->columnResolution;
 }
 
+void Metadata::createH5dataSet(
+    const Dataset& inDataset)
+{
+    m_pBagDataset = inDataset.shared_from_this();  //TODO is this always a good idea?
+
+    const auto& h5file = inDataset.getH5file();
+
+    const auto buffer = exportMetadataToXML(this->getStruct());
+    const hsize_t xmlLength{buffer.size()};
+    const hsize_t kUnlimitedSize = static_cast<hsize_t>(-1);
+    const ::H5::DataSpace h5dataSpace{1, &xmlLength, &kUnlimitedSize};
+
+    const ::H5::DSetCreatPropList h5createPropList{};
+    h5createPropList.setChunk(1, &kMetadataChunkSize);
+
+    m_pH5DataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
+        new ::H5::DataSet{h5file.createDataSet(METADATA_PATH,
+            ::H5::PredType::C_S1, h5dataSpace, h5createPropList)},
+            DeleteH5DataSet{});
+
+    m_pH5DataSet->extend(&xmlLength);
+}
+
 const BagMetadata& Metadata::getStruct() const noexcept
 {
     return m_metaStruct;
+}
+
+size_t Metadata::getXMLlength() const noexcept
+{
+    return m_xmlLength;
 }
 
 const char* Metadata::horizontalCRSasWKT() const
@@ -88,6 +128,10 @@ void Metadata::loadFromFile(const std::string& fileName)
         m_metaStruct, false);
     if (err)
         throw err;
+
+    std::ifstream ifs{fileName, std::ios_base::in|std::ios_base::binary};
+    ifs.seekg(0, std::ios_base::end);
+    m_xmlLength = ifs.tellg();
 }
 
 void Metadata::loadFromBuffer(const std::string& xmlBuffer)
@@ -96,6 +140,8 @@ void Metadata::loadFromBuffer(const std::string& xmlBuffer)
         static_cast<int>(xmlBuffer.size()), m_metaStruct, false);
     if (err)
         throw err;
+
+    m_xmlLength = xmlBuffer.size();
 }
 
 double Metadata::rowResolution() const noexcept
@@ -116,6 +162,17 @@ double Metadata::urCornerY() const noexcept
 void Metadata::DeleteH5DataSet::operator()(::H5::DataSet* ptr) noexcept
 {
     delete ptr;
+}
+
+void Metadata::write() const
+{
+    const auto buffer = exportMetadataToXML(this->getStruct());
+
+    const hsize_t bufferLen = buffer.size();
+    const hsize_t kMaxSize = static_cast<hsize_t>(-1);
+    const ::H5::DataSpace h5dataSpace{1, &bufferLen, &kMaxSize};
+
+    m_pH5DataSet->write(buffer, ::H5::PredType::C_S1, h5dataSpace);
 }
 
 }   //namespace BAG

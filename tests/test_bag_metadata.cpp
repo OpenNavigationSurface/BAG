@@ -322,6 +322,16 @@ TEST_CASE("test metadata construction and destruction", "[metadata][constructor]
         CHECK(metadata.llCornerX() == Approx{INIT_VALUE});
         // Test destructor.
     }
+    {
+        // Test constructor taking a dataset.
+        const std::string bagFileName{
+            std::string{std::getenv("BAG_SAMPLES_PATH")} + "/sample.bag"};
+
+        const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+        REQUIRE(dataset);
+
+        Metadata metadata(*dataset);
+    }
 }
 
 //  const BagMetadata& getStruct() const;

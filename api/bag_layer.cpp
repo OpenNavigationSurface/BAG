@@ -21,7 +21,7 @@ Layer::Layer(
 }
 
 
-constexpr DataType Layer::getDataType(LayerType layerType) noexcept
+DataType Layer::getDataType(LayerType layerType) noexcept
 {
     switch (layerType)
     {
@@ -47,7 +47,7 @@ const LayerDescriptor& Layer::getDescriptor() const & noexcept
     return *m_pLayerDescriptor;
 }
 
-constexpr uint8_t Layer::getElementSize(DataType type) noexcept
+uint8_t Layer::getElementSize(DataType type) noexcept
 {
     switch (type)
     {

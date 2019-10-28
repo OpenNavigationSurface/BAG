@@ -19,6 +19,8 @@
 
 namespace BAG {
 
+constexpr hsize_t kTrackingListChunkSize = TRACKING_LIST_BLOCK_SIZE;
+
 TrackingList::TrackingList(Dataset& dataset)
     : m_pBagDataset(dataset.shared_from_this())
 {
@@ -27,10 +29,9 @@ TrackingList::TrackingList(Dataset& dataset)
     const auto h5dataSet = dataset.getH5file().openDataSet(TRACKING_LIST_PATH);
     const auto attribute = h5dataSet.openAttribute(TRACKING_LIST_LENGTH_NAME);
 
-    unsigned int length = 0;
-    attribute.read(attribute.getDataType(), &length);
+    attribute.read(attribute.getDataType(), &m_length);
 
-    if (length == 0)
+    if (m_length == 0)
         return;
 
     // Read the rank to size m_corrections properly.
@@ -65,6 +66,49 @@ TrackingList::TrackingList(
     std::initializer_list<TrackingList::value_type> items)
     : m_items(items)
 {
+}
+
+
+void TrackingList::createH5dataSet(
+    const Dataset& inDataset,
+    int compressionLevel)
+{
+    m_pBagDataset = inDataset.shared_from_this();  //TODO is this always a good idea?
+    auto pDataset = m_pBagDataset.lock();
+
+    const auto& h5file = pDataset->getH5file();
+
+    hsize_t numEntries = 0;
+    const hsize_t kUnlimitedSize = static_cast<hsize_t>(-1);
+    const ::H5::DataSpace h5dataSpace{1, &numEntries, &kUnlimitedSize};
+
+    const ::H5::CompType h5dataType{sizeof(BagTrackingItem)};
+
+    h5dataType.insertMember("row", HOFFSET(BagTrackingItem, row), ::H5::PredType::NATIVE_UINT);
+    h5dataType.insertMember("col", HOFFSET(BagTrackingItem, col), ::H5::PredType::NATIVE_UINT);
+    h5dataType.insertMember("depth", HOFFSET(BagTrackingItem, depth), ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("uncertainty", HOFFSET(BagTrackingItem, uncertainty), ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("track_code", HOFFSET(BagTrackingItem, track_code), ::H5::PredType::NATIVE_UCHAR);
+    h5dataType.insertMember("list_series", HOFFSET(BagTrackingItem, list_series), ::H5::PredType::NATIVE_SHORT);
+
+    const ::H5::DSetCreatPropList h5createPropList{};
+    h5createPropList.setChunk(1, &kTrackingListChunkSize);
+
+    if (compressionLevel > 0 && compressionLevel <= 9)
+        h5createPropList.setDeflate(compressionLevel);
+
+    m_pH5DataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
+        new ::H5::DataSet{h5file.createDataSet(TRACKING_LIST_PATH,
+            h5dataType, h5dataSpace, h5createPropList)},
+            DeleteH5DataSet{});
+
+    const ::H5::DataSpace listLengthDataSpace{};
+    const auto listLengthAtt = m_pH5DataSet->createAttribute(
+        TRACKING_LIST_LENGTH_NAME, ::H5::PredType::NATIVE_UINT32,
+        listLengthDataSpace);
+
+    const uint32_t length = 0;
+    listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &length);
 }
 
 TrackingList::iterator TrackingList::begin() &
@@ -167,6 +211,25 @@ TrackingList::value_type* TrackingList::data() & noexcept
 const TrackingList::value_type* TrackingList::data() const & noexcept
 {
     return m_items.data();
+}
+
+void TrackingList::DeleteH5DataSet::operator()(::H5::DataSet* ptr) noexcept
+{
+    delete ptr;
+}
+
+void TrackingList::write() const
+{
+    //TODO implement
+#if 0
+    const auto buffer = exportMetadataToXML(this->getStruct());
+
+    const hsize_t bufferLen = buffer.size();
+    const hsize_t kMaxSize = static_cast<hsize_t>(-1);
+    const ::H5::DataSpace h5dataSpace{1, &bufferLen, &kMaxSize};
+
+    m_pH5DataSet->write(buffer, ::H5::PredType::C_S1, h5dataSpace);
+#endif
 }
 
 }   //namespace BAG

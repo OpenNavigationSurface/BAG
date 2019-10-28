@@ -55,16 +55,26 @@ public:
     reference operator[](size_t index) & noexcept;
     const_reference operator[](size_t index) const & noexcept;
 
-    //TODO
-    //void write(??);
+    void write() const;
 
 private:
+    void createH5dataSet(const Dataset& inDataset, int compressionLevel);
+
     //! The associated dataset.
-    std::weak_ptr<Dataset> m_pBagDataset;
+    std::weak_ptr<const Dataset> m_pBagDataset;
     //! The items making up the tracking list.
     std::vector<value_type> m_items;
     //! The length attribute in the tracking list DataSet.
-    uint32_t length = 0;
+    uint32_t m_length = 0;
+
+    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
+    struct BAG_API DeleteH5DataSet final
+    {
+        void operator()(::H5::DataSet* ptr) noexcept;
+    };
+    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> m_pH5DataSet;
+
+    friend Dataset;
 };
 
 }   //namespace BAG

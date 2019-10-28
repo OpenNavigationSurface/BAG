@@ -47,8 +47,14 @@ public:
     void loadFromFile(const std::string& fileName);
     void loadFromBuffer(const std::string& xmlBuffer);
 
+    size_t getXMLlength() const noexcept;
+
+    void write() const;
+
 private:
-    std::weak_ptr<Dataset> m_pBagDataset;
+    void createH5dataSet(const Dataset& inDataSet);
+
+    std::weak_ptr<const Dataset> m_pBagDataset;
     BagMetadata m_metaStruct;
 
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
@@ -57,6 +63,10 @@ private:
         void operator()(::H5::DataSet* ptr) noexcept;
     };
     std::unique_ptr<::H5::DataSet, DeleteH5DataSet> m_pH5DataSet;
+    //! Length of the XML (from file or buffer).
+    size_t m_xmlLength = 0;
+
+    friend Dataset;
 };
 
 }   //namespace BAG

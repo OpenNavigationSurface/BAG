@@ -33,18 +33,18 @@ struct BagOptElevationSolutionGroup final
 
     if (groupType == NODE)
     {
-        h5type = ::H5::CompType{sizeof(BagOptNodeGroup)};
-
         switch (layerType)
         {
         case Hypothesis_Strength:
+            h5type = ::H5::CompType{sizeof(float)};
             h5type.insertMember("hyp_strength",
-                HOFFSET(BagOptNodeGroup, hyp_strength),
+                0,
                 ::H5::PredType::NATIVE_FLOAT);
             break;
         case Num_Hypotheses:
+            h5type = ::H5::CompType{sizeof(unsigned int)};
             h5type.insertMember("num_hypotheses",
-                HOFFSET(BagOptNodeGroup, num_hypotheses),
+                0,
                 ::H5::PredType::NATIVE_UINT);
             break;
         default:
@@ -53,23 +53,24 @@ struct BagOptElevationSolutionGroup final
     }
     else if (groupType == ELEVATION)
     {
-        h5type = ::H5::CompType{sizeof(float)};//BagOptElevationSolutionGroup)};
-
         switch(layerType)
         {
         case Shoal_Elevation:
+            h5type = ::H5::CompType{sizeof(float)};
             h5type.insertMember("shoal_elevation",
-                0, //HOFFSET(BagOptElevationSolutionGroup, shoal_elevation),
+                0,
                 ::H5::PredType::NATIVE_FLOAT);
             break;
         case Std_Dev:
+            h5type = ::H5::CompType{sizeof(float)};
             h5type.insertMember("stddev",
-                HOFFSET(BagOptElevationSolutionGroup, stddev),
+                0,
                 ::H5::PredType::NATIVE_FLOAT);
             break;
         case Num_Soundings:
+            h5type = ::H5::CompType{sizeof(int)};
             h5type.insertMember("num_soundings",
-                HOFFSET(BagOptElevationSolutionGroup, num_soundings),
+                0,
                 ::H5::PredType::NATIVE_INT);
             break;
         default:
@@ -104,22 +105,38 @@ InterleavedLayer::InterleavedLayer(
 
 std::unique_ptr<InterleavedLayer> InterleavedLayer::create(
     Dataset& dataset,
-    const InterleavedLayerDescriptor& descriptor)
+    LayerType layerType,
+    GroupType groupType)
+    //const InterleavedLayerDescriptor& descriptor)
 {
-    auto h5DataSet = dataset.createH5DataSet(descriptor);
+ //   auto h5DataSet = dataset.createLayerH5DataSet(descriptor);
+    auto descriptor = InterleavedLayerDescriptor::create(layerType, groupType);
+    auto h5DataSet = InterleavedLayer::createH5dataSet(dataset, *descriptor);
+
     return std::unique_ptr<InterleavedLayer>(new InterleavedLayer{dataset,
-        descriptor, std::move(h5DataSet)});
+        *descriptor, std::move(h5DataSet)});
 }
 
 std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
     Dataset& dataset,
     const InterleavedLayerDescriptor& descriptor)
 {
-    auto h5DataSet = dataset.openH5DataSet(descriptor);
+    auto h5DataSet = dataset.openLayerH5DataSet(descriptor);
+
     return std::unique_ptr<InterleavedLayer>(new InterleavedLayer{dataset,
         descriptor, std::move(h5DataSet)});
 }
 
+
+std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
+InterleavedLayer::createH5dataSet(
+    const Dataset& inDataset,
+    const LayerDescriptor& descriptor)
+{
+    //TODO Look this up in bag_opt_group.c / bag_opt_surfaces.c
+    inDataset;  descriptor;
+    return {};
+}
 
 std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     uint32_t rowStart,

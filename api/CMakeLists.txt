@@ -21,6 +21,7 @@ set(BAG_SOURCE_FILES
     bag_layerdescriptor.cpp
     bag_legacy_crs.cpp
     bag_metadata.cpp
+    bag_metadata_export.cpp
     bag_metadata_import.cpp
     bag_metadatatypes.cpp
     #bag_opt_group.c                TODO
@@ -56,6 +57,7 @@ set(BAG_HEADER_FILES
     bag_legacy_crs.h
     bag_metadata.h
     #bag_metadata_def.h
+    bag_metadata_export.h
     bag_metadata_import.h
     bag_metadatatypes.h
     #bag_opt_surfaces.h

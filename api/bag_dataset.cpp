@@ -2,9 +2,11 @@
 #include "bag_dataset.h"
 #include "bag_interleavedlayer.h"
 #include "bag_interleavedlayerdescriptor.h"
+#include "bag_metadata_export.h"
 #include "bag_private.h"
 #include "bag_simplelayerdescriptor.h"
 #include "bag_simplelayer.h"
+#include "bag_version.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -151,7 +153,7 @@ std::shared_ptr<Dataset> Dataset::open(
 
 std::shared_ptr<Dataset> Dataset::create(
     const std::string& fileName,
-    const Metadata& metadata/*,
+    Metadata& metadata/*,
     Descriptor descriptor*/)
 {
     std::shared_ptr<Dataset> pDataset{new Dataset};
@@ -160,45 +162,6 @@ std::shared_ptr<Dataset> Dataset::create(
     return pDataset;
 }
 
-
-std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
-Dataset::createH5DataSet(
-    const LayerDescriptor& descriptor)
-{
-#if 0
-    int data[NX][NY];
-
-    for (int j=0; j<NX; ++j)
-        for (int i=0; i<NY; ++i)
-            data[j][i] = i + j;
-#endif
-
-    // Define the size of the array and create the data space for fixed size
-    // dataSet.
-    const auto dims = descriptor.getDims();
-    const std::array<hsize_t, RANK> h5Dims{std::get<0>(dims), std::get<1>(dims)};
-    const ::H5::DataSpace h5dataSpace(RANK, h5Dims.data());
-
-    // Define datatype for the data in the file.
-    // We will store little endian INT numbers.
-    //::H5::IntType datatype( PredType::NATIVE_INT );
-    //datatype.setOrder( H5T_ORDER_LE );
-
-    const auto h5dataType = getH5PredType(descriptor.getDataType());
-
-    // Create a new dataSet within the file using defined dataSpace and
-    // dataType and default dataSet creation properties.
-    const ::H5::DataSet h5dataSet = m_pH5file->createDataSet(
-        descriptor.getInternalPath(), h5dataType, h5dataSpace);
-
-    //TODO Does data need to be written now?
-#if 0
-    h5dataSet.write(data, h5dataType);
-#endif
-
-    return std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
-        new ::H5::DataSet{h5dataSet}, DeleteH5DataSet{});
-}
 
 Layer& Dataset::createLayer(LayerType type) &
 {
@@ -210,28 +173,20 @@ Layer& Dataset::createLayer(LayerType type) &
     if (iter != cend(m_layers))
         throw LayerExists{};
 
-    //TODO Determine what type of layer descriptor (simple, interleaved, compound) is needed
+    //TODO Rename this as createSimpleLayer, or handle Groups and non-simple
+    // types below
 
-    auto layerDesc = SimpleLayerDescriptor::create(type);
+    auto result = m_layers.emplace(type, SimpleLayer::create(*this, type));
+    auto& newLayer = *(result.first->second);
 
-    const auto possibleMinMax = this->getMinMax(type);
-    if (std::get<0>(possibleMinMax))
-        layerDesc->setMinMax(std::make_tuple(std::get<1>(possibleMinMax),
-            std::get<2>(possibleMinMax)));
+    m_descriptor.addLayerDescriptor(newLayer.getDescriptor());
 
-    auto h5DataSet = this->createH5DataSet(*layerDesc);
-
-    //TODO Does this need a layer factory?  SimpleLayer, InterleavedLayer, CompoundLayer
-    auto newLayer = m_layers.emplace(type, SimpleLayer::create(*this, *layerDesc));
-
-    m_descriptor.addLayerDescriptor(*layerDesc);
-
-    return *(newLayer.first->second);
+    return newLayer;
 }
 
 void Dataset::createDataset(
     const std::string& fileName,
-    const Metadata& metadata/*,
+    Metadata& metadata/*,
     Descriptor descriptor*/)
 {
 #ifdef NDEBUG
@@ -239,24 +194,38 @@ void Dataset::createDataset(
 #endif
 
     m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
-        fileName.c_str(), H5F_ACC_RDWR}, DeleteH5File{});
+        fileName.c_str(), H5F_ACC_EXCL}, DeleteH5File{});
 
-    //TODO
-    //Create empty HDF5 (what are minimum layers?  elevation, metadata, tracking_list, uncertainty)
-    //version?  2.0.0
-    // Need a way to add special layers/entities after creation.
-        // tracking list, metadata
-    // Create rest of layers based upon descriptor
+    // Group: BAG_root
+    auto h5bagGroup = m_pH5file->createGroup(ROOT_PATH);
 
-    //TODO - implement
-    metadata;
-    //trackingList;
+    const auto versionAttType = ::H5::StrType{0, BAG_VERSION_LENGTH};
+    const ::H5::DataSpace versionAttDataSpace{};
+    auto versionAtt = h5bagGroup.createAttribute(BAG_VERSION_NAME, versionAttType, versionAttDataSpace);
+
+    versionAtt.write(versionAttType, BAG_VERSION);
+    versionAtt.close();
+
+    // Metadata
+    metadata.createH5dataSet(*this);
+    metadata.write();
+
+    // TrackingList
+    auto trackingList = std::make_unique<TrackingList>();
+    trackingList->createH5dataSet(*this, 5);  //TODO Where does compressionLevel come from?
 
     Descriptor descriptor;
-
     descriptor.setReadOnly(false);
-
     m_descriptor = std::move(descriptor);
+
+    // Mandatory Layers (Elevation, Uncertainty)
+    auto elevationLayer = SimpleLayer::create(*this, Elevation);
+    m_descriptor.addLayerDescriptor(elevationLayer->getDescriptor());
+
+    auto uncertaintyLayer = SimpleLayer::create(*this, Uncertainty);
+    m_descriptor.addLayerDescriptor(elevationLayer->getDescriptor());
+
+    // All mandatory items exist in the HDF5 file now.
 }
 
 std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
@@ -424,7 +393,7 @@ std::tuple<double, double> Dataset::gridToGeo(
 }
 
 std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
-Dataset::openH5DataSet(const LayerDescriptor& descriptor)
+Dataset::openLayerH5DataSet(const LayerDescriptor& descriptor)
 {
     return std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(new ::H5::DataSet{
         m_pH5file->openDataSet(descriptor.getInternalPath())}, DeleteH5DataSet{});
