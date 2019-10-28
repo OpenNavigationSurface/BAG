@@ -15,7 +15,7 @@ enum BAG_LAYER_TYPE
     Elevation = 0,
     Uncertainty = 1,
     Hypothesis_Strength = 2,
-	Num_Hypotheses= 3,
+	Num_Hypotheses = 3,
 	Shoal_Elevation = 4,
 	Std_Dev	= 5,
 	Num_Soundings = 6,

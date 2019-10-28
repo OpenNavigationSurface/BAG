@@ -206,8 +206,7 @@ void Dataset::createDataset(
     metadata.write();
 
     // TrackingList
-    auto trackingList = std::make_unique<TrackingList>();
-    trackingList->createH5dataSet(*this, 5);  //TODO Where does compressionLevel come from?
+    m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this, 5});  //TODO Where does compressionLevel come from?
 
     Descriptor descriptor;
     descriptor.setReadOnly(false);
@@ -535,7 +534,7 @@ void Dataset::readDataset(
 
     m_pMetadata = std::make_unique<Metadata>(*this);
 
-    m_pTrackingList = std::make_unique<TrackingList>(*this);
+    m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this});
 
     const hid_t id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH,
         H5P_DEFAULT);

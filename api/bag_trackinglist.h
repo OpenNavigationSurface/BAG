@@ -25,14 +25,10 @@ public:
     using reference = value_type&;
     using const_reference = const value_type&;
 
-    //TODO Think about how to create one of these to write to a new BAG.
-    TrackingList() = default;
-    explicit TrackingList(Dataset& dataset);
-    explicit TrackingList(size_t numItems);
-    TrackingList(std::initializer_list<value_type> items);
-
-    iterator begin() &;
-    iterator end() &;
+    iterator begin() & noexcept;
+    const_iterator begin() const & noexcept;
+    iterator end() & noexcept;
+    const_iterator end() const & noexcept;
     const_iterator cbegin() const & noexcept;
     const_iterator cend() const & noexcept;
 
@@ -40,7 +36,7 @@ public:
     void push_back(const value_type& value);
     void push_back(value_type&& value);
     template <typename... Args>
-    reference emplace_back(Args&&... args) &;
+    void emplace_back(Args&&... args) &;
     reference front() &;
     const_reference front() const &;
     reference back() &;
@@ -57,8 +53,20 @@ public:
 
     void write() const;
 
+protected:
+    explicit TrackingList(const Dataset& dataset);
+    TrackingList(const Dataset& dataset, int compressionLevel);
+
 private:
-    void createH5dataSet(const Dataset& inDataset, int compressionLevel);
+    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
+    struct BAG_API DeleteH5DataSet final
+    {
+        void operator()(::H5::DataSet* ptr) noexcept;
+    };
+
+    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> createH5dataSet(
+        int compressionLevel);
+    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> openH5dataSet();
 
     //! The associated dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
@@ -67,15 +75,16 @@ private:
     //! The length attribute in the tracking list DataSet.
     uint32_t m_length = 0;
 
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5DataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> m_pH5DataSet;
+    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> m_pH5dataSet;
 
     friend Dataset;
 };
+
+template <typename... Args>
+void TrackingList::emplace_back(Args&&... args) &
+{
+    m_items.emplace_back(std::forward<Args>(args)...);
+}
 
 }   //namespace BAG
 
