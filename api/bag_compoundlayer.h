@@ -31,10 +31,10 @@ public:
 
 protected:
 
-    CompoundLayer(Dataset& dataset, const LayerDescriptor& descriptor);
+    CompoundLayer(Dataset& dataset, LayerDescriptor& descriptor);
 
     static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
-        const LayerDescriptor& descriptor);
+        LayerDescriptor& descriptor);
 
 private:
 

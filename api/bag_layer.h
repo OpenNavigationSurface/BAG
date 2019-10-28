@@ -41,7 +41,7 @@ public:
 
 protected:
 
-    Layer(Dataset& dataset, const LayerDescriptor& descriptor);
+    Layer(Dataset& dataset, LayerDescriptor& descriptor);
 
     Layer(const Layer&) = delete;
     Layer(Layer&&) = delete;
@@ -59,7 +59,7 @@ private:
     //! The dataset this layer is from.
     std::weak_ptr<Dataset> m_pBagDataset;
     //! The layer's descriptor (owned by the Dataset)
-    std::shared_ptr<const LayerDescriptor> m_pLayerDescriptor;
+    std::shared_ptr<LayerDescriptor> m_pLayerDescriptor;
 
     friend class Dataset;
 };

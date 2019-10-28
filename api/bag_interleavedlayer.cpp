@@ -85,58 +85,29 @@ struct BagOptElevationSolutionGroup final
 
 InterleavedLayer::InterleavedLayer(
     Dataset& dataset,
-    const InterleavedLayerDescriptor& descriptor,
+    InterleavedLayerDescriptor& descriptor,
     std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet)
     : Layer(dataset, descriptor)
     , m_pH5dataSet(std::move(h5dataSet))
 {
-    //TODO implement.
-    // Prepare the things needed by readProxy() and writeProxy()
-
-    if (descriptor.getGroupType() == NODE)
-    {
-        // CompType, Attributes, ?
-    }
-    else if (descriptor.getGroupType() == ELEVATION)
-    {
-        // CompType, Attributes, ?
-    }
-}
-
-std::unique_ptr<InterleavedLayer> InterleavedLayer::create(
-    Dataset& dataset,
-    LayerType layerType,
-    GroupType groupType)
-    //const InterleavedLayerDescriptor& descriptor)
-{
- //   auto h5DataSet = dataset.createLayerH5DataSet(descriptor);
-    auto descriptor = InterleavedLayerDescriptor::create(layerType, groupType);
-    auto h5DataSet = InterleavedLayer::createH5dataSet(dataset, *descriptor);
-
-    return std::unique_ptr<InterleavedLayer>(new InterleavedLayer{dataset,
-        *descriptor, std::move(h5DataSet)});
 }
 
 std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
     Dataset& dataset,
-    const InterleavedLayerDescriptor& descriptor)
+    InterleavedLayerDescriptor& descriptor)
 {
     auto h5DataSet = dataset.openLayerH5DataSet(descriptor);
+
+    // Read the min/max attribute values.
+    const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
+    if (std::get<0>(possibleMinMax))
+        descriptor.setMinMax({std::get<1>(possibleMinMax),
+            std::get<1>(possibleMinMax)});
 
     return std::unique_ptr<InterleavedLayer>(new InterleavedLayer{dataset,
         descriptor, std::move(h5DataSet)});
 }
 
-
-std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
-InterleavedLayer::createH5dataSet(
-    const Dataset& inDataset,
-    const LayerDescriptor& descriptor)
-{
-    //TODO Look this up in bag_opt_group.c / bag_opt_surfaces.c
-    inDataset;  descriptor;
-    return {};
-}
 
 std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     uint32_t rowStart,
@@ -151,8 +122,8 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     const std::array<hsize_t, RANK> offset{rowStart, columnStart};
 
     // Query the file for the specified rows and columns.
-    const auto h5dataSpace = m_pH5dataSet->getSpace();
-    h5dataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
+    const auto h5fileSpace = m_pH5dataSet->getSpace();
+    h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     if (!dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor()))
         throw 123456;  // Invalid descriptor found.
@@ -172,20 +143,19 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     const auto h5dataType = getH5dataType(descriptor.getLayerType(),
         descriptor.getGroupType());
 
-    m_pH5dataSet->read(buffer.get(), h5dataType, h5memSpace, h5dataSpace);
+    m_pH5dataSet->read(buffer.get(), h5dataType, h5memSpace, h5fileSpace);
 
     return buffer;
 }
 
 void InterleavedLayer::writeProxy(
-    uint32_t rowStart,
-    uint32_t columnStart,
-    uint32_t rowEnd,
-    uint32_t columnEnd,
-    const uint8_t* buffer) const
+    uint32_t /*rowStart*/,
+    uint32_t /*columnStart*/,
+    uint32_t /*rowEnd*/,
+    uint32_t /*columnEnd*/,
+    const uint8_t* /*buffer*/) const
 {
-    rowStart;  columnStart;  rowEnd;  columnEnd;  buffer;
-    //TODO Implement.
+    return;  // Writing Interleaved layers not supported.
 }
 
 }   //namespace BAG

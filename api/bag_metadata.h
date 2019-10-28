@@ -29,7 +29,7 @@ public:
     Metadata() noexcept;
     explicit Metadata(Dataset& dataset);
     Metadata(const Metadata& other) = delete;
-    Metadata(Metadata&& other) = delete;
+    Metadata(Metadata&& other) = default;
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
     ~Metadata() noexcept;
@@ -55,14 +55,14 @@ private:
     void createH5dataSet(const Dataset& inDataSet);
 
     std::weak_ptr<const Dataset> m_pBagDataset;
-    BagMetadata m_metaStruct;
+    std::unique_ptr<BagMetadata> m_pMetaStruct;
 
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
     struct BAG_API DeleteH5DataSet final
     {
         void operator()(::H5::DataSet* ptr) noexcept;
     };
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> m_pH5DataSet;
+    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> m_pH5dataSet;
     //! Length of the XML (from file or buffer).
     size_t m_xmlLength = 0;
 

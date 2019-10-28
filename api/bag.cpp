@@ -74,7 +74,7 @@ BagError bagCreateFromFile(
     BAG::Metadata metadata;
     metadata.loadFromFile(std::string{metaDataFile});
 
-    handle->pDataset = BAG::Dataset::create(std::string{file_name}, metadata);
+    handle->pDataset = BAG::Dataset::create(std::string{file_name}, std::move(metadata));
 
     return 0;
 }
@@ -91,7 +91,7 @@ BagError bagCreateFromBuffer(
     BAG::Metadata metadata;
     metadata.loadFromBuffer(std::string{metaDataBuffer, metaDataBufferSize});
 
-    handle->pDataset = BAG::Dataset::create(std::string{file_name}, metadata);
+    handle->pDataset = BAG::Dataset::create(std::string{file_name}, std::move(metadata));
 
     return 0;
 }

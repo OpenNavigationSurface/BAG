@@ -312,17 +312,19 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 
 //  static std::shared_ptr<Dataset> open(const std::string &fileName,
 //      OpenMode openMode);
-TEST_CASE("test dataset reading", "[.][dataset][open][getLayerTypes][createLayer]")
+TEST_CASE("test dataset reading", "[dataset][open][getLayerTypes][createLayer]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
+
+    const size_t kNumExpectedLayers = 3;  // Elevation, Uncertainty, Nominal_Elevation
 
     SECTION("open read only")
     {
         const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
         REQUIRE(dataset);
 
-        CHECK(dataset->getLayerTypes().size() == 2);
+        CHECK(dataset->getLayerTypes().size() == kNumExpectedLayers);
     }
     SECTION("open read write")
     {
@@ -337,7 +339,7 @@ TEST_CASE("test dataset reading", "[.][dataset][open][getLayerTypes][createLayer
             REQUIRE(dataset);
 
             const auto numLayerTypes = dataset->getLayerTypes().size();
-            CHECK(numLayerTypes == 2);
+            CHECK(numLayerTypes == kNumExpectedLayers);
 
             /*auto& layer = */ dataset->createLayer(Average_Elevation);
 
@@ -355,25 +357,26 @@ TEST_CASE("test dataset reading", "[.][dataset][open][getLayerTypes][createLayer
 
 //  static std::shared_ptr<Dataset> create(const std::string &fileName,
 //      const Metadata& metadata);
-TEST_CASE("test dataset creation", "[.][dataset][create][getLayerTypes][open][single_test]")
+TEST_CASE("test dataset creation", "[dataset][create][getLayerTypes][open]")
 {
     const TestUtils::RandomFileGuard tmpFileName;
 
+    const size_t kNumExpectedLayers = 2;  // Elevation, Uncertainty
     {
         BAG::Metadata metadata;
         metadata.loadFromBuffer(kMetadataXML);
 
-        const auto dataset = Dataset::create(tmpFileName, metadata);
+        const auto dataset = Dataset::create(tmpFileName, std::move(metadata));
 
         REQUIRE(dataset);
-        REQUIRE(dataset->getLayerTypes().size() == 0);
+        REQUIRE(dataset->getLayerTypes().size() == kNumExpectedLayers);
     }
 
     REQUIRE_NOTHROW(Dataset::open(tmpFileName, BAG_OPEN_READONLY));
     const auto dataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
 
     REQUIRE(dataset);
-    REQUIRE(dataset->getLayerTypes().size() == 0);
+    REQUIRE(dataset->getLayerTypes().size() == kNumExpectedLayers);
 }
 
 //  std::vector<LayerType> getLayerTypes() const;
@@ -389,7 +392,7 @@ TEST_CASE("test get layer types", "[dataset][open][getLayerTypes]")
 }
 
 //  Layer& createLayer(LayerType type);
-TEST_CASE("test add layer", "[.][dataset][open][createLayer][getLayerTypes]")
+TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
@@ -397,27 +400,26 @@ TEST_CASE("test add layer", "[.][dataset][open][createLayer][getLayerTypes]")
     // Copy sample.bag and modify it.
     const TestUtils::RandomFileGuard tmpFileName;
     TestUtils::copyFile(bagFileName, tmpFileName);
-    size_t numLayers = 0;
+
+    constexpr size_t kNumExpectedLayers = 3;  // Elevation, Uncertainty, Nominal_Elevation
 
     {   // Add a new layer to the dataset.
         // Scoped so the dataset is destroyed (saves at that point).
         const auto dataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
         REQUIRE(dataset);
 
-        const auto numLayerTypes = dataset->getLayerTypes().size();
-        CHECK(numLayerTypes == 2);
+        CHECK(dataset->getLayerTypes().size() == kNumExpectedLayers);
 
         /*auto& layer = */ dataset->createLayer(Average_Elevation);
 
-        numLayers = dataset->getLayerTypes().size();
-        REQUIRE(numLayers == (numLayerTypes + 1));
+        REQUIRE(dataset->getLayerTypes().size() == (kNumExpectedLayers + 1));
     }
 
     // Read the saved BAG.
     const auto dataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
     REQUIRE(dataset);
 
-    REQUIRE(dataset->getLayerTypes().size() == numLayers);
+    REQUIRE(dataset->getLayerTypes().size() == (kNumExpectedLayers + 1));
 }
 
 //  Layer& getLayer(LayerType type);

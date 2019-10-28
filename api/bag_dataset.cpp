@@ -148,15 +148,25 @@ std::shared_ptr<Dataset> Dataset::open(
 
 std::shared_ptr<Dataset> Dataset::create(
     const std::string& fileName,
-    Metadata& metadata/*,
-    Descriptor descriptor*/)
+    Metadata&& metadata)
 {
     std::shared_ptr<Dataset> pDataset{new Dataset};
-    pDataset->createDataset(fileName, metadata/*, std::move(descriptor)*/);
+    pDataset->createDataset(fileName, std::move(metadata));
 
     return pDataset;
 }
 
+
+Layer& Dataset::addLayer(std::unique_ptr<Layer> newLayer) &
+{
+    auto result = m_layers.emplace(newLayer->getDescriptor().getLayerType(),
+        std::move(newLayer));
+    auto& layer = *(result.first->second);
+
+    m_descriptor.addLayerDescriptor(layer.getDescriptor());
+
+    return layer;
+}
 
 Layer& Dataset::createLayer(LayerType type) &
 {
@@ -168,21 +178,27 @@ Layer& Dataset::createLayer(LayerType type) &
     if (iter != cend(m_layers))
         throw LayerExists{};
 
-    //TODO Rename this as createSimpleLayer, or handle Groups and non-simple
-    // types below
-
-    auto result = m_layers.emplace(type, SimpleLayer::create(*this, type));
-    auto& newLayer = *(result.first->second);
-
-    m_descriptor.addLayerDescriptor(newLayer.getDescriptor());
-
-    return newLayer;
+    switch (type)
+    {
+    case Elevation:  //[[fallthrough]];
+    case Uncertainty:  //[[fallthrough]];
+    case Hypothesis_Strength:  //[[fallthrough]];
+    case Num_Hypotheses:  //[[fallthrough]];
+    case Shoal_Elevation:  //[[fallthrough]];
+    case Std_Dev:  //[[fallthrough]];
+    case Num_Soundings:  //[[fallthrough]];
+    case Average_Elevation:  //[[fallthrough]];
+    case Nominal_Elevation:
+        return this->addLayer(SimpleLayer::create(*this, type));
+    case Compound:  //[[fallthrough]];
+    default:
+        throw UnsupportedLayerType{};
+    }
 }
 
 void Dataset::createDataset(
     const std::string& fileName,
-    Metadata& metadata/*,
-    Descriptor descriptor*/)
+    Metadata&& metadata)
 {
 #ifdef NDEBUG
     ::H5::Exception::dontPrint();
@@ -204,6 +220,7 @@ void Dataset::createDataset(
     // Metadata
     metadata.createH5dataSet(*this);
     metadata.write();
+    m_pMetadata = std::make_unique<Metadata>(std::move(metadata));
 
     // TrackingList
     m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this, 5});  //TODO Where does compressionLevel come from?
@@ -213,11 +230,8 @@ void Dataset::createDataset(
     m_descriptor = std::move(descriptor);
 
     // Mandatory Layers (Elevation, Uncertainty)
-    auto elevationLayer = SimpleLayer::create(*this, Elevation);
-    m_descriptor.addLayerDescriptor(elevationLayer->getDescriptor());
-
-    auto uncertaintyLayer = SimpleLayer::create(*this, Uncertainty);
-    m_descriptor.addLayerDescriptor(elevationLayer->getDescriptor());
+    this->addLayer(SimpleLayer::create(*this, Elevation));
+    this->addLayer(SimpleLayer::create(*this, Uncertainty));
 
     // All mandatory items exist in the HDF5 file now.
 }
@@ -226,9 +240,12 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
     double x,
     double y) const noexcept
 {
-    x;  y;
-    //TODO Implement.
-    return std::make_tuple(0, 0);
+    const auto row = static_cast<uint32_t>((x - m_pMetadata->llCornerX()) /
+        m_pMetadata->rowResolution());
+    const auto column = static_cast<uint32_t>((y - m_pMetadata->llCornerY()) /
+        m_pMetadata->columnResolution());
+
+    return std::make_tuple(row, column);
 }
 
 uint64_t Dataset::getChunkSize(LayerType type) const
@@ -285,7 +302,7 @@ std::tuple<uint32_t, uint32_t> Dataset::getDims(LayerType type) const
     const auto h5dataset = m_pH5file->openDataSet(Layer::getInternalPath(type));
     const auto h5dataSpace = h5dataset.getSpace();
     if (!h5dataSpace.isSimple())
-        throw 97;  // Can only work with simple dataspaces.
+        throw 97;  // Can only work with simple data spaces.
 
     const int nDimsRank = h5dataSpace.getSimpleExtentNdims();
     std::array<hsize_t, RANK> size{};
@@ -335,7 +352,7 @@ std::tuple<bool, float, float> Dataset::getMinMax(
     LayerType type) const
 {
     // Defaults for Elevation.
-    const char* dataSetName = ELEVATION_PATH;
+    const char* dataSetPath = ELEVATION_PATH;
     const char* minAttName = MIN_ELEVATION_NAME;
     const char* maxAttName = MAX_ELEVATION_NAME;
 
@@ -344,23 +361,55 @@ std::tuple<bool, float, float> Dataset::getMinMax(
     case Elevation:
         break;  // Default, set above.
     case Uncertainty:
-        dataSetName = UNCERTAINTY_PATH;
+        dataSetPath = UNCERTAINTY_PATH;
         minAttName = MIN_UNCERTAINTY_NAME;
         maxAttName = MAX_UNCERTAINTY_NAME;
         break;
-    case Nominal_Elevation:
-        dataSetName = NOMINAL_ELEVATION_PATH;
-        minAttName = "min_value";  //TODO Why not in bag_private.h?
-        maxAttName = "max_value";  //TODO Why not in bag_private.h?
+    case Hypothesis_Strength:
+        dataSetPath = HYPOTHESIS_STRENGTH_PATH;
+        minAttName = MIN_HYPOTHESIS_STRENGTH;
+        maxAttName = MAX_HYPOTHESIS_STRENGTH;
         break;
+    case Num_Hypotheses:
+        dataSetPath = NUM_HYPOTHESES_PATH;
+        minAttName = MIN_NUM_HYPOTHESES;
+        maxAttName = MAX_NUM_HYPOTHESES;
+        break;
+    case Shoal_Elevation:
+        dataSetPath = SHOAL_ELEVATION_PATH;
+        minAttName = MIN_SHOAL_ELEVATION;
+        maxAttName = MAX_SHOAL_ELEVATION;
+        break;
+    case Std_Dev:
+        dataSetPath = STANDARD_DEV_PATH;
+        minAttName = MIN_STANDARD_DEV_NAME;
+        maxAttName = MAX_STANDARD_DEV_NAME;
+        break;
+    case Num_Soundings:
+        dataSetPath = NUM_SOUNDINGS_PATH;
+        minAttName = MIN_NUM_SOUNDINGS;
+        maxAttName = MAX_NUM_SOUNDINGS;
+        break;
+    case Average_Elevation:
+        dataSetPath = AVERAGE_PATH;
+        minAttName = MIN_AVERAGE;
+        maxAttName = MAX_AVERAGE;
+        break;
+    case Nominal_Elevation:
+        dataSetPath = NOMINAL_ELEVATION_PATH;
+        minAttName = MIN_NOMINAL_ELEVATION;
+        maxAttName = MAX_NOMINAL_ELEVATION;
+        break;
+    case Compound:
+        throw UnsupportedLayerType{};
     default:
         // No known min/max attributes.
         return std::make_tuple(false, 0.f, 0.f);
     }
 
     return std::make_tuple(true,
-        readAttributeFromDataSet<float>(*m_pH5file, dataSetName, minAttName),
-        readAttributeFromDataSet<float>(*m_pH5file, dataSetName, maxAttName));
+        readAttributeFromDataSet<float>(*m_pH5file, dataSetPath, minAttName),
+        readAttributeFromDataSet<float>(*m_pH5file, dataSetPath, maxAttName));
 }
 
 TrackingList& Dataset::getTrackingList() & noexcept
@@ -413,7 +462,8 @@ void Dataset::readDataset(
 
     const auto bagGroup = m_pH5file->openGroup(ROOT_PATH);
 
-    //Create all of our Simple layers.
+    // Look for the simple layers.
+    //TODO Add rest of the layers (Hypothesis_Strength, Num_Hypotheses, Shoal_Elevation, Std_Dev, Num_Soundings)
     for (auto layerType : {Elevation, Uncertainty, Average_Elevation, Nominal_Elevation})
     {
         const std::string internalPath = Layer::getInternalPath(layerType);
@@ -428,19 +478,13 @@ void Dataset::readDataset(
         H5Dclose(id);
 
         auto layerDesc = SimpleLayerDescriptor::create(layerType, *this);
-
-        const auto possibleMinMax = this->getMinMax(layerType);
-        if (std::get<0>(possibleMinMax))
-            layerDesc->setMinMax(std::make_tuple(std::get<1>(possibleMinMax),
-                std::get<2>(possibleMinMax)));
-
-        m_layers.emplace(layerType, SimpleLayer::open(*this, *layerDesc));
-
-        descriptor.addLayerDescriptor(*layerDesc);
+        this->addLayer(SimpleLayer::open(*this, *layerDesc));
     }
 
+    const auto bagVersion = getNumericalVersion(descriptor.getVersion());
+
     // If the BAG is version 1.5+ ...
-    if (getNumericalVersion(descriptor.getVersion()) >= 1'005'000)
+    if (bagVersion >= 1'005'000)
     {
         hid_t id = H5Dopen2(bagGroup.getLocId(), NODE_GROUP_PATH, H5P_DEFAULT);
         if (id >= 0)
@@ -448,34 +492,14 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Hypothesis_Strength
-            auto possibleMinMax = this->getMinMax(Hypothesis_Strength);
-
             auto layerDesc = InterleavedLayerDescriptor::create(
                 Hypothesis_Strength, NODE, *this);
-
-            if (std::get<0>(possibleMinMax))
-                layerDesc->setMinMax(std::make_tuple(std::get<1>(possibleMinMax),
-                    std::get<2>(possibleMinMax)));
-
-            m_layers.emplace(Hypothesis_Strength, InterleavedLayer::open(*this,
-                *layerDesc));
-
-            descriptor.addLayerDescriptor(*layerDesc);
+            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Num_Hypotheses
-            possibleMinMax = this->getMinMax(Num_Hypotheses);
-
             layerDesc = InterleavedLayerDescriptor::create(Num_Hypotheses, NODE,
                 *this);
-
-            if (std::get<0>(possibleMinMax))
-                layerDesc->setMinMax(std::make_tuple(std::get<1>(possibleMinMax),
-                    std::get<2>(possibleMinMax)));
-
-            m_layers.emplace(Num_Hypotheses, InterleavedLayer::open(*this,
-                    *layerDesc));
-
-            descriptor.addLayerDescriptor(*layerDesc);
+            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
         }
 
         id = H5Dopen2(bagGroup.getLocId(), ELEVATION_SOLUTION_GROUP_PATH, H5P_DEFAULT);
@@ -484,50 +508,28 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Shoal_Elevation
-            auto possibleMinMax = this->getMinMax(Shoal_Elevation);
-
             auto layerDesc = InterleavedLayerDescriptor::create(Shoal_Elevation,
                 ELEVATION, *this);
             layerDesc->setInternalPath(std::string{ELEVATION_SOLUTION_GROUP_PATH});
 
-            if (std::get<0>(possibleMinMax))
-                layerDesc->setMinMax(std::make_tuple(std::get<1>(possibleMinMax),
-                    std::get<2>(possibleMinMax)));
-
-            m_layers.emplace(Shoal_Elevation, InterleavedLayer::open(*this,
-                    *layerDesc));
-
-            descriptor.addLayerDescriptor(*layerDesc);
+            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Std_Dev
-            possibleMinMax = this->getMinMax(Std_Dev);
-
             layerDesc = InterleavedLayerDescriptor::create(Std_Dev, ELEVATION,
                 *this);
-
-            if (std::get<0>(possibleMinMax))
-                layerDesc->setMinMax(std::make_tuple(std::get<1>(possibleMinMax),
-                    std::get<2>(possibleMinMax)));
-
-            m_layers.emplace(Std_Dev, InterleavedLayer::open(*this, *layerDesc));
-
-            descriptor.addLayerDescriptor(*layerDesc);
+            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Num_Soundings
-            possibleMinMax = this->getMinMax(Num_Soundings);
-
             layerDesc = InterleavedLayerDescriptor::create(Num_Soundings,
                 ELEVATION, *this);
-
-            if (std::get<0>(possibleMinMax))
-                layerDesc->setMinMax(std::make_tuple(std::get<1>(possibleMinMax),
-                    std::get<2>(possibleMinMax)));
-
-            m_layers.emplace(Num_Soundings, InterleavedLayer::open(*this,
-                    *layerDesc));
-
-            descriptor.addLayerDescriptor(*layerDesc);
+            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
         }
+    }
+
+    // If the BAG is version 2.0+ ...
+    if (bagVersion >= 2'000'000)
+    {
+        //TODO handle Compound layers
     }
 
     m_descriptor = std::move(descriptor);

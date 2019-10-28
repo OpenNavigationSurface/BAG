@@ -35,7 +35,7 @@ public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,
         OpenMode openMode);
     static std::shared_ptr<Dataset> create(const std::string &fileName,
-        Metadata& metadata/*, Descriptor descriptor*/);
+        Metadata&& metadata);
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
@@ -65,7 +65,7 @@ private:
     Dataset() = default;
 
     void readDataset(const std::string& fileName, OpenMode openMode);
-    void createDataset(const std::string& fileName, Metadata &metadata);
+    void createDataset(const std::string& fileName, Metadata&& metadata);
 
     uint64_t getChunkSize(LayerType type) const;
     unsigned int getCompressionLevel(LayerType type) const;
@@ -74,6 +74,8 @@ private:
     std::tuple<bool, float, float> getMinMax(LayerType) const;
 
     ::H5::H5File& getH5file() const & noexcept;
+
+    Layer& addLayer(std::unique_ptr<Layer> layer) &;
 
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
     struct BAG_API DeleteH5DataSet final

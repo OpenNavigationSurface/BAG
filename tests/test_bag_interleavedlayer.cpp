@@ -15,7 +15,7 @@ using BAG::Layer;
 
 //  virtual std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
-TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read][justme]")
+TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/micro151.bag"};

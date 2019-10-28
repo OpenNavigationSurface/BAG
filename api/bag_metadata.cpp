@@ -25,31 +25,23 @@ namespace BAG
 constexpr hsize_t kMetadataChunkSize = 1024;
 
 Metadata::Metadata() noexcept
+    : m_pMetaStruct(std::make_unique<BagMetadata>())
 {
     // Can throw, but only if a new fails.  std::terminate() is fine then.
-    bagInitMetadata(m_metaStruct);
-}
-
-Metadata::~Metadata() noexcept
-{
-    // Prevent any exceptions from escaping.
-    try {
-        bagFreeMetadata(m_metaStruct);
-    }
-    catch(...)
-    {}
+    bagInitMetadata(*m_pMetaStruct);
 }
 
 Metadata::Metadata(Dataset& dataset)
     : m_pBagDataset(dataset.shared_from_this())
+    , m_pMetaStruct(std::make_unique<BagMetadata>())
 {
-    bagInitMetadata(m_metaStruct);
+    bagInitMetadata(*m_pMetaStruct);
 
     const auto& h5file = dataset.getH5file();
 
     try
     {
-        m_pH5DataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
+        m_pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
             new ::H5::DataSet{h5file.openDataSet(METADATA_PATH)}, DeleteH5DataSet{});
     }
     catch(...)
@@ -58,16 +50,29 @@ Metadata::Metadata(Dataset& dataset)
     }
 
     H5std_string buffer;
-    const ::H5::StrType stringType{*m_pH5DataSet};
-    m_pH5DataSet->read(buffer, stringType);
+    const ::H5::StrType stringType{*m_pH5dataSet};
+    m_pH5dataSet->read(buffer, stringType);
 
     this->loadFromBuffer(buffer);
+}
+
+Metadata::~Metadata() noexcept
+{
+    if (m_pMetaStruct)
+    {
+        // Prevent any exceptions from escaping.
+        try {
+            bagFreeMetadata(*m_pMetaStruct);
+        }
+        catch(...)
+        {}
+    }
 }
 
 
 double Metadata::columnResolution() const noexcept
 {
-    return m_metaStruct.spatialRepresentationInfo->columnResolution;
+    return m_pMetaStruct->spatialRepresentationInfo->columnResolution;
 }
 
 void Metadata::createH5dataSet(
@@ -85,17 +90,17 @@ void Metadata::createH5dataSet(
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setChunk(1, &kMetadataChunkSize);
 
-    m_pH5DataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
+    m_pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
         new ::H5::DataSet{h5file.createDataSet(METADATA_PATH,
             ::H5::PredType::C_S1, h5dataSpace, h5createPropList)},
             DeleteH5DataSet{});
 
-    m_pH5DataSet->extend(&xmlLength);
+    m_pH5dataSet->extend(&xmlLength);
 }
 
 const BagMetadata& Metadata::getStruct() const noexcept
 {
-    return m_metaStruct;
+    return *m_pMetaStruct;
 }
 
 size_t Metadata::getXMLlength() const noexcept
@@ -105,27 +110,27 @@ size_t Metadata::getXMLlength() const noexcept
 
 const char* Metadata::horizontalCRSasWKT() const
 {
-    const auto* type = m_metaStruct.horizontalReferenceSystem->type;
+    const auto* type = m_pMetaStruct->horizontalReferenceSystem->type;
     if (!type || std::string{type} != std::string{"WKT"})
         return nullptr;
 
-    return m_metaStruct.horizontalReferenceSystem->definition;
+    return m_pMetaStruct->horizontalReferenceSystem->definition;
 }
 
 double Metadata::llCornerX() const noexcept
 {
-    return m_metaStruct.spatialRepresentationInfo->llCornerX;
+    return m_pMetaStruct->spatialRepresentationInfo->llCornerX;
 }
 
 double Metadata::llCornerY() const noexcept
 {
-    return m_metaStruct.spatialRepresentationInfo->llCornerY;
+    return m_pMetaStruct->spatialRepresentationInfo->llCornerY;
 }
 
 void Metadata::loadFromFile(const std::string& fileName)
 {
     const BagError err = bagImportMetadataFromXmlFile(fileName.c_str(),
-        m_metaStruct, false);
+        *m_pMetaStruct, false);
     if (err)
         throw err;
 
@@ -137,7 +142,7 @@ void Metadata::loadFromFile(const std::string& fileName)
 void Metadata::loadFromBuffer(const std::string& xmlBuffer)
 {
     const BagError err = bagImportMetadataFromXmlBuffer(xmlBuffer.c_str(),
-        static_cast<int>(xmlBuffer.size()), m_metaStruct, false);
+        static_cast<int>(xmlBuffer.size()), *m_pMetaStruct, false);
     if (err)
         throw err;
 
@@ -146,17 +151,17 @@ void Metadata::loadFromBuffer(const std::string& xmlBuffer)
 
 double Metadata::rowResolution() const noexcept
 {
-    return m_metaStruct.spatialRepresentationInfo->rowResolution;
+    return m_pMetaStruct->spatialRepresentationInfo->rowResolution;
 }
 
 double Metadata::urCornerX() const noexcept
 {
-    return m_metaStruct.spatialRepresentationInfo->urCornerX;
+    return m_pMetaStruct->spatialRepresentationInfo->urCornerX;
 }
 
 double Metadata::urCornerY() const noexcept
 {
-    return m_metaStruct.spatialRepresentationInfo->urCornerY;
+    return m_pMetaStruct->spatialRepresentationInfo->urCornerY;
 }
 
 void Metadata::DeleteH5DataSet::operator()(::H5::DataSet* ptr) noexcept
@@ -172,7 +177,7 @@ void Metadata::write() const
     const hsize_t kMaxSize = static_cast<hsize_t>(-1);
     const ::H5::DataSpace h5dataSpace{1, &bufferLen, &kMaxSize};
 
-    m_pH5DataSet->write(buffer, ::H5::PredType::C_S1, h5dataSpace);
+    m_pH5dataSet->write(buffer, ::H5::PredType::C_S1, h5dataSpace);
 }
 
 }   //namespace BAG

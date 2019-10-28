@@ -10,7 +10,7 @@ namespace BAG {
 
 CompoundLayer::CompoundLayer(
     Dataset& dataset,
-    const LayerDescriptor& descriptor)
+    LayerDescriptor& descriptor)
     : Layer(dataset, descriptor) //,Compound)
 {
 }
@@ -24,8 +24,16 @@ CompoundLayer::getDefinition() const noexcept
 
 std::unique_ptr<CompoundLayer> CompoundLayer::open(
     Dataset& dataset,
-    const LayerDescriptor& descriptor)
+    LayerDescriptor& descriptor)
 {
+    auto h5DataSet = dataset.openLayerH5DataSet(descriptor);
+
+    // Read the min/max attribute values.
+    const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
+    if (std::get<0>(possibleMinMax))
+        descriptor.setMinMax({std::get<1>(possibleMinMax),
+            std::get<1>(possibleMinMax)});
+
     return std::unique_ptr<CompoundLayer>(new CompoundLayer{dataset,
         descriptor});
 }

@@ -22,7 +22,7 @@ public:
 
 protected:
 
-    SimpleLayer(Dataset& dataset, const LayerDescriptor& descriptor,
+    SimpleLayer(Dataset& dataset, LayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet);
 
     SimpleLayer(const SimpleLayer&) = delete;
@@ -35,7 +35,7 @@ protected:
 
     //TODO redo this with LayerType?
     static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
-        const LayerDescriptor& descriptor);
+        LayerDescriptor& descriptor);
 
 private:
     static std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>

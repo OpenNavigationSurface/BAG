@@ -11,29 +11,6 @@ namespace BAG {
 
 namespace {
 
-#if 0 // TODO Needed?
-const ::H5:PredType& getH5dataType(
-    LayerType layerType)
-{
-    switch (layerType)
-    {
-    case Elevation: // Uncertainty, Nominal_Elevation
-        h5type.insertMember("hyp_strength",
-            HOFFSET(BagOptNodeGroup, hyp_strength),
-            ::H5::PredType::NATIVE_FLOAT);
-        break;
-    case Num_Hypotheses:
-        h5type.insertMember("num_hypotheses",
-            HOFFSET(BagOptNodeGroup, num_hypotheses),
-            ::H5::PredType::NATIVE_UINT);
-        break;
-    default:
-        throw 112233;  // Unknown group type.
-        break;
-    }
-}
-#endif
-
 const ::H5::PredType& getH5PredType(DataType type)
 {
     switch(type)
@@ -51,7 +28,7 @@ const ::H5::PredType& getH5PredType(DataType type)
 
 SimpleLayer::SimpleLayer(
     Dataset& dataset,
-    const LayerDescriptor& descriptor,
+    LayerDescriptor& descriptor,
     std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet)
     : Layer(dataset, descriptor)
     , m_pH5dataSet(std::move(h5dataSet))
@@ -60,7 +37,7 @@ SimpleLayer::SimpleLayer(
 
 std::unique_ptr<SimpleLayer> SimpleLayer::create(
     Dataset& dataset,
-    const LayerType type)
+    LayerType type)
 {
     auto descriptor = SimpleLayerDescriptor::create(type);
     auto h5DataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
@@ -71,9 +48,15 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
 
 std::unique_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
-    const LayerDescriptor& descriptor)
+    LayerDescriptor& descriptor)
 {
     auto h5DataSet = dataset.openLayerH5DataSet(descriptor);
+
+    // Read the min/max attribute values.
+    const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
+    if (std::get<0>(possibleMinMax))
+        descriptor.setMinMax({std::get<1>(possibleMinMax),
+            std::get<1>(possibleMinMax)});
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, descriptor,
         std::move(h5DataSet)});
@@ -82,74 +65,21 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
 
 std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
 SimpleLayer::createH5dataSet(
-    const Dataset& inDataset,
+    const Dataset& dataset,
     const LayerDescriptor& descriptor)
 {
-#if 0
-    if ((dataspace_id = H5Screate_simple(RANK, dims, NULL)) < 0)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_CREATE_DATASPACE_FAILURE);
-    }
-#endif
-
     const auto dims = descriptor.getDims();
     std::array<hsize_t, 2> size{std::get<0>(dims), std::get<1>(dims)};
     ::H5::DataSpace h5dataSpace{RANK, size.data()};  //TODO Check that max dim size == starting size
 
-#if 0
-    if ((datatype_id = H5Tcopy(H5T_NATIVE_FLOAT)) < 0)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_TYPE_COPY_FAILURE);
-    }
-
-    if ((status = H5Tset_order(datatype_id, H5T_ORDER_LE)) < 0)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_SET_PROPERTY_FAILURE);
-    }
-#endif
-
     ::H5::AtomType h5dataType{::H5::PredType::NATIVE_FLOAT};
     h5dataType.setOrder(H5T_ORDER_LE);
-
-#if 0
-    if ((plist_id = H5Pcreate(H5P_DATASET_CREATE)) < 0)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_CREATE_PROPERTY_CLASS_FAILURE);
-    }
-
-    status = H5Pset_fill_time  (plist_id, H5D_FILL_TIME_ALLOC);
-    status = H5Pset_fill_value (plist_id, datatype_id, &null_elv);
-    check_hdf_status();
-#endif
 
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
     constexpr float kFillValue = BAG_NULL_ELEVATION;
     h5createPropList.setFillValue(h5dataType, &kFillValue);
-
-
-#if 0
-    if (data->compressionLevel > 0 && data->compressionLevel <= 9)
-    {
-        status = H5Pset_layout (plist_id, H5D_CHUNKED);
-        status = H5Pset_chunk(plist_id, RANK, chunk_size);
-
-        if ((status = H5Pset_deflate (plist_id, data->compressionLevel)) < 0)
-        {
-            status = H5Fclose (file_id);
-            return (BAG_HDF_SET_PROPERTY_FAILURE);
-        }
-    }
-    else if (data->compressionLevel) /* if anything other than zero */
-    {
-        return (BAG_HDF_INVALID_COMPRESSION_LEVEL);
-    }
-#endif
 
     const int compressionLevel = descriptor.getCompressionLevel();
     if (compressionLevel > 0 && compressionLevel <= 9)
@@ -162,57 +92,57 @@ SimpleLayer::createH5dataSet(
         h5createPropList.setDeflate(compressionLevel);
     }
 
-
-#if 0
-    if ((dataset_id = H5Dcreate(file_id, ELEVATION_PATH, datatype_id, dataspace_id, plist_id)) < 0)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_CREATE_GROUP_FAILURE);
-    }
-#endif
-
-    const auto& h5file = inDataset.getH5file();
+    const auto& h5file = dataset.getH5file();
 
     auto pH5dataSet = std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>(
             new ::H5::DataSet{h5file.createDataSet(descriptor.getInternalPath(),
                 h5dataType, h5dataSpace, h5createPropList)},
             Dataset::DeleteH5DataSet{});
 
-
-#if 0
-    /*! Add the attributes to the \a elevation dataset */
-    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MIN_ELEVATION_NAME, sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-    }
-    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MIN_ELEVATION_NAME, (void *) &(data->min_elevation) )) != BAG_SUCCESS)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-    }
-    if ((status = bagCreateAttribute (*bag_handle, dataset_id, (u8 *)MAX_ELEVATION_NAME, sizeof(f32), BAG_ATTR_F32)) != BAG_SUCCESS)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-    }
-    if ((status = bagWriteAttribute (*bag_handle, dataset_id, (u8 *)MAX_ELEVATION_NAME, (void *) &(data->max_elevation) )) != BAG_SUCCESS)
-    {
-        status = H5Fclose (file_id);
-        return (BAG_HDF_CREATE_ATTRIBUTE_FAILURE);
-    }
-#endif
-
     const char* minAttName = MIN_ELEVATION_NAME;
     const char* maxAttName = MAX_ELEVATION_NAME;
 
-    if (descriptor.getLayerType() == Uncertainty)
+    switch (descriptor.getLayerType())
     {
+    case Elevation:
+        break;
+    case Uncertainty:
         minAttName = MIN_UNCERTAINTY_NAME;
         maxAttName = MAX_UNCERTAINTY_NAME;
-    }
-    else
+        break;
+    case Hypothesis_Strength:
+        minAttName = MIN_HYPOTHESIS_STRENGTH;
+        maxAttName = MAX_HYPOTHESIS_STRENGTH;
+        break;
+    case Num_Hypotheses:
+        minAttName = MIN_NUM_HYPOTHESES;
+        maxAttName = MAX_NUM_HYPOTHESES;
+        break;
+    case Shoal_Elevation:
+        minAttName = MIN_SHOAL_ELEVATION;
+        maxAttName = MAX_SHOAL_ELEVATION;
+        break;
+    case Std_Dev:
+        minAttName = MIN_STANDARD_DEV_NAME;
+        maxAttName = MAX_STANDARD_DEV_NAME;
+        break;
+    case Num_Soundings:
+        minAttName = MIN_NUM_SOUNDINGS;
+        maxAttName = MAX_NUM_SOUNDINGS;
+        break;
+    case Average_Elevation:
+        minAttName = MIN_AVERAGE;
+        maxAttName = MAX_AVERAGE;
+        break;
+    case Nominal_Elevation:
+        minAttName = MIN_NOMINAL_ELEVATION;
+        maxAttName = MAX_NOMINAL_ELEVATION;
+        break;
+    case Compound:
+        //[[fallthrough]];
+    default:
         throw UnknownSimpleLayerType{};
+    }
 
     const ::H5::DataSpace minElevDataSpace{};
     const auto minElevAtt = pH5dataSet->createAttribute(minAttName,
@@ -275,14 +205,14 @@ void SimpleLayer::writeProxy(
     const std::array<hsize_t, RANK> offset{rowStart, columnStart};
 
     // Query the file for the specified rows and columns.
-    const auto h5dataSpace = m_pH5dataSet->getSpace();
-    h5dataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
+    const auto h5fileSpace = m_pH5dataSet->getSpace();
+    h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Prepare the memory space.
-    const ::H5::DataSpace h5memSpace{2, count.data(), count.data()};
+    const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     m_pH5dataSet->write(buffer, H5Dget_type(m_pH5dataSet->getId()),
-        h5memSpace, h5dataSpace);
+        h5memSpace, h5fileSpace);
 }
 
 }   //namespace BAG

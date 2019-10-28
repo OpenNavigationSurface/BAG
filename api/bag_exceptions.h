@@ -53,6 +53,15 @@ struct BAG_API ReadOnlyError final : virtual std::exception
     }
 };
 
+//! Attempt to use an unknown layer type.
+struct BAG_API UnsupportedLayerType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "An unsupported layer type was specified.";
+    }
+};
+
 //! Attempt to use an incorrect layer type.
 struct BAG_API UnknownSimpleLayerType final : virtual std::exception
 {

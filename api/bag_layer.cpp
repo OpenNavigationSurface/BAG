@@ -14,7 +14,7 @@ namespace BAG {
 //TODO Maybe make this a static open().
 Layer::Layer(
     Dataset& dataset,
-    const LayerDescriptor& descriptor)
+    LayerDescriptor& descriptor)
     : m_pBagDataset(dataset.shared_from_this())
     , m_pLayerDescriptor(descriptor.shared_from_this())
 {
@@ -93,7 +93,7 @@ std::string Layer::getInternalPath(LayerType type)
         return NOMINAL_ELEVATION_PATH;
     }
 
-    throw 18181;  // Unknown layer type specified.
+    throw UnsupportedLayerType{};
 }
 
 std::unique_ptr<uint8_t[]> Layer::read(
@@ -129,8 +129,6 @@ void Layer::write(
 
     if (!buffer)
         throw 33;  //TODO make an exception
-
-    //TODO Check if buffer being written is larger than current?
 
     this->writeProxy(rowStart, columnStart, rowEnd, columnEnd, buffer);
 }
