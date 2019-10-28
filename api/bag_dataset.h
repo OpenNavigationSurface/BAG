@@ -58,22 +58,22 @@ public:
 
     //TODO Perhaps a struct GridPoint {uint32_t column; uint32_t row;}; ?
     //TODO Perhaps a struct GeoPoint {double x; double y;}; ?
-    std::tuple<double, double> gridToGeo(uint64_t row, uint64_t column) const noexcept;
-    std::tuple<uint64_t, uint64_t> geoToGrid(double x, double y) const noexcept;
+    std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept;
+    std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
 
 private:
     Dataset() = default;
 
     void readDataset(const std::string& fileName, OpenMode openMode);
-    void createDataset(const std::string& fileName, const Metadata &metadata);
+    void createDataset(const std::string& fileName, Metadata &metadata);
 
     uint64_t getChunkSize(LayerType type) const;
     unsigned int getCompressionLevel(LayerType type) const;
-    std::tuple<uint64_t, uint64_t> getDims(LayerType type) const;
+    std::tuple<uint32_t, uint32_t> getDims(LayerType type) const;
 
     std::tuple<bool, float, float> getMinMax(LayerType) const;
 
-    ::H5::H5File& getH5file() & noexcept;
+    ::H5::H5File& getH5file() const & noexcept;
 
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
     struct BAG_API DeleteH5DataSet final

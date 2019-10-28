@@ -188,7 +188,7 @@ TEST_CASE("test descriptor get/set dims", "[simplelayerdescriptor][getDims][setD
 {
     auto descriptor = SimpleLayerDescriptor::create(Elevation);
 
-    const std::tuple<uint64_t, uint64_t> kExpectedDims{1001, 9982};
+    const std::tuple<uint32_t, uint32_t> kExpectedDims{1001, 9982};
 
     UNSCOPED_INFO("Verify setting the dims does not throw.");
     REQUIRE_NOTHROW(descriptor->setDims(kExpectedDims));

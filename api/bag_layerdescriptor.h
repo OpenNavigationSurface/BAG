@@ -68,7 +68,7 @@ private:
     DataType m_dataType = UNKNOWN_DATA_TYPE;
     std::string m_internalPath;
     std::string m_name;
-    std::tuple<uint64_t, uint64_t> m_dims;
+    std::tuple<uint32_t, uint32_t> m_dims;
     unsigned int m_compressionLevel = 0;
     uint64_t m_chunkSize = 0;
     std::tuple<float, float> m_minMax{};

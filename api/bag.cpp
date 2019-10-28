@@ -110,8 +110,8 @@ BagError bagCreateLayer(
 
 BagError bagGetGridDimensions(
     BagHandle* handle,
-    uint64_t* rows,
-    uint64_t* cols)
+    uint32_t* rows,
+    uint32_t* cols)
 {
     if (!handle)
         return 9999; // No handle provided.
@@ -225,10 +225,10 @@ bool bagContainsLayer(
 
 BagError bagRead(
     BagHandle* handle,
-    uint64_t start_row,
-    uint64_t start_col,
-    uint64_t end_row,
-    uint64_t end_col,
+    uint32_t start_row,
+    uint32_t start_col,
+    uint32_t end_row,
+    uint32_t end_col,
     BAG_LAYER_TYPE type,
     uint8_t** data,
     double* x,
@@ -255,10 +255,10 @@ BagError bagRead(
 
 BagError bagWrite(
     BagHandle* handle,
-    uint64_t start_row,
-    uint64_t start_col,
-    uint64_t end_row,
-    uint64_t end_col,
+    uint32_t start_row,
+    uint32_t start_col,
+    uint32_t end_row,
+    uint32_t end_col,
     BAG_LAYER_TYPE type,
     const uint8_t* data)
 {
@@ -282,8 +282,8 @@ BagError bagGetErrorString(
 
 BagError bagComputePostion(
     BagHandle* handle,
-    uint64_t row,
-    uint64_t col,
+    uint32_t row,
+    uint32_t col,
     double* x,
     double* y)
 {
@@ -321,8 +321,8 @@ BagError bagComputeIndex(
     BagHandle* handle,
     double x,
     double y,
-    uint64_t* row,
-    uint64_t* col)
+    uint32_t* row,
+    uint32_t* col)
 {
     if (!handle)
         return 9999; // No handle provided.
@@ -339,10 +339,10 @@ BagError bagSetCompressionLevel(uint8_t /*level*/)
 }
 
 uint8_t* bagAllocateBuffer(
-    uint64_t start_row,
-    uint64_t start_col,
-    uint64_t end_row,
-    uint64_t end_col,
+    uint32_t start_row,
+    uint32_t start_col,
+    uint32_t end_row,
+    uint32_t end_col,
     BAG_LAYER_TYPE type)
 {
     int8_t elementSize = 0;
@@ -424,10 +424,10 @@ BagError bagReadCorrectedDataset(
 
 BagError bagReadCorrectedRegion(
     BagHandle* handle,
-    uint64_t /*startrow*/,
-    uint64_t /*endrow*/,
-    uint64_t /*startcol*/,
-    uint64_t /*endcol*/,
+    uint32_t /*startrow*/,
+    uint32_t /*endrow*/,
+    uint32_t /*startcol*/,
+    uint32_t /*endcol*/,
     uint32_t /*corrIndex*/,
     uint32_t /*surfIndex*/,
     float* /*data*/)
@@ -441,7 +441,7 @@ BagError bagReadCorrectedRegion(
 
 BagError bagReadCorrectedRow(
     BagHandle* handle,
-    uint64_t /*row*/,
+    uint32_t /*row*/,
     uint32_t /*corrIndex*/,
     uint32_t /*surfIndex*/,
     float* /*data*/)
@@ -455,8 +455,8 @@ BagError bagReadCorrectedRow(
 
 BagError bagReadCorrectedNode(
     BagHandle* handle,
-    uint64_t /*row*/,
-    uint64_t /*col*/,
+    uint32_t /*row*/,
+    uint32_t /*col*/,
     uint32_t /*corrIndex*/,
     uint32_t /*surfIndex*/,
     float* /*data*/)
@@ -537,8 +537,8 @@ BagError bagTrackingListLength(
 
 BagError bagReadTrackingListNode(
     BagHandle* handle,
-    uint64_t /*row*/,
-    uint64_t /*col*/,
+    uint32_t /*row*/,
+    uint32_t /*col*/,
     BagTrackingItem** /*items*/,
     uint32_t* /*length*/)
 {

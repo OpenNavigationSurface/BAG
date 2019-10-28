@@ -259,7 +259,7 @@ void Dataset::createDataset(
     m_descriptor = std::move(descriptor);
 }
 
-std::tuple<uint64_t, uint64_t> Dataset::geoToGrid(
+std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
     double x,
     double y) const noexcept
 {
@@ -316,7 +316,7 @@ const Descriptor& Dataset::getDescriptor() const & noexcept
     return m_descriptor;
 }
 
-std::tuple<uint64_t, uint64_t> Dataset::getDims(LayerType type) const
+std::tuple<uint32_t, uint32_t> Dataset::getDims(LayerType type) const
 {
     //Get the elevation HD5 dataset.
     const auto h5dataset = m_pH5file->openDataSet(Layer::getInternalPath(type));
@@ -331,13 +331,13 @@ std::tuple<uint64_t, uint64_t> Dataset::getDims(LayerType type) const
     if (nDimsRank != RANK || dimsRank != RANK)
         throw 99;  // Unexpected dimensions.
 
-    const auto numRows = size[0];
-    const auto numColumns = size[1];
+    const auto numRows = static_cast<uint32_t>(size[0]);
+    const auto numColumns = static_cast<uint32_t>(size[1]);
 
     return std::make_tuple(numRows, numColumns);
 }
 
-::H5::H5File& Dataset::getH5file() & noexcept
+::H5::H5File& Dataset::getH5file() const & noexcept
 {
     return *m_pH5file;
 }
@@ -411,8 +411,8 @@ const TrackingList& Dataset::getTrackingList() const & noexcept
 }
 
 std::tuple<double, double> Dataset::gridToGeo(
-    uint64_t row,
-    uint64_t column) const noexcept
+    uint32_t row,
+    uint32_t column) const noexcept
 {
     const auto x = m_pMetadata->llCornerX() +
         (row * m_pMetadata->rowResolution());

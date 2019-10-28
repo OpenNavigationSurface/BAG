@@ -131,10 +131,7 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
-
-    const int64_t rowOffset = rowStart;
-    const int64_t columnOffset = columnStart;
-    const std::array<hsize_t, RANK> offset{rowOffset, columnOffset};
+    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
 
     // Query the file for the specified rows and columns.
     const auto h5dataSpace = m_pH5dataSet->getSpace();
