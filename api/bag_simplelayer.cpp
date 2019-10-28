@@ -156,7 +156,7 @@ SimpleLayer::createH5dataSet(
     {
         h5createPropList.setLayout(H5D_CHUNKED);
 
-        std::array<uint64_t, 2> chunkSize{descriptor.getChunkSize(),
+        const std::array<uint64_t, 2> chunkSize{descriptor.getChunkSize(),
             descriptor.getChunkSize()};
         h5createPropList.setChunk(RANK, chunkSize.data());
         h5createPropList.setDeflate(compressionLevel);

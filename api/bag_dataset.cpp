@@ -47,24 +47,19 @@ uint32_t getNumericalVersion(
 
     for (auto iter = b; iter != e; ++iter)
     {
-        version += std::stoul(*iter) * multiplier;
+        try
+        {
+            version += std::stoul(*iter) * multiplier;
+        }
+        catch(...)
+        {
+            return 0;
+        }
+
         multiplier /= 1000;
     }
 
     return version;
-}
-
-const ::H5::PredType& getH5PredType(DataType type)
-{
-    switch(type)
-    {
-    case UINT32:
-        return ::H5::PredType::NATIVE_UINT32;
-    case FLOAT32:
-        return ::H5::PredType::NATIVE_FLOAT;
-    default:
-        throw 1122;  // Unsupported DataType.
-    }
 }
 
 Layer& getLayer(
