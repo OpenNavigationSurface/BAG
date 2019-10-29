@@ -170,6 +170,8 @@ void SimpleLayer::writeProxy(
 
     m_pH5dataSet->write(buffer, H5Dget_type(m_pH5dataSet->getId()),
         h5memSpace, h5fileSpace);
+
+    //TODO update min/max.  Here?  Layer::write()? elsewhere?
 }
 
 }   //namespace BAG

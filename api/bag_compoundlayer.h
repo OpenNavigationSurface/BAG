@@ -24,7 +24,7 @@ public:
     struct Definition final
     {
         std::string m_name;
-        DataType m_type;
+        DataType m_type;  //TODO Other types?  strings, double, int, short, char?
     };
 
     const std::vector<Definition>& getDefinition() const noexcept;
@@ -35,6 +35,8 @@ protected:
 
     static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
         LayerDescriptor& descriptor);
+
+    //TODO implement create()
 
 private:
 

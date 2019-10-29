@@ -33,7 +33,6 @@ protected:
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
         LayerType type);
 
-    //TODO redo this with LayerType?
     static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
         LayerDescriptor& descriptor);
 

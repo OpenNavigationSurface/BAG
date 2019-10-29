@@ -59,6 +59,8 @@ void CompoundLayer::writeProxy(
 {
     rowStart;  columnStart;  rowEnd;  columnEnd;  buffer;
     //TODO Implement.
+
+    //TODO update min/max.  Here?  Layer::write()? elsewhere?
 }
 
 }
