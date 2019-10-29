@@ -21,6 +21,44 @@ Layer::Layer(
 }
 
 
+Layer::AttributeInfo Layer::getAttributeInfo(LayerType layerType)
+{
+    switch (layerType)
+    {
+    case Elevation:
+        return {MIN_ELEVATION_NAME, MAX_ELEVATION_NAME, ELEVATION_PATH,
+            ::H5::PredType::NATIVE_FLOAT};
+    case Uncertainty:
+        return {MIN_UNCERTAINTY_NAME, MAX_UNCERTAINTY_NAME, UNCERTAINTY_PATH,
+            ::H5::PredType::NATIVE_FLOAT};
+    case Hypothesis_Strength:
+        return{MIN_HYPOTHESIS_STRENGTH, MAX_HYPOTHESIS_STRENGTH,
+            HYPOTHESIS_STRENGTH_PATH, ::H5::PredType::NATIVE_FLOAT};
+    case Num_Hypotheses:
+        return {MIN_NUM_HYPOTHESES, MAX_NUM_HYPOTHESES, NUM_HYPOTHESES_PATH,
+            ::H5::PredType::NATIVE_UINT32};
+    case Shoal_Elevation:
+        return {MIN_SHOAL_ELEVATION, MAX_SHOAL_ELEVATION, SHOAL_ELEVATION_PATH,
+            ::H5::PredType::NATIVE_FLOAT};
+    case Std_Dev:
+        return {MIN_STANDARD_DEV_NAME, MAX_STANDARD_DEV_NAME, STANDARD_DEV_PATH,
+            ::H5::PredType::NATIVE_FLOAT};
+    case Num_Soundings:
+        return {MIN_NUM_SOUNDINGS, MAX_NUM_SOUNDINGS, NUM_SOUNDINGS_PATH,
+            ::H5::PredType::NATIVE_UINT32};
+    case Average_Elevation:
+        return {MIN_AVERAGE, MAX_AVERAGE, AVERAGE_PATH,
+            ::H5::PredType::NATIVE_FLOAT};
+    case Nominal_Elevation:
+        return {MIN_NOMINAL_ELEVATION, MAX_NOMINAL_ELEVATION,
+            NOMINAL_ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT};
+    case Compound:
+        //[[fallthrough]];
+    default:
+        throw UnknownSimpleLayerType{};
+    }
+}
+
 DataType Layer::getDataType(LayerType layerType) noexcept
 {
     switch (layerType)
@@ -61,39 +99,41 @@ uint8_t Layer::getElementSize(DataType type) noexcept
     return 0;
 }
 
-std::string Layer::getInternalPath(LayerType type)
+std::string Layer::getInternalPath(
+    LayerType layerType,
+    GroupType groupType)
 {
-    switch (type)
+    if (groupType == NODE)
+        return NODE_GROUP_PATH;
+    else if (groupType == ELEVATION)
+        return ELEVATION_SOLUTION_GROUP_PATH;
+    else if (groupType != UNKNOWN_GROUP_TYPE)
+        throw UnsupportedGroupType{};
+
+    switch (layerType)
     {
     case Elevation:
         return ELEVATION_PATH;
-
     case Uncertainty:
         return UNCERTAINTY_PATH;
-
     case Hypothesis_Strength:
-        return NODE_GROUP_PATH;  // Part of the NODE group.
-
+        return HYPOTHESIS_STRENGTH_PATH;  // Also part of the NODE (NODE_GROUP_PATH).
     case Num_Hypotheses:
-        return NODE_GROUP_PATH;  //TODO NUM_HYPOTHESES_PATH could be used as a SimpleLayer.
-
+        return NUM_HYPOTHESES_PATH;  // Also part of the NODE group (NODE_GROUP_PATH).
     case Shoal_Elevation:
-        return ELEVATION_SOLUTION_GROUP_PATH;  // Part of the ELEVATION group.
-
+        return SHOAL_ELEVATION_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
     case Std_Dev:
-        return ELEVATION_SOLUTION_GROUP_PATH;  //TODO STANDARD_DEV_PATH could be used as a SimpleLayer.
-
+        return STANDARD_DEV_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
     case Num_Soundings:
-        return ELEVATION_SOLUTION_GROUP_PATH;  // Part of the ELEVATION group.
-
+        return NUM_SOUNDINGS_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
     case Average_Elevation:
         return AVERAGE_PATH;
-
     case Nominal_Elevation:
         return NOMINAL_ELEVATION_PATH;
+    case Compound:  // [[fallthrough]];
+    default:
+        throw UnsupportedLayerType{};
     }
-
-    throw UnsupportedLayerType{};
 }
 
 std::unique_ptr<uint8_t[]> Layer::read(

@@ -44,9 +44,11 @@ public:
     Descriptor& addLayerDescriptor(const LayerDescriptor& inDescriptor) &;
 
 private:
-
+    //! The version of the BAG.
     std::string m_version;
+    //! True if the BAG is read only.
     bool m_isReadOnly = true;
+    //! Layer descriptors (owned by Layer).
     std::unordered_map<LayerType, std::shared_ptr<const LayerDescriptor>> m_layerDescriptors;
 
 };

@@ -16,7 +16,7 @@ SimpleLayerDescriptor::SimpleLayerDescriptor(
     LayerType type,
     const Dataset& dataset)
     : LayerDescriptor(type, dataset)
-    ,m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
+    , m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
 {
 }
 

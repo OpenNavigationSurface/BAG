@@ -40,17 +40,17 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
     LayerType type)
 {
     auto descriptor = SimpleLayerDescriptor::create(type);
-    auto h5DataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
+    auto h5dataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, *descriptor,
-        std::move(h5DataSet)});
+        std::move(h5dataSet)});
 }
 
 std::unique_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
     LayerDescriptor& descriptor)
 {
-    auto h5DataSet = dataset.openLayerH5DataSet(descriptor);
+    auto h5dataSet = dataset.openLayerH5DataSet(descriptor);
 
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
@@ -59,7 +59,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
             std::get<1>(possibleMinMax)});
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, descriptor,
-        std::move(h5DataSet)});
+        std::move(h5dataSet)});
 }
 
 
@@ -99,64 +99,21 @@ SimpleLayer::createH5dataSet(
                 h5dataType, h5dataSpace, h5createPropList)},
             Dataset::DeleteH5DataSet{});
 
-    const char* minAttName = MIN_ELEVATION_NAME;
-    const char* maxAttName = MAX_ELEVATION_NAME;
-
-    switch (descriptor.getLayerType())
-    {
-    case Elevation:
-        break;
-    case Uncertainty:
-        minAttName = MIN_UNCERTAINTY_NAME;
-        maxAttName = MAX_UNCERTAINTY_NAME;
-        break;
-    case Hypothesis_Strength:
-        minAttName = MIN_HYPOTHESIS_STRENGTH;
-        maxAttName = MAX_HYPOTHESIS_STRENGTH;
-        break;
-    case Num_Hypotheses:
-        minAttName = MIN_NUM_HYPOTHESES;
-        maxAttName = MAX_NUM_HYPOTHESES;
-        break;
-    case Shoal_Elevation:
-        minAttName = MIN_SHOAL_ELEVATION;
-        maxAttName = MAX_SHOAL_ELEVATION;
-        break;
-    case Std_Dev:
-        minAttName = MIN_STANDARD_DEV_NAME;
-        maxAttName = MAX_STANDARD_DEV_NAME;
-        break;
-    case Num_Soundings:
-        minAttName = MIN_NUM_SOUNDINGS;
-        maxAttName = MAX_NUM_SOUNDINGS;
-        break;
-    case Average_Elevation:
-        minAttName = MIN_AVERAGE;
-        maxAttName = MAX_AVERAGE;
-        break;
-    case Nominal_Elevation:
-        minAttName = MIN_NOMINAL_ELEVATION;
-        maxAttName = MAX_NOMINAL_ELEVATION;
-        break;
-    case Compound:
-        //[[fallthrough]];
-    default:
-        throw UnknownSimpleLayerType{};
-    }
+    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
 
     const ::H5::DataSpace minElevDataSpace{};
-    const auto minElevAtt = pH5dataSet->createAttribute(minAttName,
-        ::H5::PredType::NATIVE_FLOAT, minElevDataSpace);
+    const auto minElevAtt = pH5dataSet->createAttribute(attInfo.minName,
+        attInfo.h5type, minElevDataSpace);
 
     constexpr float minElev = 0.f;
-    minElevAtt.write(::H5::PredType::NATIVE_FLOAT, &minElev);
+    minElevAtt.write(attInfo.h5type, &minElev);
 
     const ::H5::DataSpace maxElevDataSpace{};
-    const auto maxElevAtt = pH5dataSet->createAttribute(maxAttName,
-        ::H5::PredType::NATIVE_FLOAT, maxElevDataSpace);
+    const auto maxElevAtt = pH5dataSet->createAttribute(attInfo.maxName,
+        attInfo.h5type, maxElevDataSpace);
 
     constexpr float maxElev = 0.f;
-    maxElevAtt.write(::H5::PredType::NATIVE_FLOAT, &maxElev);
+    maxElevAtt.write(attInfo.h5type, &maxElev);
 
     return pH5dataSet;
 }

@@ -11,6 +11,7 @@
 namespace H5 {
 
 class DataSet;
+class PredType;
 
 }  // namespace H5
 
@@ -28,7 +29,8 @@ public:
 
     static DataType getDataType(LayerType layerType) noexcept;
     static uint8_t getElementSize(DataType type) noexcept;
-    static std::string getInternalPath(LayerType type);
+    static std::string getInternalPath(LayerType layerType,
+        GroupType groupType = UNKNOWN_GROUP_TYPE);
 
     // Interface
     const LayerDescriptor& getDescriptor() const & noexcept;
@@ -40,7 +42,6 @@ public:
         uint32_t columnEnd, const uint8_t* buffer) const;
 
 protected:
-
     Layer(Dataset& dataset, LayerDescriptor& descriptor);
 
     Layer(const Layer&) = delete;
@@ -48,8 +49,17 @@ protected:
     Layer& operator=(const Layer&) = delete;
     Layer& operator=(Layer&&) = delete;
 
-private:
+    struct AttributeInfo
+    {
+        const char* minName = nullptr;
+        const char* maxName = nullptr;
+        const char* path = nullptr;
+        const ::H5::PredType& h5type;
+    };
 
+    static AttributeInfo getAttributeInfo(LayerType layerType);
+
+private:
     virtual std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const = 0;
 
@@ -58,7 +68,7 @@ private:
 
     //! The dataset this layer is from.
     std::weak_ptr<Dataset> m_pBagDataset;
-    //! The layer's descriptor (owned by the Dataset)
+    //! The layer's descriptor (owned).
     std::shared_ptr<LayerDescriptor> m_pLayerDescriptor;
 
     friend class Dataset;

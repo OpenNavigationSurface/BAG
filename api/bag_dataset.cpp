@@ -168,34 +168,6 @@ Layer& Dataset::addLayer(std::unique_ptr<Layer> newLayer) &
     return layer;
 }
 
-Layer& Dataset::createLayer(LayerType type) &
-{
-    if (this->m_descriptor.isReadOnly())
-        throw ReadOnlyError{};
-
-    //Make sure it doesn't already exist.
-    const auto iter = m_layers.find(type);
-    if (iter != cend(m_layers))
-        throw LayerExists{};
-
-    switch (type)
-    {
-    case Elevation:  //[[fallthrough]];
-    case Uncertainty:  //[[fallthrough]];
-    case Hypothesis_Strength:  //[[fallthrough]];
-    case Num_Hypotheses:  //[[fallthrough]];
-    case Shoal_Elevation:  //[[fallthrough]];
-    case Std_Dev:  //[[fallthrough]];
-    case Num_Soundings:  //[[fallthrough]];
-    case Average_Elevation:  //[[fallthrough]];
-    case Nominal_Elevation:
-        return this->addLayer(SimpleLayer::create(*this, type));
-    case Compound:  //[[fallthrough]];
-    default:
-        throw UnsupportedLayerType{};
-    }
-}
-
 void Dataset::createDataset(
     const std::string& fileName,
     Metadata&& metadata)
@@ -234,6 +206,34 @@ void Dataset::createDataset(
     this->addLayer(SimpleLayer::create(*this, Uncertainty));
 
     // All mandatory items exist in the HDF5 file now.
+}
+
+Layer& Dataset::createLayer(LayerType type) &
+{
+    if (this->m_descriptor.isReadOnly())
+        throw ReadOnlyError{};
+
+    //Make sure it doesn't already exist.
+    const auto iter = m_layers.find(type);
+    if (iter != cend(m_layers))
+        throw LayerExists{};
+
+    switch (type)
+    {
+    case Elevation:  //[[fallthrough]];
+    case Uncertainty:  //[[fallthrough]];
+    case Hypothesis_Strength:  //[[fallthrough]];
+    case Num_Hypotheses:  //[[fallthrough]];
+    case Shoal_Elevation:  //[[fallthrough]];
+    case Std_Dev:  //[[fallthrough]];
+    case Num_Soundings:  //[[fallthrough]];
+    case Average_Elevation:  //[[fallthrough]];
+    case Nominal_Elevation:
+        return this->addLayer(SimpleLayer::create(*this, type));
+    case Compound:  //[[fallthrough]];
+    default:
+        throw UnsupportedLayerType{};
+    }
 }
 
 std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
@@ -351,65 +351,18 @@ const Metadata& Dataset::getMetadata() const & noexcept
 std::tuple<bool, float, float> Dataset::getMinMax(
     LayerType type) const
 {
-    // Defaults for Elevation.
-    const char* dataSetPath = ELEVATION_PATH;
-    const char* minAttName = MIN_ELEVATION_NAME;
-    const char* maxAttName = MAX_ELEVATION_NAME;
-
-    switch (type)
+    try
     {
-    case Elevation:
-        break;  // Default, set above.
-    case Uncertainty:
-        dataSetPath = UNCERTAINTY_PATH;
-        minAttName = MIN_UNCERTAINTY_NAME;
-        maxAttName = MAX_UNCERTAINTY_NAME;
-        break;
-    case Hypothesis_Strength:
-        dataSetPath = HYPOTHESIS_STRENGTH_PATH;
-        minAttName = MIN_HYPOTHESIS_STRENGTH;
-        maxAttName = MAX_HYPOTHESIS_STRENGTH;
-        break;
-    case Num_Hypotheses:
-        dataSetPath = NUM_HYPOTHESES_PATH;
-        minAttName = MIN_NUM_HYPOTHESES;
-        maxAttName = MAX_NUM_HYPOTHESES;
-        break;
-    case Shoal_Elevation:
-        dataSetPath = SHOAL_ELEVATION_PATH;
-        minAttName = MIN_SHOAL_ELEVATION;
-        maxAttName = MAX_SHOAL_ELEVATION;
-        break;
-    case Std_Dev:
-        dataSetPath = STANDARD_DEV_PATH;
-        minAttName = MIN_STANDARD_DEV_NAME;
-        maxAttName = MAX_STANDARD_DEV_NAME;
-        break;
-    case Num_Soundings:
-        dataSetPath = NUM_SOUNDINGS_PATH;
-        minAttName = MIN_NUM_SOUNDINGS;
-        maxAttName = MAX_NUM_SOUNDINGS;
-        break;
-    case Average_Elevation:
-        dataSetPath = AVERAGE_PATH;
-        minAttName = MIN_AVERAGE;
-        maxAttName = MAX_AVERAGE;
-        break;
-    case Nominal_Elevation:
-        dataSetPath = NOMINAL_ELEVATION_PATH;
-        minAttName = MIN_NOMINAL_ELEVATION;
-        maxAttName = MAX_NOMINAL_ELEVATION;
-        break;
-    case Compound:
-        throw UnsupportedLayerType{};
-    default:
-        // No known min/max attributes.
-        return std::make_tuple(false, 0.f, 0.f);
-    }
+        const auto info = Layer::getAttributeInfo(type);
 
-    return std::make_tuple(true,
-        readAttributeFromDataSet<float>(*m_pH5file, dataSetPath, minAttName),
-        readAttributeFromDataSet<float>(*m_pH5file, dataSetPath, maxAttName));
+        return std::make_tuple(true,
+            readAttributeFromDataSet<float>(*m_pH5file, info.path, info.minName),
+            readAttributeFromDataSet<float>(*m_pH5file, info.path, info.maxName));
+    }
+    catch(const UnknownSimpleLayerType&)
+    {
+        return std::make_tuple(false, 0.f, 0.f);  // No min/max attributes.
+    }
 }
 
 TrackingList& Dataset::getTrackingList() & noexcept
@@ -463,8 +416,9 @@ void Dataset::readDataset(
     const auto bagGroup = m_pH5file->openGroup(ROOT_PATH);
 
     // Look for the simple layers.
-    //TODO Add rest of the layers (Hypothesis_Strength, Num_Hypotheses, Shoal_Elevation, Std_Dev, Num_Soundings)
-    for (auto layerType : {Elevation, Uncertainty, Average_Elevation, Nominal_Elevation})
+    for (auto layerType : {Elevation, Uncertainty, Hypothesis_Strength,
+        Num_Hypotheses, Shoal_Elevation, Std_Dev, Num_Soundings,
+        Average_Elevation, Nominal_Elevation})
     {
         const std::string internalPath = Layer::getInternalPath(layerType);
         if (internalPath.empty())

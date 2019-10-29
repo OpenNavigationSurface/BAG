@@ -33,7 +33,7 @@ constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
 #define ELEVATION_SOLUTION_GROUP_PATH   ROOT_PATH "/elevation_solution"
 #define SHOAL_ELEVATION_PATH            ROOT_PATH "/shoal_elevation"  //TODO Discuss this.
 #define STANDARD_DEV_PATH	            ROOT_PATH "/standard_dev"
-#define NUM_SOUNDINGS_PATH	            ROOT_PATH "/num_soundings"  //TODO Disucuss this.
+#define NUM_SOUNDINGS_PATH	            ROOT_PATH "/num_soundings"  //TODO Discuss this.
 
 /*! Names for BAG Attributes */
 #define BAG_VERSION_NAME                "Bag Version"                /*!< Name for version attribute, value set in bag.h */

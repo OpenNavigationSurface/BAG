@@ -25,6 +25,17 @@ struct BAG_API DatasetNotFound final : virtual std::exception
 };
 
 
+// Group related.
+//! Attempt to use an unknown layer type.
+struct BAG_API UnsupportedGroupType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "An unsupported group type was specified.";
+    }
+};
+
+
 // Layer related.
 //! Layer already exists.
 struct BAG_API LayerExists final : virtual std::exception
@@ -81,6 +92,7 @@ struct BAG_API UnsupportedInterleavedLayer final : virtual std::exception
             "layer type when making an interleaved layer.";
     }
 };
+
 
 // Metadata related.
 //! Attempt to make an unsupported interleaved layer.
