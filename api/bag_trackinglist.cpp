@@ -142,12 +142,7 @@ const TrackingList::value_type* TrackingList::data() const & noexcept
     return m_items.data();
 }
 
-void TrackingList::DeleteH5DataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
-
-std::unique_ptr<::H5::DataSet, TrackingList::DeleteH5DataSet>
+std::unique_ptr<::H5::DataSet, TrackingList::DeleteH5dataSet>
 TrackingList::createH5dataSet(
     int compressionLevel)
 {
@@ -188,11 +183,11 @@ TrackingList::createH5dataSet(
     const uint32_t length = 0;
     listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &length);
 
-    return std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
-        new ::H5::DataSet{h5dataSet}, DeleteH5DataSet{});
+    return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+        new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
-std::unique_ptr<::H5::DataSet, TrackingList::DeleteH5DataSet>
+std::unique_ptr<::H5::DataSet, TrackingList::DeleteH5dataSet>
 TrackingList::openH5dataSet()
 {
     if (m_pBagDataset.expired())
@@ -211,8 +206,8 @@ TrackingList::openH5dataSet()
     attribute.read(attribute.getDataType(), &m_length);
 
     if (m_length == 0)
-        return std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
-            new ::H5::DataSet{h5dataSet}, DeleteH5DataSet{});
+        return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+            new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 
     // Read the rank to size m_items properly.
     const auto h5dataSpace = h5dataSet.getSpace();
@@ -236,8 +231,8 @@ TrackingList::openH5dataSet()
 
     h5dataSet.read(m_items.data(), h5type);
 
-    return std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
-        new ::H5::DataSet{h5dataSet}, DeleteH5DataSet{});
+    return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+        new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
 void TrackingList::write() const
@@ -252,6 +247,7 @@ void TrackingList::write() const
 
     listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &m_length);
 
+    // Write the data.
     const ::H5::CompType h5type{sizeof(BagTrackingItem)};
 
     h5type.insertMember("row", HOFFSET(value_type, row), ::H5::PredType::NATIVE_UINT32);
@@ -268,6 +264,11 @@ void TrackingList::write() const
     ::H5::DataSpace h5fileSpace{1, &numItems, &kMaxSize};
 
     m_pH5dataSet->write(m_items.data(), h5type, h5memSpace, h5fileSpace);
+}
+
+void TrackingList::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
+{
+    delete ptr;
 }
 
 }   //namespace BAG

@@ -59,14 +59,14 @@ protected:
 
 private:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5DataSet final
+    struct BAG_API DeleteH5dataSet final
     {
         void operator()(::H5::DataSet* ptr) noexcept;
     };
 
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> createH5dataSet(
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> createH5dataSet(
         int compressionLevel);
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> openH5dataSet();
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
     //! The associated dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
@@ -74,8 +74,8 @@ private:
     std::vector<value_type> m_items;
     //! The length attribute in the tracking list DataSet.
     uint32_t m_length = 0;
-
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> m_pH5dataSet;
+    //! The HDF5 DataSet this class relates to.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };

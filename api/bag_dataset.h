@@ -71,20 +71,12 @@ private:
     unsigned int getCompressionLevel(LayerType type) const;
     std::tuple<uint32_t, uint32_t> getDims(LayerType type) const;
 
-    std::tuple<bool, float, float> getMinMax(LayerType) const;
+    std::tuple<bool, float, float> getMinMax(LayerType type,
+        const std::string& path = {}) const;
 
     ::H5::H5File& getH5file() const & noexcept;
 
     Layer& addLayer(std::unique_ptr<Layer> layer) &;
-
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5DataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
-
-    std::unique_ptr<::H5::DataSet, DeleteH5DataSet> openLayerH5DataSet(
-        const LayerDescriptor& descriptor);
 
     //! Custom deleter to not require knowledge of ::H5::H5File destructor here.
     struct BAG_API DeleteH5File final {

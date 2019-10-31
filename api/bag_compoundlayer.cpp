@@ -26,7 +26,10 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
     Dataset& dataset,
     LayerDescriptor& descriptor)
 {
-    auto h5DataSet = dataset.openLayerH5DataSet(descriptor);
+    const auto& h5file = dataset.getH5file();
+    auto h5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+        new ::H5::DataSet{h5file.openDataSet(descriptor.getInternalPath())},
+        DeleteH5dataSet{});
 
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
@@ -61,6 +64,11 @@ void CompoundLayer::writeProxy(
     //TODO Implement.
 
     //TODO update min/max.  Here?  Layer::write()? elsewhere?
+}
+
+void CompoundLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
+{
+    delete ptr;
 }
 
 }

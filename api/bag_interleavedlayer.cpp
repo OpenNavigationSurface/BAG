@@ -86,7 +86,7 @@ struct BagOptElevationSolutionGroup final
 InterleavedLayer::InterleavedLayer(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor,
-    std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet)
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet)
     : Layer(dataset, descriptor)
     , m_pH5dataSet(std::move(h5dataSet))
 {
@@ -96,16 +96,20 @@ std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor)
 {
-    auto h5DataSet = dataset.openLayerH5DataSet(descriptor);
+    const auto& h5file = dataset.getH5file();
+    const auto& path = descriptor.getInternalPath();
+    auto h5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+        new ::H5::DataSet{h5file.openDataSet(path)},
+        DeleteH5dataSet{});
 
     // Read the min/max attribute values.
-    const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
+    const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType(), path);
     if (std::get<0>(possibleMinMax))
         descriptor.setMinMax({std::get<1>(possibleMinMax),
             std::get<1>(possibleMinMax)});
 
     return std::unique_ptr<InterleavedLayer>(new InterleavedLayer{dataset,
-        descriptor, std::move(h5DataSet)});
+        descriptor, std::move(h5dataSet)});
 }
 
 
@@ -155,6 +159,11 @@ void InterleavedLayer::writeProxy(
     const uint8_t* /*buffer*/) const
 {
     return;  // Writing Interleaved layers not supported.
+}
+
+void InterleavedLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
+{
+    delete ptr;
 }
 
 }   //namespace BAG

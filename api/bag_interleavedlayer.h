@@ -20,9 +20,15 @@ namespace BAG {
 class BAG_API InterleavedLayer final : public Layer
 {
 protected:
+    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
+    struct BAG_API DeleteH5dataSet final
+    {
+        void operator()(::H5::DataSet* ptr) noexcept;
+    };
+
     InterleavedLayer(Dataset& dataset,
         InterleavedLayerDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet);
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
     InterleavedLayer(const InterleavedLayer&) = delete;
     InterleavedLayer(InterleavedLayer&&) = delete;
@@ -40,7 +46,7 @@ private:
         uint32_t columnEnd, const uint8_t *buffer) const override;
 
     //! The HDF5 DataSet.
-    std::unique_ptr<H5::DataSet, Dataset::DeleteH5DataSet> m_pH5dataSet;
+    std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };

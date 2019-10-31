@@ -41,8 +41,8 @@ Metadata::Metadata(Dataset& dataset)
 
     try
     {
-        m_pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
-            new ::H5::DataSet{h5file.openDataSet(METADATA_PATH)}, DeleteH5DataSet{});
+        m_pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+            new ::H5::DataSet{h5file.openDataSet(METADATA_PATH)}, DeleteH5dataSet{});
     }
     catch(...)
     {
@@ -90,10 +90,10 @@ void Metadata::createH5dataSet(
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setChunk(1, &kMetadataChunkSize);
 
-    m_pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(
+    m_pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
         new ::H5::DataSet{h5file.createDataSet(METADATA_PATH,
             ::H5::PredType::C_S1, h5dataSpace, h5createPropList)},
-            DeleteH5DataSet{});
+            DeleteH5dataSet{});
 
     m_pH5dataSet->extend(&xmlLength);
 }
@@ -164,7 +164,7 @@ double Metadata::urCornerY() const noexcept
     return m_pMetaStruct->spatialRepresentationInfo->urCornerY;
 }
 
-void Metadata::DeleteH5DataSet::operator()(::H5::DataSet* ptr) noexcept
+void Metadata::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
 {
     delete ptr;
 }

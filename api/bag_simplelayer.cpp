@@ -29,7 +29,7 @@ const ::H5::PredType& getH5PredType(DataType type)
 SimpleLayer::SimpleLayer(
     Dataset& dataset,
     LayerDescriptor& descriptor,
-    std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet)
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet)
     : Layer(dataset, descriptor)
     , m_pH5dataSet(std::move(h5dataSet))
 {
@@ -50,7 +50,11 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
     LayerDescriptor& descriptor)
 {
-    auto h5dataSet = dataset.openLayerH5DataSet(descriptor);
+    const auto& h5file = dataset.getH5file();
+    auto h5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+        new ::H5::DataSet{h5file.openDataSet(descriptor.getInternalPath())},
+        DeleteH5dataSet{});
+
 
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
@@ -63,7 +67,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
 }
 
 
-std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
+std::unique_ptr<::H5::DataSet, SimpleLayer::DeleteH5dataSet>
 SimpleLayer::createH5dataSet(
     const Dataset& dataset,
     const LayerDescriptor& descriptor)
@@ -94,10 +98,10 @@ SimpleLayer::createH5dataSet(
 
     const auto& h5file = dataset.getH5file();
 
-    auto pH5dataSet = std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>(
+    auto pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
             new ::H5::DataSet{h5file.createDataSet(descriptor.getInternalPath(),
                 h5dataType, h5dataSpace, h5createPropList)},
-            Dataset::DeleteH5DataSet{});
+            DeleteH5dataSet{});
 
     const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
 
@@ -172,6 +176,11 @@ void SimpleLayer::writeProxy(
         h5memSpace, h5fileSpace);
 
     //TODO update min/max.  Here?  Layer::write()? elsewhere?
+}
+
+void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
+{
+    delete ptr;
 }
 
 }   //namespace BAG

@@ -349,15 +349,17 @@ const Metadata& Dataset::getMetadata() const & noexcept
 }
 
 std::tuple<bool, float, float> Dataset::getMinMax(
-    LayerType type) const
+    LayerType type,
+    const std::string& path) const
 {
     try
     {
         const auto info = Layer::getAttributeInfo(type);
+        const auto& thePath = path.empty() ? info.path : path;
 
         return std::make_tuple(true,
-            readAttributeFromDataSet<float>(*m_pH5file, info.path, info.minName),
-            readAttributeFromDataSet<float>(*m_pH5file, info.path, info.maxName));
+            readAttributeFromDataSet<float>(*m_pH5file, thePath, info.minName),
+            readAttributeFromDataSet<float>(*m_pH5file, thePath, info.maxName));
     }
     catch(const UnknownSimpleLayerType&)
     {
@@ -386,13 +388,6 @@ std::tuple<double, double> Dataset::gridToGeo(
         (column * m_pMetadata->columnResolution());
 
     return std::make_tuple(x, y);
-}
-
-std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
-Dataset::openLayerH5DataSet(const LayerDescriptor& descriptor)
-{
-    return std::unique_ptr<::H5::DataSet, DeleteH5DataSet>(new ::H5::DataSet{
-        m_pH5file->openDataSet(descriptor.getInternalPath())}, DeleteH5DataSet{});
 }
 
 void Dataset::readDataset(
@@ -503,11 +498,6 @@ void Dataset::readDataset(
 }
 
 void Dataset::DeleteH5File::operator()(::H5::H5File* ptr) noexcept
-{
-    delete ptr;
-}
-
-void Dataset::DeleteH5DataSet::operator()(::H5::DataSet* ptr) noexcept
 {
     delete ptr;
 }

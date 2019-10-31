@@ -21,9 +21,14 @@ class BAG_API SimpleLayer final : public Layer
 public:
 
 protected:
+    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
+    struct BAG_API DeleteH5dataSet final
+    {
+        void operator()(::H5::DataSet* ptr) noexcept;
+    };
 
     SimpleLayer(Dataset& dataset, LayerDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet> h5dataSet);
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
     SimpleLayer(const SimpleLayer&) = delete;
     SimpleLayer(SimpleLayer&&) = delete;
@@ -37,7 +42,7 @@ protected:
         LayerDescriptor& descriptor);
 
 private:
-    static std::unique_ptr<::H5::DataSet, Dataset::DeleteH5DataSet>
+    static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
         createH5dataSet(const Dataset& inDataSet,
             const LayerDescriptor& descriptor);
 
@@ -48,7 +53,7 @@ private:
         uint32_t rowEnd, uint32_t columnEnd, const uint8_t* buffer) const override;
 
     //! The HDF5 DataSet.
-    std::unique_ptr<H5::DataSet, Dataset::DeleteH5DataSet> m_pH5dataSet;
+    std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };

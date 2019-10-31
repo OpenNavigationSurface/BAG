@@ -20,7 +20,6 @@ namespace BAG {
 class BAG_API CompoundLayer final : public Layer
 {
 public:
-
     struct Definition final
     {
         std::string m_name;
@@ -30,7 +29,6 @@ public:
     const std::vector<Definition>& getDefinition() const noexcept;
 
 protected:
-
     CompoundLayer(Dataset& dataset, LayerDescriptor& descriptor);
 
     static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
@@ -39,6 +37,11 @@ protected:
     //TODO implement create()
 
 private:
+    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
+    struct BAG_API DeleteH5dataSet final
+    {
+        void operator()(::H5::DataSet* ptr) noexcept;
+    };
 
     std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart, uint32_t columnStart,
         uint32_t rowEnd, uint32_t columnEnd) const override;
@@ -47,7 +50,7 @@ private:
         uint32_t columnEnd, const uint8_t* buffer) const override;
 
     //! The HDF5 DataSet.
-    std::unique_ptr<H5::DataSet, Dataset::DeleteH5DataSet> m_pH5dataSet;
+    std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     std::vector<Definition> m_definitions;
 };
