@@ -133,8 +133,7 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
 
     // Initialize the output buffer.
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize + 10);
-    memset(buffer.get(), 16, bufferSize + 10);
+    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
