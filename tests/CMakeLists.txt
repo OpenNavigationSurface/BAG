@@ -15,8 +15,8 @@ set(TEST_SOURCE_FILES
     test_bag_metadata.cpp
     test_bag_simplelayer.cpp
     test_bag_simplelayerdescriptor.cpp
+    test_bag_surfacecorrections.cpp
     test_bag_trackinglist.cpp
-    test_bag_verticaldatumcorrections.cpp
     test_utils.cpp
     test_utils.h
 )

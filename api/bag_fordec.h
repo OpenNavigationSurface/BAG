@@ -13,8 +13,9 @@ class Layer;
 class LayerDescriptor;
 class Metadata;
 class SimpleLayer;
+class SimpleLayerDescriptor;
+class SurfaceCorrections;
 class TrackingList;
-class VerticalDatumCorrections;
 
 }   //namespace BAG
 

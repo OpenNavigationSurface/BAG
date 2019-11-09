@@ -8,7 +8,7 @@
 #include "bag_metadata.h"
 #include "bag_trackinglist.h"
 #include "bag_types.h"
-#include "bag_verticaldatumcorrections.h"
+#include "bag_surfacecorrections.h"
 
 #include <functional>
 #include <memory>

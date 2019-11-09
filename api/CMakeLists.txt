@@ -31,8 +31,8 @@ set(BAG_SOURCE_FILES
     #bag_tracking_list.c
     bag_simplelayer.cpp
     bag_simplelayerdescriptor.cpp
+    bag_surfacecorrections.cpp
     bag_trackinglist.cpp
-    bag_verticaldatumcorrections.cpp
 )
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
 
@@ -63,11 +63,11 @@ set(BAG_HEADER_FILES
     #bag_opt_surfaces.h
     bag_simplelayer.h
     bag_simplelayerdescriptor.h
+    bag_surfacecorrections.h
     bag_trackinglist.h
     bag_types.h
     bag_version.h
     #bag_xml_meta.h
-    bag_verticaldatumcorrections.h
 )
 source_group("Header Files" FILES ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES})
 
