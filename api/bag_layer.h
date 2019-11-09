@@ -32,14 +32,14 @@ public:
     static std::string getInternalPath(LayerType layerType,
         GroupType groupType = UNKNOWN_GROUP_TYPE);
 
-    // Interface
+    LayerDescriptor& getDescriptor() & noexcept;
     const LayerDescriptor& getDescriptor() const & noexcept;
 
     std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 
     void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
-        uint32_t columnEnd, const uint8_t* buffer) const;
+        uint32_t columnEnd, const uint8_t* buffer);
 
 protected:
     Layer(Dataset& dataset, LayerDescriptor& descriptor);
@@ -64,7 +64,7 @@ private:
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const = 0;
 
     virtual void writeProxy(uint32_t rowStart, uint32_t columnStart,
-        uint32_t rowEnd, uint32_t columnEnd, const uint8_t* buffer) const = 0;
+        uint32_t rowEnd, uint32_t columnEnd, const uint8_t* buffer) = 0;
 
     //! The dataset this layer is from.
     std::weak_ptr<Dataset> m_pBagDataset;

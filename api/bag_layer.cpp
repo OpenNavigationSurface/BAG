@@ -80,6 +80,11 @@ DataType Layer::getDataType(LayerType layerType) noexcept
     return UNKNOWN_DATA_TYPE;
 }
 
+LayerDescriptor& Layer::getDescriptor() & noexcept
+{
+    return *m_pLayerDescriptor;
+}
+
 const LayerDescriptor& Layer::getDescriptor() const & noexcept
 {
     return *m_pLayerDescriptor;
@@ -162,8 +167,11 @@ void Layer::write(
     uint32_t columnStart,
     uint32_t rowEnd,
     uint32_t columnEnd,
-    const uint8_t* buffer) const
+    const uint8_t* buffer)
 {
+    if (m_pBagDataset.expired())
+        throw DatasetNotFound{};
+
     if (rowStart > rowEnd || columnStart > columnEnd)
         throw 32;  //TODO make an exception
 

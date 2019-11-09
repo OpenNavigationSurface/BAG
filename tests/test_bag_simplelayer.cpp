@@ -93,7 +93,7 @@ TEST_CASE("test simple layer write", "[.][simplelayer][write]")
         REQUIRE(dataset);
 
         REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
-        const auto& elevLayer = dataset->getLayer(kLayerType);
+        auto& elevLayer = dataset->getLayer(kLayerType);
 
         // Write all 1's.
         {

@@ -156,7 +156,7 @@ void InterleavedLayer::writeProxy(
     uint32_t /*columnStart*/,
     uint32_t /*rowEnd*/,
     uint32_t /*columnEnd*/,
-    const uint8_t* /*buffer*/) const
+    const uint8_t* /*buffer*/)
 {
     return;  // Writing Interleaved layers not supported.
 }

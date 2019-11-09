@@ -65,7 +65,7 @@ TEST_CASE("test interleaved layer write", "[.][interleavedlayer][write]")
         REQUIRE(dataset);
 
         REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
-        const auto& layer = dataset->getLayer(kLayerType);
+        auto& layer = dataset->getLayer(kLayerType);
 
         // Write expected data.
         //TODO fix cast

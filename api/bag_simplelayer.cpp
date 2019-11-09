@@ -55,7 +55,6 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
         new ::H5::DataSet{h5file.openDataSet(descriptor.getInternalPath())},
         DeleteH5dataSet{});
 
-
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
     if (std::get<0>(possibleMinMax))
@@ -157,7 +156,7 @@ void SimpleLayer::writeProxy(
     uint32_t columnStart,
     uint32_t rowEnd,
     uint32_t columnEnd,
-    const uint8_t* buffer) const
+    const uint8_t* buffer)
 {
     //TODO Consider if this is writing 1 row and 1 column .. (RANK == 1)
     const auto rows = (rowEnd - rowStart) + 1;
@@ -165,17 +164,38 @@ void SimpleLayer::writeProxy(
     const std::array<hsize_t, RANK> count{rows, columns};
     const std::array<hsize_t, RANK> offset{rowStart, columnStart};
 
-    // Query the file for the specified rows and columns.
-    const auto h5fileSpace = m_pH5dataSet->getSpace();
-    h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
+    auto h5fileDataSpace = m_pH5dataSet->getSpace();
+
+    // Expand the file data space if needed.
+    std::array<hsize_t, RANK> fileDims{};
+    std::array<hsize_t, RANK> maxFileDims{};
+    h5fileDataSpace.getSimpleExtentDims(fileDims.data(), maxFileDims.data());
+
+    if ((fileDims[0] < (rowEnd + 1)) ||
+        (fileDims[1] < (columnEnd + 1)))
+    {
+        const std::array<hsize_t, RANK> newDims{
+            std::max<hsize_t>(fileDims[0], rowEnd + 1),
+            std::max<hsize_t>(fileDims[1], columnEnd + 1)};
+
+        m_pH5dataSet->extend(newDims.data());
+
+        h5fileDataSpace = m_pH5dataSet->getSpace();
+
+        // Update the layer descriptor's dimensions.
+        this->getDescriptor().setDims({static_cast<uint32_t>(newDims[0]),
+            static_cast<uint32_t>(newDims[1])});
+    }
+
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Prepare the memory space.
-    const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
+    const ::H5::DataSpace h5memDataSpace{RANK, count.data(), count.data()};
 
     m_pH5dataSet->write(buffer, H5Dget_type(m_pH5dataSet->getId()),
-        h5memSpace, h5fileSpace);
+        h5memDataSpace, h5fileDataSpace);
 
-    //TODO update min/max.  Here?  Layer::write()? elsewhere?
+    //TODO update min/max.
 }
 
 void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
