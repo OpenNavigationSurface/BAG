@@ -119,7 +119,6 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
-    //TODO Consider if this is reading 1 row and 1 column .. (RANK == 1)
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};

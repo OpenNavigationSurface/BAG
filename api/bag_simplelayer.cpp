@@ -127,7 +127,6 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
-    //TODO Consider if this is reading 1 row and 1 column .. (RANK == 1)
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
@@ -158,7 +157,6 @@ void SimpleLayer::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    //TODO Consider if this is writing 1 row and 1 column .. (RANK == 1)
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
@@ -195,7 +193,7 @@ void SimpleLayer::writeProxy(
     m_pH5dataSet->write(buffer, H5Dget_type(m_pH5dataSet->getId()),
         h5memDataSpace, h5fileDataSpace);
 
-    //TODO update min/max.
+    //TODO update min/max & related attributes.
 }
 
 void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept

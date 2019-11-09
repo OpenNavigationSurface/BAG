@@ -116,7 +116,6 @@ BagError bagGetGridDimensions(
     if (!handle)
         return 9999; // No handle provided.
 
-    //TODO Elevation was the default before; OK now?
     std::tie(*rows, *cols) =
         handle->pDataset->getLayer(Elevation).getDescriptor().getDims();
 

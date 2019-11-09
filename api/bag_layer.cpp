@@ -10,8 +10,6 @@
 
 namespace BAG {
 
-//TODO Update to only work with an existing ::H5::DataSet.
-//TODO Maybe make this a static open().
 Layer::Layer(
     Dataset& dataset,
     LayerDescriptor& descriptor)

@@ -68,8 +68,8 @@ TEST_CASE("test interleaved layer write", "[.][interleavedlayer][write]")
         auto& layer = dataset->getLayer(kLayerType);
 
         // Write expected data.
-        //TODO fix cast
-        REQUIRE_NOTHROW(layer.write(1, 2, 2, 4, (uint8_t*)kExpectedBuffer.data())); // 2x3
+        REQUIRE_NOTHROW(layer.write(1, 2, 2, 4,
+            reinterpret_cast<uint8_t*>(kExpectedBuffer.data()))); // 2x3
 
         // Read the data back in from ?memory.
         auto buffer = layer.read(1, 2, 2, 4); // 2x3

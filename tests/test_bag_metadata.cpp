@@ -1,6 +1,6 @@
 
 #include "test_utils.h"
-#include <bag_dataset.h>  //TODO maybe mock this?
+#include <bag_dataset.h>
 #include <bag_metadata.h>
 
 #include <catch2/catch.hpp>
