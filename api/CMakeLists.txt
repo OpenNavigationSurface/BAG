@@ -32,6 +32,7 @@ set(BAG_SOURCE_FILES
     bag_simplelayer.cpp
     bag_simplelayerdescriptor.cpp
     bag_surfacecorrections.cpp
+    bag_surfacecorrectionsdescriptor.cpp
     bag_trackinglist.cpp
 )
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
@@ -64,6 +65,7 @@ set(BAG_HEADER_FILES
     bag_simplelayer.h
     bag_simplelayerdescriptor.h
     bag_surfacecorrections.h
+    bag_surfacecorrectionsdescriptor.h
     bag_trackinglist.h
     bag_types.h
     bag_version.h

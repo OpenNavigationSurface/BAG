@@ -75,6 +75,7 @@ private:
     std::tuple<float, float> m_minMax{};
 
     friend InterleavedLayer;
+    friend SurfaceCorrections;
     friend SimpleLayer;
 };
 

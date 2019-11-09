@@ -52,8 +52,8 @@ Layer::AttributeInfo Layer::getAttributeInfo(LayerType layerType)
     case Nominal_Elevation:
         return {MIN_NOMINAL_ELEVATION, MAX_NOMINAL_ELEVATION,
             NOMINAL_ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT};
-    case Compound:
-        //[[fallthrough]];
+    case Surface_Correction:  //[[fallthrough]];
+    case Compound:  //[[fallthrough]];
     default:
         throw UnknownSimpleLayerType{};
     }
@@ -63,21 +63,23 @@ DataType Layer::getDataType(LayerType layerType) noexcept
 {
     switch (layerType)
     {
-    case Elevation:
-    case Uncertainty:
-    case Hypothesis_Strength:
-    case Shoal_Elevation:
-    case Std_Dev:
-    case Average_Elevation:
+    case Elevation:  //[[fallthrough]];
+    case Uncertainty:  //[[fallthrough]];
+    case Hypothesis_Strength:  //[[fallthrough]];
+    case Shoal_Elevation:  //[[fallthrough]];
+    case Std_Dev:  //[[fallthrough]];
+    case Average_Elevation:  //[[fallthrough]];
     case Nominal_Elevation:
         return FLOAT32;
-
-    case Num_Hypotheses:
+    case Num_Hypotheses:  //[[fallthrough]];
     case Num_Soundings:
         return UINT32;
+    case Surface_Correction:
+    case Compound:  //[[fallthrough]];
+        return COMPOUND;
+    default:
+        return UNKNOWN_DATA_TYPE;
     }
-
-    return UNKNOWN_DATA_TYPE;
 }
 
 LayerDescriptor& Layer::getDescriptor() & noexcept
@@ -90,18 +92,19 @@ const LayerDescriptor& Layer::getDescriptor() const & noexcept
     return *m_pLayerDescriptor;
 }
 
-uint8_t Layer::getElementSize(DataType type) noexcept
+uint8_t Layer::getElementSize(DataType type)
 {
     switch (type)
     {
     case FLOAT32:
         return sizeof(float);
-
     case UINT32:
         return sizeof(uint32_t);
+    case COMPOUND:
+        throw 4321;  //TODO How to deal with this?
+    default:
+        return 0;
     }
-
-    return 0;
 }
 
 std::string Layer::getInternalPath(
@@ -135,6 +138,8 @@ std::string Layer::getInternalPath(
         return AVERAGE_PATH;
     case Nominal_Elevation:
         return NOMINAL_ELEVATION_PATH;
+    case Surface_Correction:
+        return VERT_DATUM_CORR_PATH;
     case Compound:  // [[fallthrough]];
     default:
         throw UnsupportedLayerType{};

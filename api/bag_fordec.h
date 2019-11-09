@@ -15,6 +15,7 @@ class Metadata;
 class SimpleLayer;
 class SimpleLayerDescriptor;
 class SurfaceCorrections;
+class SurfaceCorrectionsDescriptor;
 class TrackingList;
 
 }   //namespace BAG

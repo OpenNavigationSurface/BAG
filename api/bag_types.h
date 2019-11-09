@@ -9,6 +9,8 @@
 namespace BAG
 {
 
+constexpr auto RANK = 2;
+
 using LayerType = BAG_LAYER_TYPE;
 using DataType = BAG_DATA_TYPE;
 using OpenMode = BAG_OPEN_MODE;
@@ -26,6 +28,7 @@ const std::unordered_map<LayerType, const char*> kLayerTypeMapString {
     {Num_Soundings, "Num_Soundings"},
     {Average_Elevation, "Average_Elevation"},
     {Nominal_Elevation, "Nominal_Elevation"},
+    {Surface_Correction, "Surface_Correction"},
     //{Compound, "Compound"},
 };
 

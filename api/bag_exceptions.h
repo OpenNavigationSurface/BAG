@@ -94,6 +94,17 @@ struct BAG_API UnsupportedInterleavedLayer final : virtual std::exception
 };
 
 
+// LayerDescriptor related.
+//! Attempt to make an unsupported interleaved layer.
+struct BAG_API UnexpectedLayerDescriptorType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "An unexpected layer descriptor type was encountered.";
+    }
+};
+
+
 // Metadata related.
 //! Attempt to make an unsupported interleaved layer.
 struct BAG_API MetadataNotFound final : virtual std::exception
@@ -101,6 +112,35 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     const char* what() const noexcept override
     {
         return "The mandatory Metadata dataset was not found.";
+    }
+};
+
+
+// SurfaceCorrections related.
+//! Too many corrections specified.
+struct BAG_API TooManyCorrections final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Too many corrections specified.  The limit is 10.";
+    }
+};
+
+//! Attempt to use an unknown surface type.
+struct BAG_API UnknownSurfaceType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Unknown surface type specified.";
+    }
+};
+
+//! Unknown reason why number of corrections could not be read from the BAG.
+struct BAG_API CannotReadNumCorrections final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Cannot read the number of corrections from the surface corrections dataset.";
     }
 };
 

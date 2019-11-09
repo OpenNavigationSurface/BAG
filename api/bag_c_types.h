@@ -21,8 +21,8 @@ enum BAG_LAYER_TYPE
 	Num_Soundings = 6,
 	Average_Elevation = 7,
 	Nominal_Elevation = 8,
-    Compound = 9,
-    //TODO Vertical_Datum_Corrections = 10,
+    Surface_Correction = 9,
+    Compound = 10,
     UNKNOWN_LAYER_TYPE
 };
 
@@ -37,6 +37,7 @@ enum BAG_DATA_TYPE
 {
     FLOAT32 = 0,
     UINT32,
+    COMPOUND,  // More than a single type; the layer will need to figure it out itself.
     UNKNOWN_DATA_TYPE
 };
 
@@ -76,6 +77,11 @@ struct BagVerticalDatumCorrections
 {
     double x;
     double y;
+    float z[BAG_SURFACE_CORRECTOR_LIMIT];
+};
+
+struct BagVerticalDatumCorrectionsGridded
+{
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 

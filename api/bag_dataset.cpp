@@ -6,6 +6,7 @@
 #include "bag_private.h"
 #include "bag_simplelayerdescriptor.h"
 #include "bag_simplelayer.h"
+#include "bag_surfacecorrectionsdescriptor.h"
 #include "bag_version.h"
 
 #ifdef _MSC_VER
@@ -230,10 +231,30 @@ Layer& Dataset::createLayer(LayerType type) &
     case Average_Elevation:  //[[fallthrough]];
     case Nominal_Elevation:
         return this->addLayer(SimpleLayer::create(*this, type));
+    case Surface_Correction:
     case Compound:  //[[fallthrough]];
     default:
         throw UnsupportedLayerType{};
     }
+}
+
+SurfaceCorrections& Dataset::createSurfaceCorrections(
+    BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
+    uint8_t numCorrectors,
+    int chunkSize,
+    int compressionLevel) &
+{
+    if (m_descriptor.isReadOnly())
+        throw ReadOnlyError{};
+
+    //Make sure it doesn't already exist.
+    if (m_pSurfaceCorrections)
+        throw LayerExists{};
+
+    m_pSurfaceCorrections = SurfaceCorrections::create(*this, type,
+        numCorrectors, chunkSize, compressionLevel);
+
+    return *m_pSurfaceCorrections;
 }
 
 std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
@@ -324,6 +345,18 @@ std::tuple<double, double> Dataset::gridToGeo(
         (column * m_pMetadata->columnResolution());
 
     return std::make_tuple(x, y);
+}
+
+SurfaceCorrections& Dataset::getSurfaceCorrections() & noexcept
+{
+    //TODO Check for nullptr.
+    return *m_pSurfaceCorrections;
+}
+
+const SurfaceCorrections& Dataset::getSurfaceCorrections() const & noexcept
+{
+    //TODO Check for nullptr.
+    return *m_pSurfaceCorrections;
 }
 
 void Dataset::readDataset(
@@ -428,8 +461,8 @@ void Dataset::readDataset(
     if (id >= 0)
     {
         H5Dclose(id);
-        m_pVerticalDatumCorrections =
-            std::make_unique<VerticalDatumCorrections>(*this);
+        auto scDescriptor = SurfaceCorrectionsDescriptor::create(*this);
+        m_pSurfaceCorrections = SurfaceCorrections::open(*this, *scDescriptor);
     }
 }
 

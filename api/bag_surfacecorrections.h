@@ -1,12 +1,12 @@
-#ifndef BAG_VERTICALDATUMCORRECTIONS_H
-#define BAG_VERTICALDATUMCORRECTIONS_H
+#ifndef BAG_SURFACECORRECTIONS_H
+#define BAG_SURFACECORRECTIONS_H
 
 #include "bag_config.h"
 #include "bag_fordec.h"
+#include "bag_layer.h"
 #include "bag_types.h"
 
 #include <memory>
-#include <vector>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -16,62 +16,49 @@
 
 namespace BAG {
 
-class BAG_API VerticalDatumCorrections final
+class BAG_API SurfaceCorrections final : public Layer
 {
-public:
-    using value_type = BagVerticalDatumCorrections;
-    using iterator = std::vector<value_type>::iterator;
-    using const_iterator = std::vector<value_type>::const_iterator;
-    using reference = value_type&;
-    using const_reference = const value_type&;
+protected:
+    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
+    struct BAG_API DeleteH5dataSet final
+    {
+        void operator()(::H5::DataSet* ptr) noexcept;
+    };
 
-    //TODO Think about how to create one of these to write to a new BAG.
-    VerticalDatumCorrections() = default;
-    explicit VerticalDatumCorrections(Dataset& dataset);
-    explicit VerticalDatumCorrections(size_t numItems);
-    VerticalDatumCorrections(std::initializer_list<value_type> items);
+    SurfaceCorrections(Dataset& dataset,
+        SurfaceCorrectionsDescriptor& descriptor,
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
 
-    iterator begin() &;
-    iterator end() &;
-    const_iterator cbegin() const & noexcept;
-    const_iterator cend() const & noexcept;
+    SurfaceCorrections(const SurfaceCorrections&) = delete;
+    SurfaceCorrections(SurfaceCorrections&&) = delete;
+    SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
+    SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
 
-    void clear() noexcept;
-    void push_back(const value_type& value);
-    void push_back(value_type&& value);
-    template <typename... Args>
-    reference emplace_back(Args&&... args) &;
-    reference & front() &;
-    const_reference front() const &;
-    reference & back() &;
-    const_reference back() const &;
-    void reserve(size_t newCapacity);
-    void resize(size_t count);
-    value_type* data() & noexcept;
-    const value_type* data() const & noexcept;
+    static std::unique_ptr<SurfaceCorrections> create(Dataset& dataset,
+        BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
+        int chunkSize = 100, int compressionLevel = 5);
 
-    bool empty() const noexcept;
-    size_t size() const noexcept;
-    reference operator[](size_t index) & noexcept;
-    const_reference operator[](size_t index) const & noexcept;
-
-    //TODO
-    //void write(??);
-
-    const std::string& getVerticalDatum() const & noexcept;
-    uint8_t getSurfaceType() const noexcept;
+    static std::unique_ptr<SurfaceCorrections> open(Dataset& dataset,
+        SurfaceCorrectionsDescriptor& descriptor);
 
 private:
-    //! The associated dataset.
-    std::weak_ptr<Dataset> m_pBagDataset;
-    //! The corrections.
-    std::vector<value_type> m_corrections;
-    //! The type of surface this correction applies to.
-    uint8_t m_surfaceType = 0;
-    //! The name of the vertical datum.
-    std::string m_verticalDatum;
-    //! The number of stored corrections.
-    int m_numStoredCorrections = 0;
+    static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
+        createH5dataSet(const Dataset& inDataSet,
+            const SurfaceCorrectionsDescriptor& descriptor);
+
+    const ::H5::DataSet& getH5dataSet() const & noexcept;
+
+    std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
+        uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
+
+    void writeProxy(uint32_t rowStart, uint32_t columnStart,
+        uint32_t rowEnd, uint32_t columnEnd, const uint8_t* buffer) override;
+
+    //! The HDF5 DataSet this class relates to.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
+
+    friend Dataset;
+    friend SurfaceCorrectionsDescriptor;
 };
 
 }   //namespace BAG
@@ -80,5 +67,5 @@ private:
 #pragma warning(pop)
 #endif
 
-#endif  //BAG_VERTICALDATUMCORRECTIONS_H
+#endif  //BAG_SURFACECORRECTIONS_H
 

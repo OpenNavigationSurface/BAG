@@ -46,13 +46,17 @@ public:
     const Layer& getLayer(LayerType type) const &;
 
     Layer& createLayer(LayerType type) &;
+    SurfaceCorrections& createSurfaceCorrections(
+        BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
+        int chunkSize = 100, int compressionLevel = 6) &;
 
     std::vector<LayerType> getLayerTypes() const;
 
     TrackingList& getTrackingList() & noexcept;
     const TrackingList& getTrackingList() const & noexcept;
-
     const Metadata& getMetadata() const & noexcept;
+    SurfaceCorrections& getSurfaceCorrections() & noexcept;
+    const SurfaceCorrections& getSurfaceCorrections() const & noexcept;
 
     const Descriptor& getDescriptor() const & noexcept;
 
@@ -83,7 +87,7 @@ private:
     std::unordered_map<LayerType, std::unique_ptr<Layer>> m_layers;
     std::unique_ptr<Metadata> m_pMetadata;
     std::unique_ptr<TrackingList> m_pTrackingList;
-    std::unique_ptr<VerticalDatumCorrections> m_pVerticalDatumCorrections;
+    std::unique_ptr<SurfaceCorrections> m_pSurfaceCorrections;
     Descriptor m_descriptor;
 
     friend class CompoundLayer;
@@ -92,7 +96,8 @@ private:
     friend class Metadata;
     friend class SimpleLayer;
     friend class TrackingList;
-    friend class VerticalDatumCorrections;
+    friend class SurfaceCorrections;
+    friend class SurfaceCorrectionsDescriptor;
 };
 
 }   //namespace BAG

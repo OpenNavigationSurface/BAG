@@ -28,7 +28,7 @@ public:
     virtual ~Layer() = default;
 
     static DataType getDataType(LayerType layerType) noexcept;
-    static uint8_t getElementSize(DataType type) noexcept;
+    static uint8_t getElementSize(DataType type);
     static std::string getInternalPath(LayerType layerType,
         GroupType groupType = UNKNOWN_GROUP_TYPE);
 

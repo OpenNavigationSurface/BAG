@@ -13,7 +13,6 @@ struct BagHandle {
 namespace BAG
 {
 
-constexpr auto RANK = 2;
 constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
 
 /*! Path names for BAG entities */
