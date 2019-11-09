@@ -248,73 +248,9 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
     return std::make_tuple(row, column);
 }
 
-uint64_t Dataset::getChunkSize(LayerType type) const
-{
-    //Get the elevation HD5 dataset.
-    const auto h5dataset = m_pH5file->openDataSet(Layer::getInternalPath(type));
-    const auto h5pList = h5dataset.getCreatePlist();
-
-    if (h5pList.getLayout() == H5D_CHUNKED)
-    {
-        std::array<hsize_t, RANK> maxDims{};
-
-        const int rankChunk = h5pList.getChunk(RANK, maxDims.data());
-        if (rankChunk == RANK)
-            return {maxDims[0]};  // Using {} to prevent narrowing.
-    }
-
-    return 0;
-}
-
-unsigned int Dataset::getCompressionLevel(LayerType type) const
-{
-    //Get the elevation HD5 dataset.
-    const auto h5dataset = m_pH5file->openDataSet(Layer::getInternalPath(type));
-    const auto h5pList = h5dataset.getCreatePlist();
-
-    for (int i=0; i<h5pList.getNfilters(); ++i)
-    {
-        unsigned int flags = 0;
-        size_t cdNelmts = 10;
-        constexpr size_t nameLen = 64;
-        std::array<unsigned int, 10> cdValues{};
-        std::array<char, 64> name{};
-        unsigned int filterConfig = 0;
-
-        const auto filter = h5pList.getFilter(i, flags, cdNelmts,
-            cdValues.data(), nameLen, name.data(), filterConfig);
-        if (filter == H5Z_FILTER_DEFLATE)
-            if (cdNelmts >= 1)
-                return cdValues.front();
-    }
-
-    return 0;
-}
-
 const Descriptor& Dataset::getDescriptor() const & noexcept
 {
     return m_descriptor;
-}
-
-std::tuple<uint32_t, uint32_t> Dataset::getDims(LayerType type) const
-{
-    //Get the elevation HD5 dataset.
-    const auto h5dataset = m_pH5file->openDataSet(Layer::getInternalPath(type));
-    const auto h5dataSpace = h5dataset.getSpace();
-    if (!h5dataSpace.isSimple())
-        throw 97;  // Can only work with simple data spaces.
-
-    const int nDimsRank = h5dataSpace.getSimpleExtentNdims();
-    std::array<hsize_t, RANK> size{};
-    const int dimsRank = h5dataSpace.getSimpleExtentDims(size.data());
-
-    if (nDimsRank != RANK || dimsRank != RANK)
-        throw 99;  // Unexpected dimensions.
-
-    const auto numRows = static_cast<uint32_t>(size[0]);
-    const auto numColumns = static_cast<uint32_t>(size[1]);
-
-    return std::make_tuple(numRows, numColumns);
 }
 
 ::H5::H5File& Dataset::getH5file() const & noexcept

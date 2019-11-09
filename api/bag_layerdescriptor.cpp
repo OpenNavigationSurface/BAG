@@ -2,9 +2,86 @@
 #include "bag_dataset.h"
 #include "bag_layer.h"
 #include "bag_layerdescriptor.h"
+#include "bag_private.h"
+
+#include <array>
+#include <h5cpp.h>
 
 
 namespace BAG {
+
+namespace {
+
+std::tuple<uint32_t, uint32_t> getDims(
+    const ::H5::H5File& h5file,
+    const std::string& path)
+{
+    const auto h5dataset = h5file.openDataSet(path);
+    const auto h5dataSpace = h5dataset.getSpace();
+    if (!h5dataSpace.isSimple())
+        throw 97;  // Can only work with simple data spaces.
+
+    const int fileRank = h5dataSpace.getSimpleExtentNdims();
+    std::array<hsize_t, RANK> fileDims{};
+    const int dimsRank = h5dataSpace.getSimpleExtentDims(fileDims.data());
+
+    if (fileRank != RANK || dimsRank != RANK)
+        throw 99;  // Unexpected dimensions.
+
+    const auto rows = static_cast<uint32_t>(fileDims[0]);
+    const auto columns = static_cast<uint32_t>(fileDims[1]);
+
+    return std::make_tuple(rows, columns);
+}
+
+unsigned int getCompressionLevel(
+    const ::H5::H5File& h5file,
+    const std::string& path)
+{
+    //Get the elevation HD5 dataset.
+    const auto h5dataset = h5file.openDataSet(path);
+    const auto h5pList = h5dataset.getCreatePlist();
+
+    for (int i=0; i<h5pList.getNfilters(); ++i)
+    {
+        unsigned int flags = 0;
+        size_t cdNelmts = 10;
+        constexpr size_t nameLen = 64;
+        std::array<unsigned int, 10> cdValues{};
+        std::array<char, 64> name{};
+        unsigned int filterConfig = 0;
+
+        const auto filter = h5pList.getFilter(i, flags, cdNelmts,
+            cdValues.data(), nameLen, name.data(), filterConfig);
+        if (filter == H5Z_FILTER_DEFLATE)
+            if (cdNelmts >= 1)
+                return cdValues.front();
+    }
+
+    return 0;
+}
+
+uint64_t getChunkSize(
+    const ::H5::H5File& h5file,
+    const std::string& path)
+{
+    //Get the elevation HD5 dataset.
+    const auto h5dataset = h5file.openDataSet(path);
+    const auto h5pList = h5dataset.getCreatePlist();
+
+    if (h5pList.getLayout() == H5D_CHUNKED)
+    {
+        std::array<hsize_t, RANK> maxDims{};
+
+        const int rankChunk = h5pList.getChunk(RANK, maxDims.data());
+        if (rankChunk == RANK)
+            return {maxDims[0]};  // Using {} to prevent narrowing.
+    }
+
+    return 0;
+}
+
+}  // namespace
 
 LayerDescriptor::LayerDescriptor(
     LayerType type)
@@ -22,10 +99,12 @@ LayerDescriptor::LayerDescriptor(
     , m_dataType(Layer::getDataType(type))
     , m_internalPath(Layer::getInternalPath(type))
     , m_name(kLayerTypeMapString.at(type))
-    , m_dims(dataset.getDims(type))
-    , m_compressionLevel(dataset.getCompressionLevel(type))
-    , m_chunkSize(dataset.getChunkSize(type))
 {
+    const auto& h5file = dataset.getH5file();
+
+    m_dims = BAG::getDims(h5file, m_internalPath);
+    m_compressionLevel = BAG::getCompressionLevel(h5file, m_internalPath);
+    m_chunkSize = BAG::getChunkSize(h5file, m_internalPath);
 }
 
 

@@ -67,10 +67,6 @@ private:
     void readDataset(const std::string& fileName, OpenMode openMode);
     void createDataset(const std::string& fileName, Metadata&& metadata);
 
-    uint64_t getChunkSize(LayerType type) const;
-    unsigned int getCompressionLevel(LayerType type) const;
-    std::tuple<uint32_t, uint32_t> getDims(LayerType type) const;
-
     std::tuple<bool, float, float> getMinMax(LayerType type,
         const std::string& path = {}) const;
 
