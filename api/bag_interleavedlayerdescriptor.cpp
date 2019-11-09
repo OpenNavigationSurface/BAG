@@ -37,16 +37,15 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     LayerType layerType,
     GroupType groupType,
     const Dataset& dataset)
-    : LayerDescriptor(layerType, dataset)
+    : LayerDescriptor(layerType, dataset,
+        groupType == NODE
+            ? NODE_GROUP_PATH
+            : groupType == ELEVATION
+                ? ELEVATION_SOLUTION_GROUP_PATH
+                : "")
     , m_groupType(groupType)
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
-    this->setInternalPath(groupType == NODE ?
-        NODE_GROUP_PATH : ELEVATION_SOLUTION_GROUP_PATH);
-
-    this->setInternalPath(groupType == NODE ?
-        NODE_GROUP_PATH : ELEVATION_SOLUTION_GROUP_PATH);
-
     // Verify the proper group and layer combination is given.
     if (groupType == ELEVATION)
     {

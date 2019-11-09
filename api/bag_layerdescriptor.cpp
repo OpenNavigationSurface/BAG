@@ -94,12 +94,16 @@ LayerDescriptor::LayerDescriptor(
 
 LayerDescriptor::LayerDescriptor(
     LayerType type,
-    const Dataset& dataset)
+    const Dataset& dataset,
+    std::string internalPath)
     : m_layerType(type)
     , m_dataType(Layer::getDataType(type))
-    , m_internalPath(Layer::getInternalPath(type))
     , m_name(kLayerTypeMapString.at(type))
 {
+    m_internalPath = internalPath.empty()
+        ? Layer::getInternalPath(type)
+        : std::move(internalPath);
+
     const auto& h5file = dataset.getH5file();
 
     m_dims = BAG::getDims(h5file, m_internalPath);

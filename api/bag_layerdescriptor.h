@@ -56,7 +56,8 @@ public:
 
 protected:
     LayerDescriptor(LayerType type);
-    LayerDescriptor(LayerType type, const Dataset& dataset);
+    LayerDescriptor(LayerType type, const Dataset& dataset,
+        std::string internalPath = {});
 
     size_t getReadBufferSize(uint32_t rows, uint32_t columns) const noexcept;
 
