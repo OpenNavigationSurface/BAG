@@ -37,8 +37,6 @@ private:
     SimpleLayerDescriptor& setElementSizeProxy(uint8_t) & noexcept override;
 
     uint8_t m_elementSize = 0;
-
-    //friend SimpleLayer;
 };
 
 }  // namespace BAG
