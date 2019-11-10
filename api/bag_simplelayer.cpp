@@ -62,7 +62,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
     if (std::get<0>(possibleMinMax))
         descriptor.setMinMax({std::get<1>(possibleMinMax),
-            std::get<1>(possibleMinMax)});
+            std::get<2>(possibleMinMax)});
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, descriptor,
         std::move(h5dataSet)});
@@ -102,6 +102,7 @@ SimpleLayer::createH5dataSet(
         h5createPropList.setDeflate(compressionLevel);
     }
 
+    // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
 
     auto pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
@@ -109,20 +110,21 @@ SimpleLayer::createH5dataSet(
                 h5dataType, h5dataSpace, h5createPropList)},
             DeleteH5dataSet{});
 
+    // Create any attributes.
     const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
 
     const ::H5::DataSpace minElevDataSpace{};
     const auto minElevAtt = pH5dataSet->createAttribute(attInfo.minName,
         attInfo.h5type, minElevDataSpace);
 
-    constexpr float minElev = 0.f;
+    constexpr float minElev = std::numeric_limits<float>::lowest();
     minElevAtt.write(attInfo.h5type, &minElev);
 
     const ::H5::DataSpace maxElevDataSpace{};
     const auto maxElevAtt = pH5dataSet->createAttribute(attInfo.maxName,
         attInfo.h5type, maxElevDataSpace);
 
-    constexpr float maxElev = 0.f;
+    constexpr float maxElev = std::numeric_limits<float>::max();
     maxElevAtt.write(attInfo.h5type, &maxElev);
 
     return pH5dataSet;
@@ -200,7 +202,41 @@ void SimpleLayer::writeProxy(
     m_pH5dataSet->write(buffer, H5Dget_type(m_pH5dataSet->getId()),
         h5memDataSpace, h5fileDataSpace);
 
-    //TODO update min/max & related attributes.
+    // Update min/max attributes
+    auto& descriptor = this->getDescriptor();
+    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+    std::tuple<float, float> minMax{0.f, 0.f};
+
+    if (attInfo.h5type == ::H5::PredType::NATIVE_FLOAT)
+    {
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer);
+
+        const auto begin = floatBuffer;
+        const auto end = floatBuffer + rows * columns;
+
+        const auto mm = std::minmax_element(begin, end);
+        minMax = std::make_tuple(*std::get<0>(mm), *std::get<1>(mm));
+    }
+    else if (attInfo.h5type == ::H5::PredType::NATIVE_UINT32)
+    {
+        const auto* uint32Buffer = reinterpret_cast<const uint32_t*>(buffer);
+
+        const auto begin = uint32Buffer;
+        const auto end = uint32Buffer + rows * columns;
+
+        const auto mm = std::minmax_element(begin, end);
+        minMax = std::make_tuple(static_cast<float>(*std::get<0>(mm)),
+            static_cast<float>(*std::get<1>(mm)));
+    }
+    else
+        throw UnsupportedAttributeType{};
+
+    auto currentMinMax = descriptor.getMinMax();
+
+    std::get<0>(currentMinMax) = std::min(std::get<0>(minMax), std::get<0>(currentMinMax));
+    std::get<1>(currentMinMax) = std::max(std::get<1>(minMax), std::get<1>(currentMinMax));
+
+    descriptor.setMinMax(currentMinMax);
 }
 
 void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept

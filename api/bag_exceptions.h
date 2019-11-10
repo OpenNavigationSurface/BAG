@@ -14,6 +14,16 @@
 
 namespace BAG {
 
+// Attribute related.
+//! Attribute type not supported (yet)  //TODO temp exception
+struct BAG_API UnsupportedAttributeType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The H5 type of this attribute is not float.  Not supported (yet).";
+    }
+};
+
 // Dataset related.
 //! Layer not found.
 struct BAG_API DatasetNotFound final : virtual std::exception
