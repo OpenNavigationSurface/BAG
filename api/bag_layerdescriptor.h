@@ -31,39 +31,36 @@ public:
     LayerDescriptor& setName(std::string inName) & noexcept;
 
     DataType getDataType() const noexcept;
-    LayerDescriptor& setDataType(DataType inType) & noexcept;
 
     LayerType getLayerType() const noexcept;
-    LayerDescriptor& setLayerType(LayerType inType) & noexcept;
 
+    //TODO What about layers with uint32_t min/max values?
     std::tuple<float, float> getMinMax() const noexcept;
     LayerDescriptor& setMinMax(std::tuple<float, float> inMinMax) & noexcept;
 
     const std::string& getInternalPath() const & noexcept;
-    LayerDescriptor& setInternalPath(std::string inPath) & noexcept;
 
     uint8_t getElementSize() const noexcept;
-    LayerDescriptor& setElementSize(uint8_t inSize) & noexcept;
 
     uint64_t getChunkSize() const noexcept;
-    LayerDescriptor& setChunkSize(uint64_t inChunkSize) & noexcept;
 
     unsigned int getCompressionLevel() const noexcept;
-    LayerDescriptor& setCompressionLevel(unsigned int inCompressionLevel) & noexcept;
 
     std::tuple<uint32_t, uint32_t> getDims() const noexcept;
     LayerDescriptor& setDims(const std::tuple<uint32_t, uint32_t>& inDims) & noexcept;
 
 protected:
-    LayerDescriptor(LayerType type);
+    LayerDescriptor(LayerType type, uint64_t chunkSize,
+        unsigned int compressionLevel);
     LayerDescriptor(LayerType type, const Dataset& dataset,
         std::string internalPath = {});
 
     size_t getReadBufferSize(uint32_t rows, uint32_t columns) const noexcept;
 
+    LayerDescriptor& setInternalPath(std::string inPath) & noexcept;
+
 private:
     virtual uint8_t getElementSizeProxy() const noexcept = 0;
-    virtual LayerDescriptor& setElementSizeProxy(uint8_t) & noexcept = 0;
 
     LayerType m_layerType = UNKNOWN_LAYER_TYPE;
     DataType m_dataType = UNKNOWN_DATA_TYPE;

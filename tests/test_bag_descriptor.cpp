@@ -20,7 +20,7 @@ TEST_CASE("test descriptor constructors and destructor",
 
     Descriptor descriptor;
 
-    const char kExpectedVersion[] = "1.5.0";
+    constexpr char kExpectedVersion[] = "1.5.0";
 
     UNSCOPED_INFO(R"(Verify setting the version to "1.5.0" does not throw.)");
     REQUIRE_NOTHROW(descriptor.setVersion(kExpectedVersion));
@@ -53,9 +53,12 @@ TEST_CASE("test descriptor get layer types",
     CHECK(descriptor.getLayerTypes().size() == 0);
 
     UNSCOPED_INFO("Verify adding a layer descriptor does not throw.");
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
     for (auto type : {Elevation, Uncertainty})
         REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(type)));
+            *SimpleLayerDescriptor::create(type, chunkSize, compressionLevel)));
 
     UNSCOPED_INFO("Verify getting layer types when there are some does not throw.");
     REQUIRE_NOTHROW(descriptor.getLayerTypes());
@@ -102,9 +105,12 @@ TEST_CASE("test descriptor get layer descriptors",
     Descriptor descriptor;
 
     UNSCOPED_INFO("Verify adding a layer descriptor does not throw.");
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
     for (auto type : {Elevation, Uncertainty})
         REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(type)));
+            *SimpleLayerDescriptor::create(type, chunkSize, compressionLevel)));
 
     UNSCOPED_INFO("Verify getting layer descriptors when there are some does not throw.");
     REQUIRE_NOTHROW(descriptor.getLayerDescriptors());
@@ -123,9 +129,12 @@ TEST_CASE("test descriptor get layer descriptor",
     REQUIRE_THROWS(descriptor.getLayerDescriptor(Elevation));
 
     UNSCOPED_INFO("Verify adding Elevation and Uncertainty layer descriptors does not throw.");
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
     for (auto type : {Elevation, Uncertainty})
         REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(type)));
+            *SimpleLayerDescriptor::create(type, chunkSize, compressionLevel)));
 
     UNSCOPED_INFO("Verify layer descriptor Elevation exists.");
     REQUIRE_NOTHROW(descriptor.getLayerDescriptor(Elevation));

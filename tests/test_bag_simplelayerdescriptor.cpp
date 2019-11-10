@@ -18,18 +18,21 @@ using BAG::kLayerTypeMapString;
 TEST_CASE("test layer descriptor creation",
     "[simplelayerdescriptor][create][getLayerType]")
 {
-    REQUIRE_NOTHROW(SimpleLayerDescriptor::create(Elevation));
-
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    REQUIRE(descriptor);
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
+    REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Check that the layer descriptor type matches that was created.");
-    CHECK(descriptor->getLayerType() == Elevation);
+    CHECK(pDescriptor->getLayerType() == Elevation);
 
-    descriptor = SimpleLayerDescriptor::create(Uncertainty);
-    UNSCOPED_INFO("Check that the layer descriptor type matches that was created.");
-    CHECK(descriptor->getLayerType() == Uncertainty);
+    UNSCOPED_INFO("Check the chunk size is read properly.");
+    CHECK(pDescriptor->getChunkSize() == kExpectedChunkSize);
+
+    UNSCOPED_INFO("Check the compression level is read properly.");
+    CHECK(pDescriptor->getCompressionLevel() == kExpectedCompressionLevel);
 }
 
 //  const std::string& getName() const & noexcept;
@@ -37,49 +40,55 @@ TEST_CASE("test layer descriptor creation",
 TEST_CASE("test layer descriptor get/set name",
     "[simplelayerdescriptor][getName][setName]")
 {
-    const auto descriptor = SimpleLayerDescriptor::create(Elevation);
-
-    UNSCOPED_INFO("Verify the default name of Elevation is what it should be.");
-    CHECK(descriptor->getName() == kLayerTypeMapString.at(Elevation));
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    const auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     const std::string kExpectedName{"Expected Name"};
     UNSCOPED_INFO("Verify setting the name of a layer descriptor does not throw.");
-    REQUIRE_NOTHROW(descriptor->setName(kExpectedName));
+    REQUIRE_NOTHROW(pDescriptor->setName(kExpectedName));
 
     UNSCOPED_INFO("Verify the new name of Elevation is what it was set to.");
-    CHECK(descriptor->getName() == kExpectedName);
+    CHECK(pDescriptor->getName() == kExpectedName);
 }
 
 //  DataType getDataType() const noexcept;
-//  SimpleLayerDescriptor& setDataType(DataType inType) & noexcept;
-TEST_CASE("test layer descriptor get/set data type",
-    "[simplelayerdescriptor][getDataType][setDataType]")
+TEST_CASE("test layer descriptor get data type",
+    "[simplelayerdescriptor][getDataType]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify the data type of an Elevation layer descriptor is correct.");
-    CHECK(descriptor->getDataType() == Layer::getDataType(Elevation));
+    CHECK(pDescriptor->getDataType() == Layer::getDataType(Elevation));
 
-    descriptor = SimpleLayerDescriptor::create(Num_Hypotheses);
+    pDescriptor = SimpleLayerDescriptor::create(Num_Hypotheses, kExpectedChunkSize,
+        kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify the data type of an Num_Hypotheses layer descriptor is correct.");
-    CHECK(descriptor->getDataType() == Layer::getDataType(Num_Hypotheses));
+    CHECK(pDescriptor->getDataType() == Layer::getDataType(Num_Hypotheses));
 }
 
 //  LayerType getLayerType() const noexcept;
-//  SimpleLayerDescriptor& setLayerType(LayerType inType) & noexcept;
-TEST_CASE("test layer descriptor get/set layer type",
-    "[simplelayerdescriptor][getLayerType][setLayerType]")
+TEST_CASE("test layer descriptor get layer type",
+    "[simplelayerdescriptor][getLayerType]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify the layer type of an Elevation layer descriptor is correct.");
-    CHECK(descriptor->getLayerType() == Elevation);
+    CHECK(pDescriptor->getLayerType() == Elevation);
 
-    descriptor = SimpleLayerDescriptor::create(Std_Dev);
+    pDescriptor = SimpleLayerDescriptor::create(Std_Dev, kExpectedChunkSize,
+        kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify the layer type of an Std_Dev layer descriptor is correct.");
-    CHECK(descriptor->getDataType() == Layer::getDataType(Std_Dev));
+    CHECK(pDescriptor->getDataType() == Layer::getDataType(Std_Dev));
 }
 
 //  std::tuple<double, double> getMinMax() const noexcept;
@@ -87,118 +96,106 @@ TEST_CASE("test layer descriptor get/set layer type",
 TEST_CASE("test layer descriptor get/set min max",
     "[simplelayerdescriptor][getMinMax][setMinMax]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
-    const std::tuple<float, float> kExpectedMinMax{1.2345f, 9876.54321f};
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify setting min max does not throw.");
-    REQUIRE_NOTHROW(descriptor->setMinMax(kExpectedMinMax));
+    const std::tuple<float, float> kExpectedMinMax{1.2345f, 9876.54321f};
+    REQUIRE_NOTHROW(pDescriptor->setMinMax(kExpectedMinMax));
 
     UNSCOPED_INFO("Verify the set min max value was set correctly.");
-    REQUIRE_NOTHROW(descriptor->getMinMax());
-    const auto minMax = descriptor->getMinMax();
-    CHECK(minMax == kExpectedMinMax);
+    REQUIRE_NOTHROW(pDescriptor->getMinMax());
+    const auto actualMinMax = pDescriptor->getMinMax();
+    CHECK(actualMinMax == kExpectedMinMax);
 }
 
 //  const std::string& getInternalPath() const & noexcept;
-//  SimpleLayerDescriptor& setInternalPath(std::string inPath) & noexcept;
-TEST_CASE("test layer descriptor get/set internal path",
-    "[simplelayerdescriptor][getInternalPath][setInternalPath]")
+TEST_CASE("test layer descriptor get internal path",
+    "[simplelayerdescriptor][getInternalPath]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify Elevation internal path is as expected.");
-    REQUIRE_NOTHROW(descriptor->getInternalPath());
-    CHECK(descriptor->getInternalPath() == Layer::getInternalPath(Elevation));
+    REQUIRE_NOTHROW(pDescriptor->getInternalPath());
+    CHECK(pDescriptor->getInternalPath() == Layer::getInternalPath(Elevation));
 
-    const std::string kExpectedInternalPath{"/some_random_path"};
-
-    UNSCOPED_INFO("Verify setting an internal path does not throw.");
-    REQUIRE_NOTHROW(descriptor->setInternalPath(kExpectedInternalPath));
-
-    UNSCOPED_INFO("Verify getting the internal path does not throw.");
-    REQUIRE_NOTHROW(descriptor->getInternalPath());
-
-    UNSCOPED_INFO("Verify the internal path is properly set after setting it.");
-    CHECK(descriptor->getInternalPath() == kExpectedInternalPath);
+    pDescriptor = SimpleLayerDescriptor::create(Uncertainty,
+        kExpectedChunkSize, kExpectedCompressionLevel);
+    UNSCOPED_INFO("Verify Uncertainty internal path is as expected.");
+    REQUIRE_NOTHROW(pDescriptor->getInternalPath());
+    CHECK(pDescriptor->getInternalPath() == Layer::getInternalPath(Uncertainty));
 }
 
 //  uint8_t getElementSize() const noexcept override;
-//  SimpleLayerDescriptor& setElementSize(uint8_t inSize) & noexcept override;
-TEST_CASE("test layer descriptor get/set element size",
-    "[simplelayerdescriptor][getElementSize][setElementSize]")
+TEST_CASE("test layer descriptor get element size",
+    "[simplelayerdescriptor][getElementSize]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify Elevation element size is as expected.");
-    REQUIRE_NOTHROW(descriptor->getElementSize());
-    CHECK(descriptor->getElementSize() == Layer::getElementSize(Layer::getDataType(Elevation)));
-
-    const auto kExpectedElementSize = Layer::getElementSize(UINT32);
-
-    UNSCOPED_INFO("Verify setting an element size does not throw.");
-    REQUIRE_NOTHROW(descriptor->setElementSize(kExpectedElementSize));
-
-    UNSCOPED_INFO("Verify the element size is properly set after setting it.");
-    CHECK(descriptor->getElementSize() == kExpectedElementSize);
+    REQUIRE_NOTHROW(pDescriptor->getElementSize());
+    CHECK(pDescriptor->getElementSize() == Layer::getElementSize(Layer::getDataType(Elevation)));
 }
 
 //  uint64_t getChunkSize() const noexcept;
-//  Descriptor& setChunkSize(uint64_t inChunkSize) & noexcept;
-TEST_CASE("test descriptor get/set chunk size",
-    "[simplelayerdescriptor][getChunkSize][setChunkSize]")
+TEST_CASE("test descriptor get chunk size",
+    "[simplelayerdescriptor][getChunkSize]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
-
-    constexpr uint64_t kExpectedChunkSize{1024};
-
-    UNSCOPED_INFO("Verify setting the chunk size does not throw.");
-    REQUIRE_NOTHROW(descriptor->setChunkSize(kExpectedChunkSize));
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify getting the chunk size does not throw.");
-    REQUIRE_NOTHROW(descriptor->getChunkSize());
+    REQUIRE_NOTHROW(pDescriptor->getChunkSize());
 
-    UNSCOPED_INFO("Verify getting the chunk size matches the expected and does not narrow.");
-    const uint64_t chunkSize{descriptor->getChunkSize()};
-    CHECK(chunkSize == kExpectedChunkSize);
+    UNSCOPED_INFO("Verify getting the chunk size matches the expected.");
+    CHECK(pDescriptor->getChunkSize() == kExpectedChunkSize);
 }
 
 //  unsigned int getCompressionLevel() const noexcept;
-//  Descriptor& setCompressionLevel(unsigned int inCompressionLevel) & noexcept;
-TEST_CASE("test descriptor get/set compression level",
-    "[simplelayerdescriptor][getCompressionLevel][setCompressionLevel]")
+TEST_CASE("test descriptor get compression level",
+    "[simplelayerdescriptor][getCompressionLevel]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
-
-    constexpr unsigned int kExpectedCompressionLevel{4};
-
-    UNSCOPED_INFO("Verify setting the compression level does not throw.");
-    REQUIRE_NOTHROW(descriptor->setCompressionLevel(kExpectedCompressionLevel));
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify getting the compression level does not throw.");
-    REQUIRE_NOTHROW(descriptor->getCompressionLevel());
+    REQUIRE_NOTHROW(pDescriptor->getCompressionLevel());
 
-    UNSCOPED_INFO("Verify getting the compression level matches the expected and does not narrow.");
-    const unsigned int compressionLevel{descriptor->getCompressionLevel()};
-    CHECK(compressionLevel == kExpectedCompressionLevel);
+    UNSCOPED_INFO("Verify getting the compression level matches the expected.");
+    CHECK(pDescriptor->getCompressionLevel() == kExpectedCompressionLevel);
 }
 
 //  std::tuple<uint64_t, uint64_t> getDims() const noexcept;
 //  Descriptor& setDims(const std::tuple<uint64_t, uint64_t>& inDims) & noexcept;
 TEST_CASE("test descriptor get/set dims", "[simplelayerdescriptor][getDims][setDims]")
 {
-    auto descriptor = SimpleLayerDescriptor::create(Elevation);
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
+    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     const std::tuple<uint32_t, uint32_t> kExpectedDims{1001, 9982};
 
     UNSCOPED_INFO("Verify setting the dims does not throw.");
-    REQUIRE_NOTHROW(descriptor->setDims(kExpectedDims));
+    REQUIRE_NOTHROW(pDescriptor->setDims(kExpectedDims));
 
     UNSCOPED_INFO("Verify getting the dims does not throw.");
-    REQUIRE_NOTHROW(descriptor->getDims());
+    REQUIRE_NOTHROW(pDescriptor->getDims());
 
     UNSCOPED_INFO("Verify getting the dims matches the expected.");
-    const std::tuple<uint64_t, uint64_t> dims{descriptor->getDims()};
-    CHECK(dims == kExpectedDims);
+    const auto actualDims = pDescriptor->getDims();
+    CHECK(actualDims == kExpectedDims);
 }
-
 

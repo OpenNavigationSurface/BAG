@@ -82,13 +82,17 @@ TEST_CASE("test surface corrections create empty irregular",
     const TestUtils::RandomFileGuard tmpFileName;
 
     UNSCOPED_INFO("Check dataset was created successfully.");
-    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{});
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
+        compressionLevel);
     REQUIRE(pDataset);
 
     constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
     constexpr uint8_t kExpectedNumCorrectors = 4;
     const auto& corrections = pDataset->createSurfaceCorrections(
-        kExpectedSurfaceType, kExpectedNumCorrectors);
+        kExpectedSurfaceType, kExpectedNumCorrectors, chunkSize,
+        compressionLevel);
 
     UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
     REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
@@ -113,13 +117,17 @@ TEST_CASE("test surface corrections create empty gridded",
     const TestUtils::RandomFileGuard tmpFileName;
 
     UNSCOPED_INFO("Check dataset was created successfully.");
-    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{});
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
+        compressionLevel);
     REQUIRE(pDataset);
 
     constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
     constexpr uint8_t kExpectedNumCorrectors = 2;
     const auto& corrections = pDataset->createSurfaceCorrections(
-        kExpectedSurfaceType, kExpectedNumCorrectors);
+        kExpectedSurfaceType, kExpectedNumCorrectors, chunkSize,
+        compressionLevel);
 
     UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
     REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
@@ -144,14 +152,17 @@ TEST_CASE("test surface corrections create and write irregular",
     const TestUtils::RandomFileGuard tmpFileName;
 
     UNSCOPED_INFO("Check dataset was created successfully.");
-    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{});
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
+        compressionLevel);
     REQUIRE(pDataset);
 
     //TODO Need to provide file dims, ...
     constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
     constexpr uint8_t kExpectedNumCorrectors = 2;
     auto& corrections = pDataset->createSurfaceCorrections(kExpectedSurfaceType,
-        kExpectedNumCorrectors);
+        kExpectedNumCorrectors, chunkSize, compressionLevel);
 
     UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
     REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
@@ -183,14 +194,17 @@ TEST_CASE("test surface corrections create and write gridded",
     const TestUtils::RandomFileGuard tmpFileName;
 
     UNSCOPED_INFO("Check dataset was created successfully.");
-    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{});
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
+        compressionLevel);
     REQUIRE(pDataset);
 
     //TODO Need to provide file dims, ...
     constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
     constexpr uint8_t kExpectedNumCorrectors = 3;
     auto& corrections = pDataset->createSurfaceCorrections(kExpectedSurfaceType,
-        kExpectedNumCorrectors);
+        kExpectedNumCorrectors, chunkSize, compressionLevel);
 
     UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
     REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));

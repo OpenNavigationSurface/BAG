@@ -20,7 +20,8 @@ class BAG_API SurfaceCorrectionsDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
-        BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrections);
+        BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrections,
+        uint64_t chunkSize, unsigned int compressionLevel);
     static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
         const Dataset& dataset);
 
@@ -36,10 +37,6 @@ public:
     std::tuple<double, double> getOrigin() const noexcept;
     std::tuple<double, double> getSpacing() const noexcept;
 
-    SurfaceCorrectionsDescriptor& setNumCorrectors(
-        uint8_t numCorrectors) & noexcept;
-    SurfaceCorrectionsDescriptor& setSurfaceType(
-        BAG_SURFACE_CORRECTION_TOPOGRAPHY surfaceType) & noexcept;
     SurfaceCorrectionsDescriptor& setVerticalDatum(
         std::string verticalDatums) & noexcept;
     SurfaceCorrectionsDescriptor& setOrigin(double swX,
@@ -49,12 +46,12 @@ public:
 
 protected:
     SurfaceCorrectionsDescriptor(BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
-        uint8_t numCorrectors);
+        uint8_t numCorrectors, uint64_t chunkSize,
+        unsigned int compressionLevel);
     explicit SurfaceCorrectionsDescriptor(const Dataset& dataset);
 
 private:
     uint8_t getElementSizeProxy() const noexcept override;
-    SurfaceCorrectionsDescriptor& setElementSizeProxy(uint8_t) & noexcept override;
 
     //! The type of surface this correction applies to.
     BAG_SURFACE_CORRECTION_TOPOGRAPHY m_surfaceType = BAG_SURFACE_UNKNOWN;

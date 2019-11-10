@@ -36,7 +36,7 @@ protected:
     SimpleLayer& operator=(SimpleLayer&&) = delete;
 
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
-        LayerType type);
+        LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
 
     static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
         LayerDescriptor& descriptor);

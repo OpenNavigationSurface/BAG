@@ -36,7 +36,7 @@ protected:
 
     static std::unique_ptr<SurfaceCorrections> create(Dataset& dataset,
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
-        int chunkSize = 100, int compressionLevel = 5);
+        uint64_t chunkSize, unsigned int compressionLevel);
 
     static std::unique_ptr<SurfaceCorrections> open(Dataset& dataset,
         SurfaceCorrectionsDescriptor& descriptor);

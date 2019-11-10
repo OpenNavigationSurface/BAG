@@ -74,7 +74,12 @@ BagError bagCreateFromFile(
     BAG::Metadata metadata;
     metadata.loadFromFile(std::string{metaDataFile});
 
-    handle->pDataset = BAG::Dataset::create(std::string{file_name}, std::move(metadata));
+    //TODO Where do these values come from?
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
+    handle->pDataset = BAG::Dataset::create(std::string{file_name},
+        std::move(metadata), chunkSize, compressionLevel);
 
     return 0;
 }
@@ -91,11 +96,17 @@ BagError bagCreateFromBuffer(
     BAG::Metadata metadata;
     metadata.loadFromBuffer(std::string{metaDataBuffer, metaDataBufferSize});
 
-    handle->pDataset = BAG::Dataset::create(std::string{file_name}, std::move(metadata));
+    //TODO Where do these values come from?
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
+    handle->pDataset = BAG::Dataset::create(std::string{file_name},
+        std::move(metadata), chunkSize, compressionLevel);
 
     return 0;
 }
 
+//TODO maybe change this to bagCreateSimpleLevel (will have to make SurfaceCorrections and CompoundLayer versions)
 BagError bagCreateLayer(
     BagHandle* handle,
     BAG_LAYER_TYPE type)
@@ -103,7 +114,11 @@ BagError bagCreateLayer(
     if (!handle)
         return 9999; // No handle provided.
 
-    handle->pDataset->createLayer(type);
+    //TODO Where do these values come from?
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
+    handle->pDataset->createLayer(type, chunkSize, compressionLevel);
 
     return 0;
 }

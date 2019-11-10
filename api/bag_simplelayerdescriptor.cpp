@@ -6,8 +6,10 @@
 namespace BAG {
 
 SimpleLayerDescriptor::SimpleLayerDescriptor(
-    LayerType type)
-    : LayerDescriptor(type)
+    LayerType type,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
+    : LayerDescriptor(type, chunkSize, compressionLevel)
     , m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
 {
 }
@@ -21,10 +23,12 @@ SimpleLayerDescriptor::SimpleLayerDescriptor(
 }
 
 std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
-    LayerType type)
+    LayerType type,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
 {
     return std::shared_ptr<SimpleLayerDescriptor>(
-        new SimpleLayerDescriptor{type});
+        new SimpleLayerDescriptor{type, chunkSize, compressionLevel});
 }
 
 std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
@@ -39,13 +43,6 @@ std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
 uint8_t SimpleLayerDescriptor::getElementSizeProxy() const noexcept
 {
     return m_elementSize;
-}
-
-SimpleLayerDescriptor& SimpleLayerDescriptor::setElementSizeProxy(
-    uint8_t inSize) & noexcept
-{
-    m_elementSize = inSize;
-    return *this;
 }
 
 }  // namespace BAG

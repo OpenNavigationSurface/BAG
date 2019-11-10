@@ -341,7 +341,11 @@ TEST_CASE("test dataset reading", "[dataset][open][getLayerTypes][createLayer]")
             const auto numLayerTypes = dataset->getLayerTypes().size();
             CHECK(numLayerTypes == kNumExpectedLayers);
 
-            /*auto& layer = */ dataset->createLayer(Average_Elevation);
+            constexpr uint64_t chunkSize = 100;
+            constexpr unsigned int compressionLevel = 6;
+
+            /*auto& layer = */ dataset->createLayer(Average_Elevation,
+                chunkSize, compressionLevel);
 
             numLayers = dataset->getLayerTypes().size();
             REQUIRE(numLayers == (numLayerTypes + 1));
@@ -361,12 +365,16 @@ TEST_CASE("test dataset creation", "[dataset][create][getLayerTypes][open]")
 {
     const TestUtils::RandomFileGuard tmpFileName;
 
-    const size_t kNumExpectedLayers = 2;  // Elevation, Uncertainty
+    constexpr size_t kNumExpectedLayers = 2;  // Elevation, Uncertainty
     {
         BAG::Metadata metadata;
         metadata.loadFromBuffer(kMetadataXML);
 
-        const auto dataset = Dataset::create(tmpFileName, std::move(metadata));
+        constexpr uint64_t chunkSize = 100;
+        constexpr unsigned int compressionLevel = 6;
+
+        const auto dataset = Dataset::create(tmpFileName, std::move(metadata),
+            chunkSize, compressionLevel);
 
         REQUIRE(dataset);
         REQUIRE(dataset->getLayerTypes().size() == kNumExpectedLayers);
@@ -410,7 +418,11 @@ TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
 
         CHECK(dataset->getLayerTypes().size() == kNumExpectedLayers);
 
-        /*auto& layer = */ dataset->createLayer(Average_Elevation);
+        constexpr uint64_t chunkSize = 100;
+        constexpr unsigned int compressionLevel = 6;
+
+        /*auto& layer = */ dataset->createLayer(Average_Elevation, chunkSize,
+            compressionLevel);
 
         REQUIRE(dataset->getLayerTypes().size() == (kNumExpectedLayers + 1));
     }

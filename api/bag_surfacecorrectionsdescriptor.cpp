@@ -23,8 +23,10 @@ uint8_t getElementSize(
 
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
-    uint8_t numCorrectors)
-    : LayerDescriptor(Surface_Correction)
+    uint8_t numCorrectors,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
+    : LayerDescriptor(Surface_Correction, chunkSize, compressionLevel)
     , m_surfaceType(type)
     , m_elementSize(BAG::getElementSize(type, numCorrectors))
     , m_numCorrectors(numCorrectors)
@@ -39,7 +41,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
         Layer::getInternalPath(Surface_Correction));
 
     // Read the attributes.
-    // Surface type.
+    // surface type
     uint8_t surfaceType = 0;
 
     {
@@ -53,7 +55,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
         m_surfaceType != BAG_SURFACE_IRREGULARLY_SPACED)
         throw UnknownSurfaceType{};
 
-    // Vertical datums.
+    // vertical datums
     {
         const auto att = h5dataSet.openAttribute(VERT_DATUM_CORR_VERTICAL_DATUM);
         att.read(att.getDataType(), m_verticalDatums);
@@ -99,7 +101,9 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 std::shared_ptr<SurfaceCorrectionsDescriptor>
 SurfaceCorrectionsDescriptor::create(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
-    uint8_t numCorrectors)
+    uint8_t numCorrectors,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
 {
     if (type != BAG_SURFACE_GRID_EXTENTS &&
         type != BAG_SURFACE_IRREGULARLY_SPACED)
@@ -109,7 +113,8 @@ SurfaceCorrectionsDescriptor::create(
         throw TooManyCorrections{};
 
     return std::shared_ptr<SurfaceCorrectionsDescriptor>(
-        new SurfaceCorrectionsDescriptor{type, numCorrectors});
+        new SurfaceCorrectionsDescriptor{type, numCorrectors, chunkSize,
+        compressionLevel});
 }
 
 std::shared_ptr<SurfaceCorrectionsDescriptor>
@@ -153,27 +158,6 @@ const std::string&
 SurfaceCorrectionsDescriptor::getVerticalDatums() const & noexcept
 {
     return m_verticalDatums;
-}
-
-SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setElementSizeProxy(
-    uint8_t inSize) & noexcept
-{
-    m_elementSize = inSize;
-    return *this;
-}
-
-SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setNumCorrectors(
-    uint8_t numCorrectors) & noexcept
-{
-    m_numCorrectors = numCorrectors;
-    return *this;
-}
-
-SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setSurfaceType(
-    BAG_SURFACE_CORRECTION_TOPOGRAPHY surfaceType) & noexcept
-{
-    m_surfaceType = surfaceType;
-    return *this;
 }
 
 SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setVerticalDatum(

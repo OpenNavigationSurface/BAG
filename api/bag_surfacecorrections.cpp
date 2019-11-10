@@ -75,12 +75,11 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
     Dataset& dataset,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
-    int chunkSize,
-    int compressionLevel)
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
 {
-    auto descriptor = SurfaceCorrectionsDescriptor::create(type, numCorrectors);
-    descriptor->setChunkSize(chunkSize)
-        .setCompressionLevel(compressionLevel);
+    auto descriptor = SurfaceCorrectionsDescriptor::create(type, numCorrectors,
+        chunkSize, compressionLevel);
 
     auto h5dataSet = SurfaceCorrections::createH5dataSet(dataset, *descriptor);
 
@@ -143,11 +142,11 @@ SurfaceCorrections::createH5dataSet(
     const auto h5dataSet = h5file.createDataSet(VERT_DATUM_CORR_PATH,
         h5memDataType, h5fileDataSpace, h5createPropList);
 
+    // Create any attributes.
     const ::H5::DataSpace kScalarDataSpace{};
     auto att = h5dataSet.createAttribute(VERT_DATUM_CORR_SURFACE_TYPE,
         ::H5::PredType::NATIVE_UINT8, kScalarDataSpace);
 
-    // Create any attributes.
     const auto surfaceType = descriptor.getSurfaceType();
     const auto tmpSurfaceType = static_cast<uint8_t>(surfaceType);
     att.write(::H5::PredType::NATIVE_UINT8, &tmpSurfaceType);

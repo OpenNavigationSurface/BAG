@@ -18,7 +18,8 @@ namespace BAG {
 class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
 {
 public:
-    static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type);
+    static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
+        uint64_t chunkSize, unsigned int compressionLevel);
     static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
         const Dataset& dataset);
 
@@ -29,12 +30,12 @@ public:
     SimpleLayerDescriptor& operator=(SimpleLayerDescriptor&&) = delete;
 
 protected:
-    SimpleLayerDescriptor(LayerType type);
+    SimpleLayerDescriptor(LayerType type, uint64_t chunkSize,
+        unsigned int compressionLevel);
     SimpleLayerDescriptor(LayerType type, const Dataset& dataset);
 
 private:
     uint8_t getElementSizeProxy() const noexcept override;
-    SimpleLayerDescriptor& setElementSizeProxy(uint8_t) & noexcept override;
 
     uint8_t m_elementSize = 0;
 };

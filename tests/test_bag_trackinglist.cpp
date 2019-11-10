@@ -38,7 +38,10 @@ TEST_CASE("test tracking list construction (create)", "[trackinglist][constructo
 {
     const TestUtils::RandomFileGuard tmpFileName;
 
-    const auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{});
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+    const auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{},
+        chunkSize, compressionLevel);
 
     UNSCOPED_INFO("Check dataset was created successfully.");
     REQUIRE(pDataset);

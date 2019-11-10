@@ -84,11 +84,16 @@ uint64_t getChunkSize(
 }  // namespace
 
 LayerDescriptor::LayerDescriptor(
-    LayerType type)
+    LayerType type,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
     : m_layerType(type)
     , m_dataType(Layer::getDataType(type))
     , m_internalPath(Layer::getInternalPath(type))
     , m_name(kLayerTypeMapString.at(type))
+    , m_compressionLevel(compressionLevel)
+    , m_chunkSize(chunkSize)
+    , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
 {
 }
 
@@ -99,6 +104,7 @@ LayerDescriptor::LayerDescriptor(
     : m_layerType(type)
     , m_dataType(Layer::getDataType(type))
     , m_name(kLayerTypeMapString.at(type))
+    , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
 {
     m_internalPath = internalPath.empty()
         ? Layer::getInternalPath(type)
@@ -128,21 +134,9 @@ DataType LayerDescriptor::getDataType() const noexcept
     return m_dataType;
 }
 
-LayerDescriptor& LayerDescriptor::setDataType(DataType inType) & noexcept
-{
-    m_dataType = inType;
-    return *this;
-}
-
 LayerType LayerDescriptor::getLayerType() const noexcept
 {
     return m_layerType;
-}
-
-LayerDescriptor& LayerDescriptor::setLayerType(LayerType inType) & noexcept
-{
-    m_layerType = inType;
-    return *this;
 }
 
 std::tuple<float, float> LayerDescriptor::getMinMax() const noexcept
@@ -173,11 +167,6 @@ uint8_t LayerDescriptor::getElementSize() const noexcept
     return this->getElementSizeProxy();
 }
 
-LayerDescriptor& LayerDescriptor::setElementSize(uint8_t inSize) & noexcept
-{
-    return this->setElementSizeProxy(inSize);
-}
-
 size_t LayerDescriptor::getReadBufferSize(
     uint32_t rows,
     uint32_t columns) const noexcept
@@ -198,18 +187,6 @@ unsigned int LayerDescriptor::getCompressionLevel() const noexcept
 std::tuple<uint32_t, uint32_t> LayerDescriptor::getDims() const noexcept
 {
     return m_dims;
-}
-
-LayerDescriptor& LayerDescriptor::setChunkSize(uint64_t inChunkSize) & noexcept
-{
-    m_chunkSize = inChunkSize;
-    return *this;
-}
-
-LayerDescriptor& LayerDescriptor::setCompressionLevel(unsigned int inCompressionLevel) & noexcept
-{
-    m_compressionLevel = inCompressionLevel;
-    return *this;
 }
 
 LayerDescriptor& LayerDescriptor::setDims(

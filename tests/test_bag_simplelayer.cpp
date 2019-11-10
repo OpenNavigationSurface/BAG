@@ -19,12 +19,12 @@ TEST_CASE("test simple layer get name", "[simplelayer][getDescriptor]")
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
 
-    const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+    const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
 
-    REQUIRE(dataset);
-    REQUIRE_NOTHROW(dataset->getLayer(Elevation));
+    REQUIRE(pDataset);
+    REQUIRE_NOTHROW(pDataset->getLayer(Elevation));
 
-    const auto& layer = dataset->getLayer(Elevation);
+    const auto& layer = pDataset->getLayer(Elevation);
 
     REQUIRE_NOTHROW(layer.getDescriptor());
 
@@ -41,14 +41,14 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/NAVO_data/JD211_public_Release_1-4_UTM.bag"};
 
-    const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+    const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
 
-    REQUIRE(dataset);
+    REQUIRE(pDataset);
 
     constexpr BAG::LayerType kLayerType = Elevation;
 
-    REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
-    const auto& elevLayer = dataset->getLayer(kLayerType);
+    REQUIRE_NOTHROW(pDataset->getLayer(kLayerType));
+    const auto& elevLayer = pDataset->getLayer(kLayerType);
 
     constexpr int32_t rowStart = 288;
     constexpr int32_t rowEnd = 289;
@@ -75,7 +75,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
 
 //  virtual void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
 //      uint32_t columnEnd, const uint8_t* buffer) const;
-TEST_CASE("test simple layer write", "[.][simplelayer][write]")
+TEST_CASE("test simple layer write", "[simplelayer][write]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
@@ -85,50 +85,55 @@ TEST_CASE("test simple layer write", "[.][simplelayer][write]")
 
     constexpr BAG::LayerType kLayerType = Elevation;
     constexpr size_t kExpectedNumNodes = 12;
+    constexpr float kFloatValue = 123.456f;
 
-    // Scope dataset to force write to be saved to disk.
+    // Scope pDataset to force write to be saved to disk.
     {
-        const auto dataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
+        const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
 
-        REQUIRE(dataset);
+        REQUIRE(pDataset);
 
-        REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
-        auto& elevLayer = dataset->getLayer(kLayerType);
+        REQUIRE_NOTHROW(pDataset->getLayer(kLayerType));
+        auto& elevLayer = pDataset->getLayer(kLayerType);
 
-        // Write all 1's.
         {
-            std::array<uint8_t, kExpectedNumNodes> buffer;
-            buffer.fill(1);
+            std::array<float, kExpectedNumNodes> buffer;
+            buffer.fill(kFloatValue);
 
-            REQUIRE_NOTHROW(elevLayer.write(1, 2, 3, 5, buffer.data())); // 3x4
+            REQUIRE_NOTHROW(elevLayer.write(1, 2, 3, 5,
+                reinterpret_cast<uint8_t*>(buffer.data()))); // 3x4
         }
 
         // Read the data back in from memory(?).
-        std::array<uint8_t, kExpectedNumNodes> kExpectedBuffer;
-        kExpectedBuffer.fill(1);
+        std::array<float, kExpectedNumNodes> kExpectedBuffer;
+        kExpectedBuffer.fill(kFloatValue);
 
         auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
         REQUIRE(buffer);
 
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.get());
+
         for (size_t i=0; i<kExpectedNumNodes; ++i)
-            CHECK(buffer[i] == kExpectedBuffer[i]);
+            CHECK(floatBuffer[i] == kExpectedBuffer[i]);
     }
 
-    const auto dataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
+    const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
 
-    REQUIRE(dataset);
+    REQUIRE(pDataset);
 
-    REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
-    const auto& elevLayer = dataset->getLayer(kLayerType);
+    REQUIRE_NOTHROW(pDataset->getLayer(kLayerType));
+    const auto& elevLayer = pDataset->getLayer(kLayerType);
 
     // Read the data back in from disk.
-    std::array<uint8_t, kExpectedNumNodes> kExpectedBuffer;
-    kExpectedBuffer.fill(1);
+    std::array<float, kExpectedNumNodes> kExpectedBuffer;
+    kExpectedBuffer.fill(kFloatValue);
 
     auto buffer = elevLayer.read(1, 2, 3, 5); // 5x5
     REQUIRE(buffer);
 
+    const auto* floatBuffer = reinterpret_cast<const float*>(buffer.get());
+
     for (size_t i=0; i<kExpectedNumNodes; ++i)
-        CHECK(buffer[i] == kExpectedBuffer[i]);
+        CHECK(floatBuffer[i] == kExpectedBuffer[i]);
 }
 

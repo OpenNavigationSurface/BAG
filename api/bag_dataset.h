@@ -35,7 +35,7 @@ public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,
         OpenMode openMode);
     static std::shared_ptr<Dataset> create(const std::string &fileName,
-        Metadata&& metadata);
+        Metadata&& metadata, uint64_t chunkSize, unsigned int compressionLevel);
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
@@ -45,10 +45,11 @@ public:
     Layer& getLayer(LayerType type) &;
     const Layer& getLayer(LayerType type) const &;
 
-    Layer& createLayer(LayerType type) &;
+    Layer& createLayer(LayerType type, uint64_t chunkSize,
+        unsigned int compressionLevel) &;
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
-        int chunkSize = 100, int compressionLevel = 6) &;
+        uint64_t chunkSize, unsigned int compressionLevel) &;
 
     std::vector<LayerType> getLayerTypes() const;
 
@@ -69,8 +70,10 @@ private:
     Dataset() = default;
 
     void readDataset(const std::string& fileName, OpenMode openMode);
-    void createDataset(const std::string& fileName, Metadata&& metadata);
+    void createDataset(const std::string& fileName, Metadata&& metadata,
+        uint64_t chunkSize, unsigned int compressionLevel);
 
+    //TODO What about uint32_t type min/max?
     std::tuple<bool, float, float> getMinMax(LayerType type,
         const std::string& path = {}) const;
 

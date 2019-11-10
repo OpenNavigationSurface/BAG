@@ -9,28 +9,17 @@ namespace BAG {
 
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     LayerType layerType,
-    GroupType groupType)
-    : LayerDescriptor(layerType)
+    GroupType groupType,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
+    : LayerDescriptor(layerType, chunkSize, compressionLevel)
     , m_groupType(groupType)
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
     this->setInternalPath(groupType == NODE ?
         NODE_GROUP_PATH : ELEVATION_SOLUTION_GROUP_PATH);
 
-    // Verify the proper group and layer combination is given.
-    if (groupType == ELEVATION)
-    {
-        if (layerType != Shoal_Elevation && layerType != Std_Dev &&
-            layerType != Num_Soundings)
-            throw UnsupportedInterleavedLayer{};
-    }
-    else if (groupType == NODE)
-    {
-        if (layerType != Hypothesis_Strength && layerType != Num_Hypotheses)
-            throw UnsupportedInterleavedLayer{};
-    }
-    else
-        throw UnsupportedInterleavedLayer{};
+    this->validateTypes(layerType, groupType);
 }
 
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
@@ -46,28 +35,18 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     , m_groupType(groupType)
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
-    // Verify the proper group and layer combination is given.
-    if (groupType == ELEVATION)
-    {
-        if (layerType != Shoal_Elevation && layerType != Std_Dev &&
-            layerType != Num_Soundings)
-            throw UnsupportedInterleavedLayer{};
-    }
-    else if (groupType == NODE)
-    {
-        if (layerType != Hypothesis_Strength && layerType != Num_Hypotheses)
-            throw UnsupportedInterleavedLayer{};
-    }
-    else
-        throw UnsupportedInterleavedLayer{};
+    this->validateTypes(layerType, groupType);
 }
 
 std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
     LayerType layerType,
-    GroupType groupType)
+    GroupType groupType,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
 {
     return std::shared_ptr<InterleavedLayerDescriptor>(
-        new InterleavedLayerDescriptor{layerType, groupType});
+        new InterleavedLayerDescriptor{layerType, groupType, chunkSize,
+            compressionLevel});
 }
 
 std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
@@ -90,11 +69,24 @@ uint8_t InterleavedLayerDescriptor::getElementSizeProxy() const noexcept
     return m_elementSize;
 }
 
-InterleavedLayerDescriptor& InterleavedLayerDescriptor::setElementSizeProxy(
-    uint8_t size) & noexcept
+//! Verify the proper group and layer combination is given.
+void InterleavedLayerDescriptor::validateTypes(
+    LayerType layerType,
+    GroupType groupType) const
 {
-    m_elementSize = size;
-    return *this;
+    if (groupType == ELEVATION)
+    {
+        if (layerType != Shoal_Elevation && layerType != Std_Dev &&
+            layerType != Num_Soundings)
+            throw UnsupportedInterleavedLayer{};
+    }
+    else if (groupType == NODE)
+    {
+        if (layerType != Hypothesis_Strength && layerType != Num_Hypotheses)
+            throw UnsupportedInterleavedLayer{};
+    }
+    else
+        throw UnsupportedInterleavedLayer{};
 }
 
 }  // namespace BAG

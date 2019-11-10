@@ -55,7 +55,7 @@ public:
 
 protected:
     explicit TrackingList(const Dataset& dataset);
-    TrackingList(const Dataset& dataset, int compressionLevel);
+    TrackingList(const Dataset& dataset, unsigned int compressionLevel);
 
 private:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
@@ -65,7 +65,7 @@ private:
     };
 
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> createH5dataSet(
-        int compressionLevel);
+        unsigned int compressionLevel);
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
     //! The associated dataset.

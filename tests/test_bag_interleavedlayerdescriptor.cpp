@@ -15,17 +15,23 @@ TEST_CASE("test interleaved layer descriptor creation",
     "[interleavedlayerdescriptor][create]")
 {
     UNSCOPED_INFO("Check that creating an interleaved layer descriptor does not throw.");
-    REQUIRE_NOTHROW(InterleavedLayerDescriptor::create(Hypothesis_Strength, NODE));
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+    REQUIRE_NOTHROW(InterleavedLayerDescriptor::create(Hypothesis_Strength,
+        NODE, chunkSize, compressionLevel));
 }
 
 //  GroupType getGroupType() const noexcept;
 TEST_CASE("test interleaved layer descriptor get group type",
     "[interleavedlayerdescriptor][getGroupType]")
 {
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
     {
         const BAG::GroupType kExpectedGroup = NODE;
         auto descriptor = InterleavedLayerDescriptor::create(Hypothesis_Strength,
-            kExpectedGroup);
+            kExpectedGroup, chunkSize, compressionLevel);
 
         UNSCOPED_INFO("Verify the get group type matches the constructor.");
         CHECK(descriptor->getGroupType() == kExpectedGroup);
@@ -33,7 +39,7 @@ TEST_CASE("test interleaved layer descriptor get group type",
     {
         const BAG::GroupType kExpectedGroup = ELEVATION;
         auto descriptor = InterleavedLayerDescriptor::create(Num_Soundings,
-            kExpectedGroup);
+            kExpectedGroup, chunkSize, compressionLevel);
 
         UNSCOPED_INFO("Verify the get group type matches the constructor.");
         CHECK(descriptor->getGroupType() == kExpectedGroup);
@@ -42,20 +48,22 @@ TEST_CASE("test interleaved layer descriptor get group type",
         UNSCOPED_INFO("Verify the interleaved layer creation throws with an "
             "invalid group and layer combination.");
         REQUIRE_THROWS(InterleavedLayerDescriptor::create(Hypothesis_Strength,
-            ELEVATION));
+            ELEVATION, chunkSize, compressionLevel));
     }
 }
 
 //  uint8_t getElementSize() const noexcept override;
-//  InterleavedLayerDescriptor& setElementSize(uint8_t inSize) & noexcept override;
 TEST_CASE("test interleaved layer descriptor get/set element size",
     "[interleavedlayerdescriptor][getElementSize][setElementSize]")
 {
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
+
     {
         const BAG::LayerType kExpectedLayerType = Num_Hypotheses;
         const BAG::GroupType kExpectedGroupType = NODE;
         auto descriptor = InterleavedLayerDescriptor::create(kExpectedLayerType,
-            kExpectedGroupType);
+            kExpectedGroupType, chunkSize, compressionLevel);
 
         UNSCOPED_INFO("Verify getting element size does not throw.");
         REQUIRE_NOTHROW(descriptor->getElementSize());
@@ -67,7 +75,7 @@ TEST_CASE("test interleaved layer descriptor get/set element size",
         const BAG::LayerType kExpectedLayerType = Std_Dev;
         const BAG::GroupType kExpectedGroupType = ELEVATION;
         auto descriptor = InterleavedLayerDescriptor::create(kExpectedLayerType,
-            kExpectedGroupType);
+            kExpectedGroupType, chunkSize, compressionLevel);
 
         UNSCOPED_INFO("Verify getting element size does not throw.");
         REQUIRE_NOTHROW(descriptor->getElementSize());
@@ -75,18 +83,5 @@ TEST_CASE("test interleaved layer descriptor get/set element size",
         CHECK(descriptor->getElementSize() ==
             Layer::getElementSize(Layer::getDataType(kExpectedLayerType)));
     }
-
-    auto descriptor = InterleavedLayerDescriptor::create(Shoal_Elevation,
-        ELEVATION);
-
-    const uint8_t kExpectedElementSize = 200;
-    UNSCOPED_INFO("Verify the new element size is different than the current.");
-    REQUIRE(descriptor->getElementSize() != kExpectedElementSize);
-
-    UNSCOPED_INFO("Verify setting an element size does not throw.");
-    REQUIRE_NOTHROW(descriptor->setElementSize(kExpectedElementSize));
-
-    UNSCOPED_INFO("Verify the element size is properly set after setting it.");
-    CHECK(descriptor->getElementSize() == kExpectedElementSize);
 }
 

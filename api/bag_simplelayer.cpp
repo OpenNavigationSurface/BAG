@@ -37,9 +37,12 @@ SimpleLayer::SimpleLayer(
 
 std::unique_ptr<SimpleLayer> SimpleLayer::create(
     Dataset& dataset,
-    LayerType type)
+    LayerType type,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
 {
-    auto descriptor = SimpleLayerDescriptor::create(type);
+    auto descriptor = SimpleLayerDescriptor::create(type, chunkSize,
+        compressionLevel);
     auto h5dataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, *descriptor,
@@ -71,19 +74,23 @@ SimpleLayer::createH5dataSet(
     const Dataset& dataset,
     const LayerDescriptor& descriptor)
 {
+    // Use the dimensions from the descriptor.
     const auto dims = descriptor.getDims();
-    std::array<hsize_t, 2> size{std::get<0>(dims), std::get<1>(dims)};
-    ::H5::DataSpace h5dataSpace{RANK, size.data()};  //TODO Check that max dim size == starting size
+    const std::array<hsize_t, RANK> fileDims{std::get<0>(dims), std::get<1>(dims)};
+    const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
+    ::H5::DataSpace h5dataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
 
     ::H5::AtomType h5dataType{::H5::PredType::NATIVE_FLOAT};
     h5dataType.setOrder(H5T_ORDER_LE);
 
+    // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
     constexpr float kFillValue = BAG_NULL_ELEVATION;
     h5createPropList.setFillValue(h5dataType, &kFillValue);
 
+    // Use chunk size and compression level from the descriptor.
     const int compressionLevel = descriptor.getCompressionLevel();
     if (compressionLevel > 0 && compressionLevel <= 9)
     {

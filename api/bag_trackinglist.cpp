@@ -29,7 +29,7 @@ TrackingList::TrackingList(const Dataset& dataset)
 
 TrackingList::TrackingList(
     const Dataset& dataset,
-    int compressionLevel)
+    unsigned int compressionLevel)
     : m_pBagDataset(dataset.shared_from_this())
 {
     m_pH5dataSet = createH5dataSet(compressionLevel);
@@ -144,7 +144,7 @@ const TrackingList::value_type* TrackingList::data() const & noexcept
 
 std::unique_ptr<::H5::DataSet, TrackingList::DeleteH5dataSet>
 TrackingList::createH5dataSet(
-    int compressionLevel)
+    unsigned int compressionLevel)
 {
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};

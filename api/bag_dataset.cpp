@@ -149,10 +149,13 @@ std::shared_ptr<Dataset> Dataset::open(
 
 std::shared_ptr<Dataset> Dataset::create(
     const std::string& fileName,
-    Metadata&& metadata)
+    Metadata&& metadata,
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
 {
     std::shared_ptr<Dataset> pDataset{new Dataset};
-    pDataset->createDataset(fileName, std::move(metadata));
+    pDataset->createDataset(fileName, std::move(metadata), chunkSize,
+        compressionLevel);
 
     return pDataset;
 }
@@ -171,7 +174,10 @@ Layer& Dataset::addLayer(std::unique_ptr<Layer> newLayer) &
 
 void Dataset::createDataset(
     const std::string& fileName,
-    Metadata&& metadata)
+    Metadata&& metadata,
+    //TODO dims needed here probably
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
 {
 #ifdef NDEBUG
     ::H5::Exception::dontPrint();
@@ -196,22 +202,28 @@ void Dataset::createDataset(
     m_pMetadata = std::make_unique<Metadata>(std::move(metadata));
 
     // TrackingList
-    m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this, 5});  //TODO Where does compressionLevel come from?
+    m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this,
+        compressionLevel});
 
     Descriptor descriptor;
     descriptor.setReadOnly(false);
     m_descriptor = std::move(descriptor);
 
     // Mandatory Layers (Elevation, Uncertainty)
-    this->addLayer(SimpleLayer::create(*this, Elevation));
-    this->addLayer(SimpleLayer::create(*this, Uncertainty));
+    this->addLayer(SimpleLayer::create(*this, Elevation, chunkSize,
+        compressionLevel));
+    this->addLayer(SimpleLayer::create(*this, Uncertainty, chunkSize,
+        compressionLevel));
 
     // All mandatory items exist in the HDF5 file now.
 }
 
-Layer& Dataset::createLayer(LayerType type) &
+Layer& Dataset::createLayer(
+    LayerType type,
+    uint64_t chunkSize,
+    unsigned int compressionLevel) &
 {
-    if (this->m_descriptor.isReadOnly())
+    if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
 
     //Make sure it doesn't already exist.
@@ -230,7 +242,8 @@ Layer& Dataset::createLayer(LayerType type) &
     case Num_Soundings:  //[[fallthrough]];
     case Average_Elevation:  //[[fallthrough]];
     case Nominal_Elevation:
-        return this->addLayer(SimpleLayer::create(*this, type));
+        return this->addLayer(SimpleLayer::create(*this, type, chunkSize,
+            compressionLevel));
     case Surface_Correction:
     case Compound:  //[[fallthrough]];
     default:
@@ -241,8 +254,8 @@ Layer& Dataset::createLayer(LayerType type) &
 SurfaceCorrections& Dataset::createSurfaceCorrections(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
-    int chunkSize,
-    int compressionLevel) &
+    uint64_t chunkSize,
+    unsigned int compressionLevel) &
 {
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
@@ -305,6 +318,7 @@ const Metadata& Dataset::getMetadata() const & noexcept
     return *m_pMetadata;
 }
 
+//TODO What about uint32_t?
 std::tuple<bool, float, float> Dataset::getMinMax(
     LayerType type,
     const std::string& path) const
@@ -428,7 +442,6 @@ void Dataset::readDataset(
             // Shoal_Elevation
             auto layerDesc = InterleavedLayerDescriptor::create(Shoal_Elevation,
                 ELEVATION, *this);
-            layerDesc->setInternalPath(std::string{ELEVATION_SOLUTION_GROUP_PATH});
 
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
