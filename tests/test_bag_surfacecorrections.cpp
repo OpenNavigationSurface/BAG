@@ -139,7 +139,7 @@ TEST_CASE("test surface corrections create empty gridded",
 }
 
 TEST_CASE("test surface corrections create and write irregular",
-    "[surfacecorrections][constructor][destructor][create][read][write]BAG_SURFACE_IRREGULARLY_SPACED]")
+    "[surfacecorrections][constructor][destructor][create][read][write][BAG_SURFACE_IRREGULARLY_SPACED]")
 {
     const TestUtils::RandomFileGuard tmpFileName;
 
@@ -178,7 +178,7 @@ TEST_CASE("test surface corrections create and write irregular",
 }
 
 TEST_CASE("test surface corrections create and write gridded",
-    "[surfacecorrections][constructor][destructor][create][read][write]BAG_SURFACE_GRID_EXTENTS]")
+    "[surfacecorrections][constructor][destructor][create][read][write][BAG_SURFACE_GRID_EXTENTS]")
 {
     const TestUtils::RandomFileGuard tmpFileName;
 
