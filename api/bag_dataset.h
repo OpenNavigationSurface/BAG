@@ -56,8 +56,8 @@ public:
     TrackingList& getTrackingList() & noexcept;
     const TrackingList& getTrackingList() const & noexcept;
     const Metadata& getMetadata() const & noexcept;
-    SurfaceCorrections& getSurfaceCorrections() & noexcept;
-    const SurfaceCorrections& getSurfaceCorrections() const & noexcept;
+    SurfaceCorrections* getSurfaceCorrections() & noexcept;
+    const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
 
     const Descriptor& getDescriptor() const & noexcept;
 

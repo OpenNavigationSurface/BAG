@@ -26,16 +26,16 @@ TEST_CASE("test surface corrections read irregular",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that the surface corrections exist.");
-    REQUIRE_NOTHROW(pDataset->getSurfaceCorrections());
-    const auto& corrections = pDataset->getSurfaceCorrections();
+    const auto* pCorrections = pDataset->getSurfaceCorrections();
+    REQUIRE(pCorrections);
 
     UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
-    REQUIRE_NOTHROW(corrections.getDescriptor());
+    REQUIRE_NOTHROW(pCorrections->getDescriptor());
 
     UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
+    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor()));
     const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor());
+        static_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor());
 
     UNSCOPED_INFO("Check that the surface type being corrected is gridded.");
     CHECK(descriptor.getSurfaceType() == BAG_SURFACE_IRREGULARLY_SPACED);
@@ -57,16 +57,16 @@ TEST_CASE("test surface corrections read gridded",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that the surface corrections exist.");
-    REQUIRE_NOTHROW(pDataset->getSurfaceCorrections());
-    const auto& corrections = pDataset->getSurfaceCorrections();
+    const auto* pCorrections = pDataset->getSurfaceCorrections();
+    REQUIRE(pCorrections);
 
     UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
-    REQUIRE_NOTHROW(corrections.getDescriptor());
+    REQUIRE_NOTHROW(pCorrections->getDescriptor());
 
     UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
+    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor()));
     const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor());
+        static_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor());
 
     UNSCOPED_INFO("Check that the surface type being corrected is irregular.");
     CHECK(descriptor.getSurfaceType() == BAG_SURFACE_GRID_EXTENTS);

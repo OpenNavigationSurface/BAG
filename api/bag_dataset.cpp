@@ -360,16 +360,14 @@ std::tuple<double, double> Dataset::gridToGeo(
     return std::make_tuple(x, y);
 }
 
-SurfaceCorrections& Dataset::getSurfaceCorrections() & noexcept
+SurfaceCorrections* Dataset::getSurfaceCorrections() & noexcept
 {
-    //TODO Check for nullptr.
-    return *m_pSurfaceCorrections;
+    return m_pSurfaceCorrections.get();
 }
 
-const SurfaceCorrections& Dataset::getSurfaceCorrections() const & noexcept
+const SurfaceCorrections* Dataset::getSurfaceCorrections() const & noexcept
 {
-    //TODO Check for nullptr.
-    return *m_pSurfaceCorrections;
+    return m_pSurfaceCorrections.get();
 }
 
 void Dataset::readDataset(
