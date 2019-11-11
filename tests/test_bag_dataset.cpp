@@ -470,8 +470,7 @@ TEST_CASE("test get tracking list", "[dataset][open][getTrackingList]")
     {
         REQUIRE_NOTHROW(dataset->getTrackingList());
         auto& trackingList = dataset->getTrackingList();
-        trackingList;  //TODO Do something.
-        //...
+        CHECK(trackingList.empty());
     }
 
     // Test the const method.
@@ -481,8 +480,7 @@ TEST_CASE("test get tracking list", "[dataset][open][getTrackingList]")
     {
         REQUIRE_NOTHROW(constDataset->getTrackingList());
         const auto& trackingList = constDataset->getTrackingList();
-        trackingList;  //TODO Do something.
-        //...
+        CHECK(trackingList.size() == 0);
     }
 }
 
@@ -496,10 +494,14 @@ TEST_CASE("test get metadata", "[dataset][open][getMetadata]")
     const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READ_WRITE);
     REQUIRE(dataset);
 
+    constexpr double kExpectedLLcornerX = 687910.;
+    constexpr double kExpectedLLcornerY = 5554620.;
+
     REQUIRE_NOTHROW(dataset->getMetadata());
     const auto& metadata = dataset->getMetadata();
-    metadata;  //TODO Do something.
-    //...
+
+    CHECK(metadata.llCornerX() == Approx(kExpectedLLcornerX));
+    CHECK(metadata.llCornerY() == Approx(kExpectedLLcornerY));
 }
 
 //  std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const;
