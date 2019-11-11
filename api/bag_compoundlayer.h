@@ -53,7 +53,7 @@ private:
 
     //! The HDF5 DataSet.
     std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
-
+    //! The ordered list of field names and types.
     std::vector<Definition> m_definitions;
 };
 

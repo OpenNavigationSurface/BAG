@@ -45,7 +45,9 @@ private:
 
     uint8_t getElementSizeProxy() const noexcept override;
 
+    //! The group type.
     GroupType m_groupType = UNKNOWN_GROUP_TYPE;
+    //! The size of a record in the HDF5 DataSet (depends on group type).
     uint8_t m_elementSize = 0;
 
 };

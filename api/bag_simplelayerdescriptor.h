@@ -37,6 +37,7 @@ protected:
 private:
     uint8_t getElementSizeProxy() const noexcept override;
 
+    //! The size of a single record in the HDF5 file.
     uint8_t m_elementSize = 0;
 };
 

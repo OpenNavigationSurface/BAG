@@ -86,11 +86,17 @@ private:
         void operator()(::H5::H5File* ptr) noexcept;
     };
 
+    //! The HDF5 file.
     std::unique_ptr<::H5::H5File, DeleteH5File> m_pH5file;
+    //! The list of layers, indexed by type.
     std::unordered_map<LayerType, std::unique_ptr<Layer>> m_layers;
+    //! The metadata.
     std::unique_ptr<Metadata> m_pMetadata;
+    //! The tracking list.
     std::unique_ptr<TrackingList> m_pTrackingList;
+    //! The surface corrections layer.
     std::unique_ptr<SurfaceCorrections> m_pSurfaceCorrections;
+    //! The descriptor.
     Descriptor m_descriptor;
 
     friend class CompoundLayer;

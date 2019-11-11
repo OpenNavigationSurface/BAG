@@ -62,13 +62,21 @@ protected:
 private:
     virtual uint8_t getElementSizeProxy() const noexcept = 0;
 
+    //! The layer type.
     LayerType m_layerType = UNKNOWN_LAYER_TYPE;
+    //! The data type (depends on layer type).
     DataType m_dataType = UNKNOWN_DATA_TYPE;
+    //! The path of the DataSet in the HDF5 file.
     std::string m_internalPath;
+    //! The name of the layer.
     std::string m_name;
+    //! The dimensions of this dataset.
     std::tuple<uint32_t, uint32_t> m_dims;
+    //! The compression level of this dataset (0-9).
     unsigned int m_compressionLevel = 0;
+    //! The chunk size of this dataset (0x0, 10x10 or 100x100).
     uint64_t m_chunkSize = 0;
+    //! The minimum and maximum value of this dataset.
     std::tuple<float, float> m_minMax{};
 
     friend InterleavedLayer;

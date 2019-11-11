@@ -60,9 +60,11 @@ private:
 
     void createH5dataSet(const Dataset& inDataSet);
 
+    //! The dataset the metadata is part of.
     std::weak_ptr<const Dataset> m_pBagDataset;
+    //! The C structs behind this class.
     std::unique_ptr<BagMetadata> m_pMetaStruct;
-
+    //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
     //! Length of the XML (from file or buffer).
     size_t m_xmlLength = 0;
