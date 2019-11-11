@@ -175,7 +175,6 @@ Layer& Dataset::addLayer(std::unique_ptr<Layer> newLayer) &
 void Dataset::createDataset(
     const std::string& fileName,
     Metadata&& metadata,
-    //TODO dims needed here probably
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {

@@ -88,7 +88,7 @@ TEST_CASE("test surface corrections create empty irregular",
         compressionLevel);
     REQUIRE(pDataset);
 
-    constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
+    constexpr auto kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
     constexpr uint8_t kExpectedNumCorrectors = 4;
     const auto& corrections = pDataset->createSurfaceCorrections(
         kExpectedSurfaceType, kExpectedNumCorrectors, chunkSize,
@@ -123,7 +123,7 @@ TEST_CASE("test surface corrections create empty gridded",
         compressionLevel);
     REQUIRE(pDataset);
 
-    constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
+    constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
     constexpr uint8_t kExpectedNumCorrectors = 2;
     const auto& corrections = pDataset->createSurfaceCorrections(
         kExpectedSurfaceType, kExpectedNumCorrectors, chunkSize,
@@ -158,8 +158,7 @@ TEST_CASE("test surface corrections create and write irregular",
         compressionLevel);
     REQUIRE(pDataset);
 
-    //TODO Need to provide file dims, ...
-    constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
+    constexpr auto kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
     constexpr uint8_t kExpectedNumCorrectors = 2;
     auto& corrections = pDataset->createSurfaceCorrections(kExpectedSurfaceType,
         kExpectedNumCorrectors, chunkSize, compressionLevel);
@@ -200,8 +199,7 @@ TEST_CASE("test surface corrections create and write gridded",
         compressionLevel);
     REQUIRE(pDataset);
 
-    //TODO Need to provide file dims, ...
-    constexpr BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
+    constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
     constexpr uint8_t kExpectedNumCorrectors = 3;
     auto& corrections = pDataset->createSurfaceCorrections(kExpectedSurfaceType,
         kExpectedNumCorrectors, chunkSize, compressionLevel);

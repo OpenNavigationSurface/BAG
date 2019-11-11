@@ -20,20 +20,9 @@
 
 namespace BAG {
 
+constexpr uint8_t kMaxDatumsLength = 255;
+
 namespace {
-
-//TODO Move this to Layer for *Layer classes to use.
-hsize_t estimateChunkSize(
-    hsize_t dimensionSize) noexcept
-{
-    if (dimensionSize > 100)
-        return 100;
-
-    if (dimensionSize > 10)
-        return 10;
-
-    return 0;
-}
 
 ::H5::CompType getCompoundType(
     const SurfaceCorrectionsDescriptor& descriptor)
@@ -152,7 +141,7 @@ SurfaceCorrections::createH5dataSet(
     att.write(::H5::PredType::NATIVE_UINT8, &tmpSurfaceType);
 
     constexpr hsize_t xmlLength = 0;
-    constexpr hsize_t kMaxSize = 255;
+    constexpr hsize_t kMaxSize = kMaxDatumsLength;
     const ::H5::DataSpace kVerticalDatumDataSpace{1, &xmlLength, &kMaxSize};
 
     att = h5dataSet.createAttribute(VERT_DATUM_CORR_VERTICAL_DATUM,
@@ -235,8 +224,6 @@ void SurfaceCorrections::writeProxy(
     auto& descriptor =
         static_cast<SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
-    const auto h5memDataType = getCompoundType(descriptor);
-
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
@@ -267,6 +254,8 @@ void SurfaceCorrections::writeProxy(
     }
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
+
+    const auto h5memDataType = getCompoundType(descriptor);
 
     m_pH5dataSet->write(buffer, h5memDataType, h5memDataSpace, h5fileDataSpace);
 }
