@@ -111,7 +111,7 @@ size_t Metadata::getXMLlength() const noexcept
 const char* Metadata::horizontalCRSasWKT() const
 {
     const auto* type = m_pMetaStruct->horizontalReferenceSystem->type;
-    if (!type || std::string{type} != std::string{"WKT"})
+    if (!type || std::string{type} != "WKT")
         return nullptr;
 
     return m_pMetaStruct->horizontalReferenceSystem->definition;
@@ -164,11 +164,6 @@ double Metadata::urCornerY() const noexcept
     return m_pMetaStruct->spatialRepresentationInfo->urCornerY;
 }
 
-void Metadata::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
-
 void Metadata::write() const
 {
     const auto buffer = exportMetadataToXML(this->getStruct());
@@ -178,6 +173,11 @@ void Metadata::write() const
     const ::H5::DataSpace h5dataSpace{1, &bufferLen, &kMaxSize};
 
     m_pH5dataSet->write(buffer, ::H5::PredType::C_S1, h5dataSpace);
+}
+
+void Metadata::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
+{
+    delete ptr;
 }
 
 }   //namespace BAG
