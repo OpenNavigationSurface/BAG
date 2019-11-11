@@ -19,7 +19,7 @@ namespace BAG {
 class BAG_API TrackingList final
 {
 public:
-    using value_type = BagTrackingItem;
+    using value_type = TrackingItem;
     using iterator = std::vector<value_type>::iterator;
     using const_iterator = std::vector<value_type>::const_iterator;
     using reference = value_type&;

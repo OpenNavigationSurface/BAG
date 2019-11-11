@@ -157,14 +157,14 @@ TrackingList::createH5dataSet(
     constexpr hsize_t kUnlimitedSize = static_cast<hsize_t>(-1);
     const ::H5::DataSpace h5dataSpace{1, &numEntries, &kUnlimitedSize};
 
-    const ::H5::CompType h5dataType{sizeof(BagTrackingItem)};
+    const ::H5::CompType h5dataType{sizeof(TrackingItem)};
 
-    h5dataType.insertMember("row", HOFFSET(BagTrackingItem, row), ::H5::PredType::NATIVE_UINT);
-    h5dataType.insertMember("col", HOFFSET(BagTrackingItem, col), ::H5::PredType::NATIVE_UINT);
-    h5dataType.insertMember("depth", HOFFSET(BagTrackingItem, depth), ::H5::PredType::NATIVE_FLOAT);
-    h5dataType.insertMember("uncertainty", HOFFSET(BagTrackingItem, uncertainty), ::H5::PredType::NATIVE_FLOAT);
-    h5dataType.insertMember("track_code", HOFFSET(BagTrackingItem, track_code), ::H5::PredType::NATIVE_UCHAR);
-    h5dataType.insertMember("list_series", HOFFSET(BagTrackingItem, list_series), ::H5::PredType::NATIVE_SHORT);
+    h5dataType.insertMember("row", HOFFSET(TrackingItem, row), ::H5::PredType::NATIVE_UINT);
+    h5dataType.insertMember("col", HOFFSET(TrackingItem, col), ::H5::PredType::NATIVE_UINT);
+    h5dataType.insertMember("depth", HOFFSET(TrackingItem, depth), ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("uncertainty", HOFFSET(TrackingItem, uncertainty), ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("track_code", HOFFSET(TrackingItem, track_code), ::H5::PredType::NATIVE_UCHAR);
+    h5dataType.insertMember("list_series", HOFFSET(TrackingItem, list_series), ::H5::PredType::NATIVE_SHORT);
 
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setChunk(1, &kTrackingListChunkSize);
@@ -248,7 +248,7 @@ void TrackingList::write() const
     listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &m_length);
 
     // Write the data.
-    const ::H5::CompType h5type{sizeof(BagTrackingItem)};
+    const ::H5::CompType h5type{sizeof(TrackingItem)};
 
     h5type.insertMember("row", HOFFSET(value_type, row), ::H5::PredType::NATIVE_UINT32);
     h5type.insertMember("col", HOFFSET(value_type, col), ::H5::PredType::NATIVE_UINT32);

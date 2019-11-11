@@ -41,7 +41,7 @@ set(OPENNS_PACKAGE_VERSION_MINOR "${OPENNS_VERS_RELEASE}")
 set(OPENNS_PACKAGE_STRING "${OPENNS_PACKAGE_NAME} ${OPENNS_PACKAGE_VERSION}")
 set(OPENNS_PACKAGE_TARNAME "bag")
 set(OPENNS_PACKAGE_URL "http://www.opennavsurf.org")
-set(VERSION 2.0.0 OPENNS_PACKAGE_VERSION) #TODO test OPENNS_PACKAGE_VERSION is already set from above.
+set(VERSION 2.0.0 OPENNS_PACKAGE_VERSION)
 
 #-----------------------------------------------------------------------------
 # Option to Build Shared/Static libs, default is shared

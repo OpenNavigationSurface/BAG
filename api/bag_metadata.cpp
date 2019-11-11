@@ -78,7 +78,7 @@ double Metadata::columnResolution() const noexcept
 void Metadata::createH5dataSet(
     const Dataset& inDataset)
 {
-    m_pBagDataset = inDataset.shared_from_this();  //TODO is this always a good idea?
+    m_pBagDataset = inDataset.shared_from_this();
 
     const auto& h5file = inDataset.getH5file();
 
