@@ -47,6 +47,24 @@ struct BAG_API UnsupportedGroupType final : virtual std::exception
 
 
 // Layer related.
+//! Invalid buffer provided for the write.
+struct BAG_API InvalidBuffer final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The specified buffer is NULL.";
+    }
+};
+
+//! Invalid dimensions specified for the write.
+struct BAG_API InvalidWriteSize final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The dimensions specified for the write are not valid.";
+    }
+};
+
 //! Layer already exists.
 struct BAG_API LayerExists final : virtual std::exception
 {
@@ -71,6 +89,15 @@ struct BAG_API ReadOnlyError final : virtual std::exception
     const char* what() const noexcept override
     {
         return "Attempted to modify a read only Dataset.";
+    }
+};
+
+//! Attempt to use get the element size of an unsupported layer type.
+struct BAG_API UnsupportedElementSize final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Element size not supported for this type of layer.";
     }
 };
 
@@ -122,6 +149,17 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     const char* what() const noexcept override
     {
         return "The mandatory Metadata dataset was not found.";
+    }
+};
+
+
+// SimpleLayer related.
+//! Cannot convert DataType to an HDF5 DataType.
+struct BAG_API UnsupportedDataType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The specified DataType cannot be converted to an HDF5 DataType.";
     }
 };
 

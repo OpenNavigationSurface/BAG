@@ -99,7 +99,7 @@ uint8_t Layer::getElementSize(DataType type)
     case UINT32:
         return sizeof(uint32_t);
     case COMPOUND:
-        throw 4321;  //TODO How to deal with this?
+        throw UnsupportedElementSize{};
     default:
         return 0;
     }
@@ -176,10 +176,10 @@ void Layer::write(
         throw DatasetNotFound{};
 
     if (rowStart > rowEnd || columnStart > columnEnd)
-        throw 32;  //TODO make an exception
+        throw InvalidWriteSize{};
 
     if (!buffer)
-        throw 33;  //TODO make an exception
+        throw InvalidBuffer{};
 
     this->writeProxy(rowStart, columnStart, rowEnd, columnEnd, buffer);
     this->writeAttributesProxy();

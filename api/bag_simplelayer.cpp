@@ -20,7 +20,7 @@ const ::H5::PredType& getH5PredType(DataType type)
     case FLOAT32:
         return ::H5::PredType::NATIVE_FLOAT;
     default:
-        throw 1122;  // Unsupported DataType.
+        throw UnsupportedDataType{};
     }
 }
 
