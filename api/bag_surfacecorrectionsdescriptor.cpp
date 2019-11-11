@@ -19,7 +19,7 @@ uint8_t getElementSize(
         + numCorrectors * sizeof(float);
 }
 
-}
+}  // namespace
 
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
@@ -66,7 +66,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
         att.read(att.getDataType(), &m_swX);
 
         att = h5dataSet.openAttribute(VERT_DATUM_CORR_SWY);
-        att.read(att.getDataType(), &m_swX);
+        att.read(att.getDataType(), &m_swY);
 
 
         att = h5dataSet.openAttribute(VERT_DATUM_CORR_NSX);

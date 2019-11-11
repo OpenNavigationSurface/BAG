@@ -15,11 +15,14 @@ set(TEST_SOURCE_FILES
     test_bag_metadata.cpp
     test_bag_simplelayer.cpp
     test_bag_simplelayerdescriptor.cpp
+    test_bag_surfacecorrectionsdescriptor.cpp
     test_bag_surfacecorrections.cpp
     test_bag_trackinglist.cpp
     test_utils.cpp
     test_utils.h
 )
+
+source_group("Source Files" FILES ${TEST_SOURCE_FILES})
 
 add_executable(bag_tests ${TEST_SOURCE_FILES})
 
@@ -49,8 +52,6 @@ target_compile_options(bag_tests
 )
 
 find_package(HDF5 REQUIRED)
-
-# Catch2
 find_package(Catch2 REQUIRED)
 
 target_link_libraries(bag_tests
@@ -65,8 +66,3 @@ include(CTest)
 include(Catch)
 catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "D:/caris_work/BAG/BAG2/examples/sample-data")
 
-# https://cmake.org/cmake/help/v3.15/module/GoogleTest.html
-# GoogleTest
-#find_package(GTest REQUIRED)
-
-#gtest_discover_tests(bag_tests) # EXTRA_ARGS --samples-path "D:/caris_work/BAG/BAG2/examples/sample-data"
