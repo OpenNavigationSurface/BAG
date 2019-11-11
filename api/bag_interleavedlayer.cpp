@@ -157,7 +157,12 @@ void InterleavedLayer::writeProxy(
     uint32_t /*columnEnd*/,
     const uint8_t* /*buffer*/)
 {
-    return;  // Writing Interleaved layers not supported.
+    // Writing Interleaved layers not supported.
+}
+
+void InterleavedLayer::writeAttributesProxy() const
+{
+    // Writing Interleaved layers not supported.
 }
 
 void InterleavedLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept

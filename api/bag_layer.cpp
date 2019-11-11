@@ -182,6 +182,15 @@ void Layer::write(
         throw 33;  //TODO make an exception
 
     this->writeProxy(rowStart, columnStart, rowEnd, columnEnd, buffer);
+    this->writeAttributesProxy();
+}
+
+void Layer::writeAttributes() const
+{
+    if (m_pBagDataset.expired())
+        throw DatasetNotFound{};
+
+    this->writeAttributesProxy();
 }
 
 }   //namespace BAG

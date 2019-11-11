@@ -260,6 +260,52 @@ void SurfaceCorrections::writeProxy(
     m_pH5dataSet->write(buffer, h5memDataType, h5memDataSpace, h5fileDataSpace);
 }
 
+void SurfaceCorrections::writeAttributesProxy() const
+{
+    if (!dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor()))
+        throw UnexpectedLayerDescriptorType{};
+
+    const auto& descriptor =
+        static_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+
+    // Write any attributes, from the layer descriptor.
+    // surface type
+    auto att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SURFACE_TYPE);
+    const auto surfaceType = descriptor.getSurfaceType();
+    const auto tmpSurfaceType = static_cast<uint8_t>(surfaceType);
+    att.write(::H5::PredType::NATIVE_UINT8, &tmpSurfaceType);
+
+    // vertical datums
+    auto tmpDatums = descriptor.getVerticalDatums();
+    if (tmpDatums.size() > kMaxDatumsLength)
+        tmpDatums.resize(kMaxDatumsLength);
+
+    att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_VERTICAL_DATUM);
+    att.write(::H5::PredType::C_S1, tmpDatums);
+
+    // Write any optional attributes.
+    if (surfaceType == BAG_SURFACE_GRID_EXTENTS)
+    {
+        // sw corner x
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWX);
+        const auto origin = descriptor.getOrigin();
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(origin));
+
+        // sw corner y
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWY);
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(origin));
+
+        // node spacing x
+        const auto spacing = descriptor.getSpacing();
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSX);
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(spacing));
+
+        // node spacing y
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSY);
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(spacing));
+    }
+}
+
 void SurfaceCorrections::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
 {
     delete ptr;

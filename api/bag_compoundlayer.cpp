@@ -66,6 +66,11 @@ void CompoundLayer::writeProxy(
     //TODO update min/max & related attributes.
 }
 
+void CompoundLayer::writeAttributesProxy() const
+{
+    //TODO Implement.
+}
+
 void CompoundLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
 {
     delete ptr;

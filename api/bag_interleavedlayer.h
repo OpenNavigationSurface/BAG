@@ -45,6 +45,8 @@ private:
     void writeProxy(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
         uint32_t columnEnd, const uint8_t *buffer) override;
 
+    void writeAttributesProxy() const override;
+
     //! The HDF5 DataSet.
     std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 

@@ -231,12 +231,24 @@ void SimpleLayer::writeProxy(
     else
         throw UnsupportedAttributeType{};
 
-    auto currentMinMax = descriptor.getMinMax();
+    descriptor.setMinMax(std::max(descriptor.getMinMax(), minMax));
+}
 
-    std::get<0>(currentMinMax) = std::min(std::get<0>(minMax), std::get<0>(currentMinMax));
-    std::get<1>(currentMinMax) = std::max(std::get<1>(minMax), std::get<1>(currentMinMax));
+void SimpleLayer::writeAttributesProxy() const
+{
+    const auto& descriptor = this->getDescriptor();
+    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
 
-    descriptor.setMinMax(currentMinMax);
+    // Write any attributes, from the layer descriptor.
+    // min value
+    const auto minMax = descriptor.getMinMax();
+
+    const auto minAtt = m_pH5dataSet->openAttribute(attInfo.minName);
+    minAtt.write(attInfo.h5type, &std::get<0>(minMax));
+
+    // max value
+    const auto maxAtt = m_pH5dataSet->openAttribute(attInfo.maxName);
+    maxAtt.write(attInfo.h5type, &std::get<1>(minMax));
 }
 
 void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
