@@ -105,8 +105,8 @@ std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType(), path);
     if (std::get<0>(possibleMinMax))
-        descriptor.setMinMax({std::get<1>(possibleMinMax),
-            std::get<1>(possibleMinMax)});
+        descriptor.setMinMax(std::get<1>(possibleMinMax),
+            std::get<2>(possibleMinMax));
 
     return std::unique_ptr<InterleavedLayer>(new InterleavedLayer{dataset,
         descriptor, std::move(h5dataSet)});

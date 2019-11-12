@@ -102,13 +102,13 @@ TEST_CASE("test layer descriptor get/set min max",
         kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify setting min max does not throw.");
-    const std::tuple<float, float> kExpectedMinMax{1.2345f, 9876.54321f};
-    REQUIRE_NOTHROW(pDescriptor->setMinMax(kExpectedMinMax));
+    const float kExpectedMin = 1.2345f;
+    const float kExpectedMax = 9876.54321f;
+    REQUIRE_NOTHROW(pDescriptor->setMinMax(kExpectedMin, kExpectedMax));
 
     UNSCOPED_INFO("Verify the set min max value was set correctly.");
-    REQUIRE_NOTHROW(pDescriptor->getMinMax());
     const auto actualMinMax = pDescriptor->getMinMax();
-    CHECK(actualMinMax == kExpectedMinMax);
+    CHECK(actualMinMax == std::make_tuple(kExpectedMin, kExpectedMax));
 }
 
 //  const std::string& getInternalPath() const & noexcept;

@@ -145,9 +145,10 @@ std::tuple<float, float> LayerDescriptor::getMinMax() const noexcept
 }
 
 LayerDescriptor& LayerDescriptor::setMinMax(
-    std::tuple<float, float> inMinMax) & noexcept
+    float min,
+    float max) & noexcept
 {
-    m_minMax = inMinMax;
+    m_minMax = {min, max};
     return *this;
 }
 

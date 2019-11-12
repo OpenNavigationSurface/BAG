@@ -36,7 +36,7 @@ public:
 
     //TODO What about layers with uint32_t min/max values?
     std::tuple<float, float> getMinMax() const noexcept;
-    LayerDescriptor& setMinMax(std::tuple<float, float> inMinMax) & noexcept;
+    LayerDescriptor& setMinMax(float min, float max) & noexcept;
 
     const std::string& getInternalPath() const & noexcept;
 

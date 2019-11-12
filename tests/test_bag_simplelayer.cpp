@@ -485,9 +485,7 @@ TEST_CASE("test simple layer write attributes", "[simplelayer][write]")
         kExpectedMin = std::get<0>(originalMinMax) - 12.34f;
         kExpectedMax = std::get<1>(originalMinMax) + 56.789f;
 
-        const auto newMinMax = std::make_tuple(kExpectedMin, kExpectedMax);
-
-        REQUIRE_NOTHROW(descriptor.setMinMax(newMinMax));
+        REQUIRE_NOTHROW(descriptor.setMinMax(kExpectedMin, kExpectedMax));
         REQUIRE_NOTHROW(elevLayer.writeAttributes());
     }
 

@@ -61,8 +61,8 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
     if (std::get<0>(possibleMinMax))
-        descriptor.setMinMax({std::get<1>(possibleMinMax),
-            std::get<2>(possibleMinMax)});
+        descriptor.setMinMax(std::get<1>(possibleMinMax),
+            std::get<2>(possibleMinMax));
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, descriptor,
         std::move(h5dataSet)});
@@ -205,7 +205,7 @@ void SimpleLayer::writeProxy(
     // Update min/max attributes
     auto& descriptor = this->getDescriptor();
     const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
-    std::tuple<float, float> minMax{0.f, 0.f};
+    float min = 0.f, max = 0.f;
 
     if (attInfo.h5type == ::H5::PredType::NATIVE_FLOAT)
     {
@@ -215,7 +215,8 @@ void SimpleLayer::writeProxy(
         const auto end = floatBuffer + rows * columns;
 
         const auto mm = std::minmax_element(begin, end);
-        minMax = std::make_tuple(*std::get<0>(mm), *std::get<1>(mm));
+        min = *std::get<0>(mm);
+        max = *std::get<1>(mm);
     }
     else if (attInfo.h5type == ::H5::PredType::NATIVE_UINT32)
     {
@@ -225,13 +226,16 @@ void SimpleLayer::writeProxy(
         const auto end = uint32Buffer + rows * columns;
 
         const auto mm = std::minmax_element(begin, end);
-        minMax = std::make_tuple(static_cast<float>(*std::get<0>(mm)),
-            static_cast<float>(*std::get<1>(mm)));
+        min = static_cast<float>(*std::get<0>(mm));
+        max = static_cast<float>(*std::get<1>(mm));
     }
     else
         throw UnsupportedAttributeType{};
 
-    descriptor.setMinMax(std::max(descriptor.getMinMax(), minMax));
+    float currentMin = std::get<0>(descriptor.getMinMax());
+    float currentMax = std::get<1>(descriptor.getMinMax());
+
+    descriptor.setMinMax(std::min(currentMin, min), std::max(currentMax, max));
 }
 
 void SimpleLayer::writeAttributesProxy() const

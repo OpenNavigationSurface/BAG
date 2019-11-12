@@ -34,8 +34,8 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
     if (std::get<0>(possibleMinMax))
-        descriptor.setMinMax({std::get<1>(possibleMinMax),
-            std::get<1>(possibleMinMax)});
+        descriptor.setMinMax(std::get<1>(possibleMinMax),
+            std::get<2>(possibleMinMax));
 
     return std::unique_ptr<CompoundLayer>(new CompoundLayer{dataset,
         descriptor});
