@@ -186,27 +186,29 @@ void Dataset::createDataset(
         fileName.c_str(), H5F_ACC_EXCL}, DeleteH5File{});
 
     // Group: BAG_root
-    auto h5bagGroup = m_pH5file->createGroup(ROOT_PATH);
+    {
+        auto h5bagGroup = m_pH5file->createGroup(ROOT_PATH);
 
-    const auto versionAttType = ::H5::StrType{0, BAG_VERSION_LENGTH};
-    const ::H5::DataSpace versionAttDataSpace{};
-    auto versionAtt = h5bagGroup.createAttribute(BAG_VERSION_NAME, versionAttType, versionAttDataSpace);
+        const auto versionAttType = ::H5::StrType{0, BAG_VERSION_LENGTH};
+        const ::H5::DataSpace versionAttDataSpace{};
+        auto versionAtt = h5bagGroup.createAttribute(BAG_VERSION_NAME,
+            versionAttType, versionAttDataSpace);
 
-    versionAtt.write(versionAttType, BAG_VERSION);
-    versionAtt.close();
+        versionAtt.write(versionAttType, BAG_VERSION);
+    }
 
     // Metadata
     metadata.createH5dataSet(*this);
     metadata.write();
     m_pMetadata = std::make_unique<Metadata>(std::move(metadata));
 
+    m_descriptor = Descriptor{*m_pMetadata};
+    m_descriptor.setReadOnly(false);
+    m_descriptor.setVersion(BAG_VERSION);
+
     // TrackingList
     m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this,
         compressionLevel});
-
-    Descriptor descriptor;
-    descriptor.setReadOnly(false);
-    m_descriptor = std::move(descriptor);
 
     // Mandatory Layers (Elevation, Uncertainty)
     this->addLayer(SimpleLayer::create(*this, Elevation, chunkSize,
@@ -382,11 +384,12 @@ void Dataset::readDataset(
         (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
         DeleteH5File{});
 
-    Descriptor descriptor;
+    m_pMetadata = std::make_unique<Metadata>(*this);
 
-    descriptor.setReadOnly(openMode == BAG_OPEN_READONLY);
-    descriptor.setVersion(readStringAttributeFromGroup(*m_pH5file, ROOT_PATH,
-        BAG_VERSION_NAME));
+    m_descriptor = Descriptor{*m_pMetadata};
+    m_descriptor.setReadOnly(openMode == BAG_OPEN_READONLY);
+    m_descriptor.setVersion(readStringAttributeFromGroup(*m_pH5file,
+        ROOT_PATH, BAG_VERSION_NAME));
 
     const auto bagGroup = m_pH5file->openGroup(ROOT_PATH);
 
@@ -410,7 +413,7 @@ void Dataset::readDataset(
         this->addLayer(SimpleLayer::open(*this, *layerDesc));
     }
 
-    const auto bagVersion = getNumericalVersion(descriptor.getVersion());
+    const auto bagVersion = getNumericalVersion(m_descriptor.getVersion());
 
     // If the BAG is version 1.5+ ...
     if (bagVersion >= 1'005'000)
@@ -460,10 +463,6 @@ void Dataset::readDataset(
         //TODO handle Compound layers
     }
 
-    m_descriptor = std::move(descriptor);
-
-    m_pMetadata = std::make_unique<Metadata>(*this);
-
     m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this});
 
     const hid_t id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH,
@@ -471,8 +470,8 @@ void Dataset::readDataset(
     if (id >= 0)
     {
         H5Dclose(id);
-        auto scDescriptor = SurfaceCorrectionsDescriptor::create(*this);
-        m_pSurfaceCorrections = SurfaceCorrections::open(*this, *scDescriptor);
+        auto descriptor = SurfaceCorrectionsDescriptor::create(*this);
+        m_pSurfaceCorrections = SurfaceCorrections::open(*this, *descriptor);
     }
 }
 
