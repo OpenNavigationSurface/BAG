@@ -381,7 +381,7 @@ TEST_CASE("test load from file",
 //  uint32_t columns() const noexcept;
 //  uint32_t rows() const noexcept;
 TEST_CASE("test load from buffer",
-    "[single][metadata][loadFromBuffer][columnResolution]"
+    "[metadata][loadFromBuffer][columnResolution]"
     "[horizontalReferenceSystemAsWKT][llCornerX][llCornerY][rowResolution]"
     "[urCornerX][urCornerY][columns][rows]")
 {

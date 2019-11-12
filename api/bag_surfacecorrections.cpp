@@ -92,12 +92,12 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
 
 std::unique_ptr<::H5::DataSet, SurfaceCorrections::DeleteH5dataSet>
 SurfaceCorrections::createH5dataSet(
-    const Dataset& inDataSet,
+    const Dataset& dataset,
     const SurfaceCorrectionsDescriptor& descriptor)
 {
     // Use the dimensions from the descriptor.
-    const auto dims = descriptor.getDims();
-    const std::array<hsize_t, RANK> fileDims{std::get<0>(dims), std::get<1>(dims)};
+    std::array<hsize_t, RANK> fileDims{};
+    std::tie(fileDims[0], fileDims[1]) = dataset.getDescriptor().getDims();
     const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
     const ::H5::DataSpace h5fileDataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
 
@@ -126,7 +126,7 @@ SurfaceCorrections::createH5dataSet(
     h5createPropList.setFillValue(h5memDataType, zeroData.get());
 
     // Create the DataSet using the above.
-    const auto& h5file = inDataSet.getH5file();
+    const auto& h5file = dataset.getH5file();
 
     const auto h5dataSet = h5file.createDataSet(VERT_DATUM_CORR_PATH,
         h5memDataType, h5fileDataSpace, h5createPropList);
@@ -184,14 +184,15 @@ std::unique_ptr<uint8_t[]> SurfaceCorrections::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
+    // Query the file for the specified rows and columns.
+    const auto h5fileDataSpace = m_pH5dataSet->getSpace();
+
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
     const std::array<hsize_t, RANK> offset{rowStart, columnStart};
 
-    // Query the file for the specified rows and columns.
-    const auto h5fileSpace = m_pH5dataSet->getSpace();
-    h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     if (!dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor()))
         throw UnexpectedLayerDescriptorType{};
@@ -206,7 +207,7 @@ std::unique_ptr<uint8_t[]> SurfaceCorrections::readProxy(
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    m_pH5dataSet->read(buffer.get(), h5memDataType, h5memSpace, h5fileSpace);
+    m_pH5dataSet->read(buffer.get(), h5memDataType, h5memSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -249,7 +250,11 @@ void SurfaceCorrections::writeProxy(
         h5fileDataSpace = m_pH5dataSet->getSpace();
 
         // Update the dataset's dimensions.
-        descriptor.setDims(static_cast<uint32_t>(newDims[0]),
+        if (this->getDataset().expired())
+            throw DatasetNotFound{};
+
+        auto pDataset = this->getDataset().lock();
+        pDataset->getDescriptor().setDims(static_cast<uint32_t>(newDims[0]),
             static_cast<uint32_t>(newDims[1]));
     }
 

@@ -177,26 +177,4 @@ TEST_CASE("test descriptor get compression level",
     CHECK(pDescriptor->getCompressionLevel() == kExpectedCompressionLevel);
 }
 
-//  std::tuple<uint64_t, uint64_t> getDims() const noexcept;
-//  Descriptor& setDims(const std::tuple<uint64_t, uint64_t>& inDims) & noexcept;
-TEST_CASE("test descriptor get/set dims", "[simplelayerdescriptor][getDims][setDims]")
-{
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
-
-    const uint32_t kExpectedRows = 1001;
-    const uint32_t kExpectedColumns = 9982;
-
-    UNSCOPED_INFO("Verify setting the dims does not throw.");
-    REQUIRE_NOTHROW(pDescriptor->setDims(kExpectedRows, kExpectedColumns));
-
-    UNSCOPED_INFO("Verify getting the dims does not throw.");
-    REQUIRE_NOTHROW(pDescriptor->getDims());
-
-    UNSCOPED_INFO("Verify getting the dims matches the expected.");
-    const auto actualDims = pDescriptor->getDims();
-    CHECK(actualDims == std::make_tuple(kExpectedRows, kExpectedColumns));
-}
 

@@ -17,7 +17,7 @@ int main(
 
     uint64_t numRows = 0, numCols = 0;
     std::tie(numRows, numCols) =
-        pDataset->getLayer(Elevation).getDescriptor().getDims();
+        pDataset->getDescriptor().getDims();
 
     double minX = 0., minY = 0., maxX = 0., maxY = 0.;
     std::tie(minX, minY) = pDataset->gridToGeo(0, 0);

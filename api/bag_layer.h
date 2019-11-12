@@ -60,6 +60,7 @@ protected:
     };
 
     static AttributeInfo getAttributeInfo(LayerType layerType);
+    std::weak_ptr<Dataset> getDataset() & noexcept;
 
 private:
     virtual std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,

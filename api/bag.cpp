@@ -132,7 +132,7 @@ BagError bagGetGridDimensions(
         return 9999; // No handle provided.
 
     std::tie(*rows, *cols) =
-        handle->pDataset->getLayer(Elevation).getDescriptor().getDims();
+        handle->pDataset->getDescriptor().getDims();
 
     return 0;
 }

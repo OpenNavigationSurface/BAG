@@ -12,28 +12,6 @@ namespace BAG {
 
 namespace {
 
-std::tuple<uint32_t, uint32_t> getDims(
-    const ::H5::H5File& h5file,
-    const std::string& path)
-{
-    const auto h5dataset = h5file.openDataSet(path);
-    const auto h5dataSpace = h5dataset.getSpace();
-    if (!h5dataSpace.isSimple())
-        throw 97;  // Can only work with simple data spaces.
-
-    const int fileRank = h5dataSpace.getSimpleExtentNdims();
-    std::array<hsize_t, RANK> fileDims{};
-    const int dimsRank = h5dataSpace.getSimpleExtentDims(fileDims.data());
-
-    if (fileRank != RANK || dimsRank != RANK)
-        throw 99;  // Unexpected dimensions.
-
-    const auto rows = static_cast<uint32_t>(fileDims[0]);
-    const auto columns = static_cast<uint32_t>(fileDims[1]);
-
-    return std::make_tuple(rows, columns);
-}
-
 unsigned int getCompressionLevel(
     const ::H5::H5File& h5file,
     const std::string& path)
@@ -112,7 +90,6 @@ LayerDescriptor::LayerDescriptor(
 
     const auto& h5file = dataset.getH5file();
 
-    m_dims = BAG::getDims(h5file, m_internalPath);
     m_compressionLevel = BAG::getCompressionLevel(h5file, m_internalPath);
     m_chunkSize = BAG::getChunkSize(h5file, m_internalPath);
 }
@@ -183,19 +160,6 @@ uint64_t LayerDescriptor::getChunkSize() const noexcept
 unsigned int LayerDescriptor::getCompressionLevel() const noexcept
 {
     return m_compressionLevel;
-}
-
-std::tuple<uint32_t, uint32_t> LayerDescriptor::getDims() const noexcept
-{
-    return m_dims;
-}
-
-LayerDescriptor& LayerDescriptor::setDims(
-    const uint32_t rows,
-    uint32_t columns) & noexcept
-{
-    m_dims = {rows, columns};
-    return *this;
 }
 
 }  // namespace BAG

@@ -43,7 +43,7 @@ protected:
 
 private:
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-        createH5dataSet(const Dataset& inDataSet,
+        createH5dataSet(const Dataset& dataset,
             const SurfaceCorrectionsDescriptor& descriptor);
 
     const ::H5::DataSet& getH5dataSet() const & noexcept;

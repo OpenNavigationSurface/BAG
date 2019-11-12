@@ -57,6 +57,11 @@ Layer::AttributeInfo Layer::getAttributeInfo(LayerType layerType)
     }
 }
 
+std::weak_ptr<Dataset> Layer::getDataset() & noexcept
+{
+    return m_pBagDataset;
+}
+
 DataType Layer::getDataType(LayerType layerType) noexcept
 {
     switch (layerType)
@@ -157,7 +162,8 @@ std::unique_ptr<uint8_t[]> Layer::read(
         throw DatasetNotFound{};
 
     uint32_t numRows = 0, numColumns = 0;
-    std::tie(numRows, numColumns) = this->getDescriptor().getDims();
+    const auto pDataset = m_pBagDataset.lock();
+    std::tie(numRows, numColumns) = pDataset->getDescriptor().getDims();
 
     if (columnEnd >= numColumns || rowEnd >= numRows)
         throw InvalidReadSize{};

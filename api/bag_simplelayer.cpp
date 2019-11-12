@@ -74,16 +74,12 @@ SimpleLayer::createH5dataSet(
     const Dataset& dataset,
     const LayerDescriptor& descriptor)
 {
-    // Use the dimensions from the layer descriptor.
+    // Use the dimensions from the descriptor.
     uint32_t dim0 = 0, dim1 = 0;
-    std::tie(dim0, dim1) = descriptor.getDims();
+    std::tie(dim0, dim1) = dataset.getDescriptor().getDims();
     const std::array<hsize_t, RANK> fileDims{dim0, dim1};
 
-    // Use the max dimensions from the descriptor.
-    std::tie(dim0, dim1) = dataset.getDescriptor().getDims();
-    const std::array<hsize_t, RANK> maxFileDims{dim0, dim1};
-
-    ::H5::DataSpace h5dataSpace{RANK, fileDims.data(), maxFileDims.data()};
+    ::H5::DataSpace h5dataSpace{RANK, fileDims.data(), fileDims.data()};
 
     ::H5::AtomType h5dataType{::H5::PredType::NATIVE_FLOAT};
     h5dataType.setOrder(H5T_ORDER_LE);
@@ -141,14 +137,15 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
+    // Query the file for the specified rows and columns.
+    const auto h5fileDataSpace = m_pH5dataSet->getSpace();
+
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
     const std::array<hsize_t, RANK> offset{rowStart, columnStart};
 
-    // Query the file for the specified rows and columns.
-    const auto h5dataSpace = m_pH5dataSet->getSpace();
-    h5dataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
@@ -159,7 +156,7 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     m_pH5dataSet->read(buffer.get(), H5Dget_type(m_pH5dataSet->getId()),
-        h5memSpace, h5dataSpace);
+        h5memSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -171,33 +168,19 @@ void SimpleLayer::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
+    auto h5fileDataSpace = m_pH5dataSet->getSpace();
+
+    // Make sure the area being written to does not exceed the file dimensions.
+    std::array<hsize_t, RANK> fileDims{};
+    h5fileDataSpace.getSimpleExtentDims(fileDims.data());
+
+    if ((rowEnd >= fileDims[0]) || (columnEnd >= fileDims[1]))
+        throw InvalidWriteSize{};
+
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
     const std::array<hsize_t, RANK> offset{rowStart, columnStart};
-
-    auto h5fileDataSpace = m_pH5dataSet->getSpace();
-
-    // Expand the file data space if needed.
-    std::array<hsize_t, RANK> fileDims{};
-    std::array<hsize_t, RANK> maxFileDims{};
-    h5fileDataSpace.getSimpleExtentDims(fileDims.data(), maxFileDims.data());
-
-    if ((fileDims[0] < (rowEnd + 1)) ||
-        (fileDims[1] < (columnEnd + 1)))
-    {
-        const std::array<hsize_t, RANK> newDims{
-            std::max<hsize_t>(fileDims[0], rowEnd + 1),
-            std::max<hsize_t>(fileDims[1], columnEnd + 1)};
-
-        m_pH5dataSet->extend(newDims.data());
-
-        h5fileDataSpace = m_pH5dataSet->getSpace();
-
-        // Update the layer descriptor's dimensions.
-        this->getDescriptor().setDims(static_cast<uint32_t>(newDims[0]),
-            static_cast<uint32_t>(newDims[1]));
-    }
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 

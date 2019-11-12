@@ -399,12 +399,16 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
 
         UNSCOPED_INFO("Check the Elevation layer exists.");
         REQUIRE_NOTHROW(pDataset->getLayer(kLayerType));
-        const auto& elevLayer = pDataset->getLayer(kLayerType);
 
-        UNSCOPED_INFO("Check initial file dimensions are 0x0.");
-        const auto& descriptor = elevLayer.getDescriptor();
-        const std::tuple<uint32_t, uint32_t> kExpectedFileDims{0, 0};
-        CHECK(descriptor.getDims() == kExpectedFileDims);
+        UNSCOPED_INFO("Check the dimensions of Elevation are expected.");
+        const auto fileDims = pDataset->getDescriptor().getDims();
+        const auto kExpectedRows =
+            pDataset->getMetadata().getStruct().spatialRepresentationInfo->
+                numberOfRows;
+        const auto kExpectedColumns =
+            pDataset->getMetadata().getStruct().spatialRepresentationInfo->
+                numberOfColumns;
+        CHECK(fileDims == std::make_tuple(kExpectedRows, kExpectedColumns));
     }
 
     // Open the dataset read/write and write to it.
@@ -421,11 +425,6 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
 
         REQUIRE_NOTHROW(elevLayer.write(1, 2, 3, 5,
             reinterpret_cast<uint8_t*>(buffer.data()))); // 3x4
-
-        UNSCOPED_INFO("Check updated file dimensions are expected.");
-        const auto& descriptor = elevLayer.getDescriptor();
-        const std::tuple<uint32_t, uint32_t> kExpectedFileDims{4, 6};
-        CHECK(descriptor.getDims() == kExpectedFileDims);
     }
 
     // Open the dataset and read what was written.
@@ -435,11 +434,6 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
         REQUIRE(pDataset);
 
         const auto& elevLayer = pDataset->getLayer(kLayerType);
-
-        UNSCOPED_INFO("Check file dimensions are expected.");
-        const auto& descriptor = elevLayer.getDescriptor();
-        const std::tuple<uint32_t, uint32_t> kExpectedFileDims{4, 6};
-        CHECK(descriptor.getDims() == kExpectedFileDims);
 
         UNSCOPED_INFO("Read the new data in the Elevation layer.");
         auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
