@@ -75,10 +75,15 @@ SimpleLayer::createH5dataSet(
     const LayerDescriptor& descriptor)
 {
     // Use the dimensions from the layer descriptor.
-    const auto dims = descriptor.getDims();
-    const std::array<hsize_t, RANK> fileDims{std::get<0>(dims), std::get<1>(dims)};
-    const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
-    ::H5::DataSpace h5dataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
+    uint32_t dim0 = 0, dim1 = 0;
+    std::tie(dim0, dim1) = descriptor.getDims();
+    const std::array<hsize_t, RANK> fileDims{dim0, dim1};
+
+    // Use the max dimensions from the descriptor.
+    std::tie(dim0, dim1) = dataset.getDescriptor().getDims();
+    const std::array<hsize_t, RANK> maxFileDims{dim0, dim1};
+
+    ::H5::DataSpace h5dataSpace{RANK, fileDims.data(), maxFileDims.data()};
 
     ::H5::AtomType h5dataType{::H5::PredType::NATIVE_FLOAT};
     h5dataType.setOrder(H5T_ORDER_LE);
