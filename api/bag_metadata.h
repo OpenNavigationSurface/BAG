@@ -37,19 +37,18 @@ public:
     const BagMetadata& getStruct() const noexcept;
 
     double columnResolution() const noexcept;
-    const char* horizontalCRSasWKT() const;
+    std::string horizontalReferenceSystemAsWKT() const;
     double llCornerX() const noexcept;
     double llCornerY() const noexcept;
     double rowResolution() const noexcept;
     double urCornerX() const noexcept;
     double urCornerY() const noexcept;
+    std::string verticalReferenceSystemAsWKT() const;
 
     void loadFromFile(const std::string& fileName);
     void loadFromBuffer(const std::string& xmlBuffer);
 
     size_t getXMLlength() const noexcept;
-
-    void write() const;
 
 private:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
@@ -59,6 +58,8 @@ private:
     };
 
     void createH5dataSet(const Dataset& inDataSet);
+
+    void write() const;
 
     //! The dataset the metadata is part of.
     std::weak_ptr<const Dataset> m_pBagDataset;

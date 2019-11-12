@@ -346,9 +346,8 @@ TEST_CASE("test get struct", "[metadata][getStruct]")
     REQUIRE_NOTHROW(dataset->getMetadata());
 
     const auto& metadata = dataset->getMetadata();
-    auto horizontalCRSasWKT = metadata.horizontalCRSasWKT();
-    REQUIRE(horizontalCRSasWKT);
-    CHECK(std::string{horizontalCRSasWKT}.empty() == false);
+    auto horizontalCRSasWKT = metadata.horizontalReferenceSystemAsWKT();
+    CHECK(!horizontalCRSasWKT.empty());
 }
 
 //  void loadFromFile(const std::string& fileName);

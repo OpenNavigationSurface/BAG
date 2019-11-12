@@ -108,11 +108,11 @@ size_t Metadata::getXMLlength() const noexcept
     return m_xmlLength;
 }
 
-const char* Metadata::horizontalCRSasWKT() const
+std::string Metadata::horizontalReferenceSystemAsWKT() const
 {
     const auto* type = m_pMetaStruct->horizontalReferenceSystem->type;
-    if (!type || std::string{type} != "WKT")
-        return nullptr;
+    if (!type || type != std::string{"WKT"})
+        return {};
 
     return m_pMetaStruct->horizontalReferenceSystem->definition;
 }
@@ -162,6 +162,15 @@ double Metadata::urCornerX() const noexcept
 double Metadata::urCornerY() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->urCornerY;
+}
+
+std::string Metadata::verticalReferenceSystemAsWKT() const
+{
+    const auto* type = m_pMetaStruct->verticalReferenceSystem->type;
+    if (!type || type != std::string{"WKT"})
+        return {};
+
+    return m_pMetaStruct->horizontalReferenceSystem->definition;
 }
 
 void Metadata::write() const
