@@ -186,16 +186,17 @@ TEST_CASE("test descriptor get/set dims", "[simplelayerdescriptor][getDims][setD
     auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
         kExpectedChunkSize, kExpectedCompressionLevel);
 
-    const std::tuple<uint32_t, uint32_t> kExpectedDims{1001, 9982};
+    const uint32_t kExpectedRows = 1001;
+    const uint32_t kExpectedColumns = 9982;
 
     UNSCOPED_INFO("Verify setting the dims does not throw.");
-    REQUIRE_NOTHROW(pDescriptor->setDims(kExpectedDims));
+    REQUIRE_NOTHROW(pDescriptor->setDims(kExpectedRows, kExpectedColumns));
 
     UNSCOPED_INFO("Verify getting the dims does not throw.");
     REQUIRE_NOTHROW(pDescriptor->getDims());
 
     UNSCOPED_INFO("Verify getting the dims matches the expected.");
     const auto actualDims = pDescriptor->getDims();
-    CHECK(actualDims == kExpectedDims);
+    CHECK(actualDims == std::make_tuple(kExpectedRows, kExpectedColumns));
 }
 

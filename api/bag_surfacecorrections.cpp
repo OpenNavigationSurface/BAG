@@ -249,8 +249,8 @@ void SurfaceCorrections::writeProxy(
         h5fileDataSpace = m_pH5dataSet->getSpace();
 
         // Update the dataset's dimensions.
-        descriptor.setDims({static_cast<uint32_t>(newDims[0]),
-            static_cast<uint32_t>(newDims[1])});
+        descriptor.setDims(static_cast<uint32_t>(newDims[0]),
+            static_cast<uint32_t>(newDims[1]));
     }
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());

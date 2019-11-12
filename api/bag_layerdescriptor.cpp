@@ -191,9 +191,10 @@ std::tuple<uint32_t, uint32_t> LayerDescriptor::getDims() const noexcept
 }
 
 LayerDescriptor& LayerDescriptor::setDims(
-    const std::tuple<uint32_t, uint32_t>& inDims) & noexcept
+    const uint32_t rows,
+    uint32_t columns) & noexcept
 {
-    m_dims = inDims;
+    m_dims = {rows, columns};
     return *this;
 }
 

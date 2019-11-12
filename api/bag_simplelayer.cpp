@@ -74,7 +74,7 @@ SimpleLayer::createH5dataSet(
     const Dataset& dataset,
     const LayerDescriptor& descriptor)
 {
-    // Use the dimensions from the descriptor.
+    // Use the dimensions from the layer descriptor.
     const auto dims = descriptor.getDims();
     const std::array<hsize_t, RANK> fileDims{std::get<0>(dims), std::get<1>(dims)};
     const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
@@ -190,8 +190,8 @@ void SimpleLayer::writeProxy(
         h5fileDataSpace = m_pH5dataSet->getSpace();
 
         // Update the layer descriptor's dimensions.
-        this->getDescriptor().setDims({static_cast<uint32_t>(newDims[0]),
-            static_cast<uint32_t>(newDims[1])});
+        this->getDescriptor().setDims(static_cast<uint32_t>(newDims[0]),
+            static_cast<uint32_t>(newDims[1]));
     }
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());

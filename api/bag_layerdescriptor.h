@@ -47,7 +47,7 @@ public:
     unsigned int getCompressionLevel() const noexcept;
 
     std::tuple<uint32_t, uint32_t> getDims() const noexcept;
-    LayerDescriptor& setDims(const std::tuple<uint32_t, uint32_t>& inDims) & noexcept;
+    LayerDescriptor& setDims(uint32_t rows, uint32_t columns) & noexcept;
 
 protected:
     LayerDescriptor(LayerType type, uint64_t chunkSize,
@@ -71,7 +71,7 @@ private:
     //! The name of the layer.
     std::string m_name;
     //! The dimensions of this dataset.
-    std::tuple<uint32_t, uint32_t> m_dims;
+    std::tuple<uint32_t, uint32_t> m_dims{};
     //! The compression level of this dataset (0-9).
     unsigned int m_compressionLevel = 0;
     //! The chunk size of this dataset (0x0, 10x10 or 100x100).
