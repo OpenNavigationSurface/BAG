@@ -56,12 +56,21 @@ struct BAG_API InvalidBuffer final : virtual std::exception
     }
 };
 
+//! Invalid dimensions specified for the read.
+struct BAG_API InvalidReadSize final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The dimensions specified for reading are not valid.";
+    }
+};
+
 //! Invalid dimensions specified for the write.
 struct BAG_API InvalidWriteSize final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "The dimensions specified for the write are not valid.";
+        return "The dimensions specified for writing are not valid.";
     }
 };
 

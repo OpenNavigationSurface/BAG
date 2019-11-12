@@ -151,16 +151,16 @@ std::unique_ptr<uint8_t[]> Layer::read(
     uint32_t columnEnd) const
 {
     if (rowStart > rowEnd || columnStart > columnEnd)
-        throw 42;  // starting row or column is after the end.
+        InvalidReadSize{};
 
     if (m_pBagDataset.expired())
-        throw 23;  // No dataset to read from.
+        throw DatasetNotFound{};
 
     uint32_t numRows = 0, numColumns = 0;
     std::tie(numRows, numColumns) = this->getDescriptor().getDims();
 
     if (columnEnd >= numColumns || rowEnd >= numRows)
-        throw 43;  // requesting more columns or rows than the data has
+        throw InvalidReadSize{};
 
     return this->readProxy(rowStart, columnStart, rowEnd, columnEnd);
 }
