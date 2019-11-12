@@ -283,6 +283,11 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
     return std::make_tuple(row, column);
 }
 
+Descriptor& Dataset::getDescriptor() & noexcept
+{
+    return m_descriptor;
+}
+
 const Descriptor& Dataset::getDescriptor() const & noexcept
 {
     return m_descriptor;

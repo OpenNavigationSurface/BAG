@@ -59,6 +59,7 @@ public:
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
 
+    Descriptor& getDescriptor() & noexcept;
     const Descriptor& getDescriptor() const & noexcept;
 
     //TODO Perhaps a struct GridPoint {uint32_t column; uint32_t row;}; ?
