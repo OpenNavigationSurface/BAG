@@ -75,6 +75,11 @@ double Metadata::columnResolution() const noexcept
     return m_pMetaStruct->spatialRepresentationInfo->columnResolution;
 }
 
+uint32_t Metadata::columns() const noexcept
+{
+    return m_pMetaStruct->spatialRepresentationInfo->numberOfColumns;
+}
+
 void Metadata::createH5dataSet(
     const Dataset& inDataset)
 {
@@ -152,6 +157,11 @@ void Metadata::loadFromBuffer(const std::string& xmlBuffer)
 double Metadata::rowResolution() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->rowResolution;
+}
+
+uint32_t Metadata::rows() const noexcept
+{
+    return m_pMetaStruct->spatialRepresentationInfo->numberOfRows;
 }
 
 double Metadata::urCornerX() const noexcept

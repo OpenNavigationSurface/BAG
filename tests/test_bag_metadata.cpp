@@ -327,31 +327,34 @@ TEST_CASE("test metadata construction and destruction", "[metadata][constructor]
         const std::string bagFileName{
             std::string{std::getenv("BAG_SAMPLES_PATH")} + "/sample.bag"};
 
-        const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
-        REQUIRE(dataset);
+        const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+        REQUIRE(pDataset);
 
-        Metadata metadata(*dataset);
+        Metadata metadata{*pDataset};
     }
 }
 
 //  const BagMetadata& getStruct() const;
-TEST_CASE("test get struct", "[metadata][getStruct]")
+TEST_CASE("test get struct",
+    "[metadata][getStruct][horizontalReferenceSystemAsWKT]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
 
-    const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+    const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
 
-    REQUIRE(dataset);
-    REQUIRE_NOTHROW(dataset->getMetadata());
+    REQUIRE(pDataset);
+    REQUIRE_NOTHROW(pDataset->getMetadata());
 
-    const auto& metadata = dataset->getMetadata();
-    auto horizontalCRSasWKT = metadata.horizontalReferenceSystemAsWKT();
-    CHECK(!horizontalCRSasWKT.empty());
+    const auto& metadata = pDataset->getMetadata();
+    auto horizontalRefSys = metadata.horizontalReferenceSystemAsWKT();
+    CHECK(!horizontalRefSys.empty());
 }
 
 //  void loadFromFile(const std::string& fileName);
-TEST_CASE("test load from file", "[metadata][loadFromFile][columnResolution][horizontalCRSasWKT][llCornerX][llCornerY][rowResolution][urCornerX][urCornerY]")
+TEST_CASE("test load from file",
+    "[metadata][loadFromFile][columnResolution][horizontalReferenceSystemAsWKT]"
+    "[llCornerX][llCornerY][rowResolution][urCornerX][urCornerY]")
 {
     TestUtils::RandomFileGuard tmpFileName;
 
@@ -365,7 +368,7 @@ TEST_CASE("test load from file", "[metadata][loadFromFile][columnResolution][hor
     REQUIRE_NOTHROW(metadata.loadFromFile(tmpFileName));
 
     CHECK(metadata.columnResolution() == Approx{10.0});
-    //CHECK(std::string{metadata.horizontalCRSasWKT()}.empty() == false);
+    //CHECK(std::string{metadata.horizontalReferenceSystemAsWKT()}.empty() == false);
     CHECK(metadata.llCornerX() == Approx{687910.000000});
     CHECK(metadata.llCornerY() == Approx{5554620.000000});
     CHECK(metadata.rowResolution() == Approx{10.0});
@@ -375,17 +378,23 @@ TEST_CASE("test load from file", "[metadata][loadFromFile][columnResolution][hor
 
 //  void loadFromBuffer(const std::string& xmlBuffer);
 //  double columnResolution() const;
-TEST_CASE("test load from buffer", "[metadata][loadFromBuffer][columnResolution][horizontalCRSasWKT][llCornerX][llCornerY][rowResolution][urCornerX][urCornerY]")
+//  uint32_t columns() const noexcept;
+//  uint32_t rows() const noexcept;
+TEST_CASE("test load from buffer",
+    "[single][metadata][loadFromBuffer][columnResolution]"
+    "[horizontalReferenceSystemAsWKT][llCornerX][llCornerY][rowResolution]"
+    "[urCornerX][urCornerY][columns][rows]")
 {
     Metadata metadata;
     REQUIRE_NOTHROW(metadata.loadFromBuffer(kXMLv2MetadataBuffer));
 
     CHECK(metadata.columnResolution() == Approx{10.0});
-    //CHECK(std::string{metadata.horizontalCRSasWKT()}.empty() == false);
     CHECK(metadata.llCornerX() == Approx{687910.000000});
     CHECK(metadata.llCornerY() == Approx{5554620.000000});
     CHECK(metadata.rowResolution() == Approx{10.0});
     CHECK(metadata.urCornerX() == Approx{691590.000000});
     CHECK(metadata.urCornerY() == Approx{5562100.000000});
+    CHECK(metadata.rows() == 100);
+    CHECK(metadata.columns() == 100);
 }
 

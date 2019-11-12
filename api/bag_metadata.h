@@ -36,11 +36,13 @@ public:
 
     const BagMetadata& getStruct() const noexcept;
 
+    uint32_t columns() const noexcept;
     double columnResolution() const noexcept;
     std::string horizontalReferenceSystemAsWKT() const;
     double llCornerX() const noexcept;
     double llCornerY() const noexcept;
     double rowResolution() const noexcept;
+    uint32_t rows() const noexcept;
     double urCornerX() const noexcept;
     double urCornerY() const noexcept;
     std::string verticalReferenceSystemAsWKT() const;
