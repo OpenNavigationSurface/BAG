@@ -25,6 +25,12 @@ namespace BAG {
 class BAG_API Layer
 {
 public:
+    //TODO Temp, make sure only move operations are used until development is done.
+    Layer(const Layer&) = delete;
+    Layer(Layer&&) = delete;
+    Layer& operator=(const Layer&) = delete;
+    Layer& operator=(Layer&&) = delete;
+
     virtual ~Layer() = default;
 
     static DataType getDataType(LayerType layerType) noexcept;
@@ -45,11 +51,6 @@ public:
 
 protected:
     Layer(Dataset& dataset, LayerDescriptor& descriptor);
-
-    Layer(const Layer&) = delete;
-    Layer(Layer&&) = delete;
-    Layer& operator=(const Layer&) = delete;
-    Layer& operator=(Layer&&) = delete;
 
     struct AttributeInfo
     {

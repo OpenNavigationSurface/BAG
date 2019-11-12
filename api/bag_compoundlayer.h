@@ -26,6 +26,12 @@ public:
         DataType m_type;  //TODO Other types?  strings, double, int, short, char?
     };
 
+    //TODO Temp, make sure only move operations are used until development is done.
+    CompoundLayer(const CompoundLayer&) = delete;
+    CompoundLayer(CompoundLayer&&) = delete;
+    CompoundLayer& operator=(const CompoundLayer&) = delete;
+    CompoundLayer& operator=(CompoundLayer&&) = delete;
+
     const std::vector<Definition>& getDefinition() const noexcept;
 
 protected:

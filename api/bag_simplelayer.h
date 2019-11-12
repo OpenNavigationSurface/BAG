@@ -19,6 +19,11 @@ namespace BAG {
 class BAG_API SimpleLayer final : public Layer
 {
 public:
+    //TODO Temp, make sure only move operations are used until development is done.
+    SimpleLayer(const SimpleLayer&) = delete;
+    SimpleLayer(SimpleLayer&&) = delete;
+    SimpleLayer& operator=(const SimpleLayer&) = delete;
+    SimpleLayer& operator=(SimpleLayer&&) = delete;
 
 protected:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
@@ -29,11 +34,6 @@ protected:
 
     SimpleLayer(Dataset& dataset, LayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
-
-    SimpleLayer(const SimpleLayer&) = delete;
-    SimpleLayer(SimpleLayer&&) = delete;
-    SimpleLayer& operator=(const SimpleLayer&) = delete;
-    SimpleLayer& operator=(SimpleLayer&&) = delete;
 
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
         LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
