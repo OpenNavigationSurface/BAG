@@ -24,6 +24,16 @@ struct BAG_API UnsupportedAttributeType final : virtual std::exception
     }
 };
 
+// CompoundDataType related.
+//! Layer not found.
+struct BAG_API InvalidType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The type specified does not match what is stored.";
+    }
+};
+
 // Dataset related.
 //! Layer not found.
 struct BAG_API DatasetNotFound final : virtual std::exception

@@ -8,6 +8,7 @@ set(CMAKE_DEBUG_POSTFIX "d")
 
 set(TEST_SOURCE_FILES
     test_main.cpp
+    test_bag_compounddatatype.cpp
     test_bag_dataset.cpp
     test_bag_descriptor.cpp
     test_bag_interleavedlayer.cpp

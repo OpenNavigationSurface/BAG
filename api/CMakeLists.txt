@@ -37,6 +37,7 @@ set(BAG_PRIVATE_HEADER_FILES
 set(BAG_HEADER_FILES
     bag.h
     bag_c_types.h
+    bag_compounddatatype.h
     bag_compoundlayer.h
     bag_config.h
     bag_dataset.h
