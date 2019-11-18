@@ -109,8 +109,8 @@ target_include_directories(bag
 
 target_link_libraries(bag
     PRIVATE
-        debug ${HDF5_hdf5_LIBRARY_DEBUG} ${HDF5_hdf5_cpp_LIBRARY_DEBUG}
-        optimized ${HDF5_hdf5_LIBRARY_RELEASE} ${HDF5_hdf5_cpp_LIBRARY_RELEASE}
+        ${HDF5_hdf5_LIBRARY}
+        ${HDF5_hdf5_cpp_LIBRARY}
         LibXml2::LibXml2
 )
 

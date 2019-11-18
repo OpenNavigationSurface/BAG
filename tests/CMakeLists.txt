@@ -51,19 +51,19 @@ target_compile_options(bag_tests
         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:anglebrackets>
 )
 
-find_package(HDF5 REQUIRED)
+find_package(HDF5 COMPONENTS CXX REQUIRED)
 find_package(Catch2 REQUIRED)
 
 target_link_libraries(bag_tests
     PRIVATE
         bag
+        ${HDF5_hdf5_LIBRARY}
+        ${HDF5_hdf5_cpp_LIBRARY}
         Catch2::Catch2
-        debug ${HDF5_hdf5_LIBRARY_DEBUG} ${HDF5_hdf5_cpp_LIBRARY_DEBUG}
-        optimized ${HDF5_hdf5_LIBRARY_RELEASE} ${HDF5_hdf5_cpp_LIBRARY_RELEASE}
 )
 
 include(CTest)
 include(Catch)
 
-catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "D:/caris_work/BAG/BAG2/examples/sample-data")
+catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "${CMAKE_SOURCE_DIR}/examples/sample-data")
 
