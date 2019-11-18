@@ -43,13 +43,12 @@ target_compile_definitions(bag_tests
         CATCH_CONFIG_DISABLE_MATCHERS
         CATCH_CONFIG_ENABLE_TUPLE_STRINGMAKER
 )
-        #GTEST_LINKED_AS_SHARED_LIBRARY=1
 
 target_compile_options(bag_tests
     PRIVATE
         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/permissive- /W4 /WX /Zc:__cplusplus>
         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/experimental:external /external:W0 /external:templates->
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:I ${HDF5_INCLUDE_DIRS} >
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:anglebrackets>
 )
 
 find_package(HDF5 REQUIRED)
@@ -65,5 +64,6 @@ target_link_libraries(bag_tests
 
 include(CTest)
 include(Catch)
+
 catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "D:/caris_work/BAG/BAG2/examples/sample-data")
 

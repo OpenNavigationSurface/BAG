@@ -31,13 +31,11 @@ foreach(example ${examples})
         PRIVATE
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/permissive- /W4 /WX /Zc:__cplusplus>
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/experimental:external /external:W0 /external:templates->
-            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:I ${HDF5_INCLUDE_DIRS} >
+            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:anglebrackets>
     )
 
-    #Link with the bag library.
     target_link_libraries(${example} bag)
 
-    #Add the '_debug' postfix to the samples.
     set_target_properties(${example}
         PROPERTIES
             CXX_STANDARD 14
@@ -48,11 +46,7 @@ foreach(example ${examples})
             RELEASE_OUTPUT_NAME ${example}
     )
 
-#    if(NOT MSVC)
-#        set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-#    endif()
-
-
+    # Install
     install(TARGETS ${example} RUNTIME DESTINATION bin)
 endforeach()
 

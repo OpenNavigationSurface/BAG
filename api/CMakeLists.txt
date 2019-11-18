@@ -2,13 +2,6 @@
 # The debug build will have a 'd' postfix
 set(CMAKE_DEBUG_POSTFIX "d")
 
-if(WIN32)
-	# Preset install directory.
-	if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-		set(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/installed" CACHE PATH "CMAKE_INSTALL_PREFIX" FORCE)
-	endif()
-endif()
-
 set(BAG_SOURCE_FILES
     bag.cpp
     bag_compoundlayer.cpp
@@ -102,7 +95,6 @@ target_compile_options(bag
         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/experimental:external /external:W0 /external:templates->
         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:anglebrackets>
 )
-        #$<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:I ${HDF5_INCLUDE_DIRS}>
 
 find_package(HDF5 COMPONENTS CXX REQUIRED)
 find_package(LibXml2 MODULE REQUIRED)
@@ -114,7 +106,6 @@ target_include_directories(bag
     PRIVATE SYSTEM
         ${HDF5_INCLUDE_DIRS}
 )
-        #${LIBXML2_INCLUDE_DIR}
 
 target_link_libraries(bag
     PRIVATE
@@ -124,7 +115,9 @@ target_link_libraries(bag
 )
 
 # Install
-install(FILES ${BAG_HEADER_FILES} DESTINATION include)
+install(FILES
+    ${BAG_HEADER_FILES} DESTINATION include
+)
 
 install(TARGETS bag
         RUNTIME DESTINATION bin
@@ -132,5 +125,7 @@ install(TARGETS bag
         ARCHIVE DESTINATION lib/static
 )
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/configdata/ DESTINATION configdata)
+install(DIRECTORY
+    ${PROJECT_SOURCE_DIR}/configdata/ DESTINATION configdata
+)
 
