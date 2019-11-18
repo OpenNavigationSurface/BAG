@@ -53,9 +53,7 @@ build_script:
   - set CC=cl.exe
   - set CXX=cl.exe
   - cd
-  - if %VS%==2015 set TOOLSET=v140
-  - if %VS%==2017 set TOOLSET=v141
-  - cmake -Bbuild -S. -GNinja -T %TOOLSET%,host=x64 -A x64 -DBUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install
+  - cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install
   - cmake --build build
   - cmake --build build --target RUN_TESTS
 
