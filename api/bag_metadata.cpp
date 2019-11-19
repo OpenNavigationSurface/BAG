@@ -89,7 +89,7 @@ void Metadata::createH5dataSet(
 
     const auto buffer = exportMetadataToXML(this->getStruct());
     const hsize_t xmlLength{buffer.size()};
-    const hsize_t kUnlimitedSize = static_cast<hsize_t>(-1);
+    const hsize_t kUnlimitedSize = H5F_UNLIMITED;
     const ::H5::DataSpace h5dataSpace{1, &xmlLength, &kUnlimitedSize};
 
     const ::H5::DSetCreatPropList h5createPropList{};
@@ -188,7 +188,7 @@ void Metadata::write() const
     const auto buffer = exportMetadataToXML(this->getStruct());
 
     const hsize_t bufferLen = buffer.size();
-    const hsize_t kMaxSize = static_cast<hsize_t>(-1);
+    const hsize_t kMaxSize = H5F_UNLIMITED;
     const ::H5::DataSpace h5dataSpace{1, &bufferLen, &kMaxSize};
 
     m_pH5dataSet->write(buffer, ::H5::PredType::C_S1, h5dataSpace);
