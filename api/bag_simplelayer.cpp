@@ -161,6 +161,23 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
     return buffer;
 }
 
+void SimpleLayer::writeAttributesProxy() const
+{
+    const auto& descriptor = this->getDescriptor();
+    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+
+    // Write any attributes, from the layer descriptor.
+    // min value
+    const auto minMax = descriptor.getMinMax();
+
+    const auto minAtt = m_pH5dataSet->openAttribute(attInfo.minName);
+    minAtt.write(attInfo.h5type, &std::get<0>(minMax));
+
+    // max value
+    const auto maxAtt = m_pH5dataSet->openAttribute(attInfo.maxName);
+    maxAtt.write(attInfo.h5type, &std::get<1>(minMax));
+}
+
 void SimpleLayer::writeProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -224,23 +241,6 @@ void SimpleLayer::writeProxy(
     float currentMax = std::get<1>(descriptor.getMinMax());
 
     descriptor.setMinMax(std::min(currentMin, min), std::max(currentMax, max));
-}
-
-void SimpleLayer::writeAttributesProxy() const
-{
-    const auto& descriptor = this->getDescriptor();
-    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
-
-    // Write any attributes, from the layer descriptor.
-    // min value
-    const auto minMax = descriptor.getMinMax();
-
-    const auto minAtt = m_pH5dataSet->openAttribute(attInfo.minName);
-    minAtt.write(attInfo.h5type, &std::get<0>(minMax));
-
-    // max value
-    const auto maxAtt = m_pH5dataSet->openAttribute(attInfo.maxName);
-    maxAtt.write(attInfo.h5type, &std::get<1>(minMax));
 }
 
 void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
