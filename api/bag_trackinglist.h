@@ -84,6 +84,7 @@ template <typename... Args>
 void TrackingList::emplace_back(Args&&... args) &
 {
     m_items.emplace_back(std::forward<Args>(args)...);
+    ++m_length;
 }
 
 }   //namespace BAG

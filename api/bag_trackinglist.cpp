@@ -90,16 +90,19 @@ size_t TrackingList::size() const noexcept
 void TrackingList::clear() noexcept
 {
     m_items.clear();
+    m_length = 0;
 }
 
 void TrackingList::push_back(const value_type& value)
 {
     m_items.push_back(value);
+    ++m_length;
 }
 
 void TrackingList::push_back(value_type&& value)
 {
     m_items.push_back(std::move(value));
+    ++m_length;
 }
 
 TrackingList::reference TrackingList::front() &
@@ -130,6 +133,7 @@ void TrackingList::reserve(size_t newCapacity)
 void TrackingList::resize(size_t count)
 {
     m_items.resize(count);
+    m_length = static_cast<uint32_t>(count);
 }
 
 TrackingList::value_type* TrackingList::data() & noexcept
@@ -157,14 +161,14 @@ TrackingList::createH5dataSet(
     constexpr hsize_t kUnlimitedSize = static_cast<hsize_t>(-1);
     const ::H5::DataSpace h5dataSpace{1, &numEntries, &kUnlimitedSize};
 
-    const ::H5::CompType h5dataType{sizeof(TrackingItem)};
+    const ::H5::CompType h5dataType{sizeof(value_type)};
 
-    h5dataType.insertMember("row", HOFFSET(TrackingItem, row), ::H5::PredType::NATIVE_UINT);
-    h5dataType.insertMember("col", HOFFSET(TrackingItem, col), ::H5::PredType::NATIVE_UINT);
-    h5dataType.insertMember("depth", HOFFSET(TrackingItem, depth), ::H5::PredType::NATIVE_FLOAT);
-    h5dataType.insertMember("uncertainty", HOFFSET(TrackingItem, uncertainty), ::H5::PredType::NATIVE_FLOAT);
-    h5dataType.insertMember("track_code", HOFFSET(TrackingItem, track_code), ::H5::PredType::NATIVE_UCHAR);
-    h5dataType.insertMember("list_series", HOFFSET(TrackingItem, list_series), ::H5::PredType::NATIVE_SHORT);
+    h5dataType.insertMember("row", HOFFSET(value_type, row), ::H5::PredType::NATIVE_UINT);
+    h5dataType.insertMember("col", HOFFSET(value_type, col), ::H5::PredType::NATIVE_UINT);
+    h5dataType.insertMember("depth", HOFFSET(value_type, depth), ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("uncertainty", HOFFSET(value_type, uncertainty), ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("track_code", HOFFSET(value_type, track_code), ::H5::PredType::NATIVE_UCHAR);
+    h5dataType.insertMember("list_series", HOFFSET(value_type, list_series), ::H5::PredType::NATIVE_SHORT);
 
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setChunk(1, &kTrackingListChunkSize);
@@ -247,8 +251,12 @@ void TrackingList::write() const
 
     listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &m_length);
 
+    // Resize the DataSet to reflect the new data size.
+    const hsize_t numItems = m_length;
+    m_pH5dataSet->extend(&numItems);
+
     // Write the data.
-    const ::H5::CompType h5type{sizeof(TrackingItem)};
+    const ::H5::CompType h5type{sizeof(value_type)};
 
     h5type.insertMember("row", HOFFSET(value_type, row), ::H5::PredType::NATIVE_UINT32);
     h5type.insertMember("col", HOFFSET(value_type, col), ::H5::PredType::NATIVE_UINT32);
@@ -257,10 +265,10 @@ void TrackingList::write() const
     h5type.insertMember("track_code", HOFFSET(value_type, track_code), ::H5::PredType::NATIVE_UINT8);
     h5type.insertMember("list_series", HOFFSET(value_type, list_series), ::H5::PredType::NATIVE_INT16);
 
-    const hsize_t numItems = m_length;
-    ::H5::DataSpace h5memSpace{1, &numItems, &numItems};
+    constexpr hsize_t kMaxSize = H5F_UNLIMITED;
 
-    constexpr hsize_t kMaxSize = static_cast<hsize_t>(-1);
+    ::H5::DataSpace h5memSpace{1, &numItems, &kMaxSize};
+
     ::H5::DataSpace h5fileSpace{1, &numItems, &kMaxSize};
 
     m_pH5dataSet->write(m_items.data(), h5type, h5memSpace, h5fileSpace);
