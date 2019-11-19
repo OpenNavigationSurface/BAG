@@ -53,6 +53,13 @@ protected:
 
     struct AttributeInfo
     {
+        AttributeInfo(const char* inMinName, const char* inMaxName,
+            const char* inPath, const ::H5::PredType& inH5type)
+            : minName(inMinName)
+            , maxName(inMaxName)
+            , path(inPath)
+            , h5type(inH5type)
+        {}
         const char* minName = nullptr;
         const char* maxName = nullptr;
         const char* path = nullptr;

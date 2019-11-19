@@ -952,52 +952,48 @@ catch (const std::exception &/*e*/)
 
     author:  dave fabre, us naval oceanographic office, jul 2005
 */
-struct CoordinateSysType
-{
-    const char* name = nullptr;
-};
 
-static struct CoordinateSysType COORDINATE_SYS_LIST[]=
+static const char* COORDINATE_SYS_LIST[]=
 {
-    {"Geodetic"},
-    {"GEOREF"},
-    {"Geocentric"},
-    {"Local_Cartesian"},
-    {"MGRS"},
-    {"UTM"},
-    {"UPS"},
-    {"Albers_Equal_Area_Conic"},
-    {"Azimuthal_Equidistant"},
-    {"BNG"},
-    {"Bonne"},
-    {"Cassini"},
-    {"Cylindrical_Equal_Area"},
-    {"Eckert4"},
-    {"Eckert6"},
-    {"Equidistant_Cylindrical"},
-    {"Gnomonic"},
-    {"Lambert_Conformal_Conic"},
-    {"Mercator"},
-    {"Miller_Cylindrical"},
-    {"Mollweide"},
-    {"Neys"},
-    {"NZMG"},
-    {"Oblique_Mercator"},
-    {"Orthographic"},
-    {"Polar_Stereo"},
-    {"Polyconic"},
-    {"Sinusoidal"},
-    {"Stereographic"},
-    {"Transverse_Cylindrical_Equal_Area"},
-    {"Transverse_Mercator"},
-    {"Van_der_Grinten"}
+    "Geodetic",
+    "GEOREF",
+    "Geocentric",
+    "Local_Cartesian",
+    "MGRS",
+    "UTM",
+    "UPS",
+    "Albers_Equal_Area_Conic",
+    "Azimuthal_Equidistant",
+    "BNG",
+    "Bonne",
+    "Cassini",
+    "Cylindrical_Equal_Area",
+    "Eckert4",
+    "Eckert6",
+    "Equidistant_Cylindrical",
+    "Gnomonic",
+    "Lambert_Conformal_Conic",
+    "Mercator",
+    "Miller_Cylindrical",
+    "Mollweide",
+    "Neys",
+    "NZMG",
+    "Oblique_Mercator",
+    "Orthographic",
+    "Polar_Stereo",
+    "Polyconic",
+    "Sinusoidal",
+    "Stereographic",
+    "Transverse_Cylindrical_Equal_Area",
+    "Transverse_Mercator",
+    "Van_der_Grinten"
 };
 
 /******************************************************************************/
 CoordinateType bagCoordsys(const char* str) noexcept
 {
     constexpr auto MAX_NCOORD_SYS = 32;
-    #define COORD_SYS_NAME(k) COORDINATE_SYS_LIST[k].name
+    #define COORD_SYS_NAME(k) COORDINATE_SYS_LIST[k]
 
     for (size_t i = 0; i < MAX_NCOORD_SYS; i++)
         if (strncmp(str, COORD_SYS_NAME(i), strlen(COORD_SYS_NAME(i))) == 0 )
@@ -1009,23 +1005,18 @@ CoordinateType bagCoordsys(const char* str) noexcept
 
 
 
-struct DatumNameType
+static const char* DATUM_NAME_LIST[] =
 {
-    const char *name = nullptr;
-};
-
-static DatumNameType DATUM_NAME_LIST[] =
-{
-    { "WGS84" },
-    { "WGS72" },
-    { "NAD83" }
+    "WGS84",
+    "WGS72",
+    "NAD83"
 };
 
 /******************************************************************************/
 BagDatum bagDatumID(const char* str) noexcept
 {
     constexpr auto MAX_DATUMS = 3;
-    #define DATUM_NAME(k) DATUM_NAME_LIST[k].name
+    #define DATUM_NAME(k) DATUM_NAME_LIST[k]
 
     for (uint32_t i = 0; i < MAX_DATUMS; i++)
         if (strncmp(str, DATUM_NAME(i), strlen(DATUM_NAME(i))) == 0)
