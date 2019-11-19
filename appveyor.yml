@@ -55,7 +55,8 @@ build_script:
   - cd
   - cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install
   - cmake --build build
-  - cmake --build build --target RUN_TESTS
+  - set PATH=C:\projects\bag\build\api;%PATH%
+  - build\tests\bag_tests.exe --samples-path "C:\projects\bag\examples\sample-data"
 
 deploy: off
 
