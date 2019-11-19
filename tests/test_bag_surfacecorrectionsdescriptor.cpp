@@ -42,11 +42,11 @@ TEST_CASE("test surface corrections descriptor creation using type, num correcto
 
 //    static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
 //        const Dataset& dataset);
-TEST_CASE("test surface corrections descriptor read gridded",
+TEST_CASE("test surface corrections descriptor read irregular",
     "[surfacecorrectionsdescriptor][create][BAG_SURFACE_GRID_EXTENTS]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
-        "/micro151.bag"};
+        "/sample.bag"};
 
     UNSCOPED_INFO("Check that the dataset was loaded.");
     const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
@@ -57,33 +57,16 @@ TEST_CASE("test surface corrections descriptor read gridded",
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Check that the surface type being corrected is irregular.");
-    constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
+    constexpr auto kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
     CHECK(pDescriptor->getSurfaceType() == kExpectedSurfaceType);
 
     UNSCOPED_INFO("Check that the expected number of correctors were loaded.");
-    constexpr uint8_t kExpectedNumCorrectors = 3;
+    constexpr uint8_t kExpectedNumCorrectors = 2;
     CHECK(pDescriptor->getNumCorrectors() == kExpectedNumCorrectors);
 
     UNSCOPED_INFO("Check the vertical datum is read properly.");
-    const std::string kExpectedVerticalDatum{"WGS84 = Ellipsoid Datum"};
+    const std::string kExpectedVerticalDatum{};
     CHECK(pDescriptor->getVerticalDatums() == kExpectedVerticalDatum);
-
-    UNSCOPED_INFO("Check the southwest corner X is read properly.");
-    constexpr double kExpectedOriginX = 1.6211917892048202e7;
-    const auto actualOrigin = pDescriptor->getOrigin();
-    CHECK(std::get<0>(actualOrigin) == Approx(kExpectedOriginX));
-
-    UNSCOPED_INFO("Check the southwest corner Y is read properly.");
-    constexpr double kExpectedOriginY = 1701597.190344513;
-    CHECK(std::get<1>(actualOrigin) == Approx(kExpectedOriginY));
-
-    UNSCOPED_INFO("Check the X spacing is read properly.");
-    constexpr double kExpectedSpacingX = 100.0;
-    CHECK(std::get<0>(pDescriptor->getSpacing()) == Approx(kExpectedSpacingX));
-
-    UNSCOPED_INFO("Check the Y spacing is read properly.");
-    constexpr double kExpectedSpacingY = 100.0;
-    CHECK(std::get<1>(pDescriptor->getSpacing()) == Approx(kExpectedSpacingY));
 }
 
 TEST_CASE("test surface corrections descriptor create empty gridded",

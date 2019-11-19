@@ -45,37 +45,6 @@ TEST_CASE("test surface corrections read irregular",
     CHECK(descriptor.getNumCorrectors() == kExpectedNumCorrectors);
 }
 
-//  More of an integration test to see if the surface corrections is read.
-TEST_CASE("test surface corrections read gridded",
-    "[surfacecorrections][constructor][destructor][BAG_SURFACE_GRID_EXTENTS]")
-{
-    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
-        "/micro151.bag"};
-
-    UNSCOPED_INFO("Check that the dataset was loaded.");
-    const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
-    REQUIRE(pDataset);
-
-    UNSCOPED_INFO("Check that the surface corrections exist.");
-    const auto* pCorrections = pDataset->getSurfaceCorrections();
-    REQUIRE(pCorrections);
-
-    UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
-    REQUIRE_NOTHROW(pCorrections->getDescriptor());
-
-    UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor()));
-    const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor());
-
-    UNSCOPED_INFO("Check that the surface type being corrected is irregular.");
-    CHECK(descriptor.getSurfaceType() == BAG_SURFACE_GRID_EXTENTS);
-
-    UNSCOPED_INFO("Check that the expected number of correctors were loaded.");
-    constexpr size_t kExpectedNumCorrectors = 3;
-    CHECK(descriptor.getNumCorrectors() == kExpectedNumCorrectors);
-}
-
 TEST_CASE("test surface corrections create empty irregular",
     "[surfacecorrections][constructor][destructor][create][BAG_SURFACE_IRREGULARLY_SPACED]")
 {
