@@ -237,8 +237,8 @@ void SimpleLayer::writeProxy(
     else
         throw UnsupportedAttributeType{};
 
-    float currentMin = std::get<0>(descriptor.getMinMax());
-    float currentMax = std::get<1>(descriptor.getMinMax());
+    const float currentMin = std::get<0>(descriptor.getMinMax());
+    const float currentMax = std::get<1>(descriptor.getMinMax());
 
     descriptor.setMinMax(std::min(currentMin, min), std::max(currentMax, max));
 }
