@@ -10,6 +10,7 @@ SimpleLayerDescriptor::SimpleLayerDescriptor(
     uint64_t chunkSize,
     unsigned int compressionLevel)
     : LayerDescriptor(type, chunkSize, compressionLevel)
+    , m_dataType(Layer::getDataType(type))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
 {
 }
@@ -18,6 +19,7 @@ SimpleLayerDescriptor::SimpleLayerDescriptor(
     LayerType type,
     const Dataset& dataset)
     : LayerDescriptor(type, dataset)
+    , m_dataType(Layer::getDataType(type))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
 {
 }
@@ -39,6 +41,11 @@ std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
         new SimpleLayerDescriptor{type, dataset});
 }
 
+
+DataType SimpleLayerDescriptor::getDataTypeProxy() const noexcept
+{
+    return m_dataType;
+}
 
 uint8_t SimpleLayerDescriptor::getElementSizeProxy() const noexcept
 {

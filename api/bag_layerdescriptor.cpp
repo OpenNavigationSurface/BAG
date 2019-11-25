@@ -15,7 +15,6 @@ LayerDescriptor::LayerDescriptor(
     uint64_t chunkSize,
     unsigned int compressionLevel)
     : m_layerType(type)
-    , m_dataType(Layer::getDataType(type))
     , m_internalPath(Layer::getInternalPath(type))
     , m_name(kLayerTypeMapString.at(type))
     , m_compressionLevel(compressionLevel)
@@ -29,7 +28,6 @@ LayerDescriptor::LayerDescriptor(
     const Dataset& dataset,
     std::string internalPath)
     : m_layerType(type)
-    , m_dataType(Layer::getDataType(type))
     , m_name(kLayerTypeMapString.at(type))
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
 {
@@ -57,7 +55,7 @@ LayerDescriptor& LayerDescriptor::setName(std::string inName) & noexcept
 
 DataType LayerDescriptor::getDataType() const noexcept
 {
-    return m_dataType;
+    return this->getDataTypeProxy();
 }
 
 LayerType LayerDescriptor::getLayerType() const noexcept

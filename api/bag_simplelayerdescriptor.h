@@ -36,8 +36,11 @@ protected:
     SimpleLayerDescriptor(LayerType type, const Dataset& dataset);
 
 private:
+    DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
 
+    //! The data type (depends on layer type).
+    DataType m_dataType = UNKNOWN_DATA_TYPE;
     //! The size of a single record in the HDF5 file.
     uint8_t m_elementSize = 0;
 };

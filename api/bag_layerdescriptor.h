@@ -57,12 +57,11 @@ protected:
     LayerDescriptor& setInternalPath(std::string inPath) & noexcept;
 
 private:
+    virtual DataType getDataTypeProxy() const noexcept = 0;
     virtual uint8_t getElementSizeProxy() const noexcept = 0;
 
     //! The layer type.
     LayerType m_layerType = UNKNOWN_LAYER_TYPE;
-    //! The data type (depends on layer type).
-    DataType m_dataType = UNKNOWN_DATA_TYPE;
     //! The path of the DataSet in the HDF5 file.
     std::string m_internalPath;
     //! The name of the layer.

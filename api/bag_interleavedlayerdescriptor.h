@@ -43,10 +43,13 @@ protected:
 private:
     void validateTypes(LayerType layerType, GroupType groupType) const;
 
+    DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
 
     //! The group type.
     GroupType m_groupType = UNKNOWN_GROUP_TYPE;
+    //! The data type (depends on layer type).
+    DataType m_dataType = UNKNOWN_DATA_TYPE;
     //! The size of a record in the HDF5 DataSet (depends on group type).
     uint8_t m_elementSize = 0;
 

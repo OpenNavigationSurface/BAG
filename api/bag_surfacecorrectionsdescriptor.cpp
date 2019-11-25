@@ -27,6 +27,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     uint64_t chunkSize,
     unsigned int compressionLevel)
     : LayerDescriptor(Surface_Correction, chunkSize, compressionLevel)
+    , m_dataType(Layer::getDataType(Surface_Correction))
     , m_surfaceType(type)
     , m_elementSize(BAG::getElementSize(type, numCorrectors))
     , m_numCorrectors(numCorrectors)
@@ -36,6 +37,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     const Dataset& dataset)
     : LayerDescriptor(Surface_Correction, dataset)
+    , m_dataType(Layer::getDataType(Surface_Correction))
 {
     const auto h5dataSet = dataset.getH5file().openDataSet(
         Layer::getInternalPath(Surface_Correction));
@@ -125,6 +127,11 @@ SurfaceCorrectionsDescriptor::create(
         new SurfaceCorrectionsDescriptor{dataset});
 }
 
+
+DataType SurfaceCorrectionsDescriptor::getDataTypeProxy() const noexcept
+{
+    return m_dataType;
+}
 
 uint8_t SurfaceCorrectionsDescriptor::getElementSizeProxy() const noexcept
 {
