@@ -1,4 +1,5 @@
 
+#include "bag_hdfhelper.h"
 #include "bag_interleavedlayer.h"
 #include "bag_interleavedlayerdescriptor.h"
 #include "bag_private.h"
@@ -24,62 +25,6 @@ struct BagOptElevationSolutionGroup final
     uint32_t num_soundings = 0;
 
 };
-
-::H5::CompType getH5dataType(
-    LayerType layerType,
-    GroupType groupType)
-{
-    ::H5::CompType h5type;
-
-    if (groupType == NODE)
-    {
-        switch (layerType)
-        {
-        case Hypothesis_Strength:
-            h5type = ::H5::CompType{sizeof(float)};
-            h5type.insertMember("hyp_strength",
-                0,
-                ::H5::PredType::NATIVE_FLOAT);
-            break;
-        case Num_Hypotheses:
-            h5type = ::H5::CompType{sizeof(unsigned int)};
-            h5type.insertMember("num_hypotheses",
-                0,
-                ::H5::PredType::NATIVE_UINT);
-            break;
-        default:
-            throw 112233;  // Unknown group type.
-        }
-    }
-    else if (groupType == ELEVATION)
-    {
-        switch(layerType)
-        {
-        case Shoal_Elevation:
-            h5type = ::H5::CompType{sizeof(float)};
-            h5type.insertMember("shoal_elevation",
-                0,
-                ::H5::PredType::NATIVE_FLOAT);
-            break;
-        case Std_Dev:
-            h5type = ::H5::CompType{sizeof(float)};
-            h5type.insertMember("stddev",
-                0,
-                ::H5::PredType::NATIVE_FLOAT);
-            break;
-        case Num_Soundings:
-            h5type = ::H5::CompType{sizeof(int)};
-            h5type.insertMember("num_soundings",
-                0,
-                ::H5::PredType::NATIVE_INT);
-            break;
-        default:
-            throw 112233;  // Unknown group type.
-        }
-    }
-
-    return h5type;
-}
 
 }   //namespace
 
@@ -142,7 +87,7 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     // Set up the type.
-    const auto h5dataType = getH5dataType(descriptor.getLayerType(),
+    const auto h5dataType = getH5compType(descriptor.getLayerType(),
         descriptor.getGroupType());
 
     m_pH5dataSet->read(buffer.get(), h5dataType, h5memSpace, h5fileSpace);

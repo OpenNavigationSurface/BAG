@@ -37,6 +37,9 @@ enum BAG_DATA_TYPE
 {
     FLOAT32 = 0,
     UINT32,
+    UINT8,
+    UINT16,
+    UINT64,
     BOOL,
     STRING,
     COMPOUND,  // More than a single type; the layer will need to figure it out itself.

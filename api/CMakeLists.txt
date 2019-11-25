@@ -8,6 +8,7 @@ set(BAG_SOURCE_FILES
     bag_dataset.cpp
     bag_descriptor.cpp
     #bag_hdf.c
+    bag_hdfhelper.cpp
     bag_interleavedlayer.cpp
     bag_interleavedlayerdescriptor.cpp
     bag_layer.cpp
@@ -45,6 +46,7 @@ set(BAG_HEADER_FILES
     bag_errors.h
     bag_exceptions.h
     bag_fordec.h
+    bag_hdfhelper.h
     bag_interleavedlayer.h
     bag_interleavedlayerdescriptor.h
     bag_layer.h

@@ -103,10 +103,18 @@ uint8_t Layer::getElementSize(DataType type)
         return sizeof(float);
     case UINT32:
         return sizeof(uint32_t);
-    case COMPOUND:
-        throw UnsupportedElementSize{};
+    case UINT8:
+        return sizeof(uint8_t);
+    case UINT16:
+        return sizeof(uint16_t);
+    case UINT64:
+        return sizeof(uint64_t);
+    case BOOL:  //[[fallthrough]]
+    case STRING:  //[[fallthrough]]
+    case COMPOUND:  //[[fallthrough]]
+    case UNKNOWN_DATA_TYPE:  //[[fallthrough]]
     default:
-        return 0;
+        throw UnsupportedElementSize{};
     }
 }
 

@@ -9,23 +9,6 @@
 
 namespace BAG {
 
-namespace {
-
-const ::H5::PredType& getH5PredType(DataType type)
-{
-    switch(type)
-    {
-    case UINT32:
-        return ::H5::PredType::NATIVE_UINT32;
-    case FLOAT32:
-        return ::H5::PredType::NATIVE_FLOAT;
-    default:
-        throw UnsupportedDataType{};
-    }
-}
-
-}  // namespace
-
 SimpleLayer::SimpleLayer(
     Dataset& dataset,
     LayerDescriptor& descriptor,
