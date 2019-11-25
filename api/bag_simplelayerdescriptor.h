@@ -3,6 +3,7 @@
 
 #include "bag_config.h"
 #include "bag_fordec.h"
+#include "bag_layerdescriptor.h"
 #include "bag_types.h"
 
 #include <memory>
@@ -47,5 +48,5 @@ private:
 #pragma warning(pop)
 #endif
 
-#endif  // BAG_LAYERDESCRIPTOR_H
+#endif  // BAG_SIMPLELAYERDESCRIPTOR_H
 
