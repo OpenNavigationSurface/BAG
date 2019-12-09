@@ -6,17 +6,18 @@
 #include "bag_metadata.h"
 
 #include <iostream>
+#include <libxml/parser.h>
 #include <sstream>
 #include <string>
 #include <string.h>
 
-#include <libxml/parser.h>
 
-namespace
-{
+namespace BAG {
+
+namespace {
 
 //! Utility class to convert an encoded XML string.
-class EncodedString
+class EncodedString final
 {
 public:
     //************************************************************************
@@ -44,7 +45,7 @@ public:
     //************************************************************************
     //! Conversion operator.
     /*!
-    \return 
+    \return
         \li The encoded string.
     */
     //************************************************************************
@@ -64,9 +65,9 @@ private:
 //! Convert a string to a double value.
 /*!
 \param value
-    \li The intput string to be converted.
+    \li The input string to be converted.
 \return
-    \li The doulbe value.
+    \li The double value.
 */
 //************************************************************************
 double toDouble(const char *value)
@@ -112,11 +113,11 @@ xmlNode* addDateNode(xmlNode &parentNode, const char *content)
 {
     const xmlNsPtr pGcoNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gco"));
 
-    //If the content is NULL, then we will just add a nilReason.
-    if (content == NULL)
+    //If the content is nullptr, then we will just add a nilReason.
+    if (content == nullptr)
     {
         xmlSetProp(&parentNode, XMLCast("gco:nilReason"), XMLCast("unknown"));
-        return NULL;
+        return nullptr;
     }
 
     //Create the Date node.
@@ -158,7 +159,7 @@ xmlNode* addDateTimeNode(xmlNode &parentNode, const char *content)
 */
 //************************************************************************
 xmlNode* addCodeListNode(xmlNode &parentNode, const char *codeNameSpace, const char *codeName,
-                         const char *url, const char *value, Bool appendValueToUrl = True)
+                         const char *url, const char *value, bool appendValueToUrl = true)
 {
     const xmlNsPtr pNamespace = xmlSearchNs(parentNode.doc, &parentNode, EncodedString(*parentNode.doc, codeNameSpace));
 
@@ -167,8 +168,8 @@ xmlNode* addCodeListNode(xmlNode &parentNode, const char *codeNameSpace, const c
 
     std::stringstream fullUrlStream;
     fullUrlStream << url;
-    
-    if (appendValueToUrl == True)
+
+    if (appendValueToUrl)
         fullUrlStream << "#" << codeName;
 
     xmlSetProp(pCodeNode, XMLCast("codeList"), EncodedString(*parentNode.doc, fullUrlStream.str().c_str()));
@@ -259,31 +260,30 @@ xmlNode* addMeasureNode(xmlNode &parentNode, const char *uomName, double value)
     \li The units of \e resolution.
 */
 //************************************************************************
-xmlNode* addDimension(xmlNode &parentNode, const char *name, unsigned int size, 
+xmlNode* addDimension(xmlNode &parentNode, const char *name, unsigned int size,
                       double resolution, const char *resolutionUnit)
 {
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
-    const xmlNsPtr pGcoNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gco"));
 
-    xmlNode *pDimNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("axisDimensionProperties"), NULL);
-    pDimNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("MD_Dimension"), NULL);
+    xmlNode *pDimNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("axisDimensionProperties"), nullptr);
+    pDimNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("MD_Dimension"), nullptr);
 
     //dimensionName
     {
-        xmlNode *pNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("dimensionName"), NULL);
+        xmlNode *pNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("dimensionName"), nullptr);
         addCodeListNode(*pNode, "gmd", "MD_DimensionNameTypeCode",
             "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", name);
     }
 
     //dimensionSize
     {
-        xmlNode *pNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("dimensionSize"), NULL);
+        xmlNode *pNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("dimensionSize"), nullptr);
         addIntegerNode(*pNode, size);
     }
 
     //resolution
     {
-        xmlNode *pNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("resolution"), NULL);
+        xmlNode *pNode = xmlNewChild(pDimNode, pGmdNamespace, XMLCast("resolution"), nullptr);
         addMeasureNode(*pNode, resolutionUnit, resolution);
     }
 
@@ -299,9 +299,9 @@ xmlNode* addDimension(xmlNode &parentNode, const char *name, unsigned int size,
     \li The content to be added to \e parentNode.
 */
 //************************************************************************
-xmlNode* addBooleanNode(xmlNode &parentNode, Bool value)
+xmlNode* addBooleanNode(xmlNode &parentNode, bool value)
 {
-    const std::string valString((value == True) ? "1" : "0");
+    const std::string valString(value ? "1" : "0");
 
     const xmlNsPtr pGcoNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gco"));
 
@@ -316,7 +316,7 @@ xmlNode* addBooleanNode(xmlNode &parentNode, Bool value)
 //************************************************************************
 //! Create a new XML document and configure it for the BAG metadata profile.
 /*!
-\return 
+\return
     \li The new XML document.
 */
 //************************************************************************
@@ -330,7 +330,7 @@ xmlDoc* createNewDocument()
     xmlDoc *pDocument = xmlNewDoc(XMLCast(version));
 
     //Create the root node and assign to the document.
-    xmlNodePtr pRoot = xmlNewDocNode(pDocument, NULL, XMLCast(rootName), NULL);
+    xmlNodePtr pRoot = xmlNewDocNode(pDocument, nullptr, XMLCast(rootName), nullptr);
     xmlDocSetRootElement(pDocument, pRoot);
 
     //Create the root namespace and assign to the root.
@@ -349,66 +349,66 @@ xmlDoc* createNewDocument()
 }
 
 //************************************************************************
-//! Add the BAG_RESPONSIBLE_PARTY information to the parent XML node.
+//! Add the BagResponsibleParty information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param responsiblePartyStruct
     \li The structure to be added to \e parentNode.
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addResponsibleParty(xmlNode &parentNode, const BAG_RESPONSIBLE_PARTY &responsiblePartyStruct)
+bool addResponsibleParty(xmlNode &parentNode, const BagResponsibleParty &responsiblePartyStruct)
 {
     /* Criteria for this node is that "role must be supplied and at least one of the following fileds must be supplied. */
-    if (responsiblePartyStruct.individualName == NULL &&
-        responsiblePartyStruct.organisationName == NULL &&
-        responsiblePartyStruct.positionName == NULL)
+    if (responsiblePartyStruct.individualName == nullptr &&
+        responsiblePartyStruct.organisationName == nullptr &&
+        responsiblePartyStruct.positionName == nullptr)
     {
-        return False;
+        return false;
     }
 
     /* If "role" is not populated, don't create the element.  "role" is a required element of the schema. */
-    if (responsiblePartyStruct.role == NULL)
+    if (responsiblePartyStruct.role == nullptr)
     {
         fprintf(stderr, "ERROR: The \"role\" is required in order to create the CI_ResponsibleParty node.\n");
-        return False;
+        return false;
     }
 
     //Find the gmd namespace.
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
-                        
+
     //Create the CI_ResponsibleParty node.
-    xmlNode *pPartyNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("CI_ResponsibleParty"), NULL);
-                
+    xmlNode *pPartyNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("CI_ResponsibleParty"), nullptr);
+
     /* If an individual name has been supplied, Create the individual node and populate it. */
-    if (responsiblePartyStruct.individualName != NULL)
+    if (responsiblePartyStruct.individualName != nullptr)
     {
-        xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("individualName"), NULL);
+        xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("individualName"), nullptr);
         addCharacterNode(*pNode, (char*)responsiblePartyStruct.individualName);
     }
 
     /* If an organisation name has been supplied, Create the organisation node and populate it. */
-    if (responsiblePartyStruct.organisationName != NULL)
+    if (responsiblePartyStruct.organisationName != nullptr)
     {
-        xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("organisationName"), NULL);
+        xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("organisationName"), nullptr);
         addCharacterNode(*pNode, (char*)responsiblePartyStruct.organisationName);
     }
 
     /* If a postiion name has been supplied, Create the position node and populate it. */
-    if (responsiblePartyStruct.positionName != NULL)
+    if (responsiblePartyStruct.positionName != nullptr)
     {
-        xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("positionName"), NULL);
+        xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("positionName"), nullptr);
         addCharacterNode(*pNode, (char*)responsiblePartyStruct.positionName);
     }
 
     //Create the role node and populate it.
-    xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("role"), NULL);
+    xmlNode *pNode = xmlNewChild(pPartyNode, pGmdNamespace, XMLCast("role"), nullptr);
     addCodeListNode(*pNode, "gmd", "CI_RoleCode",
         "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (char*)responsiblePartyStruct.role);
 
-    return True;
+    return true;
 }
 
 //************************************************************************
@@ -426,26 +426,26 @@ Bool addResponsibleParty(xmlNode &parentNode, const BAG_RESPONSIBLE_PARTY &respo
     \li The array of responsible parties.
 \param numberOfParties
     \li The number of elements in \e responsibleParties.
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addCitation(xmlNode &parentNode, const char *title, const char *date, const char *dateType, 
-                 const BAG_RESPONSIBLE_PARTY *responsibleParties, u32 numberOfParties)
+bool addCitation(xmlNode &parentNode, const char *title, const char *date, const char *dateType,
+                 const BagResponsibleParty *responsibleParties, uint32_t numberOfParties)
 {
     //CI_citation is optional, so if no title was given just return.
-    if (title == NULL)
-        return True;
+    if (!title)
+        return true;
 
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
-                        
+
     //Create the CI_Citation node.
-    xmlNode *pCitationNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("CI_Citation"), NULL);
+    xmlNode *pCitationNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("CI_Citation"), nullptr);
 
     //Add the title
     {
         //Create the title node.
-        xmlNode *pTitleNode = xmlNewChild(pCitationNode, pGmdNamespace, XMLCast("title"), NULL);
+        xmlNode *pTitleNode = xmlNewChild(pCitationNode, pGmdNamespace, XMLCast("title"), nullptr);
 
         //Set the title value.
         addCharacterNode(*pTitleNode, title);
@@ -454,17 +454,17 @@ Bool addCitation(xmlNode &parentNode, const char *title, const char *date, const
     //Add the date
     {
         //Create the date nodes.
-        xmlNode *pDateNode = xmlNewChild(pCitationNode, pGmdNamespace, XMLCast("date"), NULL);
-        pDateNode = xmlNewChild(pDateNode, pGmdNamespace, XMLCast("CI_Date"), NULL);
+        xmlNode *pDateNode = xmlNewChild(pCitationNode, pGmdNamespace, XMLCast("date"), nullptr);
+        pDateNode = xmlNewChild(pDateNode, pGmdNamespace, XMLCast("CI_Date"), nullptr);
 
         //Create the date node.
-        xmlNode *pDateNode2 = xmlNewChild(pDateNode, pGmdNamespace, XMLCast("date"), NULL);
+        xmlNode *pDateNode2 = xmlNewChild(pDateNode, pGmdNamespace, XMLCast("date"), nullptr);
 
         //Set the date value.
         addDateNode(*pDateNode2, date);
 
         //Create the dateType node.
-        xmlNode *pDateTypeNode = xmlNewChild(pDateNode, pGmdNamespace, XMLCast("dateType"), NULL);
+        xmlNode *pDateTypeNode = xmlNewChild(pDateNode, pGmdNamespace, XMLCast("dateType"), nullptr);
 
         //Set the date type value.
         addCodeListNode(*pDateTypeNode, "gmd", "CI_DateTypeCode",
@@ -473,170 +473,174 @@ Bool addCitation(xmlNode &parentNode, const char *title, const char *date, const
 
     //Add the responsible parties
     {
-        for (u32 r = 0; r < numberOfParties; r++)
+        for (uint32_t r = 0; r < numberOfParties; r++)
         {
             //Create the citedResponsibleParty node.
-            xmlNode *pPartyNode = xmlNewChild(pCitationNode, pGmdNamespace, XMLCast("citedResponsibleParty"), NULL);
+            xmlNode *pPartyNode = xmlNewChild(pCitationNode, pGmdNamespace, XMLCast("citedResponsibleParty"), nullptr);
 
-            const Bool ret = addResponsibleParty(*pPartyNode, responsibleParties[r]);
+            const bool ret = addResponsibleParty(*pPartyNode, responsibleParties[r]);
             if (!ret)
             {
                 fprintf(stderr, "ERROR: responsibleParties[%d]: At least one of the following fields must be supplied. individualName, organisationName, postionName.\n", r);
-                return False;
+                return false;
             }
         }
     }
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_IDENTIFICATION information to the parent XML node.
+//! Add the BagIdentification information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param identificationInfo
     \li The identification information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addDataIdentification(xmlNode &parentNode, const BAG_IDENTIFICATION &identificationInfo)
+bool addDataIdentification(xmlNode &parentNode, const BagIdentification &identificationInfo)
 {
-    /* Check for the required fields. If they are not present, return NULL. */
-    if (identificationInfo.abstractString == NULL ||
-        identificationInfo.language == NULL ||
-        identificationInfo.verticalUncertaintyType == NULL)
+    /* Check for the required fields. If they are not present, return nullptr. */
+    if (identificationInfo.abstractString == nullptr ||
+        identificationInfo.language == nullptr ||
+        identificationInfo.verticalUncertaintyType == nullptr)
     {
 	    fprintf(stderr, "ERROR: can not create BAG identificationInfo.  Missing one or more required fields... abstract, language or verticalUncertaintyType. \n");
-	    return False;
+	    return false;
     }
 
     //Find the gmd namespace.
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
     const xmlNsPtr pBagNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("bag"));
-                        
+
     //Create the identificationInfo node.
-    xmlNode *pIdentInfoNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("identificationInfo"), NULL);
+    xmlNode *pIdentInfoNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("identificationInfo"), nullptr);
 
     //Create the BAG_DataIdentification node.
-    xmlNode *pBagIdentInfoNode = xmlNewChild(pIdentInfoNode, pBagNamespace, XMLCast("BAG_DataIdentification"), NULL);
+    xmlNode *pBagIdentInfoNode = xmlNewChild(pIdentInfoNode, pBagNamespace, XMLCast("BAG_DataIdentification"), nullptr);
 
     //Citation
     {
         //Create the citation node.
-        xmlNode *pCitationNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("citation"), NULL);
+        xmlNode *pCitationNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("citation"), nullptr);
 
         //Add the citation info.
-        const Bool ret = addCitation(*pCitationNode, (const char *)identificationInfo.title, 
-            (const char *)identificationInfo.date, 
-            (const char *)identificationInfo.dateType,
+        const bool ret = addCitation(*pCitationNode, identificationInfo.title,
+            identificationInfo.date,
+            identificationInfo.dateType,
             identificationInfo.responsibleParties,
             identificationInfo.numberOfResponsibleParties);
         if (!ret)
-            return False;
+            return false;
     }
 
     //Abstract
     {
         //Add the abstract.
-        xmlNode *pAbstractNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("abstract"), NULL);
+        xmlNode *pAbstractNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("abstract"), nullptr);
 
         //Set the value.
-        addCharacterNode(*pAbstractNode, (const char*)identificationInfo.abstractString);
+        addCharacterNode(*pAbstractNode, identificationInfo.abstractString);
     }
 
     //Status (Optional)
-    if (identificationInfo.status != NULL)
+    if (identificationInfo.status != nullptr)
     {
         //Add the status.
-        xmlNode *pStatusNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("status"), NULL);
+        xmlNode *pStatusNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("status"), nullptr);
 
         //Set the value.
         addCodeListNode(*pStatusNode, "gmd", "MD_ProgressCode",
-            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (const char*)identificationInfo.status);
+            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", identificationInfo.status);
     }
-     
+
     //spatialRepresentationType (Optional)
-    if (identificationInfo.spatialRepresentationType != NULL)
+    if (identificationInfo.spatialRepresentationType != nullptr)
     {
         //Add the spatialRepresentationType.
-        xmlNode *pTypeNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("spatialRepresentationType"), NULL);
+        xmlNode *pTypeNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("spatialRepresentationType"), nullptr);
 
         //Set the value.
         addCodeListNode(*pTypeNode, "gmd", "MD_SpatialRepresentationTypeCode",
-            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (const char*)identificationInfo.spatialRepresentationType);
+            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", identificationInfo.spatialRepresentationType);
     }
 
     //language
     {
         //Add the language.
-        xmlNode *pLanguageNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("language"), NULL);
+        xmlNode *pLanguageNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("language"), nullptr);
 
         //Set the value.
         addCodeListNode(*pLanguageNode, "gmd", "LanguageCode",
-            "http://www.loc.gov/standards/iso639-2/", (const char*)identificationInfo.language, False);
+            "http://www.loc.gov/standards/iso639-2/", identificationInfo.language, false);
     }
 
     //characterSet
     {
         //Add the characterSet.
-        xmlNode *pCharacterNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("characterSet"), NULL);
+        xmlNode *pCharacterNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("characterSet"), nullptr);
 
         //Set the value.
         addCodeListNode(*pCharacterNode, "gmd", "MD_CharacterSetCode",
-            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (const char*)identificationInfo.character_set);
+            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", identificationInfo.characterSet);
     }
 
     //topicCategory
     {
         //Add the topicCategory.
-        xmlNode *pTopicNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("topicCategory"), NULL);
+        xmlNode *pTopicNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("topicCategory"), nullptr);
 
         //Create the MD_TopicCategoryCode node.
         xmlNode *pCodeNode = xmlNewChild(pTopicNode, pGmdNamespace, XMLCast("MD_TopicCategoryCode"),
-            EncodedString(*parentNode.doc, (const char *)identificationInfo.topicCategory));
+            EncodedString(*parentNode.doc, identificationInfo.topicCategory));
+
+        //Set the value.
+        addCodeListNode(*pCodeNode, "gmd", "MD_TopicCategoryCode",
+            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", identificationInfo.topicCategory);
     }
 
     //extent (Optional)
-    if ( identificationInfo.westBoundingLongitude != f64(INIT_VALUE) && 
-         identificationInfo.eastBoundingLongitude != f64(INIT_VALUE) &&  
-         identificationInfo.southBoundingLatitude != f64(INIT_VALUE) &&  
-         identificationInfo.northBoundingLatitude != f64(INIT_VALUE) )
+    if ( identificationInfo.westBoundingLongitude != double(INIT_VALUE) &&
+         identificationInfo.eastBoundingLongitude != double(INIT_VALUE) &&
+         identificationInfo.southBoundingLatitude != double(INIT_VALUE) &&
+         identificationInfo.northBoundingLatitude != double(INIT_VALUE) )
     {
         //Add the extent.
-        xmlNode *pExtentNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("extent"), NULL);
+        xmlNode *pExtentNode = xmlNewChild(pBagIdentInfoNode, pGmdNamespace, XMLCast("extent"), nullptr);
 
         //Add the EX_Extent
-        xmlNode *pExtentNode2 = xmlNewChild(pExtentNode, pGmdNamespace, XMLCast("EX_Extent"), NULL);
+        xmlNode *pExtentNode2 = xmlNewChild(pExtentNode, pGmdNamespace, XMLCast("EX_Extent"), nullptr);
 
         //Add the geographicElement
-        xmlNode *pGeoNode = xmlNewChild(pExtentNode2, pGmdNamespace, XMLCast("geographicElement"), NULL);
+        xmlNode *pGeoNode = xmlNewChild(pExtentNode2, pGmdNamespace, XMLCast("geographicElement"), nullptr);
 
         //Add the EX_GeographicBoundingBox
-        xmlNode *pGeoNode2 = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("EX_GeographicBoundingBox"), NULL);
+        xmlNode *pGeoNode2 = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("EX_GeographicBoundingBox"), nullptr);
 
         //Add the westBoundLongitude
-        xmlNode *pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("westBoundLongitude"), NULL);
+        xmlNode *pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("westBoundLongitude"), nullptr);
         addDecimalNode(*pCoordNode, identificationInfo.westBoundingLongitude);
 
         //Add the eastBoundLongitude
-        pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("eastBoundLongitude"), NULL);
+        pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("eastBoundLongitude"), nullptr);
         addDecimalNode(*pCoordNode, identificationInfo.eastBoundingLongitude);
 
         //Add the southBoundLatitude
-        pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("southBoundLatitude"), NULL);
+        pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("southBoundLatitude"), nullptr);
         addDecimalNode(*pCoordNode, identificationInfo.southBoundingLatitude);
 
         //Add the northBoundLatitude
-        pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("northBoundLatitude"), NULL);
+        pCoordNode = xmlNewChild(pGeoNode2, pGmdNamespace, XMLCast("northBoundLatitude"), nullptr);
         addDecimalNode(*pCoordNode, identificationInfo.northBoundingLatitude);
     }
 
     //verticalUncertaintyType
     {
         //Add the verticalUncertaintyType.
-        xmlNode *pVertUncertNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("verticalUncertaintyType"), NULL);
+        xmlNode *pVertUncertNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("verticalUncertaintyType"), nullptr);
 
         //Set the value.
         addCodeListNode(*pVertUncertNode, "bag", "BAG_VertUncertCode",
@@ -644,10 +648,10 @@ Bool addDataIdentification(xmlNode &parentNode, const BAG_IDENTIFICATION &identi
     }
 
     //depthCorrectionType (Optional)
-    if (identificationInfo.depthCorrectionType != NULL)
+    if (identificationInfo.depthCorrectionType != nullptr)
     {
         //Add the depthCorrectionType.
-        xmlNode *pDepthCorrNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("depthCorrectionType"), NULL);
+        xmlNode *pDepthCorrNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("depthCorrectionType"), nullptr);
 
         //Set the value.
         addCodeListNode(*pDepthCorrNode, "bag", "BAG_DepthCorrectCode",
@@ -655,10 +659,10 @@ Bool addDataIdentification(xmlNode &parentNode, const BAG_IDENTIFICATION &identi
     }
 
     //elevationSolutionGroupType (Optional)
-    if (identificationInfo.elevationSolutionGroupType != NULL)
+    if (identificationInfo.elevationSolutionGroupType != nullptr)
     {
         //Add the depthCorrectionType.
-        xmlNode *pElevNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("elevationSolutionGroupType"), NULL);
+        xmlNode *pElevNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("elevationSolutionGroupType"), nullptr);
 
         //Set the value.
         addCodeListNode(*pElevNode, "bag", "BAG_OptGroupCode",
@@ -666,52 +670,52 @@ Bool addDataIdentification(xmlNode &parentNode, const BAG_IDENTIFICATION &identi
     }
 
     //nodeGroupType (Optional)
-    if (identificationInfo.nodeGroupType != NULL)
+    if (identificationInfo.nodeGroupType != nullptr)
     {
         //Add the depthCorrectionType.
-        xmlNode *pNodeGroupNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("nodeGroupType"), NULL);
+        xmlNode *pNodeGroupNode = xmlNewChild(pBagIdentInfoNode, pBagNamespace, XMLCast("nodeGroupType"), nullptr);
 
         //Set the value.
         addCodeListNode(*pNodeGroupNode, "bag", "BAG_OptGroupCode",
             "http://www.opennavsurf.org/schema/bag/bagCodelists.xml", (const char*)identificationInfo.nodeGroupType);
     }
-		
-    return True;
+
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_SECURITY_CONSTRAINTS information to the parent XML node.
+//! Add the BagSecurityConstraints information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param securityConstraints
     \li The security constraint information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addSecurityConstraints(xmlNode &parentNode, const BAG_SECURITY_CONSTRAINTS &securityConstraints)
+bool addSecurityConstraints(xmlNode &parentNode, const BagSecurityConstraints &securityConstraints)
 {
     /* If either the classification or the distribution statement is not supplied, the node should not be created.*/
-    if (securityConstraints.classification == NULL ||
-        securityConstraints.userNote == NULL)
+    if (securityConstraints.classification == nullptr ||
+        securityConstraints.userNote == nullptr)
     {
         fprintf(stderr, "ERROR: creating security constraints. Classification and Distribution statement must be supplied!.\n");
-        return False;
+        return false;
     }
 
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
-                        
+
     //Create the metadataConstraints node.
-    xmlNode *pConstraintNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("metadataConstraints"), NULL);
+    xmlNode *pConstraintNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("metadataConstraints"), nullptr);
 
     //Create the MD_SecurityConstraints node.
-    xmlNode *pConstraintNode2 = xmlNewChild(pConstraintNode, pGmdNamespace, XMLCast("MD_SecurityConstraints"), NULL);
-    
+    xmlNode *pConstraintNode2 = xmlNewChild(pConstraintNode, pGmdNamespace, XMLCast("MD_SecurityConstraints"), nullptr);
+
     //classification
     {
         //Create the title node.
-        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("classification"), NULL);
+        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("classification"), nullptr);
         addCodeListNode(*pNode, "gmd", "MD_ClassificationCode",
             "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (char*)securityConstraints.classification);
     }
@@ -719,40 +723,40 @@ Bool addSecurityConstraints(xmlNode &parentNode, const BAG_SECURITY_CONSTRAINTS 
     //userNote
     {
         //Create the title node.
-        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("userNote"), NULL);
+        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("userNote"), nullptr);
 
         //Set the title value.
         addCharacterNode(*pNode, (char*)securityConstraints.userNote);
     }
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_LEGAL_CONSTRAINTS information to the parent XML node.
+//! Add the BagLegalConstraints information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param legalConstraints
     \li The legal constraint information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addLegalConstraints(xmlNode &parentNode, const BAG_LEGAL_CONSTRAINTS &legalConstraints)
+bool addLegalConstraints(xmlNode &parentNode, const BagLegalConstraints &legalConstraints)
 {
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
-                        
+
     //Create the metadataConstraints node.
-    xmlNode *pConstraintNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("metadataConstraints"), NULL);
+    xmlNode *pConstraintNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("metadataConstraints"), nullptr);
 
     //Create the MD_LegalConstraints node.
-    xmlNode *pConstraintNode2 = xmlNewChild(pConstraintNode, pGmdNamespace, XMLCast("MD_LegalConstraints"), NULL);
+    xmlNode *pConstraintNode2 = xmlNewChild(pConstraintNode, pGmdNamespace, XMLCast("MD_LegalConstraints"), nullptr);
 
     //useConstraints
     {
         //Create the useConstraints node.
-        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("useConstraints"), NULL);
+        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("useConstraints"), nullptr);
         addCodeListNode(*pNode, "gmd", "MD_RestrictionCode",
             "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (char*)legalConstraints.useConstraints);
     }
@@ -760,47 +764,47 @@ Bool addLegalConstraints(xmlNode &parentNode, const BAG_LEGAL_CONSTRAINTS &legal
     //otherConstraints
     {
         //Create the title node.
-        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("otherConstraints"), NULL);
+        xmlNode *pNode = xmlNewChild(pConstraintNode2, pGmdNamespace, XMLCast("otherConstraints"), nullptr);
 
         //Set the title value.
         addCharacterNode(*pNode, (char*)legalConstraints.otherConstraints);
     }
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_SOURCE information to the parent XML node.
+//! Add the BagSource information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param source
     \li The process source information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addProcessSource(xmlNode &parentNode, const BAG_SOURCE &source)
+bool addProcessSource(xmlNode &parentNode, const BagSource &source)
 {
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
 
     //The description is required.
-    if (source.description == NULL)
+    if (source.description == nullptr)
     {
         fprintf(stderr, "ERROR: source description not supplied.\n");
-        return False;
+        return false;
     }
 
     //Create the source node.
-    xmlNode *pSourceNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("source"), NULL);
+    xmlNode *pSourceNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("source"), nullptr);
 
     //Create the LI_Source node.
-    xmlNode *pSourceNode2 = xmlNewChild(pSourceNode, pGmdNamespace, XMLCast("LI_Source"), NULL);
+    xmlNode *pSourceNode2 = xmlNewChild(pSourceNode, pGmdNamespace, XMLCast("LI_Source"), nullptr);
 
     //description
     {
         //Create the description node.
-        xmlNode *pNode = xmlNewChild(pSourceNode2, pGmdNamespace, XMLCast("description"), NULL);
+        xmlNode *pNode = xmlNewChild(pSourceNode2, pGmdNamespace, XMLCast("description"), nullptr);
 
         //Set the title value.
         addCharacterNode(*pNode, (char*)source.description);
@@ -809,155 +813,155 @@ Bool addProcessSource(xmlNode &parentNode, const BAG_SOURCE &source)
     //sourceCitation
     {
         //Create the sourceCitation node.
-        xmlNode *pNode = xmlNewChild(pSourceNode2, pGmdNamespace, XMLCast("sourceCitation"), NULL);
+        xmlNode *pNode = xmlNewChild(pSourceNode2, pGmdNamespace, XMLCast("sourceCitation"), nullptr);
 
-        const Bool ret = addCitation(*pNode, (char*)source.title, (char*)source.date, (char*)source.dateType,
+        const bool ret = addCitation(*pNode, (char*)source.title, (char*)source.date, (char*)source.dateType,
             source.responsibleParties, source.numberOfResponsibleParties);
         if (!ret)
-            return False;
+            return false;
     }
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_PROCESS_STEP information to the parent XML node.
+//! Add the BagProcessStep information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param processInfo
     \li The process step information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addProcessStep(xmlNode &parentNode, const BAG_PROCESS_STEP &processInfo)
+bool addProcessStep(xmlNode &parentNode, const BagProcessStep &processInfo)
 {
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
     const xmlNsPtr pBagNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("bag"));
 
-    xmlNode *pProcessStepNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("processStep"), NULL);
-    pProcessStepNode = xmlNewChild(pProcessStepNode, pBagNamespace, XMLCast("BAG_ProcessStep"), NULL);
+    xmlNode *pProcessStepNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("processStep"), nullptr);
+    pProcessStepNode = xmlNewChild(pProcessStepNode, pBagNamespace, XMLCast("BAG_ProcessStep"), nullptr);
 
     //description
     {
         //Create the description node.
-        xmlNode *pNode = xmlNewChild(pProcessStepNode, pGmdNamespace, XMLCast("description"), NULL);
+        xmlNode *pNode = xmlNewChild(pProcessStepNode, pGmdNamespace, XMLCast("description"), nullptr);
         addCharacterNode(*pNode, (char*)processInfo.description);
     }
 
     //dateTime
     {
         //Create the dateTime node.
-        xmlNode *pNode = xmlNewChild(pProcessStepNode, pGmdNamespace, XMLCast("dateTime"), NULL);
+        xmlNode *pNode = xmlNewChild(pProcessStepNode, pGmdNamespace, XMLCast("dateTime"), nullptr);
         addDateTimeNode(*pNode, (char*)processInfo.dateTime);
     }
 
     //processor
-    for (u32 i = 0; i < processInfo.numberOfProcessors; i++)
+    for (uint32_t i = 0; i < processInfo.numberOfProcessors; i++)
     {
         //Create the processor node.
-        xmlNode *pNode = xmlNewChild(pProcessStepNode, pGmdNamespace, XMLCast("processor"), NULL);
+        xmlNode *pNode = xmlNewChild(pProcessStepNode, pGmdNamespace, XMLCast("processor"), nullptr);
         addResponsibleParty(*pNode, processInfo.processors[i]);
     }
 
     //source
-    for (u32 i = 0; i < processInfo.numberOfSources; i++)
+    for (uint32_t i = 0; i < processInfo.numberOfSources; i++)
     {
-        const Bool ret = addProcessSource(*pProcessStepNode, processInfo.lineageSources[i]);
+        const bool ret = addProcessSource(*pProcessStepNode, processInfo.lineageSources[i]);
         if (!ret)
-            return False;
+            return false;
     }
 
     //trackingId
     {
         //Create the trackingId node.
-        xmlNode *pNode = xmlNewChild(pProcessStepNode, pBagNamespace, XMLCast("trackingId"), NULL);
+        xmlNode *pNode = xmlNewChild(pProcessStepNode, pBagNamespace, XMLCast("trackingId"), nullptr);
         addCharacterNode(*pNode, (char*)processInfo.trackingId);
     }
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_DATA_QUALITY information to the parent XML node.
+//! Add the BagDataQuality information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param dataQuality
     \li The data quality information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addDataQuality(xmlNode &parentNode, const BAG_DATA_QUALITY &dataQuality)
+bool addDataQuality(xmlNode &parentNode, const BagDataQuality &dataQuality)
 {
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
 
     //Create the dataQualityInfo node.
-    xmlNode *pQualityNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("dataQualityInfo"), NULL);
+    xmlNode *pQualityNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("dataQualityInfo"), nullptr);
 
     //Create the DQ_DataQuality node.
-    xmlNode *pQualityNode2 = xmlNewChild(pQualityNode, pGmdNamespace, XMLCast("DQ_DataQuality"), NULL);
+    xmlNode *pQualityNode2 = xmlNewChild(pQualityNode, pGmdNamespace, XMLCast("DQ_DataQuality"), nullptr);
 
     //scope
     {
-        xmlNode *pNode = xmlNewChild(pQualityNode2, pGmdNamespace, XMLCast("scope"), NULL);
-        pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("DQ_Scope"), NULL);
-        pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("level"), NULL);
+        xmlNode *pNode = xmlNewChild(pQualityNode2, pGmdNamespace, XMLCast("scope"), nullptr);
+        pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("DQ_Scope"), nullptr);
+        pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("level"), nullptr);
         addCodeListNode(*pNode, "gmd", "MD_ScopeCode",
             "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (char*)dataQuality.scope);
     }
 
     //lineage
     {
-        xmlNode *pLineageNode = xmlNewChild(pQualityNode2, pGmdNamespace, XMLCast("lineage"), NULL);
-        pLineageNode = xmlNewChild(pLineageNode, pGmdNamespace, XMLCast("LI_Lineage"), NULL);
+        xmlNode *pLineageNode = xmlNewChild(pQualityNode2, pGmdNamespace, XMLCast("lineage"), nullptr);
+        pLineageNode = xmlNewChild(pLineageNode, pGmdNamespace, XMLCast("LI_Lineage"), nullptr);
 
         //Add each process step.
-        for (u32 i = 0; i < dataQuality.numberOfProcessSteps; i++)
+        for (uint32_t i = 0; i < dataQuality.numberOfProcessSteps; i++)
         {
-            const Bool ret = addProcessStep(*pLineageNode, dataQuality.lineageProcessSteps[i]);
+            const bool ret = addProcessStep(*pLineageNode, dataQuality.lineageProcessSteps[i]);
             if (!ret)
-                return False;
+                return false;
         }
     }
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_SPATIAL_REPRESENTATION information to the parent XML node.
+//! Add the BagSpatialRepresentation information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param spatialRepresentationInfo
     \li The spatial representation information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addSpatialRepresentation(xmlNode &parentNode, const BAG_SPATIAL_REPRESENTATION &spatialRepresentationInfo)
+bool addSpatialRepresentation(xmlNode &parentNode, const BagSpatialRepresentation &spatialRepresentationInfo)
 {
-    /* Check for required elements. If do not exist, return NULL*/
+    /* Check for required elements. If do not exist, return nullptr*/
 
-    /* Must have specified cellGeometry, transformationParameterAvailability,and checkPointAvailability */ 
+    /* Must have specified cellGeometry, transformationParameterAvailability,and checkPointAvailability */
     /* If any of the four corner points equal the INIT_VALUE, this indicates the points have not been populated by the user. */
 
-    if (spatialRepresentationInfo.cellGeometry == NULL)
+    if (spatialRepresentationInfo.cellGeometry == nullptr)
     {
         fprintf(stderr, "ERROR: spatialRepresentationInfo.cellGeometry, transformationParameterAvailability,checkPointAvailability must be supplied\n");
-        return False;
+        return false;
     }
 
-    if (spatialRepresentationInfo.llCornerX == (f64)INIT_VALUE ||  
-        spatialRepresentationInfo.llCornerY == (f64)INIT_VALUE ||   
-        spatialRepresentationInfo.urCornerX == (f64)INIT_VALUE ||   
-        spatialRepresentationInfo.urCornerY == (f64)(INIT_VALUE))
+    if (spatialRepresentationInfo.llCornerX == (double)INIT_VALUE ||
+        spatialRepresentationInfo.llCornerY == (double)INIT_VALUE ||
+        spatialRepresentationInfo.urCornerX == (double)INIT_VALUE ||
+        spatialRepresentationInfo.urCornerY == (double)(INIT_VALUE))
     {
 
-        fprintf(stderr, "ERROR: All four spatialRepresentationInfo corner points must be supplied. \n"); 
-        return False;
+        fprintf(stderr, "ERROR: All four spatialRepresentationInfo corner points must be supplied. \n");
+        return false;
 
     }
 
@@ -965,47 +969,47 @@ Bool addSpatialRepresentation(xmlNode &parentNode, const BAG_SPATIAL_REPRESENTAT
     const xmlNsPtr pGmlNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gml"));
 
     //Create the spatialRepresentationInfo node.
-    xmlNode *pSpatialRepNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("spatialRepresentationInfo"), NULL);
+    xmlNode *pSpatialRepNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("spatialRepresentationInfo"), nullptr);
 
     //Create the MD_Georectified node.
-    xmlNode *pGeoNode = xmlNewChild(pSpatialRepNode, pGmdNamespace, XMLCast("MD_Georectified"), NULL);
+    xmlNode *pGeoNode = xmlNewChild(pSpatialRepNode, pGmdNamespace, XMLCast("MD_Georectified"), nullptr);
 
     //numberOfDimensions
     {
-        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("numberOfDimensions"), NULL);
+        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("numberOfDimensions"), nullptr);
         addIntegerNode(*pNode, 2);
     }
 
     //axisDimensionProperties
     addDimension(*pGeoNode, "row", spatialRepresentationInfo.numberOfRows, spatialRepresentationInfo.rowResolution,
-        (const char *)spatialRepresentationInfo.resolutionUnit);
+        spatialRepresentationInfo.resolutionUnit);
     addDimension(*pGeoNode, "column", spatialRepresentationInfo.numberOfColumns, spatialRepresentationInfo.columnResolution,
-        (const char *)spatialRepresentationInfo.resolutionUnit);
+        spatialRepresentationInfo.resolutionUnit);
 
     //cellGeometry
     {
-        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("cellGeometry"), NULL);
+        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("cellGeometry"), nullptr);
         addCodeListNode(*pNode, "gmd", "MD_CellGeometryCode",
             "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (char*)spatialRepresentationInfo.cellGeometry);
     }
 
     //transformationParameterAvailability
     {
-        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("transformationParameterAvailability"), NULL);
+        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("transformationParameterAvailability"), nullptr);
         addBooleanNode(*pNode, spatialRepresentationInfo.transformationParameterAvailability);
     }
 
     //checkPointAvailability
     {
-        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("checkPointAvailability"), NULL);
+        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("checkPointAvailability"), nullptr);
         addBooleanNode(*pNode, spatialRepresentationInfo.checkPointAvailability);
     }
 
     //cornerPoints
     {
-        xmlNode *pCornerNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("cornerPoints"), NULL);
+        xmlNode *pCornerNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("cornerPoints"), nullptr);
 
-        xmlNode *pPointNode = xmlNewChild(pCornerNode, pGmlNamespace, XMLCast("Point"), NULL);
+        xmlNode *pPointNode = xmlNewChild(pCornerNode, pGmlNamespace, XMLCast("Point"), nullptr);
         xmlSetProp(pPointNode, XMLCast("gml:id"), XMLCast("id1"));
 
         char pointsString[88];
@@ -1019,61 +1023,55 @@ Bool addSpatialRepresentation(xmlNode &parentNode, const BAG_SPATIAL_REPRESENTAT
 
     //pointInPixel
     {
-        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("pointInPixel"), NULL);
+        xmlNode *pNode = xmlNewChild(pGeoNode, pGmdNamespace, XMLCast("pointInPixel"), nullptr);
         xmlNewChild(pNode, pGmdNamespace, XMLCast("MD_PixelOrientationCode"), XMLCast("center"));
     }
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Add the BAG_REFERENCE_SYSTEM information to the parent XML node.
+//! Add the BagReferenceSystem information to the parent XML node.
 /*!
 \param parentNode
     \li The parent XML node to be modified.
 \param system
     \li The reference system information to be added to \e parentNode
-\return 
+\return
     \li True if the structure is added, False if an error occurs.
 */
 //************************************************************************
-Bool addReferenceSystem(xmlNode &parentNode, const BAG_REFERENCE_SYSTEM &system)
+bool addReferenceSystem(xmlNode &parentNode, const BagReferenceSystem &system)
 {
     const xmlNsPtr pGmdNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gmd"));
-    const xmlNsPtr pGcoNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gco"));
+    //const xmlNsPtr pGcoNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gco"));
 
-    xmlNode *pNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("referenceSystemInfo"), NULL);
-    pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("MD_ReferenceSystem"), NULL);
-    pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("referenceSystemIdentifier"), NULL);
-    pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("RS_Identifier"), NULL);
+    xmlNode *pNode = xmlNewChild(&parentNode, pGmdNamespace, XMLCast("referenceSystemInfo"), nullptr);
+    pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("MD_ReferenceSystem"), nullptr);
+    pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("referenceSystemIdentifier"), nullptr);
+    pNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("RS_Identifier"), nullptr);
 
-    xmlNode *pCodeNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("code"), NULL);
-    addCharacterNode(*pCodeNode, (const char *)system.definition);
+    xmlNode *pCodeNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("code"), nullptr);
+    addCharacterNode(*pCodeNode, system.definition);
 
-    xmlNode *pCodeNameNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("codeSpace"), NULL);
-    addCharacterNode(*pCodeNameNode, (const char *)system.type);
+    xmlNode *pCodeNameNode = xmlNewChild(pNode, pGmdNamespace, XMLCast("codeSpace"), nullptr);
+    addCharacterNode(*pCodeNameNode, system.type);
 
-    return True;
+    return true;
 }
 
 //************************************************************************
-//! Export the BAG_METADATA structure to a character buffer.
+//! Export the Metadata to a string.
 /*!
 \param metadata
     \li The metadata information to be exported.
-\param xmlString
-    \li Updated to contain the XML buffer generated from \e metadata.  User
-        is responsible for freeing the memory.
-\return 
-    \li The number of bytes allocated to \e xmlString.  0 is returned if 
-        an error occurs creating the buffer.
+\return
+    \li The metadata as XML in a string.
 */
 //************************************************************************
-u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
+std::string exportMetadataToXML(
+    const BagMetadata& metadata)
 {
-    if (metadata == NULL)
-        return 0;
-
     //Create a new xml document.
     xmlDoc *pDocument = createNewDocument();
 
@@ -1085,8 +1083,8 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
         const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the fileIdentifier node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("fileIdentifier"), NULL);
-        addCharacterNode(*pNode, (const char *)metadata->fileIdentifier);
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("fileIdentifier"), nullptr);
+        addCharacterNode(*pNode, metadata.fileIdentifier);
     }
 
     //Add the language
@@ -1094,9 +1092,9 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
         const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the language node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("language"), NULL);
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("language"), nullptr);
         addCodeListNode(*pNode, "gmd", "LanguageCode",
-            "http://www.loc.gov/standards/iso639-2/", (const char *)metadata->language, False);
+            "http://www.loc.gov/standards/iso639-2/", metadata.language, false);
     }
 
     //Add the characterSet
@@ -1104,9 +1102,10 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
         const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the characterSet node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("characterSet"), NULL);
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("characterSet"), nullptr);
         addCodeListNode(*pNode, "gmd", "MD_CharacterSetCode",
-            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (char*)metadata->characterSet);
+            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml",
+            metadata.characterSet);
     }
 
     //Add the hierarchyLevel.
@@ -1114,9 +1113,10 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
         const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the hierarchyLevel node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("hierarchyLevel"), NULL);
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("hierarchyLevel"), nullptr);
         addCodeListNode(*pNode, "gmd", "MD_ScopeCode",
-            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml", (char*)metadata->hierarchyLevel);
+            "http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml",
+            metadata.hierarchyLevel);
     }
 
     //Add the contact
@@ -1124,13 +1124,11 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
          const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the characterSet node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("contact"), NULL);
-        if (!addResponsibleParty(*pNode, *metadata->contact))
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("contact"), nullptr);
+        if (!addResponsibleParty(*pNode, *metadata.contact))
         {
-            //Error
-
             xmlFreeDoc(pDocument);
-            return 0;
+            return {};
         }
     }
 
@@ -1139,8 +1137,8 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
         const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the hierarchyLevel node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("dateStamp"), NULL);
-        addDateNode(*pNode, (const char *)metadata->dateStamp);
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("dateStamp"), nullptr);
+        addDateNode(*pNode, metadata.dateStamp);
     }
 
     //Add the metadataStandardName
@@ -1148,8 +1146,8 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
         const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the metadataStandardName node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("metadataStandardName"), NULL);
-        addCharacterNode(*pNode, (const char *)metadata->metadataStandardName);
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("metadataStandardName"), nullptr);
+        addCharacterNode(*pNode, metadata.metadataStandardName);
     }
 
     //Add the metadataStandardVersion
@@ -1157,95 +1155,75 @@ u32 bagExportMetadataToXmlBuffer(BAG_METADATA *metadata, u8** xmlString)
         const xmlNsPtr pGmdNamespace = xmlSearchNs(pDocument, pRoot, XMLCast("gmd"));
 
         //Create the metadataStandardVersion node.
-        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("metadataStandardVersion"), NULL);
-        addCharacterNode(*pNode, (const char *)metadata->metadataStandardVersion);
+        xmlNode *pNode = xmlNewChild(pRoot, pGmdNamespace, XMLCast("metadataStandardVersion"), nullptr);
+        addCharacterNode(*pNode, metadata.metadataStandardVersion);
     }
 
     //Add the spatialRepresentationInfo
-    Bool ret = addSpatialRepresentation(*pRoot, *metadata->spatialRepresentationInfo);
-    if (!ret)
+    if (!addSpatialRepresentation(*pRoot, *metadata.spatialRepresentationInfo))
     {
-        //Error
-
         xmlFreeDoc(pDocument);
-        return 0;
+        return {};
     }
 
     //Add the horizontal referenceSystemInfo
-    ret = addReferenceSystem(*pRoot, *metadata->horizontalReferenceSystem);
-    if (!ret)
+    if (!addReferenceSystem(*pRoot, *metadata.horizontalReferenceSystem))
     {
-        //Error
-
         xmlFreeDoc(pDocument);
-        return 0;
+        return {};
     }
 
     //Add the vertical referenceSystemInfo
-    ret = addReferenceSystem(*pRoot, *metadata->verticalReferenceSystem);
-    if (!ret)
+    if (!addReferenceSystem(*pRoot, *metadata.verticalReferenceSystem))
     {
-        //Error
-
         xmlFreeDoc(pDocument);
-        return 0;
+        return {};
     }
 
     //Add the data identification information.
-    ret = addDataIdentification(*pRoot, *metadata->identificationInfo);
-    if (!ret)
+    if (!addDataIdentification(*pRoot, *metadata.identificationInfo))
     {
-        //Error
-
         xmlFreeDoc(pDocument);
-        return 0;
+        return {};
     }
 
     //Add the data quality information.
-    ret = addDataQuality(*pRoot, *metadata->dataQualityInfo);
-    if (!ret)
+    if (!addDataQuality(*pRoot, *metadata.dataQualityInfo))
     {
-        //Error
-
         xmlFreeDoc(pDocument);
-        return 0;
+        return {};
     }
 
     //Add the legal constraint information.
-    ret = addLegalConstraints(*pRoot, *metadata->legalConstraints);
-    if (!ret)
+    if (!addLegalConstraints(*pRoot, *metadata.legalConstraints))
     {
-        //Error
-
         xmlFreeDoc(pDocument);
-        return 0;
+        return {};
     }
 
     //Add the security constraint information.
-    ret = addSecurityConstraints(*pRoot, *metadata->securityConstraints);
-    if (!ret)
+    if (!addSecurityConstraints(*pRoot, *metadata.securityConstraints))
     {
-        //Error
-
         xmlFreeDoc(pDocument);
-        return 0;
+        return {};
     }
-            
+
     //Export to the buffer.
     int bufferSize = 0;
-    xmlChar *pBuffer = NULL;
+    xmlChar *pBuffer = nullptr;
     xmlDocDumpMemoryEnc(pDocument, &pBuffer, &bufferSize, "UTF-8");
     xmlFreeDoc(pDocument);
 
     //If nothing was exported, then just return.
     if (bufferSize == 0)
-        return 0;
+        return {};
 
     //Copy the buffer to our output string and add a null terminator.
-    *xmlString = (u8*)realloc(*xmlString, bufferSize + 1);
-    memcpy(*xmlString, pBuffer, bufferSize);
-    (*xmlString)[bufferSize] = 0;
-    
+    std::string result{reinterpret_cast<char*>(pBuffer), static_cast<size_t>(bufferSize)};
+
     xmlFree(pBuffer);
-    return bufferSize;
+    return result;
 }
+
+}  // namespace BAG
+

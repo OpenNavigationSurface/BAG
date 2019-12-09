@@ -25,6 +25,9 @@ api/Release
 examples/Debug
 examples/Release
 
+# Visual Studio session files.
+/.vs
+
 # CMake nonsense
 api/CMakeScripts
 CMakeFiles
@@ -37,3 +40,5 @@ extlibs/hdf5*/
 extlibs/beecrypt/
 extlibs/libxml2/
 extlibs/zlib/
+
+
