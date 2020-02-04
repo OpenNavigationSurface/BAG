@@ -4,14 +4,14 @@
 #include "bag_simplelayerdescriptor.h"
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
 
 SimpleLayer::SimpleLayer(
     Dataset& dataset,
-    LayerDescriptor& descriptor,
+    SimpleLayerDescriptor& descriptor,
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet)
     : Layer(dataset, descriptor)
     , m_pH5dataSet(std::move(h5dataSet))
@@ -25,7 +25,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
     unsigned int compressionLevel)
 {
     auto descriptor = SimpleLayerDescriptor::create(type, chunkSize,
-        compressionLevel);
+        compressionLevel, dataset);
     auto h5dataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, *descriptor,
@@ -34,7 +34,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
 
 std::unique_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
-    LayerDescriptor& descriptor)
+    SimpleLayerDescriptor& descriptor)
 {
     const auto& h5file = dataset.getH5file();
     auto h5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
@@ -55,7 +55,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
 std::unique_ptr<::H5::DataSet, SimpleLayer::DeleteH5dataSet>
 SimpleLayer::createH5dataSet(
     const Dataset& dataset,
-    const LayerDescriptor& descriptor)
+    const SimpleLayerDescriptor& descriptor)
 {
     // Use the dimensions from the descriptor.
     uint32_t dim0 = 0, dim1 = 0;
@@ -75,8 +75,8 @@ SimpleLayer::createH5dataSet(
     h5createPropList.setFillValue(h5dataType, &kFillValue);
 
     // Use chunk size and compression level from the descriptor.
-    const int compressionLevel = descriptor.getCompressionLevel();
-    if (compressionLevel > 0 && compressionLevel <= 9)
+    const auto compressionLevel = descriptor.getCompressionLevel();
+    if (compressionLevel <= kMaxCompressionLevel)
     {
         h5createPropList.setLayout(H5D_CHUNKED);
 

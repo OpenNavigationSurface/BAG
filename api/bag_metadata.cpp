@@ -12,7 +12,7 @@
 #endif
 
 #include <fstream>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)

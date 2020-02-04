@@ -14,6 +14,7 @@ namespace BAG
 {
 
 constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
+constexpr unsigned int kMaxCompressionLevel = 9;
 
 /*! Path names for BAG entities */
 #define ROOT_PATH                       "/BAG_root"
@@ -33,6 +34,7 @@ constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
 #define SHOAL_ELEVATION_PATH            ROOT_PATH "/shoal_elevation"  //TODO Discuss this.
 #define STANDARD_DEV_PATH	            ROOT_PATH "/standard_dev"
 #define NUM_SOUNDINGS_PATH              ROOT_PATH "/num_soundings"  //TODO Discuss this.
+#define COMPOUND_PATH                   ROOT_PATH "/Georef_metadata/"
 
 /*! Names for BAG Attributes */
 #define BAG_VERSION_NAME                "Bag Version"                /*!< Name for version attribute, value set in bag.h */
@@ -64,6 +66,9 @@ constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
 #define VERT_DATUM_CORR_SWY             "SW Corner Y"                /*!<Name for the sw corner Y attribute for vert datum set */
 #define VERT_DATUM_CORR_SURFACE_TYPE    "surface_type"               /*!<Name for the surface type */
 #define VERT_DATUM_CORR_VERTICAL_DATUM  "vertical_datum"             /*!<Name for the vertical datum */
+
+#define COMPOUND_RECORD_DEFINITION      "Record Definition"          /*<Name for the record definition attribute */
+#define COMPOUND_RECORDS                "_records"                   /*<Name for the records attribute */
 
 }   //namespace BAG
 

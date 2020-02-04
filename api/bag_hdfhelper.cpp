@@ -3,11 +3,108 @@
 #include "bag_hdfhelper.h"
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
+#include <numeric>
 
 
 namespace BAG {
 
+//! Create an HDF5 compound type based on the layer and group types.
+::H5::CompType createH5compType(
+    LayerType layerType,
+    GroupType groupType)
+{
+    ::H5::CompType h5type;
+
+    if (groupType == NODE)
+    {
+        switch (layerType)
+        {
+        case Hypothesis_Strength:
+            h5type = ::H5::CompType{sizeof(float)};
+            h5type.insertMember("hyp_strength",
+                0,
+                ::H5::PredType::NATIVE_FLOAT);
+            break;
+        case Num_Hypotheses:
+            h5type = ::H5::CompType{sizeof(unsigned int)};
+            h5type.insertMember("num_hypotheses",
+                0,
+                ::H5::PredType::NATIVE_UINT);
+            break;
+        default:
+            throw UnsupportedLayerType{};
+        }
+    }
+    else if (groupType == ELEVATION)
+    {
+        switch(layerType)
+        {
+        case Shoal_Elevation:
+            h5type = ::H5::CompType{sizeof(float)};
+            h5type.insertMember("shoal_elevation",
+                0,
+                ::H5::PredType::NATIVE_FLOAT);
+            break;
+        case Std_Dev:
+            h5type = ::H5::CompType{sizeof(float)};
+            h5type.insertMember("stddev",
+                0,
+                ::H5::PredType::NATIVE_FLOAT);
+            break;
+        case Num_Soundings:
+            h5type = ::H5::CompType{sizeof(int)};
+            h5type.insertMember("num_soundings",
+                0,
+                ::H5::PredType::NATIVE_INT);
+            break;
+        default:
+            throw UnsupportedLayerType{};
+        }
+    }
+    else
+        throw UnsupportedGroupType{};
+
+    return h5type;
+}
+
+//! Create an HDF5 file Compound Type based upon the Record Definition.
+::H5::CompType createH5fileCompType(
+    const RecordDefinition& definition)
+{
+    ::H5::CompType h5type{getH5compSize(definition)};
+    size_t fieldOffset = 0;
+
+    for (const auto& field : definition)
+    {
+        h5type.insertMember(field.name, fieldOffset,
+            getH5fileType(static_cast<DataType>(field.type)));
+
+        fieldOffset += Layer::getElementSize(static_cast<DataType>(field.type));
+    }
+
+    return h5type;
+}
+
+//! Create an HDF5 memory Compound Type based upon the Record Definition.
+::H5::CompType createH5memoryCompType(
+    const RecordDefinition& definition)
+{
+    ::H5::CompType h5type{getH5compSize(definition)};
+    size_t fieldOffset = 0;
+
+    for (const auto& field : definition)
+    {
+        h5type.insertMember(field.name, fieldOffset,
+            getH5memoryType(static_cast<DataType>(field.type)));
+
+        fieldOffset += Layer::getElementSize(static_cast<DataType>(field.type));
+    }
+
+    return h5type;
+}
+
+//! Get the chunk size from a HDF file.
 uint64_t getChunkSize(
     const ::H5::H5File& h5file,
     const std::string& path)
@@ -28,6 +125,7 @@ uint64_t getChunkSize(
     return 0;
 }
 
+//! Get the compression level from a HDF file.
 unsigned int getCompressionLevel(
     const ::H5::H5File& h5file,
     const std::string& path)
@@ -55,68 +153,56 @@ unsigned int getCompressionLevel(
     return 0;
 }
 
-::H5::CompType getH5compType(
-    LayerType layerType,
-    GroupType groupType)
+size_t getH5compSize(
+    const RecordDefinition& definition)
 {
-    ::H5::CompType h5type;
-
-    if (groupType == NODE)
-    {
-        switch (layerType)
-        {
-        case Hypothesis_Strength:
-            h5type = ::H5::CompType{sizeof(float)};
-            h5type.insertMember("hyp_strength",
-                0,
-                ::H5::PredType::NATIVE_FLOAT);
-            break;
-        case Num_Hypotheses:
-            h5type = ::H5::CompType{sizeof(unsigned int)};
-            h5type.insertMember("num_hypotheses",
-                0,
-                ::H5::PredType::NATIVE_UINT);
-            break;
-        default:
-            throw 112233;  // Unknown group type.
-        }
-    }
-    else if (groupType == ELEVATION)
-    {
-        switch(layerType)
-        {
-        case Shoal_Elevation:
-            h5type = ::H5::CompType{sizeof(float)};
-            h5type.insertMember("shoal_elevation",
-                0,
-                ::H5::PredType::NATIVE_FLOAT);
-            break;
-        case Std_Dev:
-            h5type = ::H5::CompType{sizeof(float)};
-            h5type.insertMember("stddev",
-                0,
-                ::H5::PredType::NATIVE_FLOAT);
-            break;
-        case Num_Soundings:
-            h5type = ::H5::CompType{sizeof(int)};
-            h5type.insertMember("num_soundings",
-                0,
-                ::H5::PredType::NATIVE_INT);
-            break;
-        default:
-            throw 112233;  // Unknown group type.
-        }
-    }
-
-    return h5type;
+    return std::accumulate(cbegin(definition), cend(definition), 0ULL,
+        [](size_t sum, const auto& field) {
+            return sum + Layer::getElementSize(static_cast<DataType>(field.type));
+        });
 }
 
-const ::H5::PredType& getH5memoryType(DataType type)
+//! Determine the HDF5 file DataType from the specified DataType.
+const ::H5::AtomType& getH5fileType(
+    DataType type)
 {
+    static ::H5::StrType strType{::H5::PredType::C_S1};  //FORTRAN_S1
+    strType.setSize(H5T_VARIABLE);
+
     switch(type)
     {
     case UINT32:
-        return ::H5::PredType::NATIVE_UINT32;
+        return H5::PredType::NATIVE_UINT32;  //STD_U32LE
+    case FLOAT32:
+        return ::H5::PredType::NATIVE_FLOAT;  //IEEE_F32LE
+    case UINT8:
+        return ::H5::PredType::NATIVE_UINT8;  //STD_U8LE
+    case UINT16:
+        return ::H5::PredType::NATIVE_UINT16;  //STD_U16LE
+    case UINT64:
+        return ::H5::PredType::NATIVE_UINT64;  //STD_U64LE
+    case BOOL:
+        return ::H5::PredType::NATIVE_HBOOL;  //STD_U8LE
+    case STRING:
+        return strType;
+    case COMPOUND:  //[fallthrough]
+    case UNKNOWN_DATA_TYPE:  //[fallthrough]
+    default:
+        throw UnsupportedDataType{};
+    }
+}
+
+//! Determine the HDF5 memory DataType from the specified DataType.
+const ::H5::AtomType& getH5memoryType(
+    DataType type)
+{
+    static ::H5::StrType strType{::H5::PredType::C_S1};
+    strType.setSize(H5T_VARIABLE);
+
+    switch(type)
+    {
+    case UINT32:
+        return H5::PredType::NATIVE_UINT32;
     case FLOAT32:
         return ::H5::PredType::NATIVE_FLOAT;
     case UINT8:
@@ -125,8 +211,10 @@ const ::H5::PredType& getH5memoryType(DataType type)
         return ::H5::PredType::NATIVE_UINT16;
     case UINT64:
         return ::H5::PredType::NATIVE_UINT64;
-    case BOOL:  //[fallthrough]
-    case STRING:  //[fallthrough]
+    case BOOL:
+        return ::H5::PredType::NATIVE_HBOOL;
+    case STRING:
+        return strType;
     case COMPOUND:  //[fallthrough]
     case UNKNOWN_DATA_TYPE:  //[fallthrough]
     default:

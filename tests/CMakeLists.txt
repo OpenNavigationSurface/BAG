@@ -19,6 +19,7 @@ set(TEST_SOURCE_FILES
     test_bag_surfacecorrectionsdescriptor.cpp
     test_bag_surfacecorrections.cpp
     test_bag_trackinglist.cpp
+    test_bag_valuetable.cpp
     test_utils.cpp
     test_utils.h
 )

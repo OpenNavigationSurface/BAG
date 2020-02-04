@@ -11,7 +11,8 @@
 #pragma warning(disable: 4251)
 #endif
 
-#include <h5cpp.h>
+#include <H5Cpp.h>
+
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -106,7 +107,6 @@ BagError bagCreateFromBuffer(
     return 0;
 }
 
-//TODO maybe change this to bagCreateSimpleLevel (will have to make SurfaceCorrections and CompoundLayer versions)
 BagError bagCreateLayer(
     BagHandle* handle,
     BAG_LAYER_TYPE type)
@@ -118,7 +118,7 @@ BagError bagCreateLayer(
     constexpr uint64_t chunkSize = 100;
     constexpr unsigned int compressionLevel = 6;
 
-    handle->pDataset->createLayer(type, chunkSize, compressionLevel);
+    handle->pDataset->createSimpleLayer(type, chunkSize, compressionLevel);
 
     return 0;
 }

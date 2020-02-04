@@ -20,8 +20,9 @@ class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
-        uint64_t chunkSize, unsigned int compressionLevel);
-    static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
+        uint64_t chunkSize, unsigned int compressionLevel,
+        const Dataset& dataset);
+    static std::shared_ptr<SimpleLayerDescriptor> open(LayerType type,
         const Dataset& dataset);
 
     //TODO Temp, make sure only move operations are used until development is done.
@@ -31,7 +32,7 @@ public:
     SimpleLayerDescriptor& operator=(SimpleLayerDescriptor&&) = delete;
 
 protected:
-    SimpleLayerDescriptor(LayerType type, uint64_t chunkSize,
+    SimpleLayerDescriptor(uint32_t id, LayerType type, uint64_t chunkSize,
         unsigned int compressionLevel);
     SimpleLayerDescriptor(LayerType type, const Dataset& dataset);
 

@@ -14,7 +14,7 @@
 #pragma warning(disable: 4251)
 #endif
 
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)

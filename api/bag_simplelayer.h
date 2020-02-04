@@ -32,19 +32,19 @@ protected:
         void operator()(::H5::DataSet* ptr) noexcept;
     };
 
-    SimpleLayer(Dataset& dataset, LayerDescriptor& descriptor,
+    SimpleLayer(Dataset& dataset, SimpleLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
         LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
 
     static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
-        LayerDescriptor& descriptor);
+        SimpleLayerDescriptor& descriptor);
 
 private:
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
         createH5dataSet(const Dataset& inDataSet,
-            const LayerDescriptor& descriptor);
+            const SimpleLayerDescriptor& descriptor);
 
     std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;

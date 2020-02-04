@@ -5,7 +5,7 @@
 #include "bag_trackinglist.h"
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
@@ -109,8 +109,10 @@ uint8_t Layer::getElementSize(DataType type)
         return sizeof(uint16_t);
     case UINT64:
         return sizeof(uint64_t);
-    case BOOL:  //[[fallthrough]]
-    case STRING:  //[[fallthrough]]
+    case BOOL:
+        return sizeof(bool);
+    case STRING:
+        return sizeof(char*);
     case COMPOUND:  //[[fallthrough]]
     case UNKNOWN_DATA_TYPE:  //[[fallthrough]]
     default:
@@ -124,9 +126,11 @@ std::string Layer::getInternalPath(
 {
     if (groupType == NODE)
         return NODE_GROUP_PATH;
-    else if (groupType == ELEVATION)
+
+    if (groupType == ELEVATION)
         return ELEVATION_SOLUTION_GROUP_PATH;
-    else if (groupType != UNKNOWN_GROUP_TYPE)
+
+    if (groupType != UNKNOWN_GROUP_TYPE)
         throw UnsupportedGroupType{};
 
     switch (layerType)
@@ -152,6 +156,7 @@ std::string Layer::getInternalPath(
     case Surface_Correction:
         return VERT_DATUM_CORR_PATH;
     case Compound:  // [[fallthrough]];
+    case UNKNOWN_LAYER_TYPE:  // [[fallthrough]];
     default:
         throw UnsupportedLayerType{};
     }
@@ -169,8 +174,8 @@ std::unique_ptr<uint8_t[]> Layer::read(
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};
 
-    uint32_t numRows = 0, numColumns = 0;
     const auto pDataset = m_pBagDataset.lock();
+    uint32_t numRows = 0, numColumns = 0;
     std::tie(numRows, numColumns) = pDataset->getDescriptor().getDims();
 
     if (columnEnd >= numColumns || rowEnd >= numRows)

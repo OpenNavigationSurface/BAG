@@ -12,10 +12,10 @@ namespace BAG {
 
 class CompoundDataType final {
 public:
-    //enum class DataType { UNKNOWN, FLOAT, UINT32 };
 
     CompoundDataType()
     {}
+
     explicit CompoundDataType(float value) noexcept
         : type(FLOAT32)
         , f(value)
@@ -32,9 +32,52 @@ public:
     {
     }
     explicit CompoundDataType(std::string value) noexcept
-        : type(BOOL)
+        : type(STRING)
         , s(std::move(value))
     {
+    }
+
+    CompoundDataType(const CompoundDataType& other)
+        : type(other.type)
+    {
+        switch (type)
+        {
+        case FLOAT32:
+            f = other.f;
+            break;
+        case UINT32:
+            ui32 = other.ui32;
+            break;
+        case BOOL:
+            b = other.b;
+            break;
+        case STRING:
+            new(&s) std::string{other.s};
+            break;
+        default:
+            throw InvalidType{};
+        }
+    }
+
+    CompoundDataType(CompoundDataType&& other)
+    {
+        switch (type)
+        {
+        case FLOAT32:
+            f = other.f;
+            break;
+        case UINT32:
+            ui32 = other.ui32;
+            break;
+        case BOOL:
+            b = other.b;
+            break;
+        case STRING:
+            new(&s) std::string{std::move(other.s)};
+            break;
+        default:
+            throw InvalidType{};
+        }
     }
 
     ~CompoundDataType() noexcept
@@ -45,8 +88,40 @@ public:
 
     CompoundDataType& operator=(const CompoundDataType& rhs)
     {
+        if (this == &rhs)
+            return *this;
+
         if (type == STRING && rhs.type == STRING)
             s = rhs.s;
+        else if (type == STRING)
+            s.~basic_string<char>();
+
+        switch (rhs.type)
+        {
+        case FLOAT32:
+            f = rhs.f;
+            break;
+        case UINT32:
+            ui32 = rhs.ui32;
+            break;
+        case BOOL:
+            b = rhs.b;
+            break;
+        case STRING:
+            new(&s) std::string{rhs.s};
+            break;
+        default:
+            throw InvalidType{};
+        }
+
+        type = rhs.type;
+
+        return *this;
+    }
+    CompoundDataType& operator=(CompoundDataType&& rhs)
+    {
+        if (type == STRING && rhs.type == STRING)
+            s = std::move(rhs.s);
         else if (type == STRING)
             s.~basic_string<char>();
 
@@ -115,6 +190,26 @@ public:
         return *this;
     }
 
+    bool operator==(const CompoundDataType& rhs) const noexcept
+    {
+        if (this->type != rhs.type)
+            return false;
+
+        switch (this->type)
+        {
+        case FLOAT32:
+            return f == rhs.f;
+        case UINT32:
+            return ui32 == rhs.ui32;
+        case BOOL:
+            return b == rhs.b;
+        case STRING:
+            return s == rhs.s;
+        default:
+            return false;
+        }
+    }
+
     float asFloat() const
     {
         if (type != FLOAT32) throw InvalidType{};
@@ -127,13 +222,19 @@ public:
 
         return ui32;
     }
-    uint32_t asBool() const
+    bool asBool() const
     {
         if (type != BOOL) throw InvalidType{};
 
         return b;
     }
-    const std::string& asString() const
+    const std::string& asString() const &
+    {
+        if (type != STRING) throw InvalidType{};
+
+        return s;
+    }
+    std::string& asString() &
     {
         if (type != STRING) throw InvalidType{};
 
@@ -191,6 +292,19 @@ T get(const CompoundDataType& v)
 {
     return detail::GetFromCompoundDataType<T>::get(v);
 }
+
+// Terminology  -> record made of fields
+struct FieldDefinition final
+{
+    //! The name of the definition.
+    char* name;
+    //! The type of the definition; represents a DataType.
+    uint8_t type;
+};
+
+using RecordDefinition = std::vector<FieldDefinition>;
+using Record = std::vector<CompoundDataType>;
+using Records = std::vector<Record>;
 
 }  // namespace BAG
 

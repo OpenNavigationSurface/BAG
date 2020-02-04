@@ -8,13 +8,6 @@
 
 using BAG::CompoundDataType;
 
-
-#if 0 // example
-    CompoundDataType cdt{4.2f};
-    float f = get<float>(cdt);
-#endif
-
-
 //  CompoundDataType() = default
 //  DataType getType() const noexcept
 TEST_CASE("test compound data type default creation",

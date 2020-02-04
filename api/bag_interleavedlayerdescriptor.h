@@ -17,13 +17,11 @@ namespace BAG {
 class BAG_API InterleavedLayerDescriptor final : public LayerDescriptor
 {
 public:
-
     static std::shared_ptr<InterleavedLayerDescriptor> create(
         LayerType layerType, GroupType groupType, uint64_t chunkSize,
-        unsigned int compressionLevel);
-    static std::shared_ptr<InterleavedLayerDescriptor> create(
-        LayerType layerType, GroupType groupType,
-        const Dataset& dataset);
+        unsigned int compressionLevel, const Dataset& dataset);
+    static std::shared_ptr<InterleavedLayerDescriptor> open(
+        LayerType layerType, GroupType groupType, const Dataset& dataset);
 
     //TODO Temp, make sure only move operations are used until development is done.
     InterleavedLayerDescriptor(const InterleavedLayerDescriptor&) = delete;
@@ -34,11 +32,10 @@ public:
     GroupType getGroupType() const noexcept;
 
 protected:
-
-    InterleavedLayerDescriptor(LayerType layerType, GroupType groupType,
-        uint64_t chunkSize, unsigned int compressionLevel);
-    InterleavedLayerDescriptor(LayerType layerType, GroupType groupType,
-        const Dataset& dataset);
+    InterleavedLayerDescriptor(uint32_t id, LayerType layerType,
+        GroupType groupType, uint64_t chunkSize, unsigned int compressionLevel);
+    InterleavedLayerDescriptor(LayerType layerType,
+        GroupType groupType, const Dataset& dataset);
 
 private:
     void validateTypes(LayerType layerType, GroupType groupType) const;

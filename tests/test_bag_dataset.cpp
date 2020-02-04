@@ -344,7 +344,7 @@ TEST_CASE("test dataset reading", "[dataset][open][getLayerTypes][createLayer]")
             constexpr uint64_t chunkSize = 100;
             constexpr unsigned int compressionLevel = 6;
 
-            /*auto& layer = */ dataset->createLayer(Average_Elevation,
+            /*auto& layer = */ dataset->createSimpleLayer(Average_Elevation,
                 chunkSize, compressionLevel);
 
             numLayers = dataset->getLayerTypes().size();
@@ -421,7 +421,7 @@ TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 6;
 
-        /*auto& layer = */ dataset->createLayer(Average_Elevation, chunkSize,
+        /*auto& layer = */ dataset->createSimpleLayer(Average_Elevation, chunkSize,
             compressionLevel);
 
         REQUIRE(dataset->getLayerTypes().size() == (kNumExpectedLayers + 1));

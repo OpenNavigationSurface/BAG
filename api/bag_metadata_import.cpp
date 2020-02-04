@@ -310,6 +310,7 @@ char* getPropertyAsString(
 
     char* result = new char[value.size() + 1];
     strcpy(result, value.c_str());
+    result[value.size()] = '\0';
 
     return result;
 

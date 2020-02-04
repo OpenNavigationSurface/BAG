@@ -8,11 +8,14 @@
 namespace BAG {
 
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
+    uint32_t id,
     LayerType layerType,
     GroupType groupType,
     uint64_t chunkSize,
     unsigned int compressionLevel)
-    : LayerDescriptor(layerType, chunkSize, compressionLevel)
+    : LayerDescriptor(id, Layer::getInternalPath(layerType),
+        kLayerTypeMapString.at(layerType), layerType, chunkSize,
+        compressionLevel)
     , m_groupType(groupType)
     , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
@@ -44,14 +47,15 @@ std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
     LayerType layerType,
     GroupType groupType,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    unsigned int compressionLevel,
+    const Dataset& dataset)
 {
     return std::shared_ptr<InterleavedLayerDescriptor>(
-        new InterleavedLayerDescriptor{layerType, groupType, chunkSize,
-            compressionLevel});
+        new InterleavedLayerDescriptor{dataset.getNextId(), layerType,
+            groupType, chunkSize, compressionLevel});
 }
 
-std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
+std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::open(
     LayerType layerType,
     GroupType groupType,
     const Dataset& dataset)

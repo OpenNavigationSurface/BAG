@@ -34,6 +34,24 @@ struct BAG_API InvalidType final : virtual std::exception
     }
 };
 
+//! Invalid descriptor found.
+struct BAG_API InvalidDescriptor final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The descriptor is not a CompoundDataDescriptor.";
+    }
+};
+
+//! Invalid index type specified.
+struct BAG_API InvalidIndexType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The type specified for the index type is not valid.";
+    }
+};
+
 // Dataset related.
 //! Layer not found.
 struct BAG_API DatasetNotFound final : virtual std::exception
@@ -44,6 +62,14 @@ struct BAG_API DatasetNotFound final : virtual std::exception
     }
 };
 
+//! Invalid layer id.
+struct BAG_API InvalidLayerId final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid layer id specified.";
+    }
+};
 
 // Group related.
 //! Attempt to use an unknown layer type.
@@ -207,7 +233,48 @@ struct BAG_API CannotReadNumCorrections final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "Cannot read the number of corrections from the surface corrections dataset.";
+        return "Cannot read the number of corrections from the surface "
+            "corrections dataset.";
+    }
+};
+
+// Value Table related.
+//! The specified field does not exist.
+struct BAG_API FieldNotFound final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The specified field does not exist.";
+    }
+};
+
+//! Attempt to use an invalid record.
+struct BAG_API InvalidRecord final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record encountered.  Either an unknown type is present "
+            "or it does not match the definition";
+    }
+};
+
+//! The dimensions of the Records in the CompoundLayer are invalid.
+struct BAG_API InvalidCompoundRecordsSize final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record encountered.  Either an unknown type is present "
+            "or it does not match the definition";
+    }
+};
+
+//! Attempt to use an invalid record index.
+struct BAG_API RecordNotFound final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record index specified.  Record index must be greater "
+            "than 0, and less than the number of records present.";
     }
 };
 

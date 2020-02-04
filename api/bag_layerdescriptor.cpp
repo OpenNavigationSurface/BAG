@@ -1,22 +1,27 @@
 
+
 #include "bag_dataset.h"
 #include "bag_hdfhelper.h"
 #include "bag_layer.h"
 #include "bag_layerdescriptor.h"
 #include "bag_private.h"
 
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
 
 LayerDescriptor::LayerDescriptor(
+    uint32_t id,
+    std::string internalPath,
+    std::string name,
     LayerType type,
     uint64_t chunkSize,
     unsigned int compressionLevel)
-    : m_layerType(type)
-    , m_internalPath(Layer::getInternalPath(type))
-    , m_name(kLayerTypeMapString.at(type))
+    : m_id(id)
+    , m_layerType(type)
+    , m_internalPath(std::move(internalPath))
+    , m_name(std::move(name))
     , m_compressionLevel(compressionLevel)
     , m_chunkSize(chunkSize)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
@@ -26,14 +31,19 @@ LayerDescriptor::LayerDescriptor(
 LayerDescriptor::LayerDescriptor(
     LayerType type,
     const Dataset& dataset,
-    std::string internalPath)
-    : m_layerType(type)
-    , m_name(kLayerTypeMapString.at(type))
+    std::string internalPath,
+    std::string name)
+    : m_id(dataset.getNextId())
+    , m_layerType(type)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
 {
     m_internalPath = internalPath.empty()
         ? Layer::getInternalPath(type)
         : std::move(internalPath);
+
+    m_name = name.empty()
+        ? kLayerTypeMapString.at(type)
+        : std::move(name);
 
     const auto& h5file = dataset.getH5file();
 
@@ -74,6 +84,11 @@ LayerDescriptor& LayerDescriptor::setMinMax(
 {
     m_minMax = {min, max};
     return *this;
+}
+
+uint32_t LayerDescriptor::getId() const noexcept
+{
+    return m_id;
 }
 
 const std::string& LayerDescriptor::getInternalPath() const & noexcept

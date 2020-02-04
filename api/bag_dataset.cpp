@@ -1,11 +1,13 @@
 
+#include "bag_compoundlayer.h"
+#include "bag_compoundlayerdescriptor.h"
 #include "bag_dataset.h"
 #include "bag_interleavedlayer.h"
 #include "bag_interleavedlayerdescriptor.h"
 #include "bag_metadata_export.h"
 #include "bag_private.h"
-#include "bag_simplelayerdescriptor.h"
 #include "bag_simplelayer.h"
+#include "bag_simplelayerdescriptor.h"
 #include "bag_surfacecorrectionsdescriptor.h"
 #include "bag_version.h"
 
@@ -16,7 +18,7 @@
 
 #include <algorithm>
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 #include <map>
 #include <regex>
 #include <string>
@@ -29,6 +31,24 @@
 namespace BAG {
 
 namespace {
+
+//! Get the specified compound layer.
+CompoundLayer* getCompoundLayer(
+    const std::string& name,
+    const std::vector<std::unique_ptr<Layer>>& layers)
+{
+    auto layerIter = std::find_if(cbegin(layers), cend(layers),
+        [&name](const std::unique_ptr<Layer>& layer) {
+            const auto& descriptor = layer->getDescriptor();
+
+            return descriptor.getLayerType() == Compound &&
+                descriptor.getName() == name;
+        });
+    if (layerIter == cend(layers))
+        return nullptr;
+
+    return dynamic_cast<CompoundLayer*>(layerIter->get());
+}
 
 // Expecting "major" or "major.minor" or "major.minor.patch", which will be
 // turned into a number such that:
@@ -61,17 +81,6 @@ uint32_t getNumericalVersion(
     }
 
     return version;
-}
-
-Layer& getLayer(
-    LayerType layerType,
-    const std::unordered_map<LayerType, std::unique_ptr<Layer>>& layers)
-{
-    const auto iter = layers.find(layerType);
-    if (iter == cend(layers))
-        throw LayerNotFound{};
-
-    return *(iter->second);
 }
 
 template <typename T>
@@ -161,15 +170,50 @@ std::shared_ptr<Dataset> Dataset::create(
 }
 
 
-Layer& Dataset::addLayer(std::unique_ptr<Layer> newLayer) &
+Layer& Dataset::addLayer(
+    std::unique_ptr<Layer> newLayer) &
 {
-    auto result = m_layers.emplace(newLayer->getDescriptor().getLayerType(),
-        std::move(newLayer));
-    auto& layer = *(result.first->second);
+    m_layers.emplace_back(std::move(newLayer));
 
-    m_descriptor.addLayerDescriptor(layer.getDescriptor());
+    const auto& layer = m_layers.back();
 
-    return layer;
+    m_descriptor.addLayerDescriptor(layer->getDescriptor());
+
+    return *layer;
+}
+
+CompoundLayer& Dataset::createCompoundLayer(
+    DataType indexType,
+    const std::string& name,
+    const RecordDefinition& definition,
+    uint64_t chunkSize,
+    unsigned int compressionLevel) &
+{
+    if (m_descriptor.isReadOnly())
+        throw ReadOnlyError{};
+
+    // Make sure the layer does not already exist.
+    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
+        [&name](const std::unique_ptr<Layer>& layer) {
+            const auto& descriptor = layer->getDescriptor();
+
+            return descriptor.getLayerType() == Compound &&
+                descriptor.getName() == name;
+        });
+    if (layerIter != cend(m_layers))
+        throw LayerExists{};
+
+    //TODO make sure a corresponding simple layer exists.
+
+    // Create the group if it does not exist.
+    const auto id = H5Gopen2(m_pH5file->getId(), COMPOUND_PATH, H5P_DEFAULT);
+    if (id == -1)
+        m_pH5file->createGroup(COMPOUND_PATH);
+    else
+        H5Gclose(id);
+
+    return dynamic_cast<CompoundLayer&>(this->addLayer(CompoundLayer::create(
+        indexType, name, *this, definition, chunkSize, compressionLevel)));
 }
 
 void Dataset::createDataset(
@@ -213,13 +257,14 @@ void Dataset::createDataset(
     // Mandatory Layers (Elevation, Uncertainty)
     this->addLayer(SimpleLayer::create(*this, Elevation, chunkSize,
         compressionLevel));
+
     this->addLayer(SimpleLayer::create(*this, Uncertainty, chunkSize,
         compressionLevel));
 
     // All mandatory items exist in the HDF5 file now.
 }
 
-Layer& Dataset::createLayer(
+Layer& Dataset::createSimpleLayer(
     LayerType type,
     uint64_t chunkSize,
     unsigned int compressionLevel) &
@@ -227,9 +272,12 @@ Layer& Dataset::createLayer(
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
 
-    //Make sure it doesn't already exist.
-    const auto iter = m_layers.find(type);
-    if (iter != cend(m_layers))
+    // Make sure it doesn't already exist.
+    const auto foundIter = std::find_if(cbegin(m_layers), cend(m_layers),
+        [type](const auto& layer) {
+            return layer->getDescriptor().getLayerType() == type;
+        });
+    if (foundIter != cend(m_layers))
         throw LayerExists{};
 
     switch (type)
@@ -245,7 +293,7 @@ Layer& Dataset::createLayer(
     case Nominal_Elevation:
         return this->addLayer(SimpleLayer::create(*this, type, chunkSize,
             compressionLevel));
-    case Surface_Correction:
+    case Surface_Correction:  //[[fallthrough]];
     case Compound:  //[[fallthrough]];
     default:
         throw UnsupportedLayerType{};
@@ -261,14 +309,17 @@ SurfaceCorrections& Dataset::createSurfaceCorrections(
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
 
-    //Make sure it doesn't already exist.
-    if (m_pSurfaceCorrections)
+    // Make sure it doesn't already exist.
+    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
+        [](const auto& layer) {
+            return layer->getDescriptor().getLayerType() == Surface_Correction;
+        });
+    if (layerIter != cend(m_layers))
         throw LayerExists{};
 
-    m_pSurfaceCorrections = SurfaceCorrections::create(*this, type,
-        numCorrectors, chunkSize, compressionLevel);
-
-    return *m_pSurfaceCorrections;
+    return dynamic_cast<SurfaceCorrections&>(this->addLayer(
+        SurfaceCorrections::create(*this, type, numCorrectors, chunkSize,
+            compressionLevel)));
 }
 
 std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
@@ -281,6 +332,18 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
         m_pMetadata->columnResolution());
 
     return std::make_tuple(row, column);
+}
+
+CompoundLayer* Dataset::getCompoundLayer(
+    const std::string& name) & noexcept
+{
+    return BAG::getCompoundLayer(name, m_layers);
+}
+
+const CompoundLayer* Dataset::getCompoundLayer(
+    const std::string& name) const & noexcept
+{
+    return BAG::getCompoundLayer(name, m_layers);
 }
 
 Descriptor& Dataset::getDescriptor() & noexcept
@@ -298,14 +361,20 @@ const Descriptor& Dataset::getDescriptor() const & noexcept
     return *m_pH5file;
 }
 
-Layer& Dataset::getLayer(LayerType layerType) &
+Layer& Dataset::getLayer(uint32_t id) &
 {
-    return BAG::getLayer(layerType, m_layers);
+    if (id >= m_layers.size())
+        throw InvalidLayerId{};
+
+    return *m_layers[id];
 }
 
-const Layer& Dataset::getLayer(LayerType layerType) const &
+const Layer& Dataset::getLayer(uint32_t id) const &
 {
-    return BAG::getLayer(layerType, m_layers);
+    if (id >= m_layers.size())
+        throw InvalidLayerId{};
+
+    return *m_layers[id];
 }
 
 std::vector<LayerType> Dataset::getLayerTypes() const
@@ -314,7 +383,7 @@ std::vector<LayerType> Dataset::getLayerTypes() const
     types.reserve(m_layers.size());
 
     for (auto&& layer : m_layers)
-        types.push_back(layer.first);
+        types.push_back(layer->getDescriptor().getLayerType());
 
     return types;
 }
@@ -344,6 +413,11 @@ std::tuple<bool, float, float> Dataset::getMinMax(
     }
 }
 
+uint32_t Dataset::getNextId() const noexcept
+{
+    return static_cast<uint32_t>(m_layers.size());
+}
+
 TrackingList& Dataset::getTrackingList() & noexcept
 {
     return *m_pTrackingList;
@@ -369,12 +443,26 @@ std::tuple<double, double> Dataset::gridToGeo(
 
 SurfaceCorrections* Dataset::getSurfaceCorrections() & noexcept
 {
-    return m_pSurfaceCorrections.get();
+    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
+        [](const auto& layer) {
+            return layer->getDescriptor().getLayerType() == Surface_Correction;
+        });
+    if (layerIter == cend(m_layers))
+        return nullptr;
+
+    return dynamic_cast<SurfaceCorrections*>((*layerIter).get());
 }
 
 const SurfaceCorrections* Dataset::getSurfaceCorrections() const & noexcept
 {
-    return m_pSurfaceCorrections.get();
+    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
+        [](const auto& layer) {
+            return layer->getDescriptor().getLayerType() == Surface_Correction;
+        });
+    if (layerIter == cend(m_layers))
+        return nullptr;
+
+    return dynamic_cast<SurfaceCorrections*>((*layerIter).get());
 }
 
 void Dataset::readDataset(
@@ -414,7 +502,7 @@ void Dataset::readDataset(
 
         H5Dclose(id);
 
-        auto layerDesc = SimpleLayerDescriptor::create(layerType, *this);
+        auto layerDesc = SimpleLayerDescriptor::open(layerType, *this);
         this->addLayer(SimpleLayer::open(*this, *layerDesc));
     }
 
@@ -429,12 +517,12 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Hypothesis_Strength
-            auto layerDesc = InterleavedLayerDescriptor::create(
+            auto layerDesc = InterleavedLayerDescriptor::open(
                 Hypothesis_Strength, NODE, *this);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Num_Hypotheses
-            layerDesc = InterleavedLayerDescriptor::create(Num_Hypotheses, NODE,
+            layerDesc = InterleavedLayerDescriptor::open(Num_Hypotheses, NODE,
                 *this);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
         }
@@ -445,18 +533,18 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Shoal_Elevation
-            auto layerDesc = InterleavedLayerDescriptor::create(Shoal_Elevation,
+            auto layerDesc = InterleavedLayerDescriptor::open(Shoal_Elevation,
                 ELEVATION, *this);
 
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Std_Dev
-            layerDesc = InterleavedLayerDescriptor::create(Std_Dev, ELEVATION,
+            layerDesc = InterleavedLayerDescriptor::open(Std_Dev, ELEVATION,
                 *this);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Num_Soundings
-            layerDesc = InterleavedLayerDescriptor::create(Num_Soundings,
+            layerDesc = InterleavedLayerDescriptor::open(Num_Soundings,
                 ELEVATION, *this);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
         }
@@ -465,18 +553,48 @@ void Dataset::readDataset(
     // If the BAG is version 2.0+ ...
     if (bagVersion >= 2'000'000)
     {
-        //TODO handle Compound layers
+        // Add all existing CompoundLayers
+        hid_t id = H5Gopen2(bagGroup.getLocId(), COMPOUND_PATH, H5P_DEFAULT);
+        if (id >= 0)
+        {
+            H5Gclose(id);
+
+            // Look for all ::H5::DataSets in the Group COMPOUND_PATH that don't end with "_records"
+            const auto group = m_pH5file->openGroup(COMPOUND_PATH);
+
+            const hsize_t numObjects = group.getNumObjs();
+            constexpr size_t kRecordsLen = 8;  // length of "_records".
+
+            for (auto i=0; i<numObjects; ++i)
+            {
+                try
+                {
+                    const auto name = group.getObjnameByIdx(i);
+
+                    // Skip any x_records DataSets.
+                    const auto foundPos = name.rfind(COMPOUND_RECORDS);
+                    if ((foundPos != std::string::npos) &&
+                        (foundPos == (name.length() - kRecordsLen)))
+                        continue;
+
+                    auto descriptor = CompoundLayerDescriptor::open(name, *this);
+                    this->addLayer(CompoundLayer::open(*this, *descriptor));
+                }
+                catch(...)
+                {}
+            }
+        }
     }
 
     m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this});
 
-    const hid_t id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH,
-        H5P_DEFAULT);
+    hid_t id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH, H5P_DEFAULT);
     if (id >= 0)
     {
         H5Dclose(id);
-        auto descriptor = SurfaceCorrectionsDescriptor::create(*this);
-        m_pSurfaceCorrections = SurfaceCorrections::open(*this, *descriptor);
+
+        auto descriptor = SurfaceCorrectionsDescriptor::open(*this);
+        this->addLayer(SurfaceCorrections::open(*this, *descriptor));
     }
 }
 

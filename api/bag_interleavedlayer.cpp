@@ -5,7 +5,7 @@
 #include "bag_private.h"
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
@@ -87,7 +87,7 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     // Set up the type.
-    const auto h5dataType = getH5compType(descriptor.getLayerType(),
+    const auto h5dataType = createH5compType(descriptor.getLayerType(),
         descriptor.getGroupType());
 
     m_pH5dataSet->read(buffer.get(), h5dataType, h5memSpace, h5fileSpace);

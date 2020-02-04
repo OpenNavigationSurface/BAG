@@ -11,7 +11,7 @@
 #endif
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -67,8 +67,8 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {
-    auto descriptor = SurfaceCorrectionsDescriptor::create(type, numCorrectors,
-        chunkSize, compressionLevel);
+    auto descriptor = SurfaceCorrectionsDescriptor::create(type,
+        numCorrectors, chunkSize, compressionLevel, dataset);
 
     auto h5dataSet = SurfaceCorrections::createH5dataSet(dataset, *descriptor);
 
@@ -110,7 +110,7 @@ SurfaceCorrections::createH5dataSet(
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    if (compressionLevel > 0 && compressionLevel < 10)
+    if (compressionLevel <= kMaxCompressionLevel)
     {
         h5createPropList.setLayout(H5D_CHUNKED);
         h5createPropList.setChunk(RANK, chunkDims.data());
