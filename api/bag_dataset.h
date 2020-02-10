@@ -48,7 +48,7 @@ public:
 
     Layer& getLayer(uint32_t id) &;
     const Layer& getLayer(uint32_t id) const &;
-    std::vector<Layer&> getLayers() &;  //TODO implement
+    std::vector<Layer*> getLayers() const &;
 
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
         unsigned int compressionLevel) &;

@@ -317,7 +317,7 @@ TEST_CASE("test dataset reading", "[dataset][open][getLayerTypes][createLayer]")
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
 
-    const size_t kNumExpectedLayers = 3;  // Elevation, Uncertainty, Nominal_Elevation
+    const size_t kNumExpectedLayers = 4;  // Elevation, Uncertainty, Nominal_Elevation, Vertical Datum Corrections
 
     SECTION("open read only")
     {
@@ -409,7 +409,7 @@ TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
     const TestUtils::RandomFileGuard tmpFileName;
     TestUtils::copyFile(bagFileName, tmpFileName);
 
-    constexpr size_t kNumExpectedLayers = 3;  // Elevation, Uncertainty, Nominal_Elevation
+    constexpr size_t kNumExpectedLayers = 4;  // Elevation, Uncertainty, Nominal_Elevation, Vertical Datum Corrections
 
     {   // Add a new layer to the dataset.
         // Scoped so the dataset is destroyed (saves at that point).
@@ -436,7 +436,7 @@ TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
 
 //  Layer& getLayer(LayerType type);
 //  const Layer& getLayer(LayerType type) const;
-TEST_CASE("test get layer", "[dataset][open][getLayerTypes][getLayer]")
+TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
@@ -445,15 +445,37 @@ TEST_CASE("test get layer", "[dataset][open][getLayerTypes][getLayer]")
     const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READ_WRITE);
     REQUIRE(dataset);
 
-    for (auto layerType : dataset->getLayerTypes())
-        REQUIRE_NOTHROW(dataset->getLayer(layerType));
+    constexpr size_t kNumExpectedLayers = 4;  // Elevation, Uncertainty, Nominal_Elevation, Vertical Datum Corrections
+
+    {
+        const auto layers = dataset->getLayers();
+        CHECK(kNumExpectedLayers == layers.size());
+
+        for (auto&& layer : layers)
+        {
+            const auto& layerFromId =
+                dataset->getLayer(layer->getDescriptor().getId());
+            CHECK(layerFromId.getDescriptor().getInternalPath() ==
+                layer->getDescriptor().getInternalPath());
+        }
+    }
 
     // Test the const method.
     const std::shared_ptr<const Dataset> constDataset{dataset};
     REQUIRE(constDataset);
 
-    for (auto layerType : constDataset->getLayerTypes())
-        REQUIRE_NOTHROW(constDataset->getLayer(layerType));
+    {
+        const auto layers = constDataset->getLayers();
+        CHECK(kNumExpectedLayers == layers.size());
+
+        for (auto&& layer : layers)
+        {
+            const auto& layerFromId =
+                constDataset->getLayer(layer->getDescriptor().getId());
+            CHECK(layerFromId.getDescriptor().getInternalPath() ==
+                layer->getDescriptor().getInternalPath());
+        }
+    }
 }
 
 //  TrackingList& getTrackingList();

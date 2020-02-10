@@ -326,8 +326,8 @@ TEST_CASE("test surface corrections descriptor creation using type, num correcto
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 256;
-    constexpr unsigned int kExpectedCompressionLevel = 9;
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
@@ -392,8 +392,8 @@ TEST_CASE("test surface corrections descriptor create empty gridded",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 256;
-    constexpr unsigned int kExpectedCompressionLevel = 9;
+    constexpr uint64_t kExpectedChunkSize = 100;
+    constexpr unsigned int kExpectedCompressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);

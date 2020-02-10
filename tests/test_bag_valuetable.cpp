@@ -404,13 +404,13 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
     constexpr size_t kExpectedNumRecords = 2;
 
     BAG::Record kExpectedNewRecord0 {
-        BAG::CompoundDataType{std::string{"string value 0"}},
-        BAG::CompoundDataType{std::string{"string value 1"}},
-//        BAG::CompoundDataType{42.2f},
-//        BAG::CompoundDataType{102u},
-//        BAG::CompoundDataType{true},
-//        BAG::CompoundDataType{1234.567f}//,
-//        BAG::CompoundDataType{std::string{"string value2"}}
+//        BAG::CompoundDataType{std::string{"string value 0"}},
+//        BAG::CompoundDataType{std::string{"string value 1"}},
+        BAG::CompoundDataType{42.2f},
+        BAG::CompoundDataType{102u},
+        BAG::CompoundDataType{true},
+        BAG::CompoundDataType{1234.567f},
+//        BAG::CompoundDataType{std::string{"string value2"}}.
     };
 
     // Write a record.
@@ -429,13 +429,13 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
         constexpr BAG::DataType indexType = UINT16;
 
         BAG::RecordDefinition definition {
-            {_strdup("string value0"), static_cast<uint8_t>(STRING)},
-            {_strdup("string value1"), static_cast<uint8_t>(STRING)},
-//            {_strdup("float value0"), static_cast<uint8_t>(FLOAT32)},
-//            {_strdup("uint32 value"), static_cast<uint8_t>(UINT32)},
-//            {_strdup("bool value"), static_cast<uint8_t>(BOOL)},
-//            {_strdup("float value1"), static_cast<uint8_t>(FLOAT32)}//,
-//            {_strdup("string value2"), static_cast<uint8_t>(STRING)}
+//            {_strdup("string value0"), static_cast<uint8_t>(STRING)},
+//            {_strdup("string value1"), static_cast<uint8_t>(STRING)},
+            {_strdup("float value0"), static_cast<uint8_t>(FLOAT32)},
+            {_strdup("uint32 value"), static_cast<uint8_t>(UINT32)},
+            {_strdup("bool value"), static_cast<uint8_t>(BOOL)},
+            {_strdup("float value1"), static_cast<uint8_t>(FLOAT32)},
+//            {_strdup("string value2"), static_cast<uint8_t>(STRING)}.
         };
 
         auto& pLayer = pDataset->createCompoundLayer(indexType,
@@ -481,7 +481,6 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
 
         const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field1value == kExpectedNewRecord0[fieldIndex]);
-#if 0
         ++fieldIndex;
 
         const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
@@ -492,6 +491,7 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
         CHECK(field3value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
+#if 0
         const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field4value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
@@ -501,13 +501,13 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
     }
 
     BAG::Record kExpectedNewRecord1 {
-        BAG::CompoundDataType{std::string{"string value0"}},
-        BAG::CompoundDataType{std::string{"string value1"}},
-//        BAG::CompoundDataType{987.6543f},
-//        BAG::CompoundDataType{1001u},
-//        BAG::CompoundDataType{false},
-//        BAG::CompoundDataType{0.08642f}//,
-//        BAG::CompoundDataType{std::string{"string value2"}}
+//        BAG::CompoundDataType{std::string{"string value0"}},
+//        BAG::CompoundDataType{std::string{"string value1"}},
+        BAG::CompoundDataType{987.6543f},
+        BAG::CompoundDataType{1001u},
+        BAG::CompoundDataType{false},
+        BAG::CompoundDataType{0.08642f},
+//        BAG::CompoundDataType{std::string{"string value2"}},
     };
 
     // Set some new values an existing record.
@@ -531,27 +531,27 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
 
         const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field0value == kExpectedNewRecord1[fieldIndex]);
-        ++fieldIndex;
 
+        ++fieldIndex;
         valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
         const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field1value == kExpectedNewRecord1[fieldIndex]);
-#if 0
-        ++fieldIndex;
 
+        ++fieldIndex;
         valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
         const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field2value == kExpectedNewRecord1[fieldIndex]);
-        ++fieldIndex;
 
+        ++fieldIndex;
         valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
         const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
-        ++fieldIndex;
 
+#if 0
+        ++fieldIndex;
         valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
         const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
@@ -581,7 +581,6 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
 
         const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field1value == kExpectedNewRecord1[fieldIndex]);
-#if 0
         ++fieldIndex;
 
         const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
@@ -592,6 +591,7 @@ TEST_CASE("test value table add record", "[single][valuetable][constructor][addR
         CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
+#if 0
         const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field4value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;

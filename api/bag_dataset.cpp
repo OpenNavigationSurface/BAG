@@ -377,6 +377,17 @@ const Layer& Dataset::getLayer(uint32_t id) const &
     return *m_layers[id];
 }
 
+std::vector<Layer*> Dataset::getLayers() const &
+{
+    std::vector<Layer*> layers;
+    layers.reserve(m_layers.size());
+
+    for (auto&& layer : m_layers)
+        layers.push_back(layer.get());
+
+    return layers;
+}
+
 std::vector<LayerType> Dataset::getLayerTypes() const
 {
     std::vector<LayerType> types;

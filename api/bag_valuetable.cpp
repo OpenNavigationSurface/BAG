@@ -355,6 +355,8 @@ void ValueTable::writeRecord(
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
 
     const auto memDataType = createH5memoryCompType(descriptor.getDefinition());
+
+#if 0
 {
 const auto size = memDataType.getSize();
 const auto numMembers = memDataType.getNmembers();
@@ -371,11 +373,15 @@ const auto member2 = memDataType.getMemberDataType(1);
 const auto m2Size = member2.getSize();
 int j = 42; j;
 }
+#endif
+
     constexpr hsize_t one = 1;
     ::H5::DataSpace memDataSpace(1, &one, &one);
 
     // Prepare the file details.
     const auto& h5recordDataSet = m_layer.getRecordDataSet();
+
+#if 0
 {
 const auto& fileDataType = h5recordDataSet.getCompType();
 const bool dataTypesEqual = memDataType == fileDataType;
@@ -394,6 +400,7 @@ const auto member2 = fileDataType.getMemberDataType(1);
 const auto m2Size = member2.getSize();
 int j = 42; j;
 }
+#endif
 
     if (recordIndex == m_records.size())
     {
@@ -409,11 +416,15 @@ int j = 42; j;
     // select the record to write
     const hsize_t indexToModify = recordIndex;
     fileDataSpace.selectElements(H5S_SELECT_SET, 1, &indexToModify);
+
+#if 0
 {
 const auto elemNpts = fileDataSpace.getSelectElemNpoints();
 const auto numPts = fileDataSpace.getSelectNpoints();
 int j = 42;  j;
 }
+#endif
+
     h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,
         fileDataSpace);
 }
