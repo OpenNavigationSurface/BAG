@@ -8,7 +8,7 @@
 
 #include <exception>
 #include <memory>
-#include <unordered_map>
+#include <vector>
 
 
 #ifdef _MSC_VER
@@ -39,7 +39,7 @@ public:
     const std::string& getVersion() const & noexcept;
     Descriptor& setVersion(std::string inVersion) & noexcept;
 
-    const std::unordered_map<LayerType, std::shared_ptr<const LayerDescriptor>>&
+    const std::vector<std::shared_ptr<const LayerDescriptor>>&
         getLayerDescriptors() const & noexcept;
 
     const LayerDescriptor& getLayerDescriptor(LayerType id) const &;
@@ -67,13 +67,15 @@ public:
     const std::tuple<double, double>& getGridSpacing() const & noexcept;
     void setGridSpacing(double xSpacing, double ySpacing) & noexcept;
 
+    std::vector<uint32_t> getLayerIds() const noexcept;
+
 private:
     //! The version of the BAG.
     std::string m_version;
     //! True if the BAG is read only.
     bool m_isReadOnly = true;
     //! Layer descriptors (owned by each Layer).
-    std::unordered_map<LayerType, std::shared_ptr<const LayerDescriptor>> m_layerDescriptors;
+    std::vector<std::shared_ptr<const LayerDescriptor>> m_layerDescriptors;
     //! The name of the horizontal reference system.
     std::string m_horizontalReferenceSystem;
     //! The name of the vertical reference system.

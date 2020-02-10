@@ -18,6 +18,13 @@ namespace BAG {
 
 class BAG_API SurfaceCorrections final : public Layer
 {
+public:
+    //TODO Temp, make sure only move operations are used until development is done.
+    SurfaceCorrections(const SurfaceCorrections&) = delete;
+    SurfaceCorrections(SurfaceCorrections&&) = delete;
+    SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
+    SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
+
 protected:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
     struct BAG_API DeleteH5dataSet final
@@ -28,11 +35,6 @@ protected:
     SurfaceCorrections(Dataset& dataset,
         SurfaceCorrectionsDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
-
-    SurfaceCorrections(const SurfaceCorrections&) = delete;
-    SurfaceCorrections(SurfaceCorrections&&) = delete;
-    SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
-    SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
 
     static std::unique_ptr<SurfaceCorrections> create(Dataset& dataset,
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,

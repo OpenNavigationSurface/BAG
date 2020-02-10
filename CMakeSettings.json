@@ -1,5 +1,4 @@
 ﻿{
-    "environments": [ { "PATH": "${env.PATH};D:\\caris_work\\BAG\\third_party\\build\\bin" } ],
     "configurations": [
         {
             "name": "x64-Debug",
@@ -8,10 +7,13 @@
             "inheritEnvironments": [ "msvc_x64_x64" ],
             "buildRoot": "${projectDir}\\build-d-x64",
             "installRoot": "${projectDir}\\install-d-x64",
-            "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DHDF5_hdf5_cpp_LIBRARY_DEBUG:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5_cpp_D.lib\" -DHDF5_hdf5_cpp_LIBRARY_RELEASE:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5_cpp.lib\" -DHDF5_hdf5_LIBRARY_DEBUG:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5_D.lib\" -DHDF5_hdf5_LIBRARY_RELEASE:FILEPATH=\"${projectDir}/../third_party/build/lib/hdf5.lib\" -DHDF5_INCLUDE_DIRS:PATH=\"${projectDir}/../third_party/build/include\" -DHDF5_LIBRARIES:PATH=\"${projectDir}/../third_party/build/lib\" -DHDF5_DIR:PATH=\"${projectDir}/../third_party/hdf5\" -DHDF5_CXX_INCLUDE_DIR:PATH=\"${projectDir}/../third_party/build/include\" -DLIBXML2_INCLUDE_DIR:PATH=\"${projectDir}/../third_party/build/include/libxml2\" -DLIBXML2_LIBRARY:FILEPATH=\"${projectDir}/../third_party/build/lib/libxml2d.lib\"",
+            "cmakeCommandArgs": "-DCMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON -DCMAKE_PREFIX_PATH=${projectDir}/../third_party/build;${projectDir}/../third_party/build/lib",
             "buildCommandArgs": "-v",
             "ctestCommandArgs": "",
             "intelliSenseMode": "windows-msvc-x64",
+            "enableClangTidyCodeAnalysis": true,
+            "enableMicrosoftCodeAnalysis": false,
+            "clangTidyChecks": "*,-fuchsia-*,-*readability-namespace-comments,-*readability-todo,-google-runtime-references,-*braces-around-statements,-llvm-header-guard,-llvm-namespace-comment,-*readability-braces-around-statements,-*uppercase-literal-suffix,-modernize-use-trailing-return-type",
             "codeAnalysisRuleset": "D:/caris_work/code_analysis_rules.ruleset",
             "variables": [
                 {

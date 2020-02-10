@@ -1,18 +1,18 @@
 
 #include "test_utils.h"
-
+#include <bag_compoundlayer.h>
+#include <bag_compoundlayerdescriptor.h>
 #include <bag_dataset.h>
 #include <bag_metadata.h>
-#include <bag_surfacecorrectionsdescriptor.h>
+#include <bag_types.h>
+#include <bag_valuetable.h>
 
 #include <catch2/catch.hpp>
-#include <cstdlib>  // std::getenv
 #include <string>
 
 
 using BAG::Dataset;
-using BAG::Metadata;
-using BAG::SurfaceCorrectionsDescriptor;
+using BAG::ValueTable;
 
 namespace {
 
@@ -315,126 +315,356 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 
 }  // namespace
 
-//    static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
-//        BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrections,
-//        uint64_t chunkSize, unsigned int compressionLevel);
-TEST_CASE("test surface corrections descriptor creation using type, num correctors, etc",
-    "[surfacecorrectionsdescriptor][create]")
-{
-    TestUtils::RandomFileGuard tmpBagFile;
+namespace BAG {
 
-    Metadata metadata;
+bool operator==(
+    const FieldDefinition& lhs,
+    const FieldDefinition& rhs)
+{
+    if (lhs.type != rhs.type)
+        return false;
+
+    if (lhs.name == nullptr || rhs.name == nullptr)
+        return lhs.name == rhs.name;
+
+    return strcmp(lhs.name, rhs.name) == 0;
+}
+
+}  // namespace BAG
+
+//  const Records& getRecords() const & noexcept;
+//  const RecordDefinition& getDefinition() const & noexcept;
+//  size_t getFieldIndex(const std::string& name) const;
+//  const char* getFieldName(size_t index) const &;
+TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getRecords][getFieldIndex][getFieldName]")
+{
+    UNSCOPED_INFO("Check dataset was created successfully.");
+    const TestUtils::RandomFileGuard tmpFileName;
+
+    BAG::Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
 
-    auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
-        kExpectedChunkSize, kExpectedCompressionLevel);
+    auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
+        chunkSize, compressionLevel);
     REQUIRE(pDataset);
 
-    UNSCOPED_INFO("Test creation was successful.");
-    constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
-    constexpr uint8_t kExpectedNumCorrectors = 5;
+    // Make a new Value Table.
+    constexpr BAG::DataType indexType = UINT8;
+    const std::string layerName{"elevation"};
+    constexpr size_t kExpectedDefinitionSize = 4;
 
-    const auto pDescriptor = SurfaceCorrectionsDescriptor::create(
-        kExpectedSurfaceType, kExpectedNumCorrectors, kExpectedChunkSize,
-        kExpectedCompressionLevel, *pDataset);
-    REQUIRE(pDescriptor);
+    const char kFieldName0[]{"float value"};
+    const char kFieldName1[]{"uint32 value"};
+    const char kFieldName2[]{"bool value"};
+    const char kFieldName3[]{"string value"};
 
-    UNSCOPED_INFO("Check the surface type is read properly.");
-    CHECK(pDescriptor->getSurfaceType() == kExpectedSurfaceType);
+    BAG::RecordDefinition kExpectredDefinition {
+        {_strdup(kFieldName0), static_cast<uint8_t>(FLOAT32)},
+        {_strdup(kFieldName1), static_cast<uint8_t>(UINT32)},
+        {_strdup(kFieldName2), static_cast<uint8_t>(BOOL)},
+        {_strdup(kFieldName3), static_cast<uint8_t>(STRING)}
+    };
 
-    UNSCOPED_INFO("Check the num correctors is read properly.");
-    CHECK(pDescriptor->getNumCorrectors() == kExpectedNumCorrectors);
+    auto& pLayer = pDataset->createCompoundLayer(indexType, layerName,
+        kExpectredDefinition, chunkSize, compressionLevel);
 
-    UNSCOPED_INFO("Check the chunk size is read properly.");
-    CHECK(pDescriptor->getChunkSize() == kExpectedChunkSize);
+    const auto& valueTable = pLayer.getValueTable();
 
-    UNSCOPED_INFO("Check the compression level is read properly.");
-    CHECK(pDescriptor->getCompressionLevel() == kExpectedCompressionLevel);
+    UNSCOPED_INFO("Check getting the definition returns expected definition.");
+    const auto& definition = valueTable.getDefinition();
+    CHECK(definition.size() == kExpectedDefinitionSize);
+    CHECK(definition[0] == kExpectredDefinition[0]);
+    CHECK(definition[1] == kExpectredDefinition[1]);
+    CHECK(definition[2] == kExpectredDefinition[2]);
+    CHECK(definition[3] == kExpectredDefinition[3]);
+
+    UNSCOPED_INFO("Check dataset has a single (filler) record.");
+    CHECK(valueTable.getRecords().size() == 1);
+
+    UNSCOPED_INFO("Check getting the field index returns the expected result.");
+    CHECK(valueTable.getFieldIndex(kFieldName0) == 0);
+    CHECK(valueTable.getFieldIndex(kFieldName1) == 1);
+    CHECK(valueTable.getFieldIndex(kFieldName2) == 2);
+    CHECK(valueTable.getFieldIndex(kFieldName3) == 3);
+
+    UNSCOPED_INFO("Check getting the field name returns the expected result.");
+    CHECK(std::string{valueTable.getFieldName(0)} == std::string{kFieldName0});
+    CHECK(std::string{valueTable.getFieldName(1)} == std::string{kFieldName1});
+    CHECK(std::string{valueTable.getFieldName(2)} == std::string{kFieldName2});
+    CHECK(std::string{valueTable.getFieldName(3)} == std::string{kFieldName3});
 }
 
-//    static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
-//        const Dataset& dataset);
-TEST_CASE("test surface corrections descriptor read irregular",
-    "[surfacecorrectionsdescriptor][open][BAG_SURFACE_GRID_EXTENTS]")
+//  void addRecord(const Record& record);
+//  const Records& getRecords() const & noexcept;
+//  const CompoundDataType& getValue(size_t recordIndex, size_t fieldIndex) const &;
+//  void setValue(size_t recordIndex, size_t fieldIndex, const CompoundDataType& value);
+TEST_CASE("test value table add record", "[single][valuetable][constructor][addRecord][getRecords][getValue][setValue]")
 {
-    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
-        "/sample.bag"};
+    const TestUtils::RandomFileGuard tmpFileName;
+    const std::string kExpectedLayerName = "uncertainty";
+    constexpr size_t kExpectedNumRecords = 2;
 
-    UNSCOPED_INFO("Check that the dataset was loaded.");
-    const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
-    REQUIRE(pDataset);
+    BAG::Record kExpectedNewRecord0 {
+//        BAG::CompoundDataType{std::string{"string value 0"}},
+//        BAG::CompoundDataType{std::string{"string value 1"}},
+        BAG::CompoundDataType{42.2f},
+        BAG::CompoundDataType{102u},
+        BAG::CompoundDataType{true},
+        BAG::CompoundDataType{1234.567f},
+//        BAG::CompoundDataType{std::string{"string value2"}}.
+    };
 
-    UNSCOPED_INFO("Check that the descriptor is created successfully.");
-    const auto pDescriptor = SurfaceCorrectionsDescriptor::open(*pDataset);
-    REQUIRE(pDescriptor);
+    // Write a record.
+    {
+        BAG::Metadata metadata;
+        metadata.loadFromBuffer(kMetadataXML);
 
-    UNSCOPED_INFO("Check that the surface type being corrected is irregular.");
-    constexpr auto kExpectedSurfaceType = BAG_SURFACE_IRREGULARLY_SPACED;
-    CHECK(pDescriptor->getSurfaceType() == kExpectedSurfaceType);
+        constexpr uint64_t chunkSize = 100;
+        constexpr unsigned int compressionLevel = 6;
 
-    UNSCOPED_INFO("Check that the expected number of correctors were loaded.");
-    constexpr uint8_t kExpectedNumCorrectors = 2;
-    CHECK(pDescriptor->getNumCorrectors() == kExpectedNumCorrectors);
+        auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
+            chunkSize, compressionLevel);
+        REQUIRE(pDataset);
 
-    UNSCOPED_INFO("Check the vertical datum is read properly.");
-    const std::string kExpectedVerticalDatum{};
-    CHECK(pDescriptor->getVerticalDatums() == kExpectedVerticalDatum);
+        // Make a new Value Table.
+        constexpr BAG::DataType indexType = UINT16;
+
+        BAG::RecordDefinition definition {
+//            {_strdup("string value0"), static_cast<uint8_t>(STRING)},
+//            {_strdup("string value1"), static_cast<uint8_t>(STRING)},
+            {_strdup("float value0"), static_cast<uint8_t>(FLOAT32)},
+            {_strdup("uint32 value"), static_cast<uint8_t>(UINT32)},
+            {_strdup("bool value"), static_cast<uint8_t>(BOOL)},
+            {_strdup("float value1"), static_cast<uint8_t>(FLOAT32)},
+//            {_strdup("string value2"), static_cast<uint8_t>(STRING)}.
+        };
+
+        auto& pLayer = pDataset->createCompoundLayer(indexType,
+            kExpectedLayerName, definition, chunkSize, compressionLevel);
+
+        auto& valueTable = pLayer.getValueTable();
+
+        UNSCOPED_INFO("Check the expected filler record is in the value table.");
+        CHECK(valueTable.getRecords().size() == 1);
+
+        UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
+        REQUIRE_NOTHROW(valueTable.addRecord(kExpectedNewRecord0));
+
+        UNSCOPED_INFO("Check there are two records in the value table.");
+        CHECK(valueTable.getRecords().size() == kExpectedNumRecords);
+
+        UNSCOPED_INFO("Check adding an invalid record to the value table throws.");
+        BAG::Record kJunkRecord;
+        REQUIRE_THROWS(valueTable.addRecord(kJunkRecord));
+
+        UNSCOPED_INFO("Check there are still two records in the value table.");
+        CHECK(valueTable.getRecords().size() == kExpectedNumRecords);
+    }
+
+    // Read the new record.
+    {
+        const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
+        REQUIRE(pDataset);
+
+        auto const* layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        REQUIRE(layer);
+
+        const auto& valueTable = layer->getValueTable();
+        const auto& records = valueTable.getRecords();
+        CHECK(records.size() == kExpectedNumRecords);
+
+        constexpr size_t kRecordIndex = 1;
+        size_t fieldIndex = 0;
+
+        const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field0value == kExpectedNewRecord0[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field1value == kExpectedNewRecord0[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field2value == kExpectedNewRecord0[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field3value == kExpectedNewRecord0[fieldIndex]);
+        ++fieldIndex;
+
+#if 0
+        const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field4value == kExpectedNewRecord0[fieldIndex]);
+        ++fieldIndex;
+#endif
+
+        REQUIRE_THROWS(valueTable.getValue(kRecordIndex, fieldIndex));
+    }
+
+    BAG::Record kExpectedNewRecord1 {
+//        BAG::CompoundDataType{std::string{"string value0"}},
+//        BAG::CompoundDataType{std::string{"string value1"}},
+        BAG::CompoundDataType{987.6543f},
+        BAG::CompoundDataType{1001u},
+        BAG::CompoundDataType{false},
+        BAG::CompoundDataType{0.08642f},
+//        BAG::CompoundDataType{std::string{"string value2"}},
+    };
+
+    // Set some new values an existing record.
+    {
+        auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
+        REQUIRE(pDataset);
+
+        auto* layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        REQUIRE(layer);
+
+        auto& valueTable = layer->getValueTable();
+
+        const auto& records = valueTable.getRecords();
+        CHECK(records.size() == kExpectedNumRecords);
+
+        constexpr size_t kRecordIndex = 1;
+        size_t fieldIndex = 0;
+
+        // Read values back from memory.
+        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+
+        const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field0value == kExpectedNewRecord1[fieldIndex]);
+
+        ++fieldIndex;
+        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+
+        const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field1value == kExpectedNewRecord1[fieldIndex]);
+
+        ++fieldIndex;
+        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+
+        const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field2value == kExpectedNewRecord1[fieldIndex]);
+
+        ++fieldIndex;
+        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+
+        const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
+
+#if 0
+        ++fieldIndex;
+        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+
+        const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field4value == kExpectedNewRecord1[fieldIndex]);
+#endif
+    }
+
+    // Read new values back from the HDF5 file.
+    {
+        const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
+        REQUIRE(pDataset);
+
+        auto const* layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        REQUIRE(layer);
+
+        const auto& valueTable = layer->getValueTable();
+
+        const auto& records = valueTable.getRecords();
+        CHECK(records.size() == kExpectedNumRecords);
+
+        constexpr size_t kRecordIndex = 1;
+        size_t fieldIndex = 0;
+
+        const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field0value == kExpectedNewRecord1[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field1value == kExpectedNewRecord1[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field2value == kExpectedNewRecord1[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
+        ++fieldIndex;
+
+#if 0
+        const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field4value == kExpectedNewRecord1[fieldIndex]);
+        ++fieldIndex;
+#endif
+
+        REQUIRE_THROWS(valueTable.getValue(kRecordIndex, fieldIndex));
+    }
 }
 
-TEST_CASE("test surface corrections descriptor create empty gridded",
-    "[surfacecorrectionsdescriptor][create][setVerticalDatum][setOrigin][setSpacing]")
-{
-    TestUtils::RandomFileGuard tmpBagFile;
+#if 0
+    void addRecords(const Records& records);
+#endif
+//TODO implement
 
-    Metadata metadata;
+
+
+#if 0
+TEST_CASE("test having var len string in compound type", "[abc123]")
+{
+    // create new hdf5 file
+    const TestUtils::RandomFileGuard tmpFileName;
+
+    BAG::Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 6;
 
-    auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
-        kExpectedChunkSize, kExpectedCompressionLevel);
+    auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
+        chunkSize, compressionLevel);
     REQUIRE(pDataset);
 
-    UNSCOPED_INFO("Test creation was successful.");
-    constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
-    constexpr uint8_t kExpectedNumCorrectors = 5;
+    // set up writing stuff
+    // Prepare the memory details.
+    const auto rawMemory = this->convertRecordToRaw(record);
 
-    const auto pDescriptor = SurfaceCorrectionsDescriptor::create(
-        kExpectedSurfaceType, kExpectedNumCorrectors, kExpectedChunkSize,
-        kExpectedCompressionLevel, *pDataset);
-    REQUIRE(pDescriptor);
+    const auto& descriptor =
+        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
 
-    // Set the values.
-    UNSCOPED_INFO("Test setting the vertical datums does not throw.");
-    const std::string kExpectedVerticalDatum("datum 1,datum 2,datum 3");
-    REQUIRE_NOTHROW(pDescriptor->setVerticalDatum(kExpectedVerticalDatum));
+    const auto memDataType = createH5memoryCompType(descriptor.getDefinition());
+    constexpr hsize_t one = 1;
+    ::H5::DataSpace memDataSpace(1, &one, &one);
 
-    UNSCOPED_INFO("Test setting the origin does not throw.");
-    constexpr double kExpectedOriginX = 123.456;
-    constexpr double kExpectedOriginY = 9876.54321;
-    REQUIRE_NOTHROW(pDescriptor->setOrigin(kExpectedOriginX, kExpectedOriginY));
+    // Prepare the file details.
+    const auto& h5recordDataSet = m_layer.getRecordDataSet();
 
-    UNSCOPED_INFO("Test setting the spacing does not throw.");
-    constexpr double kExpectedSpacingX = 42.8901;
-    constexpr double kExpectedSpacingY = 100.247;
-    REQUIRE_NOTHROW(pDescriptor->setSpacing(kExpectedSpacingX, kExpectedSpacingY));
+    if (recordIndex == m_records.size())
+    {
+        // Make room for a new record.
+        const hsize_t newNumRecords = recordIndex + 1;
+        h5recordDataSet.extend(&newNumRecords);
+    }
+    else if (recordIndex > m_records.size())
+        throw 123;  // trying to add a new record beyond the end
 
-    // Get the values back.
-    UNSCOPED_INFO("Test getting the set vertical datums.");
-    CHECK(pDescriptor->getVerticalDatums() == kExpectedVerticalDatum);
+    const auto fileDataSpace = h5recordDataSet.getSpace();
 
-    UNSCOPED_INFO("Test getting the set origin.");
-    const auto actualOrigin = pDescriptor->getOrigin();
-    CHECK(std::get<0>(actualOrigin) == kExpectedOriginX);
-    CHECK(std::get<1>(actualOrigin) == kExpectedOriginY);
+    // select the record to write
+    const hsize_t indexToModify = recordIndex;
+    fileDataSpace.selectElements(H5S_SELECT_SET, 1, &indexToModify);
 
-    UNSCOPED_INFO("Test getting the set spacing.");
-    const auto actualSpacing = pDescriptor->getSpacing();
-    CHECK(std::get<0>(actualSpacing) == kExpectedSpacingX);
-    CHECK(std::get<1>(actualSpacing) == kExpectedSpacingY);
+    h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,
+        fileDataSpace);
+
+    // write to hdf5
+
+    // set up reading stuff
+
+    // read from hdf5
 }
+#endif
 

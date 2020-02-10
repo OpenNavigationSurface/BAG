@@ -5,6 +5,7 @@ namespace BAG
 {
 
 class CompoundLayer;
+class CompoundLayerDescriptor;
 class Dataset;
 class Descriptor;
 class InterleavedLayer;
@@ -17,6 +18,7 @@ class SimpleLayerDescriptor;
 class SurfaceCorrections;
 class SurfaceCorrectionsDescriptor;
 class TrackingList;
+class ValueTable;
 
 }   //namespace BAG
 

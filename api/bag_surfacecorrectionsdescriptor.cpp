@@ -5,12 +5,13 @@
 #include "bag_surfacecorrectionsdescriptor.h"
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
 
 namespace {
+
 uint8_t getElementSize(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors) noexcept
@@ -22,11 +23,15 @@ uint8_t getElementSize(
 }  // namespace
 
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
+    uint32_t id,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
     unsigned int compressionLevel)
-    : LayerDescriptor(Surface_Correction, chunkSize, compressionLevel)
+    : LayerDescriptor(id, Layer::getInternalPath(Surface_Correction),
+        kLayerTypeMapString.at(Surface_Correction), Surface_Correction,
+        chunkSize, compressionLevel)
+    , m_dataType(Layer::getDataType(Surface_Correction))
     , m_surfaceType(type)
     , m_elementSize(BAG::getElementSize(type, numCorrectors))
     , m_numCorrectors(numCorrectors)
@@ -36,6 +41,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     const Dataset& dataset)
     : LayerDescriptor(Surface_Correction, dataset)
+    , m_dataType(Layer::getDataType(Surface_Correction))
 {
     const auto h5dataSet = dataset.getH5file().openDataSet(
         Layer::getInternalPath(Surface_Correction));
@@ -103,7 +109,8 @@ SurfaceCorrectionsDescriptor::create(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    unsigned int compressionLevel,
+    const Dataset& dataset)
 {
     if (type != BAG_SURFACE_GRID_EXTENTS &&
         type != BAG_SURFACE_IRREGULARLY_SPACED)
@@ -113,18 +120,23 @@ SurfaceCorrectionsDescriptor::create(
         throw TooManyCorrections{};
 
     return std::shared_ptr<SurfaceCorrectionsDescriptor>(
-        new SurfaceCorrectionsDescriptor{type, numCorrectors, chunkSize,
-        compressionLevel});
+        new SurfaceCorrectionsDescriptor{dataset.getNextId(), type,
+            numCorrectors, chunkSize, compressionLevel});
 }
 
 std::shared_ptr<SurfaceCorrectionsDescriptor>
-SurfaceCorrectionsDescriptor::create(
+SurfaceCorrectionsDescriptor::open(
     const Dataset& dataset)
 {
     return std::shared_ptr<SurfaceCorrectionsDescriptor>(
         new SurfaceCorrectionsDescriptor{dataset});
 }
 
+
+DataType SurfaceCorrectionsDescriptor::getDataTypeProxy() const noexcept
+{
+    return m_dataType;
+}
 
 uint8_t SurfaceCorrectionsDescriptor::getElementSizeProxy() const noexcept
 {

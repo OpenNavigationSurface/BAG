@@ -12,7 +12,7 @@ int main(
     using BAG::Dataset;
 
     auto pDataset = Dataset::open(
-        "D:/caris_work/BAG/BAG2/examples/sample-data/1mSurface.bag",
+        "D:/caris_work/BAG/BAG2/examples/sample-data/sample.bag",
         BAG_OPEN_READONLY);
 
     uint64_t numRows = 0, numCols = 0;

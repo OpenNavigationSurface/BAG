@@ -3,6 +3,8 @@
 #include "bag_layer.h"
 #include "bag_metadata.h"
 
+#include <algorithm>
+
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -25,12 +27,15 @@ Descriptor::Descriptor(
 Descriptor& Descriptor::addLayerDescriptor(
     const LayerDescriptor& inDescriptor) &
 {
-    if (m_layerDescriptors.find(inDescriptor.getLayerType()) !=
-        cend(m_layerDescriptors))
+    const auto foundIter = std::find_if(cbegin(m_layerDescriptors),
+        cend(m_layerDescriptors),
+        [&inDescriptor](const auto& descriptor) {
+            return inDescriptor.getInternalPath() == descriptor->getInternalPath();
+        });
+    if (foundIter != cend(m_layerDescriptors))
         throw LayerExists{};
 
-    m_layerDescriptors.emplace(inDescriptor.getLayerType(),
-        inDescriptor.shared_from_this());
+    m_layerDescriptors.emplace_back(inDescriptor.shared_from_this());
 
     return *this;
 }
@@ -50,12 +55,23 @@ const std::string& Descriptor::getHorizontalReferenceSystem() const & noexcept
     return m_horizontalReferenceSystem;
 }
 
+std::vector<uint32_t> Descriptor::getLayerIds() const noexcept
+{
+    std::vector<uint32_t> ids;
+    ids.reserve(m_layerDescriptors.size());
+
+    for (const auto& descriptor : m_layerDescriptors)
+        ids.emplace_back(descriptor->getId());
+
+    return ids;
+}
+
 const LayerDescriptor& Descriptor::getLayerDescriptor(LayerType type) const &
 {
     return *m_layerDescriptors.at(type);
 }
 
-const std::unordered_map<LayerType, std::shared_ptr<const LayerDescriptor>>&
+const std::vector<std::shared_ptr<const LayerDescriptor>>&
 Descriptor::getLayerDescriptors() const & noexcept
 {
     return m_layerDescriptors;
@@ -66,8 +82,8 @@ std::vector<LayerType> Descriptor::getLayerTypes() const
     std::vector<LayerType> types;
     types.reserve(m_layerDescriptors.size());
 
-    for (auto&& layerDescriptor : m_layerDescriptors)
-        types.push_back(layerDescriptor.first);
+    for (const auto& layerDescriptor : m_layerDescriptors)
+        types.emplace_back(layerDescriptor->getLayerType());
 
     return types;
 }

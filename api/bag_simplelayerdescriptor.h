@@ -3,6 +3,7 @@
 
 #include "bag_config.h"
 #include "bag_fordec.h"
+#include "bag_layerdescriptor.h"
 #include "bag_types.h"
 
 #include <memory>
@@ -19,8 +20,9 @@ class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
-        uint64_t chunkSize, unsigned int compressionLevel);
-    static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
+        uint64_t chunkSize, unsigned int compressionLevel,
+        const Dataset& dataset);
+    static std::shared_ptr<SimpleLayerDescriptor> open(LayerType type,
         const Dataset& dataset);
 
     //TODO Temp, make sure only move operations are used until development is done.
@@ -30,13 +32,16 @@ public:
     SimpleLayerDescriptor& operator=(SimpleLayerDescriptor&&) = delete;
 
 protected:
-    SimpleLayerDescriptor(LayerType type, uint64_t chunkSize,
+    SimpleLayerDescriptor(uint32_t id, LayerType type, uint64_t chunkSize,
         unsigned int compressionLevel);
     SimpleLayerDescriptor(LayerType type, const Dataset& dataset);
 
 private:
+    DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
 
+    //! The data type (depends on layer type).
+    DataType m_dataType = UNKNOWN_DATA_TYPE;
     //! The size of a single record in the HDF5 file.
     uint8_t m_elementSize = 0;
 };
@@ -47,5 +52,5 @@ private:
 #pragma warning(pop)
 #endif
 
-#endif  // BAG_LAYERDESCRIPTOR_H
+#endif  // BAG_SIMPLELAYERDESCRIPTOR_H
 

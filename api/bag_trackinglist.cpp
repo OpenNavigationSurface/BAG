@@ -10,7 +10,7 @@
 #endif
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)
@@ -158,7 +158,7 @@ TrackingList::createH5dataSet(
     const auto& h5file = pDataset->getH5file();
 
     constexpr hsize_t numEntries = 0;
-    constexpr hsize_t kUnlimitedSize = static_cast<hsize_t>(-1);
+    constexpr hsize_t kUnlimitedSize = H5F_UNLIMITED;
     const ::H5::DataSpace h5dataSpace{1, &numEntries, &kUnlimitedSize};
 
     const ::H5::CompType h5dataType{sizeof(value_type)};
@@ -173,7 +173,7 @@ TrackingList::createH5dataSet(
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setChunk(1, &kTrackingListChunkSize);
 
-    if (compressionLevel > 0 && compressionLevel <= 9)
+    if (compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
 
     const auto h5dataSet = h5file.createDataSet(TRACKING_LIST_PATH,

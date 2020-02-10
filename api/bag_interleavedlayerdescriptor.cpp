@@ -8,12 +8,16 @@
 namespace BAG {
 
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
+    uint32_t id,
     LayerType layerType,
     GroupType groupType,
     uint64_t chunkSize,
     unsigned int compressionLevel)
-    : LayerDescriptor(layerType, chunkSize, compressionLevel)
+    : LayerDescriptor(id, Layer::getInternalPath(layerType),
+        kLayerTypeMapString.at(layerType), layerType, chunkSize,
+        compressionLevel)
     , m_groupType(groupType)
+    , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
     this->setInternalPath(groupType == NODE ?
@@ -33,6 +37,7 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
                 ? ELEVATION_SOLUTION_GROUP_PATH
                 : "")
     , m_groupType(groupType)
+    , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
     this->validateTypes(layerType, groupType);
@@ -42,14 +47,15 @@ std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
     LayerType layerType,
     GroupType groupType,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    unsigned int compressionLevel,
+    const Dataset& dataset)
 {
     return std::shared_ptr<InterleavedLayerDescriptor>(
-        new InterleavedLayerDescriptor{layerType, groupType, chunkSize,
-            compressionLevel});
+        new InterleavedLayerDescriptor{dataset.getNextId(), layerType,
+            groupType, chunkSize, compressionLevel});
 }
 
-std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
+std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::open(
     LayerType layerType,
     GroupType groupType,
     const Dataset& dataset)
@@ -59,14 +65,19 @@ std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
 }
 
 
-GroupType InterleavedLayerDescriptor::getGroupType() const noexcept
+DataType InterleavedLayerDescriptor::getDataTypeProxy() const noexcept
 {
-    return m_groupType;
+    return m_dataType;
 }
 
 uint8_t InterleavedLayerDescriptor::getElementSizeProxy() const noexcept
 {
     return m_elementSize;
+}
+
+GroupType InterleavedLayerDescriptor::getGroupType() const noexcept
+{
+    return m_groupType;
 }
 
 //! Verify the proper group and layer combination is given.

@@ -5,9 +5,11 @@ set(CMAKE_DEBUG_POSTFIX "d")
 set(BAG_SOURCE_FILES
     bag.cpp
     bag_compoundlayer.cpp
+    bag_compoundlayerdescriptor.cpp
     bag_dataset.cpp
     bag_descriptor.cpp
     #bag_hdf.c
+    bag_hdfhelper.cpp
     bag_interleavedlayer.cpp
     bag_interleavedlayerdescriptor.cpp
     bag_layer.cpp
@@ -27,6 +29,7 @@ set(BAG_SOURCE_FILES
     bag_surfacecorrections.cpp
     bag_surfacecorrectionsdescriptor.cpp
     bag_trackinglist.cpp
+    bag_valuetable.cpp
 )
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
 
@@ -37,13 +40,16 @@ set(BAG_PRIVATE_HEADER_FILES
 set(BAG_HEADER_FILES
     bag.h
     bag_c_types.h
+    bag_compounddatatype.h
     bag_compoundlayer.h
+    bag_compoundlayerdescriptor.h
     bag_config.h
     bag_dataset.h
     bag_descriptor.h
     bag_errors.h
     bag_exceptions.h
     bag_fordec.h
+    bag_hdfhelper.h
     bag_interleavedlayer.h
     bag_interleavedlayerdescriptor.h
     bag_layer.h
@@ -61,6 +67,7 @@ set(BAG_HEADER_FILES
     bag_surfacecorrectionsdescriptor.h
     bag_trackinglist.h
     bag_types.h
+    bag_valuetable.h
     bag_version.h
     #bag_xml_meta.h
 )

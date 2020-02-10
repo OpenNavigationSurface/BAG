@@ -28,6 +28,8 @@ class BAG_API Metadata final
 public:
     Metadata() noexcept;
     explicit Metadata(Dataset& dataset);
+
+    //TODO Temp, make sure only move operations are used until development is done.
     Metadata(const Metadata& other) = delete;
     Metadata(Metadata&& other) = default;
     Metadata& operator=(const Metadata&) = delete;

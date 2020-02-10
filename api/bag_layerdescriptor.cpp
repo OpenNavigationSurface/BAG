@@ -1,74 +1,27 @@
 
+
 #include "bag_dataset.h"
+#include "bag_hdfhelper.h"
 #include "bag_layer.h"
 #include "bag_layerdescriptor.h"
 #include "bag_private.h"
 
-#include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
 
-namespace {
-
-unsigned int getCompressionLevel(
-    const ::H5::H5File& h5file,
-    const std::string& path)
-{
-    //Get the elevation HD5 dataset.
-    const auto h5dataset = h5file.openDataSet(path);
-    const auto h5pList = h5dataset.getCreatePlist();
-
-    for (int i=0; i<h5pList.getNfilters(); ++i)
-    {
-        unsigned int flags = 0;
-        size_t cdNelmts = 10;
-        constexpr size_t nameLen = 64;
-        std::array<unsigned int, 10> cdValues{};
-        std::array<char, 64> name{};
-        unsigned int filterConfig = 0;
-
-        const auto filter = h5pList.getFilter(i, flags, cdNelmts,
-            cdValues.data(), nameLen, name.data(), filterConfig);
-        if (filter == H5Z_FILTER_DEFLATE)
-            if (cdNelmts >= 1)
-                return cdValues.front();
-    }
-
-    return 0;
-}
-
-uint64_t getChunkSize(
-    const ::H5::H5File& h5file,
-    const std::string& path)
-{
-    //Get the elevation HD5 dataset.
-    const auto h5dataset = h5file.openDataSet(path);
-    const auto h5pList = h5dataset.getCreatePlist();
-
-    if (h5pList.getLayout() == H5D_CHUNKED)
-    {
-        std::array<hsize_t, RANK> maxDims{};
-
-        const int rankChunk = h5pList.getChunk(RANK, maxDims.data());
-        if (rankChunk == RANK)
-            return {maxDims[0]};  // Using {} to prevent narrowing.
-    }
-
-    return 0;
-}
-
-}  // namespace
-
 LayerDescriptor::LayerDescriptor(
+    uint32_t id,
+    std::string internalPath,
+    std::string name,
     LayerType type,
     uint64_t chunkSize,
     unsigned int compressionLevel)
-    : m_layerType(type)
-    , m_dataType(Layer::getDataType(type))
-    , m_internalPath(Layer::getInternalPath(type))
-    , m_name(kLayerTypeMapString.at(type))
+    : m_id(id)
+    , m_layerType(type)
+    , m_internalPath(std::move(internalPath))
+    , m_name(std::move(name))
     , m_compressionLevel(compressionLevel)
     , m_chunkSize(chunkSize)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
@@ -78,15 +31,19 @@ LayerDescriptor::LayerDescriptor(
 LayerDescriptor::LayerDescriptor(
     LayerType type,
     const Dataset& dataset,
-    std::string internalPath)
-    : m_layerType(type)
-    , m_dataType(Layer::getDataType(type))
-    , m_name(kLayerTypeMapString.at(type))
+    std::string internalPath,
+    std::string name)
+    : m_id(dataset.getNextId())
+    , m_layerType(type)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
 {
     m_internalPath = internalPath.empty()
         ? Layer::getInternalPath(type)
         : std::move(internalPath);
+
+    m_name = name.empty()
+        ? kLayerTypeMapString.at(type)
+        : std::move(name);
 
     const auto& h5file = dataset.getH5file();
 
@@ -108,7 +65,7 @@ LayerDescriptor& LayerDescriptor::setName(std::string inName) & noexcept
 
 DataType LayerDescriptor::getDataType() const noexcept
 {
-    return m_dataType;
+    return this->getDataTypeProxy();
 }
 
 LayerType LayerDescriptor::getLayerType() const noexcept
@@ -127,6 +84,11 @@ LayerDescriptor& LayerDescriptor::setMinMax(
 {
     m_minMax = {min, max};
     return *this;
+}
+
+uint32_t LayerDescriptor::getId() const noexcept
+{
+    return m_id;
 }
 
 const std::string& LayerDescriptor::getInternalPath() const & noexcept
