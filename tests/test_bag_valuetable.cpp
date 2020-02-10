@@ -313,20 +313,24 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 </gmi:MI_Metadata>
 )"};
 
-bool operator==(
-    const BAG::FieldDefinition& lhs,
-    const BAG::FieldDefinition& rhs)
-{
-    if ((lhs.name == nullptr) || (rhs.name == nullptr))
-        if (lhs.name == rhs.name)
-            return lhs.type == rhs.type;
-        else
-            return false;
+}  // namespace
 
-    return (lhs.type == rhs.type) && (strcmp(lhs.name, rhs.name) == 0);
+namespace BAG {
+
+bool operator==(
+    const FieldDefinition& lhs,
+    const FieldDefinition& rhs)
+{
+    if (lhs.type != rhs.type)
+        return false;
+
+    if (lhs.name == nullptr || rhs.name == nullptr)
+        return lhs.name == rhs.name;
+
+    return strcmp(lhs.name, rhs.name) == 0;
 }
 
-}  // namespace
+}  // namespace BAG
 
 //  const Records& getRecords() const & noexcept;
 //  const RecordDefinition& getDefinition() const & noexcept;
