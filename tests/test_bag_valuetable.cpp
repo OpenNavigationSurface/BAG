@@ -401,7 +401,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
 //  const Records& getRecords() const & noexcept;
 //  const CompoundDataType& getValue(size_t recordIndex, size_t fieldIndex) const &;
 //  void setValue(size_t recordIndex, size_t fieldIndex, const CompoundDataType& value);
-TEST_CASE("test value table add record", "[single][valuetable][constructor][addRecord][getRecords][getValue][setValue]")
+TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][getRecords][getValue][setValue]")
 {
     const TestUtils::RandomFileGuard tmpFileName;
     const std::string kExpectedLayerName = "uncertainty";
