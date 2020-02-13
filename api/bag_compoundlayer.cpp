@@ -18,13 +18,13 @@ hsize_t getDataTypeMax(
 {
     switch(dataType)
     {
-    case UINT8:
+    case DT_UINT8:
         return std::numeric_limits<uint8_t>::max();
-    case UINT16:
+    case DT_UINT16:
         return std::numeric_limits<uint16_t>::max();
-    case UINT32:
+    case DT_UINT32:
         return std::numeric_limits<uint32_t>::max();
-    case UINT64:
+    case DT_UINT64:
         return std::numeric_limits<uint64_t>::max();
     default:
         throw UnsupportedDataType{};
@@ -52,8 +52,8 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {
-    if (indexType != UINT8 && indexType != UINT16 && indexType != UINT32 &&
-        indexType != UINT64)
+    if (indexType != DT_UINT8 && indexType != DT_UINT16 && indexType != DT_UINT32 &&
+        indexType != DT_UINT64)
         throw InvalidIndexType{};
 
     auto pDescriptor = CompoundLayerDescriptor::create(name, indexType,

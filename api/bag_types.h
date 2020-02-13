@@ -9,7 +9,7 @@
 namespace BAG
 {
 
-constexpr auto RANK = 2;
+constexpr int RANK = 2;
 
 using LayerType = BAG_LAYER_TYPE;
 using DataType = BAG_DATA_TYPE;

@@ -352,7 +352,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     REQUIRE(pDataset);
 
     // Make a new Value Table.
-    constexpr BAG::DataType indexType = UINT8;
+    constexpr BAG::DataType indexType = DT_UINT8;
     const std::string layerName{"elevation"};
     constexpr size_t kExpectedDefinitionSize = 4;
 
@@ -362,10 +362,10 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     const char kFieldName3[]{"string value"};
 
     BAG::RecordDefinition kExpectredDefinition {
-        {_strdup(kFieldName0), static_cast<uint8_t>(FLOAT32)},
-        {_strdup(kFieldName1), static_cast<uint8_t>(UINT32)},
-        {_strdup(kFieldName2), static_cast<uint8_t>(BOOL)},
-        {_strdup(kFieldName3), static_cast<uint8_t>(STRING)}
+        {_strdup(kFieldName0), static_cast<uint8_t>(DT_FLOAT32)},
+        {_strdup(kFieldName1), static_cast<uint8_t>(DT_UINT32)},
+        {_strdup(kFieldName2), static_cast<uint8_t>(DT_BOOL)},
+        {_strdup(kFieldName3), static_cast<uint8_t>(DT_STRING)}
     };
 
     auto& pLayer = pDataset->createCompoundLayer(indexType, layerName,
@@ -430,15 +430,15 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         REQUIRE(pDataset);
 
         // Make a new Value Table.
-        constexpr BAG::DataType indexType = UINT16;
+        constexpr BAG::DataType indexType = DT_UINT16;
 
         BAG::RecordDefinition definition {
 //            {_strdup("string value0"), static_cast<uint8_t>(STRING)},
 //            {_strdup("string value1"), static_cast<uint8_t>(STRING)},
-            {_strdup("float value0"), static_cast<uint8_t>(FLOAT32)},
-            {_strdup("uint32 value"), static_cast<uint8_t>(UINT32)},
-            {_strdup("bool value"), static_cast<uint8_t>(BOOL)},
-            {_strdup("float value1"), static_cast<uint8_t>(FLOAT32)},
+            {_strdup("float value0"), static_cast<uint8_t>(DT_FLOAT32)},
+            {_strdup("uint32 value"), static_cast<uint8_t>(DT_UINT32)},
+            {_strdup("bool value"), static_cast<uint8_t>(DT_BOOL)},
+            {_strdup("float value1"), static_cast<uint8_t>(DT_FLOAT32)},
 //            {_strdup("string value2"), static_cast<uint8_t>(STRING)}.
         };
 

@@ -41,16 +41,16 @@ Record convertMemoryToRecord(
 
         switch(fieldType)
         {
-        case BOOL:
+        case DT_BOOL:
             value = *reinterpret_cast<const bool*>(buffer + fieldOffset);
             break;
-        case FLOAT32:
+        case DT_FLOAT32:
             value = *reinterpret_cast<const float*>(buffer + fieldOffset);
             break;
-        case UINT32:
+        case DT_UINT32:
             value = *reinterpret_cast<const uint32_t*>(buffer + fieldOffset);
             break;
-        case STRING:
+        case DT_STRING:
         {
             const auto address =
                 *reinterpret_cast<const std::uintptr_t*>(buffer + fieldOffset);
@@ -60,11 +60,11 @@ Record convertMemoryToRecord(
             //free(str);
             break;
         }
-        case UINT8:  //[[fallthrough]]
-        case UINT16:  //[[fallthrough]]
-        case UINT64:  //[[fallthrough]]
-        case COMPOUND:  //[[fallthrough]]
-        case UNKNOWN_DATA_TYPE:  //[[fallthrough]]
+        case DT_UINT8:  //[[fallthrough]]
+        case DT_UINT16:  //[[fallthrough]]
+        case DT_UINT64:  //[[fallthrough]]
+        case DT_COMPOUND:  //[[fallthrough]]
+        case DT_UNKNOWN_DATA_TYPE:  //[[fallthrough]]
         default:
             throw UnsupportedDataType{};
         }
@@ -88,26 +88,26 @@ void convertRecordToMemory(
         const auto fieldType = field.getType();
         switch(fieldType)
         {
-        case BOOL:
+        case DT_BOOL:
             *reinterpret_cast<bool*>(buffer + fieldOffset) = field.asBool();
             break;
-        case FLOAT32:
+        case DT_FLOAT32:
             *reinterpret_cast<float*>(buffer + fieldOffset) = field.asFloat();
             break;
-        case UINT32:
+        case DT_UINT32:
             *reinterpret_cast<uint32_t*>(buffer + fieldOffset) = field.asUInt32();
             break;
-        case STRING:
+        case DT_STRING:
         {
             auto* ptr = reinterpret_cast<std::uintptr_t*>(buffer + fieldOffset);
             *ptr = reinterpret_cast<std::uintptr_t>(field.asString().data());
             break;
         }
-        case UINT8:  //[[fallthrough]]
-        case UINT16:  //[[fallthrough]]
-        case UINT64:  //[[fallthrough]]
-        case COMPOUND:  //[[fallthrough]]
-        case UNKNOWN_DATA_TYPE:  //[[fallthrough]]
+        case DT_UINT8:  //[[fallthrough]]
+        case DT_UINT16:  //[[fallthrough]]
+        case DT_UINT64:  //[[fallthrough]]
+        case DT_COMPOUND:  //[[fallthrough]]
+        case DT_UNKNOWN_DATA_TYPE:  //[[fallthrough]]
         default:
             throw UnsupportedDataType{};
         }
@@ -334,7 +334,7 @@ bool ValueTable::validateRecord(
         const auto defType = static_cast<DataType>(definition[defIndex++].type);
         const auto fieldType = field.getType();
 
-        if (defType == UNKNOWN_DATA_TYPE || field.getType() == UNKNOWN_DATA_TYPE)
+        if (defType == DT_UNKNOWN_DATA_TYPE || field.getType() == DT_UNKNOWN_DATA_TYPE)
             return false;
 
         if (fieldType != defType)

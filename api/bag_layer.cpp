@@ -73,15 +73,15 @@ DataType Layer::getDataType(LayerType layerType) noexcept
     case Std_Dev:  //[[fallthrough]];
     case Average_Elevation:  //[[fallthrough]];
     case Nominal_Elevation:
-        return FLOAT32;
+        return DT_FLOAT32;
     case Num_Hypotheses:  //[[fallthrough]];
     case Num_Soundings:
-        return UINT32;
+        return DT_UINT32;
     case Surface_Correction:
     case Compound:  //[[fallthrough]];
-        return COMPOUND;
+        return DT_COMPOUND;
     default:
-        return UNKNOWN_DATA_TYPE;
+        return DT_UNKNOWN_DATA_TYPE;
     }
 }
 
@@ -99,22 +99,22 @@ uint8_t Layer::getElementSize(DataType type)
 {
     switch (type)
     {
-    case FLOAT32:
+    case DT_FLOAT32:
         return sizeof(float);
-    case UINT32:
+    case DT_UINT32:
         return sizeof(uint32_t);
-    case UINT8:
+    case DT_UINT8:
         return sizeof(uint8_t);
-    case UINT16:
+    case DT_UINT16:
         return sizeof(uint16_t);
-    case UINT64:
+    case DT_UINT64:
         return sizeof(uint64_t);
-    case BOOL:
+    case DT_BOOL:
         return sizeof(bool);
-    case STRING:
+    case DT_STRING:
         return sizeof(char*);
-    case COMPOUND:  //[[fallthrough]]
-    case UNKNOWN_DATA_TYPE:  //[[fallthrough]]
+    case DT_COMPOUND:  //[[fallthrough]]
+    case DT_UNKNOWN_DATA_TYPE:  //[[fallthrough]]
     default:
         throw UnsupportedElementSize{};
     }

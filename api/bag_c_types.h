@@ -35,15 +35,15 @@ enum BAG_OPEN_MODE
 
 enum BAG_DATA_TYPE
 {
-    FLOAT32 = 0,
-    UINT32,
-    UINT8,
-    UINT16,
-    UINT64,
-    BOOL,
-    STRING,
-    COMPOUND,  // More than a single type; the layer will need to figure it out itself.
-    UNKNOWN_DATA_TYPE
+    DT_FLOAT32 = 0,
+    DT_UINT32,
+    DT_UINT8,
+    DT_UINT16,
+    DT_UINT64,
+    DT_BOOL,
+    DT_STRING,
+    DT_COMPOUND,  // More than a single type; the layer will need to figure it out itself.
+    DT_UNKNOWN_DATA_TYPE
 };
 
 //! The type of interleaved group.

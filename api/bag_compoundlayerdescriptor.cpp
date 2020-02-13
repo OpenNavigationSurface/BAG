@@ -53,20 +53,20 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     // Determine indexType.
     const auto fileDataType = h5dataSet.getDataType();
 
-    DataType indexType = UNKNOWN_DATA_TYPE;
+    DataType indexType = DT_UNKNOWN_DATA_TYPE;
     switch(fileDataType.getSize())
     {
     case 1:
-        indexType = UINT8;
+        indexType = DT_UINT8;
         break;
     case 2:
-        indexType = UINT16;
+        indexType = DT_UINT16;
         break;
     case 4:
-        indexType = UINT32;
+        indexType = DT_UINT32;
         break;
     case 8:
-        indexType = UINT64;
+        indexType = DT_UINT64;
         break;
     default:
         throw InvalidIndexType{};
