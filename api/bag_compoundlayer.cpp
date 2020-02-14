@@ -147,8 +147,7 @@ CompoundLayer::createH5indexDataSet(
         const ::H5::DataSpace fileDataSpace{1, &dims, &dims};
 
         // Create the compound type for the Record Definition.
-        const ::H5::StrType strType{::H5::PredType::C_S1};
-        strType.setSize(H5T_VARIABLE);
+        const ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};
 
         //works
         const ::H5::CompType fileDataType{sizeof(FieldDefinition)};

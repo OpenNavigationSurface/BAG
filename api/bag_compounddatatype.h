@@ -297,9 +297,9 @@ T get(const CompoundDataType& v)
 struct FieldDefinition final
 {
     //! The name of the definition.
-    char* name;
+    char* name = nullptr;
     //! The type of the definition; represents a DataType.
-    uint8_t type;
+    uint8_t type = UNKNOWN_DATA_TYPE;
 };
 
 using RecordDefinition = std::vector<FieldDefinition>;
