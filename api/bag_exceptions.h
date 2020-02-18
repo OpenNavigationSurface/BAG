@@ -268,6 +268,15 @@ struct BAG_API InvalidCompoundRecordsSize final : virtual std::exception
     }
 };
 
+//! Attempt to write a record to an invalid index.
+struct BAG_API InvalidRecordsIndex final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record index specified while writing a record.";
+    }
+};
+
 //! Attempt to use an invalid record index.
 struct BAG_API RecordNotFound final : virtual std::exception
 {
