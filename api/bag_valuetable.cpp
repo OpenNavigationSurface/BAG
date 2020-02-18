@@ -56,8 +56,9 @@ Record convertMemoryToRecord(
                 *reinterpret_cast<const std::uintptr_t*>(buffer + fieldOffset);
             str = reinterpret_cast<const char*>(address);
             value = std::string{str ? str : ""};
-            //TODO Figure out where to clean up the allocation of the char* done by HDF5 (a copy is made above).
-            //free(str);
+
+            // Clean up the char* allocated by HDF reading.
+            free(const_cast<char*>(str));
             break;
         }
         case UINT8:  //[[fallthrough]]
