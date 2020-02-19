@@ -296,8 +296,13 @@ T get(const CompoundDataType& v)
 // Terminology  -> record made of fields
 struct FieldDefinition final
 {
+    FieldDefinition() = default;
+    FieldDefinition(const char* inName, DataType inType)
+        : name(inName), type(static_cast<uint8_t>(inType))
+    {}
+
     //! The name of the definition.
-    char* name = nullptr;
+    const char* name = nullptr;
     //! The type of the definition; represents a DataType.
     uint8_t type = UNKNOWN_DATA_TYPE;
 };

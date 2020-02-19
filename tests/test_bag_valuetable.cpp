@@ -361,12 +361,12 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     const char kFieldName2[]{"bool value"};
     const char kFieldName3[]{"string value"};
 
-    BAG::RecordDefinition kExpectredDefinition {
-        {_strdup(kFieldName0), static_cast<uint8_t>(FLOAT32)},
-        {_strdup(kFieldName1), static_cast<uint8_t>(UINT32)},
-        {_strdup(kFieldName2), static_cast<uint8_t>(BOOL)},
-        {_strdup(kFieldName3), static_cast<uint8_t>(STRING)}
-    };
+    BAG::RecordDefinition kExpectredDefinition;
+    kExpectredDefinition.reserve(4);
+    kExpectredDefinition.emplace_back(kFieldName0, FLOAT32);
+    kExpectredDefinition.emplace_back(kFieldName1, UINT32);
+    kExpectredDefinition.emplace_back(kFieldName2, BOOL);
+    kExpectredDefinition.emplace_back(kFieldName3, STRING);
 
     auto& pLayer = pDataset->createCompoundLayer(indexType, layerName,
         kExpectredDefinition, chunkSize, compressionLevel);
@@ -382,7 +382,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     CHECK(definition[3] == kExpectredDefinition[3]);
 
     UNSCOPED_INFO("Check dataset has no records.");
-    CHECK(valueTable.getRecords().size() == 0);
+    CHECK(valueTable.getRecords().empty());
 
     UNSCOPED_INFO("Check getting the field index returns the expected result.");
     CHECK(valueTable.getFieldIndex(kFieldName0) == 0);
@@ -432,15 +432,15 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         // Make a new Value Table.
         constexpr BAG::DataType indexType = UINT16;
 
-        BAG::RecordDefinition definition {
-            {_strdup("first name"), static_cast<uint8_t>(STRING)},
-            {_strdup("last name"), static_cast<uint8_t>(STRING)},
-            {_strdup("float value0"), static_cast<uint8_t>(FLOAT32)},
-            {_strdup("uint32 value"), static_cast<uint8_t>(UINT32)},
-            {_strdup("bool value"), static_cast<uint8_t>(BOOL)},
-            {_strdup("float value1"), static_cast<uint8_t>(FLOAT32)},
-            {_strdup("address"), static_cast<uint8_t>(STRING)},
-        };
+        BAG::RecordDefinition definition;
+        definition.reserve(7);
+        definition.emplace_back("first name", STRING);
+        definition.emplace_back("last name", STRING);
+        definition.emplace_back("float value0", FLOAT32);
+        definition.emplace_back("uint32 value", UINT32);
+        definition.emplace_back("bool value", BOOL);
+        definition.emplace_back("float value1", FLOAT32);
+        definition.emplace_back("address", STRING);
 
         auto& pLayer = pDataset->createCompoundLayer(indexType,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
@@ -448,7 +448,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         auto& valueTable = pLayer.getValueTable();
 
         UNSCOPED_INFO("Check that no records are in the value table.");
-        CHECK(valueTable.getRecords().size() == 0);
+        CHECK(valueTable.getRecords().empty());
 
         UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
         REQUIRE_NOTHROW(valueTable.addRecord(kExpectedNewRecord0));
@@ -666,11 +666,11 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         // Make a new Value Table.
         constexpr BAG::DataType indexType = UINT16;
 
-        BAG::RecordDefinition definition {
-            {_strdup("bool1"), BOOL},
-            {_strdup("string"), STRING},
-            {_strdup("bool2"), BOOL},
-        };
+        BAG::RecordDefinition definition;
+        definition.reserve(3);
+        definition.emplace_back("bool1", BOOL);
+        definition.emplace_back("string", STRING);
+        definition.emplace_back("bool2", BOOL);
 
         auto& pLayer = pDataset->createCompoundLayer(indexType,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
@@ -678,7 +678,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         auto& valueTable = pLayer.getValueTable();
 
         UNSCOPED_INFO("Check there are no records in the value table.");
-        CHECK(valueTable.getRecords().size() == 0);
+        CHECK(valueTable.getRecords().empty());
 
         UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
         REQUIRE_NOTHROW(valueTable.addRecords(kExpectedRecords));
