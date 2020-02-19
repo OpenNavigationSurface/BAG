@@ -56,8 +56,9 @@ Record convertMemoryToRecord(
                 *reinterpret_cast<const std::uintptr_t*>(buffer + fieldOffset);
             str = reinterpret_cast<const char*>(address);
             value = std::string{str ? str : ""};
-            //TODO Figure out where to clean up the allocation of the char* done by HDF5 (a copy is made above).
-            //free(str);
+
+            // Clean up the char* allocated by HDF reading.
+            free(const_cast<char*>(str));
             break;
         }
         case UINT8:  //[[fallthrough]]
@@ -99,8 +100,8 @@ void convertRecordToMemory(
             break;
         case STRING:
         {
-            auto* ptr = reinterpret_cast<std::uintptr_t*>(buffer + fieldOffset);
-            *ptr = reinterpret_cast<std::uintptr_t>(field.asString().data());
+            *reinterpret_cast<char**>(buffer + fieldOffset) =
+                const_cast<char*>(field.asString().data());
             break;
         }
         case UINT8:  //[[fallthrough]]
@@ -133,7 +134,15 @@ ValueTable::ValueTable(
     hsize_t numRecords = 0;
     fileDataSpace.getSimpleExtentDims(&numRecords);
 
+    if (numRecords == 1)  // No user defined records.
+        return;
+
+    // Do not include the empty (NDV) record.
+    --numRecords;
     m_records.resize(numRecords);
+
+    constexpr hsize_t startIndex = 1;
+    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &startIndex);
 
     const auto& descriptor =
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
@@ -158,8 +167,6 @@ ValueTable::ValueTable(
             definition);
         ++rawIndex;
     }
-
-    //TODO free all the variable length strings (char*) in buffer.
 }
 
 void ValueTable::addRecord(
@@ -232,7 +239,7 @@ const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     const std::string& name) const &
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
+    if (recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
@@ -244,7 +251,7 @@ const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     size_t fieldIndex) const &
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
+    if (recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const auto& definition = this->getDefinition();
@@ -293,7 +300,7 @@ void ValueTable::setValue(
     const std::string& name,
     const CompoundDataType& value)
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
+    if (recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
@@ -306,7 +313,7 @@ void ValueTable::setValue(
     size_t fieldIndex,
     const CompoundDataType& value)
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
+    if (recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     auto& record = m_records[recordIndex];
@@ -344,10 +351,25 @@ bool ValueTable::validateRecord(
     return true;
 }
 
+//! Write a record to the DataSet.
+/*!
+\param recordIndex
+    The index to write the record to.  This does not include the empty (NDV)
+    record at index 0, so this value will need to be increased by 1 to allow for
+    that.
+\param record
+    The record to write.
+*/
 void ValueTable::writeRecord(
     size_t recordIndex,
     const Record& record)
 {
+    if (recordIndex > m_records.size())
+        throw InvalidRecordsIndex{};
+
+    // The record index must include the empty (NDV) record.
+    const size_t fileRecordIndex = recordIndex + 1;
+
     // Prepare the memory details.
     const auto rawMemory = this->convertRecordToRaw(record);
 
@@ -356,74 +378,23 @@ void ValueTable::writeRecord(
 
     const auto memDataType = createH5memoryCompType(descriptor.getDefinition());
 
-#if 0
-{
-const auto size = memDataType.getSize();
-const auto numMembers = memDataType.getNmembers();
-const auto m1Type = memDataType.getMemberClass(0);
-const auto m1Offset = memDataType.getMemberOffset(0);
-const auto member1 = memDataType.getMemberDataType(0);
-const auto m1StrType = memDataType.getMemberStrType(0);
-const auto m1Cset = m1StrType.getCset();
-const auto m1Strpad = m1StrType.getStrpad();
-const auto m1Size = member1.getSize();
-const auto m2Type = memDataType.getMemberClass(1);
-const auto m2Offset = memDataType.getMemberOffset(1);
-const auto member2 = memDataType.getMemberDataType(1);
-const auto m2Size = member2.getSize();
-int j = 42; j;
-}
-#endif
-
     constexpr hsize_t one = 1;
     ::H5::DataSpace memDataSpace(1, &one, &one);
 
     // Prepare the file details.
     const auto& h5recordDataSet = m_layer.getRecordDataSet();
 
-#if 0
-{
-const auto& fileDataType = h5recordDataSet.getCompType();
-const bool dataTypesEqual = memDataType == fileDataType;
-const auto size = fileDataType.getSize();
-const auto numMembers = fileDataType.getNmembers();
-const auto m1Type = fileDataType.getMemberClass(0);
-const auto m1Offset = fileDataType.getMemberOffset(0);
-const auto member1 = fileDataType.getMemberDataType(0);
-const auto m1StrType = fileDataType.getMemberStrType(0);
-const auto m1Cset = m1StrType.getCset();
-const auto m1Strpad = m1StrType.getStrpad();
-const auto m1Size = member1.getSize();
-const auto m2Type = fileDataType.getMemberClass(1);
-const auto m2Offset = fileDataType.getMemberOffset(1);
-const auto member2 = fileDataType.getMemberDataType(1);
-const auto m2Size = member2.getSize();
-int j = 42; j;
-}
-#endif
-
     if (recordIndex == m_records.size())
     {
         // Make room for a new record.
-        const hsize_t newNumRecords = recordIndex + 1;
+        const hsize_t newNumRecords = fileRecordIndex + 1;
         h5recordDataSet.extend(&newNumRecords);
     }
-    else if (recordIndex > m_records.size())
-        throw 123;  // trying to add a new record beyond the end
 
     const auto fileDataSpace = h5recordDataSet.getSpace();
 
     // select the record to write
-    const hsize_t indexToModify = recordIndex;
-    fileDataSpace.selectElements(H5S_SELECT_SET, 1, &indexToModify);
-
-#if 0
-{
-const auto elemNpts = fileDataSpace.getSelectElemNpoints();
-const auto numPts = fileDataSpace.getSelectNpoints();
-int j = 42;  j;
-}
-#endif
+    fileDataSpace.selectElements(H5S_SELECT_SET, 1, &fileRecordIndex);
 
     h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,
         fileDataSpace);
@@ -442,21 +413,22 @@ void ValueTable::writeRecords(
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
 
     const auto memDataType = createH5memoryCompType(descriptor.getDefinition());
+
     const hsize_t numRecords = records.size();
     ::H5::DataSpace memDataSpace(1, &numRecords, &numRecords);
 
     // Prepare the file details.
     const auto& h5recordDataSet = m_layer.getRecordDataSet();
 
-    // Make room for the new records.
-    const hsize_t newNumRecords = m_records.size() + numRecords;
+    // Make room for the new records.  Account for the empty (NDV) record.
+    const hsize_t newNumRecords = m_records.size() + numRecords + 1;
     h5recordDataSet.extend(&newNumRecords);
 
     const auto fileDataSpace = h5recordDataSet.getSpace();
 
-    // select the record to write
-    const hsize_t indexToModify = m_records.size();
-    fileDataSpace.selectElements(H5S_SELECT_SET, numRecords, &indexToModify);
+    // specify the index to begin writing to.  account for the empty (NDV) record.
+    const hsize_t indexToModify = m_records.size() + 1;
+    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &indexToModify);
 
     h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,
         fileDataSpace);

@@ -66,7 +66,7 @@ public:
     const Metadata& getMetadata() const & noexcept;
     CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
     const CompoundLayer* getCompoundLayer(const std::string& name) const & noexcept;
-    std::vector<CompoundLayer*> getCompoundLayers() & noexcept;  //TODO implement
+    std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
 

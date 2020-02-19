@@ -166,8 +166,7 @@ size_t getH5compSize(
 const ::H5::AtomType& getH5fileType(
     DataType type)
 {
-    static ::H5::StrType strType{::H5::PredType::C_S1};  //FORTRAN_S1
-    strType.setSize(H5T_VARIABLE);
+    static ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};  //FORTRAN_S1
 
     switch(type)
     {
@@ -196,8 +195,7 @@ const ::H5::AtomType& getH5fileType(
 const ::H5::AtomType& getH5memoryType(
     DataType type)
 {
-    static ::H5::StrType strType{::H5::PredType::C_S1};
-    strType.setSize(H5T_VARIABLE);
+    static ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};
 
     switch(type)
     {
