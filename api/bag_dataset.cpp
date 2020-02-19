@@ -192,18 +192,49 @@ CompoundLayer& Dataset::createCompoundLayer(
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
 
-    // Make sure the layer does not already exist.
-    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
-        [&name](const std::unique_ptr<Layer>& layer) {
+    std::string nameLower{name};
+    std::transform(begin(nameLower), end(nameLower), begin(nameLower),
+        [](char c) noexcept {
+            return static_cast<char>(std::tolower(c));
+        });
+
+    // Make sure a corresponding simple layer exists.
+    const bool simpleLayerExists = std::any_of(cbegin(m_layers), cend(m_layers),
+        [&nameLower](const std::unique_ptr<Layer>& layer) {
             const auto& descriptor = layer->getDescriptor();
 
-            return descriptor.getLayerType() == Compound &&
-                descriptor.getName() == name;
-        });
-    if (layerIter != cend(m_layers))
-        throw LayerExists{};
+            if (descriptor.getLayerType() == Compound)  //TODO Add VR layers I suspect.
+                return false;
 
-    //TODO make sure a corresponding simple layer exists.
+            std::string simpleNameLower{descriptor.getName()};
+            std::transform(begin(simpleNameLower), end(simpleNameLower), begin(simpleNameLower),
+                [](char c) noexcept {
+                    return static_cast<char>(std::tolower(c));
+                });
+
+            return simpleNameLower == nameLower;
+        });
+    if (!simpleLayerExists)
+        throw LayerNotFound{};
+
+    // Make sure the compound layer does not already exist.
+    const bool compoundLayerExists = std::any_of(cbegin(m_layers), cend(m_layers),
+        [&nameLower](const std::unique_ptr<Layer>& layer) {
+            const auto& descriptor = layer->getDescriptor();
+
+            if (descriptor.getLayerType() != Compound)
+                return false;
+
+            std::string compNameLower{descriptor.getName()};
+            std::transform(begin(compNameLower), end(compNameLower), begin(compNameLower),
+                [](char c) noexcept {
+                    return static_cast<char>(std::tolower(c));
+                });
+
+            return compNameLower == nameLower;
+        });
+    if (compoundLayerExists)
+        throw LayerExists{};
 
     // Create the group if it does not exist.
     const auto id = H5Gopen2(m_pH5file->getId(), COMPOUND_PATH, H5P_DEFAULT);
@@ -344,6 +375,17 @@ const CompoundLayer* Dataset::getCompoundLayer(
     const std::string& name) const & noexcept
 {
     return BAG::getCompoundLayer(name, m_layers);
+}
+
+std::vector<CompoundLayer*> Dataset::getCompoundLayers() & noexcept
+{
+    std::vector<CompoundLayer*> layers;
+
+    for (const auto& layer : m_layers)
+        if (layer->getDescriptor().getLayerType() == Compound)
+            layers.emplace_back(dynamic_cast<CompoundLayer*>(layer.get()));
+
+    return layers;
 }
 
 Descriptor& Dataset::getDescriptor() & noexcept
