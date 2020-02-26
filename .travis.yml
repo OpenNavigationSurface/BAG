@@ -33,6 +33,10 @@ matrix:
     compiler: clang
     env: PYTHON_VERSION=3.6
 
+addons:
+    apt:
+        packages: cmake libhdf5-dev libcrypto++-dev
+        
 install:
 
   # Download miniconda
@@ -52,10 +56,6 @@ install:
       - source activate test-environment
       - conda install cmake hdf5 libxml2 cryptopp
       - conda list --show-channel-urls
-    else
-      sudo apt-get update;
-      sudo apt -y install cmake libhdf5-dev libcrypto++-dev
-    fi
 
   
 script:
