@@ -1,61 +1,26 @@
 language: cpp
 
-cache:
-  apt: true
-    
-jobs:
-  fast_finish: true
-    
-  include:
-  - os: linux
-    dist: bionic
-    compiler: gcc
-    env: PYTHON_VERSION=3.7
-  - os: linux
-    dist: xenial
-    compiler: gcc
-    env: PYTHON_VERSION=3.6
-  - os: linux
-    dist: xenial
-    compiler: gcc
-    env: PYTHON_VERSION=3.7
-  - os: osx
-    compiler: clang
-    env: PYTHON_VERSION=3.6
-    
-  allow_failures:
-  - os: linux
-    dist: xenial
-    compiler: gcc
-    env: PYTHON_VERSION=3.7
-  - os: osx
-    compiler: clang
-    env: PYTHON_VERSION=3.6
+os:
+  - linux
+  - osx
+
+dist: bionic
 
 addons:
   apt:
-    packages: cmake libhdf5-dev libcrypto++-dev
+    packages: cmake libhdf5-dev libcrypto++-dev libxml2-dev
+
+env:
+    - PYTHON_VERSION=3.6
+    - PYTHON_VERSION=3.7
+
+jobs:
+  fast_finish: true
 
 install:
-
-  # Download miniconda
-    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-        - curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o miniconda.sh;
-        # Install miniconda
-        - bash miniconda.sh -b -p $HOME/miniconda
-        - export PATH="$HOME/miniconda/bin:$PATH"
-        - hash -r
-        - conda config --set always_yes yes --set changeps1 no
-        - conda config --add channels conda-forge
-        - conda update -q conda
-        # Useful for debugging any issues with conda
-        - conda info -a
-        # Create conda test environment
-        - conda create -q -n test-environment python=$PYTHON_VERSION
-        - source activate test-environment
-        - conda install cmake hdf5 libxml2
-        - conda list --show-channel-urls
-    fi
+    # Download miniconda
+    if [["$TRAVIS_OS_NAME" == "osx" ]]; then
+            ./.travis/anaconda.bash        
   
 script:
   - pwd
