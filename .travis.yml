@@ -12,7 +12,8 @@ addons:
   homebrew:
     packages:
     - cryptopp
-    
+  update: true
+  
 env:
     - PYTHON_VERSION=3.7
 
