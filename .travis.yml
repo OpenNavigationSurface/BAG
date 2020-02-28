@@ -11,7 +11,6 @@ addons:
     packages: cmake libhdf5-dev libcrypto++-dev libxml2-dev
 
 env:
-    - PYTHON_VERSION=3.6
     - PYTHON_VERSION=3.7
 
 jobs:
@@ -19,9 +18,9 @@ jobs:
 
 install:
     # Download miniconda
-    if [["$TRAVIS_OS_NAME" == "osx" ]]; then
-            ./.travis/anaconda.bash        
-    fi
+    #if [["$TRAVIS_OS_NAME" == "osx" ]]; then
+    #        ./.travis/anaconda.bash        
+    #fi
     
 script:
   - pwd
