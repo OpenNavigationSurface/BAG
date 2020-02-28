@@ -21,7 +21,8 @@ install:
     # Download miniconda
     if [["$TRAVIS_OS_NAME" == "osx" ]]; then
             ./.travis/anaconda.bash        
-  
+    fi
+    
 script:
   - pwd
   - mkdir -p build
