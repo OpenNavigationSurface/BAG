@@ -9,7 +9,10 @@ dist: bionic
 addons:
   apt:
     packages: cmake libhdf5-dev libcrypto++-dev libxml2-dev
-
+homebrew:
+    packages:
+    - cryptopp
+    
 env:
     - PYTHON_VERSION=3.7
 
