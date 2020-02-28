@@ -155,9 +155,7 @@ Bool ons_check_cblock(char *file)
 	swap_4((void*)&file_magic);
 #endif
 	fclose(f);
-        if (file_magic == ONS_CRYPTO_BLOCK_MAGIC)
-            return True;
-	return False;
+	return (file_magic == ONS_CRYPTO_BLOCK_MAGIC);
 }
 
 /*! \brief Compute a Message Digest from a file, including arbitrary user data.
