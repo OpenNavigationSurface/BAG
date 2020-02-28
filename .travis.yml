@@ -1,13 +1,16 @@
 language: cpp
-sudo: required
 
 cache:
   apt: true
     
-matrix:
+jobs:
   fast_finish: true
     
   include:
+  - os: linux
+    dist: bionic
+    compiler: gcc
+    env: PYTHON_VERSION=3.7
   - os: linux
     dist: xenial
     compiler: gcc
@@ -37,41 +40,25 @@ install:
 
   # Download miniconda
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o miniconda.sh;
-    else
-      sudo apt-get update;
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+        - curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o miniconda.sh;
+        # Install miniconda
+        - bash miniconda.sh -b -p $HOME/miniconda
+        - export PATH="$HOME/miniconda/bin:$PATH"
+        - hash -r
+        - conda config --set always_yes yes --set changeps1 no
+        - conda config --add channels conda-forge
+        - conda update -q conda
+        # Useful for debugging any issues with conda
+        - conda info -a
+        # Create conda test environment
+        - conda create -q -n test-environment python=$PYTHON_VERSION
+        - source activate test-environment
+        - conda install cmake hdf5 libxml2
+        - conda list --show-channel-urls
     fi
-
-  # Install miniconda
-  - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
-  - hash -r
-  - conda config --set always_yes yes --set changeps1 no
-  - conda config --add channels conda-forge
-  - conda update -q conda
-  # Useful for debugging any issues with conda
-  - conda info -a
-  # Create conda test environment
-  - conda create -q -n test-environment python=$PYTHON_VERSION
-  - source activate test-environment
-  - conda install cmake hdf5 libxml2
-  - conda list --show-channel-urls
   
 script:
   - pwd
-  - cd extlibs
-  - tar -xzf beecrypt-4.2.1.tar.gz
-  - mv beecrypt-4.2.1 beecrypt
-  - cd beecrypt
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      ./configure CFLAGS='-arch x86_64' --without-java --without-python --without-cplusplus --disable-static;
-    else
-      ./configure --without-java --without-python --without-cplusplus --disable-static;
-    fi  
-  - sudo make install
-  - cd ..
-  - cd ..
   - mkdir -p build
   - cd build
   - cmake ..
