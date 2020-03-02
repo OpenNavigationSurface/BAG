@@ -8,8 +8,15 @@
 #include "bag_private.h"
 #include "bag_simplelayer.h"
 #include "bag_simplelayerdescriptor.h"
+#include "bag_surfacecorrections.h"
 #include "bag_surfacecorrectionsdescriptor.h"
 #include "bag_version.h"
+#include "bag_vrmetadata.h"
+#include "bag_vrmetadatadescriptor.h"
+#include "bag_vrnode.h"
+#include "bag_vrnodedescriptor.h"
+#include "bag_vrrefinement.h"
+#include "bag_vrrefinementdescriptor.h"
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -33,22 +40,40 @@ namespace BAG {
 
 namespace {
 
-//! Get the specified compound layer.
-CompoundLayer* getCompoundLayer(
-    const std::string& name,
-    const std::vector<std::unique_ptr<Layer>>& layers)
+//! Search for a matching layer with an optional, case-insensitive name.
+Layer* getLayer(
+    const std::vector<std::unique_ptr<Layer>>& layers,
+    LayerType layerType,
+    const std::string& name = {})
 {
+    std::string nameLower{name};
+    std::transform(begin(nameLower), end(nameLower), begin(nameLower),
+        [](char c) noexcept {
+            return static_cast<char>(std::tolower(c));
+        });
+
     auto layerIter = std::find_if(cbegin(layers), cend(layers),
-        [&name](const std::unique_ptr<Layer>& layer) {
+        [&nameLower, layerType](const std::unique_ptr<Layer>& layer) {
             const auto& descriptor = layer->getDescriptor();
 
-            return descriptor.getLayerType() == Compound &&
-                descriptor.getName() == name;
+            if (descriptor.getLayerType() != layerType)
+                return false;
+
+            if (nameLower.empty())
+                return true;
+
+            std::string foundNameLower{descriptor.getName()};
+            std::transform(begin(foundNameLower), end(foundNameLower), begin(foundNameLower),
+                [](char c) noexcept {
+                    return static_cast<char>(std::tolower(c));
+                });
+
+            return foundNameLower == nameLower;
         });
     if (layerIter == cend(layers))
-        return nullptr;
+        return {};
 
-    return dynamic_cast<CompoundLayer*>(layerIter->get());
+    return layerIter->get();
 }
 
 // Expecting "major" or "major.minor" or "major.minor.patch", which will be
@@ -151,6 +176,8 @@ std::shared_ptr<Dataset> Dataset::open(
     const std::string& fileName,
     OpenMode openMode)
 {
+    ::H5::Exception::dontPrint();  //TODO Add a way to toggle this
+
     std::shared_ptr<Dataset> pDataset{new Dataset};
     pDataset->readDataset(fileName, openMode);
 
@@ -204,7 +231,9 @@ CompoundLayer& Dataset::createCompoundLayer(
         [&nameLower](const std::unique_ptr<Layer>& layer) {
             const auto& descriptor = layer->getDescriptor();
 
-            if (descriptor.getLayerType() == Compound)  //TODO Add VR layers I suspect.
+            const auto layerType = descriptor.getLayerType();
+            if (layerType == Compound || layerType == VarRes_Metadata ||
+                layerType == VarRes_Refinement || layerType == VarRes_Node)
                 return false;
 
             std::string simpleNameLower{descriptor.getName()};
@@ -219,22 +248,7 @@ CompoundLayer& Dataset::createCompoundLayer(
         throw LayerNotFound{};
 
     // Make sure the compound layer does not already exist.
-    const bool compoundLayerExists = std::any_of(cbegin(m_layers), cend(m_layers),
-        [&nameLower](const std::unique_ptr<Layer>& layer) {
-            const auto& descriptor = layer->getDescriptor();
-
-            if (descriptor.getLayerType() != Compound)
-                return false;
-
-            std::string compNameLower{descriptor.getName()};
-            std::transform(begin(compNameLower), end(compNameLower), begin(compNameLower),
-                [](char c) noexcept {
-                    return static_cast<char>(std::tolower(c));
-                });
-
-            return compNameLower == nameLower;
-        });
-    if (compoundLayerExists)
+    if (this->getCompoundLayer(name))
         throw LayerExists{};
 
     // Create the group if it does not exist.
@@ -305,11 +319,7 @@ Layer& Dataset::createSimpleLayer(
         throw ReadOnlyError{};
 
     // Make sure it doesn't already exist.
-    const auto foundIter = std::find_if(cbegin(m_layers), cend(m_layers),
-        [type](const auto& layer) {
-            return layer->getDescriptor().getLayerType() == type;
-        });
-    if (foundIter != cend(m_layers))
+    if (BAG::getLayer(m_layers, type))
         throw LayerExists{};
 
     switch (type)
@@ -341,17 +351,41 @@ SurfaceCorrections& Dataset::createSurfaceCorrections(
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
 
-    // Make sure it doesn't already exist.
-    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
-        [](const auto& layer) {
-            return layer->getDescriptor().getLayerType() == Surface_Correction;
-        });
-    if (layerIter != cend(m_layers))
+    // Make sure surface corrections do not already exist.
+    if (this->getSurfaceCorrections())
         throw LayerExists{};
 
     return dynamic_cast<SurfaceCorrections&>(this->addLayer(
         SurfaceCorrections::create(*this, type, numCorrectors, chunkSize,
             compressionLevel)));
+}
+
+void Dataset::createVR(
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
+{
+    if (m_descriptor.isReadOnly())
+        throw ReadOnlyError{};
+
+    // Make sure VR parts do not already exist.
+    if (this->getVRMetadata())
+        throw LayerExists{};
+
+    //TODO Consider a try/catch to undo partial creation.
+
+    m_pVRTrackingList = std::unique_ptr<VRTrackingList>(
+        new VRTrackingList{*this, compressionLevel});
+
+    this->addLayer(VRMetadata::create(*this, chunkSize, compressionLevel));
+    this->addLayer(VRRefinement::create(*this, chunkSize, compressionLevel));
+}
+
+void Dataset::createVRNode(
+    uint64_t chunkSize,
+    unsigned int compressionLevel)
+{
+    //TODO Consider a try/catch to undo partial creation.
+    this->addLayer(VRNode::create(*this, chunkSize, compressionLevel));
 }
 
 std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
@@ -369,13 +403,13 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
 CompoundLayer* Dataset::getCompoundLayer(
     const std::string& name) & noexcept
 {
-    return BAG::getCompoundLayer(name, m_layers);
+    return dynamic_cast<CompoundLayer*>(BAG::getLayer(m_layers, Compound, name));
 }
 
 const CompoundLayer* Dataset::getCompoundLayer(
     const std::string& name) const & noexcept
 {
-    return BAG::getCompoundLayer(name, m_layers);
+    return dynamic_cast<CompoundLayer*>(BAG::getLayer(m_layers, Compound, name));
 }
 
 std::vector<CompoundLayer*> Dataset::getCompoundLayers() & noexcept
@@ -472,6 +506,18 @@ uint32_t Dataset::getNextId() const noexcept
     return static_cast<uint32_t>(m_layers.size());
 }
 
+SurfaceCorrections* Dataset::getSurfaceCorrections() & noexcept
+{
+    return dynamic_cast<SurfaceCorrections*>(
+        BAG::getLayer(m_layers, Surface_Correction));
+}
+
+const SurfaceCorrections* Dataset::getSurfaceCorrections() const & noexcept
+{
+    return dynamic_cast<SurfaceCorrections*>(
+        BAG::getLayer(m_layers, Surface_Correction));
+}
+
 TrackingList& Dataset::getTrackingList() & noexcept
 {
     return *m_pTrackingList;
@@ -480,6 +526,48 @@ TrackingList& Dataset::getTrackingList() & noexcept
 const TrackingList& Dataset::getTrackingList() const & noexcept
 {
     return *m_pTrackingList;
+}
+
+VRMetadata* Dataset::getVRMetadata() & noexcept
+{
+    return dynamic_cast<VRMetadata*>(BAG::getLayer(m_layers, VarRes_Metadata));
+}
+
+const VRMetadata* Dataset::getVRMetadata() const & noexcept
+{
+    return dynamic_cast<VRMetadata*>(BAG::getLayer(m_layers, VarRes_Metadata));
+}
+
+VRNode* Dataset::getVRNode() & noexcept
+{
+    return dynamic_cast<VRNode*>(BAG::getLayer(m_layers, VarRes_Node));
+}
+
+const VRNode* Dataset::getVRNode() const & noexcept
+{
+    return dynamic_cast<VRNode*>(BAG::getLayer(m_layers, VarRes_Node));
+}
+
+VRRefinement* Dataset::getVRRefinement() & noexcept
+{
+    return dynamic_cast<VRRefinement*>(
+        BAG::getLayer(m_layers, VarRes_Refinement));
+}
+
+const VRRefinement* Dataset::getVRRefinement() const & noexcept
+{
+    return dynamic_cast<VRRefinement*>(
+        BAG::getLayer(m_layers, VarRes_Refinement));
+}
+
+VRTrackingList* Dataset::getVRTrackingList() & noexcept
+{
+    return m_pVRTrackingList.get();
+}
+
+const VRTrackingList* Dataset::getVRTrackingList() const & noexcept
+{
+    return m_pVRTrackingList.get();
 }
 
 std::tuple<double, double> Dataset::gridToGeo(
@@ -495,37 +583,10 @@ std::tuple<double, double> Dataset::gridToGeo(
     return std::make_tuple(x, y);
 }
 
-SurfaceCorrections* Dataset::getSurfaceCorrections() & noexcept
-{
-    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
-        [](const auto& layer) {
-            return layer->getDescriptor().getLayerType() == Surface_Correction;
-        });
-    if (layerIter == cend(m_layers))
-        return nullptr;
-
-    return dynamic_cast<SurfaceCorrections*>((*layerIter).get());
-}
-
-const SurfaceCorrections* Dataset::getSurfaceCorrections() const & noexcept
-{
-    const auto layerIter = std::find_if(cbegin(m_layers), cend(m_layers),
-        [](const auto& layer) {
-            return layer->getDescriptor().getLayerType() == Surface_Correction;
-        });
-    if (layerIter == cend(m_layers))
-        return nullptr;
-
-    return dynamic_cast<SurfaceCorrections*>((*layerIter).get());
-}
-
 void Dataset::readDataset(
     const std::string& fileName,
     OpenMode openMode)
 {
-#ifdef NDEBUG
-    ::H5::Exception::dontPrint();
-#endif
     m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
         fileName.c_str(),
         (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
@@ -642,6 +703,7 @@ void Dataset::readDataset(
 
     m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this});
 
+    // Read optional Surface Corrections
     hid_t id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH, H5P_DEFAULT);
     if (id >= 0)
     {
@@ -649,6 +711,36 @@ void Dataset::readDataset(
 
         auto descriptor = SurfaceCorrectionsDescriptor::open(*this);
         this->addLayer(SurfaceCorrections::open(*this, *descriptor));
+    }
+
+    // Read optional VR
+    id = H5Dopen2(bagGroup.getLocId(), VR_TRACKING_LIST_PATH, H5P_DEFAULT);
+    if (id >= 0)
+    {
+        H5Dclose(id);
+
+        m_pVRTrackingList = std::unique_ptr<VRTrackingList>(
+            new VRTrackingList{*this});
+
+        {
+            auto descriptor = VRMetadataDescriptor::open(*this);
+            this->addLayer(VRMetadata::open(*this, *descriptor));
+        }
+
+        {
+            auto descriptor = VRRefinementDescriptor::open(*this);
+            this->addLayer(VRRefinement::open(*this, *descriptor));
+        }
+
+        // optional VRNodeLayer
+        id = H5Dopen2(bagGroup.getLocId(), VR_NODE_PATH, H5P_DEFAULT);
+        if (id >= 0)
+        {
+            H5Dclose(id);
+
+            auto descriptor = VRNodeDescriptor::open(*this);
+            this->addLayer(VRNode::open(*this, *descriptor));
+        }
     }
 }
 

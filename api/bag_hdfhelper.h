@@ -13,8 +13,11 @@
 namespace H5 {
 
 class AtomType;
+class Attribute;
 class CompType;
+class DataSet;
 class H5File;
+class PredType;
 
 }  // namespace H%
 
@@ -36,9 +39,19 @@ BAG_API unsigned int getCompressionLevel(const ::H5::H5File& h5file,
 
 BAG_API size_t getH5compSize(const RecordDefinition& definition);
 
-BAG_API const::H5::AtomType& getH5fileType(DataType type);
+BAG_API const ::H5::AtomType& getH5fileType(DataType type);
 
-BAG_API const::H5::AtomType& getH5memoryType(DataType type);
+BAG_API const ::H5::AtomType& getH5memoryType(DataType type);
+
+::H5::Attribute createAttribute(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, const char* path);
+
+void createAttributes(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, const std::vector<const char*>& paths);
+
+template <typename T>
+void writeAttribute(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, T value, const char* path);
 
 }  // namespace BAG
 

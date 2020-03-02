@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0...3.15)
+cmake_minimum_required(VERSION 3.0...3.16)
 project(OPENNS LANGUAGES C CXX VERSION 2.0.0)
 
 # Disable addition of warning flags to the CMAKE_<LANG>_FLAGS by default for MSVC.

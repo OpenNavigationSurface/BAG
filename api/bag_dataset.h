@@ -5,11 +5,12 @@
 #include "bag_config.h"
 #include "bag_descriptor.h"
 #include "bag_exceptions.h"
+#include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_metadata.h"
-#include "bag_surfacecorrections.h"
 #include "bag_trackinglist.h"
 #include "bag_types.h"
+#include "bag_vrtrackinglist.h"
 
 #include <functional>
 #include <memory>
@@ -58,6 +59,8 @@ public:
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, unsigned int compressionLevel) &;
+    void createVR(uint64_t chunkSize, unsigned int compressionLevel);
+    void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
 
     std::vector<LayerType> getLayerTypes() const;
 
@@ -69,6 +72,14 @@ public:
     std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
+    VRMetadata* getVRMetadata() & noexcept;
+    const VRMetadata* getVRMetadata() const & noexcept;
+    VRNode* getVRNode() & noexcept;
+    const VRNode* getVRNode() const & noexcept;
+    VRRefinement* getVRRefinement() & noexcept;
+    const VRRefinement* getVRRefinement() const & noexcept;
+    VRTrackingList* getVRTrackingList() & noexcept;
+    const VRTrackingList* getVRTrackingList() const & noexcept;
 
     Descriptor& getDescriptor() & noexcept;
     const Descriptor& getDescriptor() const & noexcept;
@@ -109,6 +120,8 @@ private:
     std::unique_ptr<TrackingList> m_pTrackingList;
     //! The descriptor.
     Descriptor m_descriptor;
+    //! The VR tracking list.
+    std::unique_ptr<VRTrackingList> m_pVRTrackingList;
 
     friend class CompoundLayer;
     friend class CompoundLayerDescriptor;
@@ -122,6 +135,13 @@ private:
     friend class SurfaceCorrections;
     friend class SurfaceCorrectionsDescriptor;
     friend class ValueTable;
+    friend class VRMetadata;
+    friend class VRMetadataDescriptor;
+    friend class VRNode;
+    friend class VRNodeDescriptor;
+    friend class VRRefinement;
+    friend class VRRefinementDescriptor;
+    friend class VRTrackingList;
 };
 
 }   //namespace BAG

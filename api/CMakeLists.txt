@@ -8,7 +8,6 @@ set(BAG_SOURCE_FILES
     bag_compoundlayerdescriptor.cpp
     bag_dataset.cpp
     bag_descriptor.cpp
-    #bag_hdf.c
     bag_hdfhelper.cpp
     bag_interleavedlayer.cpp
     bag_interleavedlayerdescriptor.cpp
@@ -19,17 +18,19 @@ set(BAG_SOURCE_FILES
     bag_metadata_export.cpp
     bag_metadata_import.cpp
     bag_metadatatypes.cpp
-    #bag_opt_group.c                TODO
-    #bag_opt_surfaces.c             TODO
-    #bag_surface_correct.c
-    #bag_surfaces.c
-    #bag_tracking_list.c
     bag_simplelayer.cpp
     bag_simplelayerdescriptor.cpp
     bag_surfacecorrections.cpp
     bag_surfacecorrectionsdescriptor.cpp
     bag_trackinglist.cpp
     bag_valuetable.cpp
+    bag_vrmetadata.cpp
+    bag_vrmetadatadescriptor.cpp
+    bag_vrnode.cpp
+    bag_vrnodedescriptor.cpp
+    bag_vrrefinement.cpp
+    bag_vrrefinementdescriptor.cpp
+    bag_vrtrackinglist.cpp
 )
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
 
@@ -56,20 +57,24 @@ set(BAG_HEADER_FILES
     bag_layerdescriptor.h
     bag_legacy_crs.h
     bag_metadata.h
-    #bag_metadata_def.h
     bag_metadata_export.h
     bag_metadata_import.h
     bag_metadatatypes.h
-    #bag_opt_surfaces.h
     bag_simplelayer.h
     bag_simplelayerdescriptor.h
     bag_surfacecorrections.h
     bag_surfacecorrectionsdescriptor.h
     bag_trackinglist.h
+    bag_vrmetadata.h
+    bag_vrmetadatadescriptor.h
+    bag_vrnode.h
+    bag_vrnodedescriptor.h
+    bag_vrrefinement.h
+    bag_vrrefinementdescriptor.h
+    bag_vrtrackinglist.h
     bag_types.h
     bag_valuetable.h
     bag_version.h
-    #bag_xml_meta.h
 )
 source_group("Header Files" FILES ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES})
 

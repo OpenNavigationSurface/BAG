@@ -30,7 +30,7 @@ namespace BAG {
             h5type = ::H5::CompType{sizeof(unsigned int)};
             h5type.insertMember("num_hypotheses",
                 0,
-                ::H5::PredType::NATIVE_UINT);
+                ::H5::PredType::NATIVE_UINT32);
             break;
         default:
             throw UnsupportedLayerType{};
@@ -56,7 +56,7 @@ namespace BAG {
             h5type = ::H5::CompType{sizeof(int)};
             h5type.insertMember("num_soundings",
                 0,
-                ::H5::PredType::NATIVE_INT);
+                ::H5::PredType::NATIVE_INT32);
             break;
         default:
             throw UnsupportedLayerType{};
@@ -219,6 +219,48 @@ const ::H5::AtomType& getH5memoryType(
         throw UnsupportedDataType{};
     }
 }
+
+::H5::Attribute createAttribute(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    const char* path)
+{
+    const ::H5::DataSpace kScalarDataSpace{};
+    //TODO Care about size?
+
+    return h5dataSet.createAttribute(path, attributeType, kScalarDataSpace);
+}
+
+void createAttributes(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    const std::vector<const char*>& paths)
+{
+    if (paths.empty())
+        return;
+
+    for (const auto& path : paths)
+        if (path)
+            createAttribute(h5dataSet, attributeType, path);
+}
+
+template <typename T>
+void writeAttribute(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    T value,
+    const char* path)
+{
+    const auto att = h5dataSet.openAttribute(path);
+    att.write(attributeType, &value);
+}
+
+// Explicit template instantiations
+template void writeAttribute<float>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, float value, const char* path);
+
+template void writeAttribute<uint32_t>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, uint32_t value, const char* path);
 
 }  // namespace BAG
 

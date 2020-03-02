@@ -287,6 +287,15 @@ struct BAG_API RecordNotFound final : virtual std::exception
     }
 };
 
+// VRRefinement related.
+struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The variable resolution refinement layer is not 1 dimensional.";
+    }
+};
+
 }  // namespace BAG
 
 #ifdef _MSC_VER
