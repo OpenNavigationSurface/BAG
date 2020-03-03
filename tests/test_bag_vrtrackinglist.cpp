@@ -312,6 +312,8 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 </gmi:MI_Metadata>
 )"};
 
+}  // namespace BAG
+
 bool operator==(
     const VRTrackingList::value_type& lhs,
     const VRTrackingList::value_type& rhs)
@@ -321,8 +323,6 @@ bool operator==(
         lhs.depth == rhs.depth && lhs.uncertainty == rhs.uncertainty &&
         lhs.track_code == rhs.track_code && lhs.list_series == rhs.list_series;
 }
-
-}  // namespace BAG
 
 //  VRTrackingList(const Dataset& dataset, int compressionLevel);
 //  explicit VRTrackingList(Dataset& dataset);
