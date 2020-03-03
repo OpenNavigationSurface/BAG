@@ -19,6 +19,13 @@ class SurfaceCorrections;
 class SurfaceCorrectionsDescriptor;
 class TrackingList;
 class ValueTable;
+class VRMetadata;
+class VRMetadataDescriptor;
+class VRNode;
+class VRNodeDescriptor;
+class VRRefinement;
+class VRRefinementDescriptor;
+class VRTrackingList;
 
 }   //namespace BAG
 

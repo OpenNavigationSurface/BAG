@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0...3.15)
+cmake_minimum_required(VERSION 3.0...3.16)
 project(OpenNS_Tests LANGUAGES CXX)
 
 enable_testing()
@@ -22,6 +22,13 @@ set(TEST_SOURCE_FILES
     test_bag_valuetable.cpp
     test_utils.cpp
     test_utils.h
+    test_bag_vrmetadata.cpp
+    test_bag_vrmetadatadescriptor.cpp
+    test_bag_vrnode.cpp
+    test_bag_vrnodedescriptor.cpp
+    test_bag_vrrefinement.cpp
+    test_bag_vrrefinementdescriptor.cpp
+    test_bag_vrtrackinglist.cpp
 )
 
 source_group("Source Files" FILES ${TEST_SOURCE_FILES})
