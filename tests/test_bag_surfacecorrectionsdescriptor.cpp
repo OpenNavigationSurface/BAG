@@ -1,6 +1,5 @@
 
 #include "test_utils.h"
-
 #include <bag_dataset.h>
 #include <bag_metadata.h>
 #include <bag_surfacecorrectionsdescriptor.h>

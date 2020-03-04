@@ -1,3 +1,4 @@
+
 #include "bag_descriptor.h"
 #include "bag_exceptions.h"
 #include "bag_layer.h"
@@ -6,11 +7,6 @@
 #include <algorithm>
 
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 namespace BAG {
 
 Descriptor::Descriptor(
@@ -18,7 +14,8 @@ Descriptor::Descriptor(
     : m_horizontalReferenceSystem(metadata.horizontalReferenceSystemAsWKT())
     , m_verticalReferenceSystem(metadata.verticalReferenceSystemAsWKT())
     , m_dims({metadata.rows(), metadata.columns()})
-    , m_projectedCover({metadata.llCornerX(), metadata.llCornerY(), metadata.urCornerX(), metadata.urCornerY()})
+    , m_projectedCover({metadata.llCornerX(), metadata.llCornerY(),
+        metadata.urCornerX(), metadata.urCornerY()})
     , m_origin({metadata.llCornerX(), metadata.llCornerY()})
     , m_gridSpacing({metadata.rowResolution(), metadata.columnResolution()})
 {
@@ -169,8 +166,4 @@ void Descriptor::setVerticalReferenceSystem(
 }
 
 }  // namespace BAG
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 

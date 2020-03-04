@@ -18,11 +18,6 @@
 #include "bag_vrrefinement.h"
 #include "bag_vrrefinementdescriptor.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -31,19 +26,24 @@
 #include <regex>
 #include <string>
 
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
-
 
 namespace BAG {
 
 namespace {
 
-//! Search for a matching layer with an optional, case-insensitive name.
+//! Search for a matching layer by type with an optional, case-insensitive name.
+/*!
+\param layers
+    The layers to search.
+\param type
+    The type of layer to match.
+\param name
+    The name of the layer to match.
+    Optional, but required to match one of many Compound layers.
+*/
 Layer* getLayer(
     const std::vector<std::unique_ptr<Layer>>& layers,
-    LayerType layerType,
+    LayerType type,
     const std::string& name = {})
 {
     std::string nameLower{name};
@@ -53,10 +53,10 @@ Layer* getLayer(
         });
 
     auto layerIter = std::find_if(cbegin(layers), cend(layers),
-        [&nameLower, layerType](const std::unique_ptr<Layer>& layer) {
+        [&nameLower, type](const std::unique_ptr<Layer>& layer) {
             const auto& descriptor = layer->getDescriptor();
 
-            if (descriptor.getLayerType() != layerType)
+            if (descriptor.getLayerType() != type)
                 return false;
 
             if (nameLower.empty())
@@ -176,7 +176,9 @@ std::shared_ptr<Dataset> Dataset::open(
     const std::string& fileName,
     OpenMode openMode)
 {
+#ifdef NDEBUG
     ::H5::Exception::dontPrint();  //TODO Add a way to toggle this
+#endif
 
     std::shared_ptr<Dataset> pDataset{new Dataset};
     pDataset->readDataset(fileName, openMode);
@@ -232,6 +234,8 @@ CompoundLayer& Dataset::createCompoundLayer(
             const auto& descriptor = layer->getDescriptor();
 
             const auto layerType = descriptor.getLayerType();
+
+            // Skip non-simple layers.
             if (layerType == Compound || layerType == VarRes_Metadata ||
                 layerType == VarRes_Refinement || layerType == VarRes_Node)
                 return false;
@@ -300,14 +304,14 @@ void Dataset::createDataset(
     m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this,
         compressionLevel});
 
-    // Mandatory Layers (Elevation, Uncertainty)
+    // Mandatory Layers
+    // Elevation
     this->addLayer(SimpleLayer::create(*this, Elevation, chunkSize,
         compressionLevel));
 
+    // Uncertainty
     this->addLayer(SimpleLayer::create(*this, Uncertainty, chunkSize,
         compressionLevel));
-
-    // All mandatory items exist in the HDF5 file now.
 }
 
 Layer& Dataset::createSimpleLayer(
@@ -367,7 +371,7 @@ void Dataset::createVR(
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
 
-    // Make sure VR parts do not already exist.
+    // Make sure VR layers do not already exist.
     if (this->getVRMetadata())
         throw LayerExists{};
 
@@ -397,7 +401,7 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
     const auto column = static_cast<uint32_t>((y - m_pMetadata->llCornerY()) /
         m_pMetadata->columnResolution());
 
-    return std::make_tuple(row, column);
+    return {row, column};
 }
 
 CompoundLayer* Dataset::getCompoundLayer(
@@ -481,7 +485,6 @@ const Metadata& Dataset::getMetadata() const & noexcept
     return *m_pMetadata;
 }
 
-//TODO What about uint32_t?
 std::tuple<bool, float, float> Dataset::getMinMax(
     LayerType type,
     const std::string& path) const
@@ -491,13 +494,13 @@ std::tuple<bool, float, float> Dataset::getMinMax(
         const auto info = Layer::getAttributeInfo(type);
         const auto& thePath = path.empty() ? info.path : path;
 
-        return std::make_tuple(true,
+        return {true,
             readAttributeFromDataSet<float>(*m_pH5file, thePath, info.minName),
-            readAttributeFromDataSet<float>(*m_pH5file, thePath, info.maxName));
+            readAttributeFromDataSet<float>(*m_pH5file, thePath, info.maxName)};
     }
     catch(const UnknownSimpleLayerType&)
     {
-        return std::make_tuple(false, 0.f, 0.f);  // No min/max attributes.
+        return {false, 0.f, 0.f};  // No min/max attributes.
     }
 }
 
@@ -580,7 +583,7 @@ std::tuple<double, double> Dataset::gridToGeo(
     const auto y = m_pMetadata->llCornerY() +
         (column * m_pMetadata->columnResolution());
 
-    return std::make_tuple(x, y);
+    return {x, y};
 }
 
 void Dataset::readDataset(
@@ -617,7 +620,7 @@ void Dataset::readDataset(
 
         H5Dclose(id);
 
-        auto layerDesc = SimpleLayerDescriptor::open(layerType, *this);
+        auto layerDesc = SimpleLayerDescriptor::open(*this, layerType);
         this->addLayer(SimpleLayer::open(*this, *layerDesc));
     }
 

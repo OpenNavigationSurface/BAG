@@ -12,7 +12,7 @@ namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
 class BAG_API VRNode final : public Layer
@@ -64,7 +64,7 @@ private:
 #pragma warning(pop)
 #endif
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_VRNODE_H
+#endif  // BAG_VRNODE_H
 

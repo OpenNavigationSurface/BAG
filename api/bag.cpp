@@ -1,6 +1,7 @@
 #include "bag.h"
 #include "bag_c_types.h"
 #include "bag_dataset.h"
+#include "bag_errors.h"
 #include "bag_layer.h"
 #include "bag_metadata.h"
 #include "bag_private.h"
@@ -8,7 +9,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
 #include <H5Cpp.h>
@@ -46,7 +47,7 @@ BagError bagFileOpen(
 
     (*handle)->pDataset = BAG::Dataset::open(std::string{fileName}, accessMode);
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagFileClose(BagHandle* handle)
@@ -61,7 +62,7 @@ BagError bagFileClose(BagHandle* handle)
 
     handle->pDataset.reset();
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagCreateFromFile(
@@ -76,13 +77,14 @@ BagError bagCreateFromFile(
     metadata.loadFromFile(std::string{metaDataFile});
 
     //TODO Where do these values come from?
+    // Thinking parameters to this function.
     constexpr uint64_t chunkSize = 100;
     constexpr unsigned int compressionLevel = 6;
 
     handle->pDataset = BAG::Dataset::create(std::string{file_name},
         std::move(metadata), chunkSize, compressionLevel);
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagCreateFromBuffer(
@@ -98,13 +100,14 @@ BagError bagCreateFromBuffer(
     metadata.loadFromBuffer(std::string{metaDataBuffer, metaDataBufferSize});
 
     //TODO Where do these values come from?
+    // Thinking parameters to this function.
     constexpr uint64_t chunkSize = 100;
     constexpr unsigned int compressionLevel = 6;
 
     handle->pDataset = BAG::Dataset::create(std::string{file_name},
         std::move(metadata), chunkSize, compressionLevel);
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagCreateLayer(
@@ -115,12 +118,13 @@ BagError bagCreateLayer(
         return 9999; // No handle provided.
 
     //TODO Where do these values come from?
+    // Thinking parameters to this function.
     constexpr uint64_t chunkSize = 100;
     constexpr unsigned int compressionLevel = 6;
 
     handle->pDataset->createSimpleLayer(type, chunkSize, compressionLevel);
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagGetGridDimensions(
@@ -134,7 +138,7 @@ BagError bagGetGridDimensions(
     std::tie(*rows, *cols) =
         handle->pDataset->getDescriptor().getDims();
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagGetNodeSpacing(
@@ -148,27 +152,32 @@ BagError bagGetNodeSpacing(
     const auto& metadata = handle->pDataset->getMetadata();
     metadata;
 
-    //TODO Implement.
+    //TODO Implement.  Is this in metadata?  Or should the BAG be read?  (Look into BagHandle)
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagGetGeoCover(
     BagHandle* handle,
-    double* /*llx*/,
-    double* /*lly*/,
-    double* /*urx*/,
-    double* /*ury*/)
+    double* llx,
+    double* lly,
+    double* urx,
+    double* ury)
 {
     if (!handle)
         return 9999; // No handle provided.
 
+    if (!llx || !lly || !urx || !ury)
+        return 9998;  // one of the output parameters was null.
+
     const auto& metadata = handle->pDataset->getMetadata();
-    metadata;  // llCornerX(), llCornerY(), urCornerX(), urCornerY(), rowResolution(), columnResolution()
 
-    //TODO Implement.
+    *llx = metadata.llCornerX();
+    *lly = metadata.llCornerY();
+    *urx = metadata.urCornerX();
+    *ury = metadata.urCornerY();
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 const BagMetadata* bagGetMetaData(BagHandle* handle)
@@ -191,34 +200,38 @@ BagError bagGetMinMax(
     const auto& layer = handle->pDataset->getLayer(type);
     std::tie(*minValue, *maxValue) = layer.getDescriptor().getMinMax();
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagSetMinMax(
     BagHandle* handle,
     BAG_LAYER_TYPE /*type*/,
-    double* /*minValue*/,
-    double* /*maxValue*/)
+    float /*minValue*/,
+    float /*maxValue*/)
 {
     if (!handle)
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagGetNumLayers(
     BagHandle* handle,
-    uint32_t* /*numLayers*/)
+    uint32_t* numLayers)
 {
     if (!handle)
         return 9999; // No handle provided.
 
-    //TODO Implement.
-    return 0;
+    if (!numLayers)
+        return 9998;  // output is null
+
+    *numLayers = static_cast<uint32_t>(handle->pDataset->getLayers().size());  //TODO Make a Dataset::getNumLayers() ??
+
+    return BAG_SUCCESS;
 }
 
-bool bagContainsLayer(
+bool bagContainsLayer(  //TODO Won't work for Compound layers.
     BagHandle* handle,
     BAG_LAYER_TYPE type)
 {
@@ -264,7 +277,7 @@ BagError bagRead(
 
     *data = buffer.release();
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagWrite(
@@ -283,7 +296,7 @@ BagError bagWrite(
 
     layer.write(start_row, start_col, end_row, end_col, data);
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagGetErrorString(
@@ -291,7 +304,7 @@ BagError bagGetErrorString(
     uint8_t** /*error*/)
 {
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagComputePostion(
@@ -306,7 +319,7 @@ BagError bagComputePostion(
 
     std::tie(*x, *y) = handle->pDataset->gridToGeo(row, col);
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 void* bagGetNullValue(BAG_LAYER_TYPE type)
@@ -343,13 +356,13 @@ BagError bagComputeIndex(
 
     std::tie(*row, *col) = handle->pDataset->geoToGrid(x, y);
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagSetCompressionLevel(uint8_t /*level*/)
 {
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 uint8_t* bagAllocateBuffer(
@@ -396,7 +409,7 @@ uint8_t* bagAllocate(uint32_t numBytes)
 BagError bagFree(uint8_t* buffer)
 {
     delete[] buffer;
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadCorrectorVerticalDatum(
@@ -408,7 +421,7 @@ BagError bagReadCorrectorVerticalDatum(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagWriteCorrectorVerticalDatum(
@@ -420,7 +433,7 @@ BagError bagWriteCorrectorVerticalDatum(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadCorrectedDataset(
@@ -433,7 +446,7 @@ BagError bagReadCorrectedDataset(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadCorrectedRegion(
@@ -450,7 +463,7 @@ BagError bagReadCorrectedRegion(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadCorrectedRow(
@@ -464,7 +477,7 @@ BagError bagReadCorrectedRow(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadCorrectedNode(
@@ -479,7 +492,7 @@ BagError bagReadCorrectedNode(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagGetNumSurfaceCorrectors(
@@ -490,7 +503,7 @@ BagError bagGetNumSurfaceCorrectors(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagGetSurfaceCorrectionTopography(
@@ -501,7 +514,7 @@ BagError bagGetSurfaceCorrectionTopography(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagCreateCorrectorDataset(
@@ -513,7 +526,7 @@ BagError bagCreateCorrectorDataset(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 /*
@@ -524,7 +537,7 @@ BagError bagWriteCorrectorDefinition(
     if (!handle)
         return 9999; // No handle provided.
 
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadCorrectorDefinition(
@@ -534,7 +547,7 @@ BagError bagReadCorrectorDefinition(
     if (!handle)
         return 9999; // No handle provided.
 
-    return 0;
+    return BAG_SUCCESS;
 }
 */
 
@@ -546,7 +559,7 @@ BagError bagTrackingListLength(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadTrackingListNode(
@@ -560,7 +573,7 @@ BagError bagReadTrackingListNode(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadTrackingListCode(
@@ -573,7 +586,7 @@ BagError bagReadTrackingListCode(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagReadTrackingListSeries(
@@ -586,7 +599,7 @@ BagError bagReadTrackingListSeries(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagWriteTrackingListItem(
@@ -597,7 +610,7 @@ BagError bagWriteTrackingListItem(
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagSortTrackingListByNode(BagHandle* handle)
@@ -606,7 +619,7 @@ BagError bagSortTrackingListByNode(BagHandle* handle)
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagSortTrackingListBySeries(BagHandle* handle)
@@ -615,7 +628,7 @@ BagError bagSortTrackingListBySeries(BagHandle* handle)
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagSortTrackingListByCode(BagHandle* handle)
@@ -624,7 +637,7 @@ BagError bagSortTrackingListByCode(BagHandle* handle)
         return 9999; // No handle provided.
 
     //TODO Implement.
-    return 0;
+    return BAG_SUCCESS;
 }
 
 /*
@@ -651,7 +664,7 @@ BagError bagReadCertification(
     uint32_t nBuffer,
     uint32_t* sigID)
 {
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagWriteCertification(
@@ -659,7 +672,7 @@ BagError bagWriteCertification(
     uint8_t* sig,
     uint32_t sigID)
 {
-    return 0;
+    return BAG_SUCCESS;
 }
 
 bool bagVerifyCertification(
@@ -699,7 +712,7 @@ BagError bagGenerateKeyPair(
     uint8_t** pubKey,
     uint8_t** secKey)
 {
-    return 0;
+    return BAG_SUCCESS;
 }
 
 BagError bagConvertCryptoFormat(
@@ -708,7 +721,7 @@ BagError bagConvertCryptoFormat(
     bagConvDir convDir,
     uint8_t** converted)
 {
-    return 0;
+    return BAG_SUCCESS;
 }
 */
 

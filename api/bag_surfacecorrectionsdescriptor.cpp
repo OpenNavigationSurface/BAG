@@ -40,7 +40,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     const Dataset& dataset)
-    : LayerDescriptor(Surface_Correction, dataset)
+    : LayerDescriptor(dataset, Surface_Correction)
     , m_dataType(Layer::getDataType(Surface_Correction))
 {
     const auto h5dataSet = dataset.getH5file().openDataSet(
@@ -93,7 +93,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     // Read the number of Z corrections.
     const int zRank = h5zDataType.getArrayDims(zDims.data());
     if (zRank == 2)
-        if (zDims[1] > 10)
+        if (zDims[1] > BAG_SURFACE_CORRECTOR_LIMIT)
             throw TooManyCorrections{};
         else
             m_numCorrectors = static_cast<uint8_t>(zDims[1]);
@@ -116,7 +116,7 @@ SurfaceCorrectionsDescriptor::create(
         type != BAG_SURFACE_IRREGULARLY_SPACED)
         throw UnknownSurfaceType{};
 
-    if (numCorrectors > 10)
+    if (numCorrectors > BAG_SURFACE_CORRECTOR_LIMIT)
         throw TooManyCorrections{};
 
     return std::shared_ptr<SurfaceCorrectionsDescriptor>(
@@ -151,13 +151,13 @@ uint8_t SurfaceCorrectionsDescriptor::getNumCorrectors() const noexcept
 std::tuple<double, double>
 SurfaceCorrectionsDescriptor::getOrigin() const noexcept
 {
-    return std::make_tuple(m_swX, m_swY);
+    return {m_swX, m_swY};
 }
 
 std::tuple<double, double>
 SurfaceCorrectionsDescriptor::getSpacing() const noexcept
 {
-    return std::make_tuple(m_xSpacing, m_ySpacing);
+    return {m_xSpacing, m_ySpacing};
 }
 
 BAG_SURFACE_CORRECTION_TOPOGRAPHY
@@ -175,13 +175,13 @@ SurfaceCorrectionsDescriptor::getVerticalDatums() const & noexcept
 SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setVerticalDatum(
     std::string verticalDatums) & noexcept
 {
-    m_verticalDatums = verticalDatums;
+    m_verticalDatums = std::move(verticalDatums);
     return *this;
 }
 
 SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setOrigin(
     double swX,
-    double swY) noexcept
+    double swY) & noexcept
 {
     m_swX = swX;
     m_swY = swY;
@@ -190,7 +190,7 @@ SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setOrigin(
 
 SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setSpacing(
     double xSpacing,
-    double ySpacing) noexcept
+    double ySpacing) & noexcept
 {
     m_xSpacing = xSpacing;
     m_ySpacing = ySpacing;

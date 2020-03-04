@@ -7,6 +7,7 @@
 #include <array>
 #include <H5Cpp.h>
 #include <limits>
+#include <vector>
 
 
 namespace BAG {

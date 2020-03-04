@@ -101,7 +101,7 @@ constexpr unsigned int kMaxCompressionLevel = 9;
 
 #define VR_TRACKING_LIST_LENGTH_NAME    "VR Tracking List Length"
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_PRIVATE_H
+#endif  // BAG_PRIVATE_H
 

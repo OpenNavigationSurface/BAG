@@ -1,6 +1,5 @@
 
 #include "test_utils.h"
-
 #include <bag_dataset.h>
 #include <bag_descriptor.h>
 #include <bag_layer.h>
@@ -337,8 +336,8 @@ TEST_CASE("test layer descriptor creation",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Check that the layer descriptor type matches that was created.");
@@ -369,8 +368,8 @@ TEST_CASE("test layer descriptor get/set name",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    const auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    const auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     const std::string kExpectedName{"Expected Name"};
@@ -398,15 +397,15 @@ TEST_CASE("test layer descriptor get data type",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify the data type of an Elevation layer descriptor is correct.");
     CHECK(pDescriptor->getDataType() == Layer::getDataType(Elevation));
 
-    pDescriptor = SimpleLayerDescriptor::create(Num_Hypotheses, kExpectedChunkSize,
-        kExpectedCompressionLevel, *pDataset);
+    pDescriptor = SimpleLayerDescriptor::create(*pDataset, Num_Hypotheses,
+        kExpectedChunkSize, kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify the data type of an Num_Hypotheses layer descriptor is correct.");
     CHECK(pDescriptor->getDataType() == Layer::getDataType(Num_Hypotheses));
@@ -429,15 +428,15 @@ TEST_CASE("test layer descriptor get layer type",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify the layer type of an Elevation layer descriptor is correct.");
     CHECK(pDescriptor->getLayerType() == Elevation);
 
-    pDescriptor = SimpleLayerDescriptor::create(Std_Dev, kExpectedChunkSize,
-        kExpectedCompressionLevel, *pDataset);
+    pDescriptor = SimpleLayerDescriptor::create(*pDataset, Std_Dev,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify the layer type of an Std_Dev layer descriptor is correct.");
@@ -462,8 +461,8 @@ TEST_CASE("test layer descriptor get/set min max",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify setting min max does not throw.");
@@ -493,16 +492,16 @@ TEST_CASE("test layer descriptor get internal path",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset,Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify Elevation internal path is as expected.");
     REQUIRE_NOTHROW(pDescriptor->getInternalPath());
     CHECK(pDescriptor->getInternalPath() == Layer::getInternalPath(Elevation));
 
-    pDescriptor = SimpleLayerDescriptor::create(Uncertainty,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    pDescriptor = SimpleLayerDescriptor::create(*pDataset, Uncertainty,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify Uncertainty internal path is as expected.");
@@ -527,13 +526,14 @@ TEST_CASE("test layer descriptor get element size",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify Elevation element size is as expected.");
     REQUIRE_NOTHROW(pDescriptor->getElementSize());
-    CHECK(pDescriptor->getElementSize() == Layer::getElementSize(Layer::getDataType(Elevation)));
+    CHECK(pDescriptor->getElementSize() ==
+        Layer::getElementSize(Layer::getDataType(Elevation)));
 }
 
 //  uint64_t getChunkSize() const noexcept;
@@ -553,8 +553,8 @@ TEST_CASE("test descriptor get chunk size",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify getting the chunk size does not throw.");
@@ -581,8 +581,8 @@ TEST_CASE("test descriptor get compression level",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel, *pDataset);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+        kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify getting the compression level does not throw.");

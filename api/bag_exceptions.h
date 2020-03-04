@@ -6,13 +6,12 @@
 #include <exception>
 
 
+namespace BAG {
+
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4275)
 #endif
-
-
-namespace BAG {
 
 // Attribute related.
 //! Attribute type not supported (yet)  //TODO temp exception
@@ -296,11 +295,11 @@ struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
     }
 };
 
-}  // namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_EXCEPTIONS_H
 

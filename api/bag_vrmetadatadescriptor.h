@@ -8,11 +8,6 @@
 
 namespace BAG {
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 class BAG_API VRMetadataDescriptor final : public LayerDescriptor
 {
 public:
@@ -23,12 +18,13 @@ public:
     VRMetadataDescriptor& operator=(VRMetadataDescriptor&&) = delete;
 
     std::tuple<uint32_t, uint32_t> getMaxDimensions() const noexcept;
-    void setMaxDimensions(uint32_t maxDimX, uint32_t maxDimY) noexcept;
     std::tuple<uint32_t, uint32_t> getMinDimensions() const noexcept;
-    void setMinDimensions(uint32_t minDimX, uint32_t minDimY) noexcept;
     std::tuple<float, float> getMaxResolution() const noexcept;
-    void setMaxResolution(float maxResX, float maxResY) noexcept;
     std::tuple<float, float> getMinResolution() const noexcept;
+
+    void setMaxDimensions(uint32_t maxDimX, uint32_t maxDimY) noexcept;
+    void setMinDimensions(uint32_t minDimX, uint32_t minDimY) noexcept;
+    void setMaxResolution(float maxResX, float maxResY) noexcept;
     void setMinResolution(float minResX, float minResY) noexcept;
 
 protected:
@@ -36,8 +32,8 @@ protected:
         unsigned int compressionLevel);
     explicit VRMetadataDescriptor(const Dataset& dataset);
 
-    static std::shared_ptr<VRMetadataDescriptor> create(uint64_t chunkSize,
-        unsigned int compressionLevel, const Dataset& dataset);
+    static std::shared_ptr<VRMetadataDescriptor> create(const Dataset& dataset,
+        uint64_t chunkSize, unsigned int compressionLevel);
 
     static std::shared_ptr<VRMetadataDescriptor> open(const Dataset& dataset);
 
@@ -46,29 +42,25 @@ private:
     uint8_t getElementSizeProxy() const noexcept override;
 
     //! The minimum X dimension.
-    uint32_t m_minDimX = 0;
+    uint32_t m_minDimX = std::numeric_limits<uint32_t>::max();
     //! The minimum Y dimension.
-    uint32_t m_minDimY = 0;
+    uint32_t m_minDimY = std::numeric_limits<uint32_t>::max();
     //! The maximum X dimension.
-    uint32_t m_maxDimX = 0;
+    uint32_t m_maxDimX = std::numeric_limits<uint32_t>::lowest();
     //! The maximum Y dimension.
-    uint32_t m_maxDimY = 0;
+    uint32_t m_maxDimY = std::numeric_limits<uint32_t>::lowest();
     //! The minimum X resolution.
-    float m_minResX = 0.f;
+    float m_minResX = std::numeric_limits<float>::max();
     //! The minimum Y resolution.
-    float m_minResY = 0.f;
+    float m_minResY = std::numeric_limits<float>::max();
     //! The maximum X resolution.
-    float m_maxResX = 0.f;
+    float m_maxResX = std::numeric_limits<float>::lowest();
     //! The maximum Y resolution.
-    float m_maxResY = 0.f;
+    float m_maxResY = std::numeric_limits<float>::lowest();;
 
     friend class Dataset;
     friend class VRMetadata;
 };
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 }  // namespace BAG
 

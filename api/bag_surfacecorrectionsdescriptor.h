@@ -9,12 +9,12 @@
 #include <memory>
 
 
+namespace BAG {
+
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
-
-namespace BAG {
 
 class BAG_API SurfaceCorrectionsDescriptor final : public LayerDescriptor
 {
@@ -23,6 +23,7 @@ public:
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrections,
         uint64_t chunkSize, unsigned int compressionLevel,
         const Dataset& dataset);
+
     static std::shared_ptr<SurfaceCorrectionsDescriptor> open(
         const Dataset& dataset);
 
@@ -33,17 +34,17 @@ public:
     SurfaceCorrectionsDescriptor& operator=(SurfaceCorrectionsDescriptor&&) = delete;
 
     uint8_t getNumCorrectors() const noexcept;
-    BAG_SURFACE_CORRECTION_TOPOGRAPHY getSurfaceType() const noexcept;
-    const std::string& getVerticalDatums() const & noexcept;
     std::tuple<double, double> getOrigin() const noexcept;
     std::tuple<double, double> getSpacing() const noexcept;
+    BAG_SURFACE_CORRECTION_TOPOGRAPHY getSurfaceType() const noexcept;
+    const std::string& getVerticalDatums() const & noexcept;
 
     SurfaceCorrectionsDescriptor& setVerticalDatum(
         std::string verticalDatums) & noexcept;
     SurfaceCorrectionsDescriptor& setOrigin(double swX,
-        double swY) noexcept;
+        double swY) & noexcept;
     SurfaceCorrectionsDescriptor& setSpacing(double xSpacing,
-        double ySpacing) noexcept;
+        double ySpacing) & noexcept;
 
 protected:
     SurfaceCorrectionsDescriptor(uint32_t id,
@@ -76,11 +77,11 @@ private:
 
 };
 
-}  // namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_SURFACECORRECTIONSDESCRIPTOR_H
 

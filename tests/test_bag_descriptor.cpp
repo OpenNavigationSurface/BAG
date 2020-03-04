@@ -371,8 +371,8 @@ TEST_CASE("test descriptor get layer types",
     {
         UNSCOPED_INFO("Verify adding a layer descriptor does not throw.");
         REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(type, chunkSize, compressionLevel,
-                *pDataset)));
+            *SimpleLayerDescriptor::create(*pDataset, type, chunkSize,
+				compressionLevel)));
     }
 
     UNSCOPED_INFO("Verify getting layer types when there are some does not throw.");
@@ -435,8 +435,8 @@ TEST_CASE("test descriptor get layer descriptors",
     {
         UNSCOPED_INFO("Verify adding a layer descriptor does not throw.");
         REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(type, chunkSize, compressionLevel,
-                *pDataset)));
+            *SimpleLayerDescriptor::create(*pDataset, type, chunkSize,
+				compressionLevel)));
     }
 
     UNSCOPED_INFO("Verify getting layer descriptors when there are some does not throw.");
@@ -471,8 +471,8 @@ TEST_CASE("test descriptor get layer descriptor",
     {
         UNSCOPED_INFO("Verify adding Elevation and Uncertainty layer descriptors does not throw.");
         REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(type, chunkSize, compressionLevel,
-                *pDataset)));
+            *SimpleLayerDescriptor::create(*pDataset, type, chunkSize,
+				compressionLevel)));
     }
 
     UNSCOPED_INFO("Verify layer descriptor Elevation exists.");

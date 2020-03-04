@@ -339,7 +339,6 @@ TEST_CASE("test simple layer get name", "[simplelayer][getDescriptor]")
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 TEST_CASE("test simple layer read", "[simplelayer][read]")
 {
-    //TODO Redo this with an in-memory/temp file.
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/NAVO_data/JD211_public_Release_1-4_UTM.bag"};
 

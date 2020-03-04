@@ -1,3 +1,4 @@
+
 #include "bag_dataset.h"
 #include "bag_exceptions.h"
 #include "bag_layer.h"
@@ -6,17 +7,8 @@
 #include "bag_metadata_import.h"
 #include "bag_private.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 #include <fstream>
 #include <H5Cpp.h>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 
 namespace BAG
@@ -103,7 +95,7 @@ void Metadata::createH5dataSet(
     m_pH5dataSet->extend(&xmlLength);
 }
 
-const BagMetadata& Metadata::getStruct() const noexcept
+const BagMetadata& Metadata::getStruct() const & noexcept
 {
     return *m_pMetaStruct;
 }

@@ -19,8 +19,7 @@
 #include <vector>
 
 
-namespace
-{
+namespace {
 
 //! The location of the BAG home folder.
 static std::string bagHomeFolder;
@@ -436,7 +435,7 @@ bool getContentsAsBool(
     return (value != kZero && value != kFalse);
 }
 
-}   //namespace
+}  // namespace
 
 //************************************************************************
 //! Get the current setting for the BAG_HOME directory.

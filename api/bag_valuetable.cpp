@@ -11,11 +11,6 @@
 #include <H5Cpp.h>
 
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 namespace BAG {
 
 namespace {
@@ -435,8 +430,4 @@ void ValueTable::writeRecords(
 }
 
 }  // namespace BAG
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 

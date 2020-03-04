@@ -5,7 +5,6 @@
 #include <bag_trackinglist.h>
 
 #include <catch2/catch.hpp>
-#include <cstdlib>  // std::getenv
 #include <string>
 
 

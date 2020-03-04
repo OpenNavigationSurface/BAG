@@ -140,15 +140,15 @@ std::string Layer::getInternalPath(
     case Uncertainty:
         return UNCERTAINTY_PATH;
     case Hypothesis_Strength:
-        return HYPOTHESIS_STRENGTH_PATH;  // Also part of the NODE (NODE_GROUP_PATH).
+        return HYPOTHESIS_STRENGTH_PATH;
     case Num_Hypotheses:
-        return NUM_HYPOTHESES_PATH;  // Also part of the NODE group (NODE_GROUP_PATH).
+        return NUM_HYPOTHESES_PATH;
     case Shoal_Elevation:
-        return SHOAL_ELEVATION_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return SHOAL_ELEVATION_PATH;
     case Std_Dev:
-        return STANDARD_DEV_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return STANDARD_DEV_PATH;
     case Num_Soundings:
-        return NUM_SOUNDINGS_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return NUM_SOUNDINGS_PATH;
     case Average_Elevation:
         return AVERAGE_PATH;
     case Nominal_Elevation:
@@ -212,5 +212,5 @@ void Layer::writeAttributes() const
     this->writeAttributesProxy();
 }
 
-}   //namespace BAG
+}  // namespace BAG
 

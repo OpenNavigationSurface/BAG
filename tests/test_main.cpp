@@ -31,7 +31,7 @@ int main(int argc, const char** argv)
         return EXIT_FAILURE;
     }
 
-    (void)putenv(std::string{"BAG_SAMPLES_PATH=" + samplesPath}.c_str());
+    putenv(std::string{"BAG_SAMPLES_PATH=" + samplesPath}.c_str());
 
     const int numFailed = session.run();
 

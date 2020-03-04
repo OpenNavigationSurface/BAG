@@ -1,7 +1,6 @@
 
 #include "bag_exceptions.h"
 #include "bag_private.h"
-#include "bag_vrrefinement.h"
 #include "bag_vrrefinementdescriptor.h"
 
 
@@ -19,14 +18,14 @@ VRRefinementDescriptor::VRRefinementDescriptor(
 
 VRRefinementDescriptor::VRRefinementDescriptor(
     const Dataset& dataset)
-    : LayerDescriptor(VarRes_Refinement, dataset, VR_REFINEMENT_PATH)
+    : LayerDescriptor(dataset, VarRes_Refinement, VR_REFINEMENT_PATH)
 {
 }
 
 std::shared_ptr<VRRefinementDescriptor> VRRefinementDescriptor::create(
+    const Dataset& dataset,
     uint64_t chunkSize,
-    unsigned int compressionLevel,
-    const Dataset& dataset)
+    unsigned int compressionLevel)
 {
     return std::shared_ptr<VRRefinementDescriptor>(
         new VRRefinementDescriptor{dataset.getNextId(), chunkSize,

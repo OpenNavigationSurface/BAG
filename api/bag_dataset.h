@@ -19,10 +19,6 @@
 #include <unordered_map>
 #include <vector>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251 4275)
-#endif
 
 namespace H5 {
 
@@ -32,6 +28,12 @@ class H5File;
 
 namespace BAG {
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#pragma warning(disable: 4275)  // non-DLL-interface class used as base class
+#endif
+
 constexpr static uint32_t kInvalidId = std::numeric_limits<uint32_t>::max();
 
 class BAG_API Dataset final : public std::enable_shared_from_this<Dataset>
@@ -39,6 +41,7 @@ class BAG_API Dataset final : public std::enable_shared_from_this<Dataset>
 public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,
         OpenMode openMode);
+
     static std::shared_ptr<Dataset> create(const std::string &fileName,
         Metadata&& metadata, uint64_t chunkSize, unsigned int compressionLevel);
 
@@ -84,8 +87,6 @@ public:
     Descriptor& getDescriptor() & noexcept;
     const Descriptor& getDescriptor() const & noexcept;
 
-    //TODO Perhaps a struct GridPoint {uint32_t column; uint32_t row;}; ?
-    //TODO Perhaps a struct GeoPoint {double x; double y;}; ?
     std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept;
     std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
 
@@ -144,11 +145,11 @@ private:
     friend class VRTrackingList;
 };
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}   //namespace BAG
 
 #endif  //BAG_DATASET_H
 

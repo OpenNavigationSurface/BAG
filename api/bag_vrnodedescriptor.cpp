@@ -18,14 +18,14 @@ VRNodeDescriptor::VRNodeDescriptor(
 
 VRNodeDescriptor::VRNodeDescriptor(
     const Dataset& dataset)
-    : LayerDescriptor(VarRes_Node, dataset, VR_NODE_PATH)
+    : LayerDescriptor(dataset, VarRes_Node, VR_NODE_PATH)
 {
 }
 
 std::shared_ptr<VRNodeDescriptor> VRNodeDescriptor::create(
+    const Dataset& dataset,
     uint64_t chunkSize,
-    unsigned int compressionLevel,
-    const Dataset& dataset)
+    unsigned int compressionLevel)
 {
     return std::shared_ptr<VRNodeDescriptor>(
         new VRNodeDescriptor{dataset.getNextId(), chunkSize,
