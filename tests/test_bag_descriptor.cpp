@@ -519,22 +519,8 @@ TEST_CASE("test descriptor created from metadata",
     CHECK(descriptor.getHorizontalReferenceSystem() == kExpectedHorizontalReferenceSystem);
 
     UNSCOPED_INFO("Check expected vertical reference system.");
-    const std::string kExpectedVerticalReferenceSystem{R"(PROJCS["UTM-19N-Nad83",
-    GEOGCS["unnamed",
-        DATUM["North_American_Datum_1983",
-            SPHEROID["North_American_Datum_1983",6378137,298.2572201434276],
-            TOWGS84[0,0,0,0,0,0,0]],
-        PRIMEM["Greenwich",0],
-        UNIT["degree",0.0174532925199433],
-        EXTENSION["Scaler","0,0,0,0.02,0.02,0.001"],
-        EXTENSION["Source","CARIS"]],
-    PROJECTION["Transverse_Mercator"],
-    PARAMETER["latitude_of_origin",0],
-    PARAMETER["central_meridian",-69],
-    PARAMETER["scale_factor",0.9996],
-    PARAMETER["false_easting",500000],
-    PARAMETER["false_northing",0],
-    UNIT["metre",1]])"};
+    const std::string kExpectedVerticalReferenceSystem{R"(VERT_CS["Alicante height",
+    VERT_DATUM["Alicante",2000]])"};
     CHECK(descriptor.getVerticalReferenceSystem() == kExpectedVerticalReferenceSystem);
 
     UNSCOPED_INFO("Check expected dimensions.");

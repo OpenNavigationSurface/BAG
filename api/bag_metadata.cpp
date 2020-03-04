@@ -128,8 +128,8 @@ void Metadata::loadFromFile(const std::string& fileName)
 {
     const BagError err = bagImportMetadataFromXmlFile(fileName.c_str(),
         *m_pMetaStruct, false);
-    if (err)
-        throw err;
+    if (err != BAG_SUCCESS)
+        throw ErrorLoadingMetadata{err};
 
     std::ifstream ifs{fileName, std::ios_base::in|std::ios_base::binary};
     ifs.seekg(0, std::ios_base::end);
@@ -140,8 +140,8 @@ void Metadata::loadFromBuffer(const std::string& xmlBuffer)
 {
     const BagError err = bagImportMetadataFromXmlBuffer(xmlBuffer.c_str(),
         static_cast<int>(xmlBuffer.size()), *m_pMetaStruct, false);
-    if (err)
-        throw err;
+    if (err != BAG_SUCCESS)
+        throw ErrorLoadingMetadata{err};
 
     m_xmlLength = xmlBuffer.size();
 }
@@ -172,7 +172,7 @@ std::string Metadata::verticalReferenceSystemAsWKT() const
     if (!type || type != std::string{"WKT"})
         return {};
 
-    return m_pMetaStruct->horizontalReferenceSystem->definition;
+    return m_pMetaStruct->verticalReferenceSystem->definition;
 }
 
 void Metadata::write() const
@@ -191,6 +191,5 @@ void Metadata::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
     delete ptr;
 }
 
-}   //namespace BAG
-
+}  // namespace BAG
 
