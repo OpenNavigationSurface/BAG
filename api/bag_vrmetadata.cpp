@@ -156,6 +156,23 @@ VRMetadata::createH5dataSet(
         {VR_METADATA_MIN_RES_X, VR_METADATA_MIN_RES_Y, VR_METADATA_MAX_RES_X,
         VR_METADATA_MAX_RES_Y});
 
+    // Set initial min/max values.
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::numeric_limits<uint32_t>::max(), {VR_METADATA_MIN_DIMS_X,
+        VR_METADATA_MIN_DIMS_Y});
+
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::numeric_limits<uint32_t>::lowest(), {VR_METADATA_MAX_DIMS_X,
+        VR_METADATA_MAX_DIMS_Y});
+
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::numeric_limits<float>::max(), {VR_METADATA_MIN_RES_X,
+        VR_METADATA_MIN_RES_Y});
+
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::numeric_limits<float>::lowest(), {VR_METADATA_MAX_RES_X,
+        VR_METADATA_MAX_RES_Y});
+
     return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
@@ -241,6 +258,49 @@ void VRMetadata::writeProxy(
     const auto memDataType = makeDataType();
 
     m_pH5dataSet->write(buffer, memDataType, memDataSpace, fileDataSpace);
+
+    // Update any attributes that are affected by the data being written.
+    auto& descriptor =
+        dynamic_cast<VRMetadataDescriptor&>(this->getDescriptor());
+
+    // Get the current min/max from descriptor.
+    uint32_t minDimX = 0, minDimY = 0;
+    std::tie(minDimX, minDimY) = descriptor.getMinDimensions();
+
+    uint32_t maxDimX = 0, maxDimY = 0;
+    std::tie(maxDimX, maxDimY) = descriptor.getMaxDimensions();
+
+    float minResX = 0.f, minResY = 0.f;
+    std::tie(minResX, minResY) = descriptor.getMinResolution();
+
+    float maxResX = 0.f, maxResY = 0.f;
+    std::tie(maxResX, maxResY) = descriptor.getMaxResolution();
+
+    // Update the min/max from new data.
+    const auto* items = reinterpret_cast<const BagVRMetadataItem*>(buffer);
+
+    auto* item = items;
+    const auto end = items + rows * columns;
+
+    for (; item != end; ++item)
+    {
+        minDimX = item->dimensions_x < minDimX ? item->dimensions_x : minDimX;
+        minDimY = item->dimensions_y < minDimY ? item->dimensions_y : minDimY;
+
+        maxDimX = item->dimensions_x > maxDimX ? item->dimensions_x : maxDimX;
+        maxDimY = item->dimensions_y > maxDimY ? item->dimensions_y : maxDimY;
+
+        minResX = item->resolution_x < minResX ? item->resolution_x : minResX;
+        minResY = item->resolution_y < minResY ? item->resolution_y : minResY;
+
+        maxResX = item->resolution_x > minResX ? item->resolution_x : maxResX;
+        maxResY = item->resolution_y > minResY ? item->resolution_y : maxResY;
+    }
+
+    descriptor.setMinDimensions(minDimX, minDimY);
+    descriptor.setMaxDimensions(maxDimX, maxDimY);
+    descriptor.setMinResolution(minResX, minResY);
+    descriptor.setMaxResolution(maxResX, maxResY);
 }
 
 void VRMetadata::writeAttributesProxy() const

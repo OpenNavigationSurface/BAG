@@ -133,6 +133,14 @@ VRRefinement::createH5dataSet(
         {VR_REFINEMENT_MIN_DEPTH, VR_REFINEMENT_MAX_DEPTH,
         VR_REFINEMENT_MIN_UNCERTAINTY, VR_REFINEMENT_MAX_UNCERTAINTY});
 
+    // Set initial min/max values.
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::numeric_limits<float>::max(), {VR_REFINEMENT_MIN_DEPTH,
+        VR_REFINEMENT_MIN_UNCERTAINTY});
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::numeric_limits<float>::lowest(), {VR_REFINEMENT_MAX_DEPTH,
+        VR_REFINEMENT_MAX_UNCERTAINTY});
+
     return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
@@ -216,6 +224,35 @@ void VRRefinement::writeProxy(
     const auto memDataType = makeDataType();
 
     m_pH5dataSet->write(buffer, memDataType, memDataSpace, fileDataSpace);
+
+    // Update min/max attributes
+    auto& descriptor =
+        dynamic_cast<VRRefinementDescriptor&>(this->getDescriptor());
+
+    // Get the current min/max from descriptor.
+    float minDepth = 0.f, maxDepth = 0.f;
+    std::tie(minDepth, maxDepth) = descriptor.getMinMaxDepth();
+
+    float minUncert = 0.f, maxUncert = 0.f;
+    std::tie(minUncert, maxUncert) = descriptor.getMinMaxUncertainty();
+
+    // Update the min/max from new data.
+    const auto* items = reinterpret_cast<const BagVRRefinementItem*>(buffer);
+
+    auto* item = items;
+    const auto end = items + columns;
+
+    for (; item != end; ++item)
+    {
+        minDepth = item->depth < minDepth ? item->depth : minDepth;
+        maxDepth = item->depth > maxDepth ? item->depth : maxDepth;
+
+        minUncert = item->depth_uncrt < minUncert ? item->depth_uncrt : minUncert;
+        maxUncert = item->depth_uncrt > maxUncert ? item->depth_uncrt : maxUncert;
+    }
+
+    descriptor.setMinMaxDepth(minDepth, maxDepth);
+    descriptor.setMinMaxUncertainty(minUncert, maxUncert);
 }
 
 void VRRefinement::writeAttributesProxy() const
@@ -249,5 +286,5 @@ void VRRefinement::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
     delete ptr;
 }
 
-}   //namespace BAG
+}  // namespace BAG
 
