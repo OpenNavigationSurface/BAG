@@ -2,6 +2,7 @@
 #define BAG_EXCEPTIONS_H
 
 #include "bag_config.h"
+#include "bag_errors.h"
 #include "bag_types.h"
 
 #include <exception>

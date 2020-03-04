@@ -1,5 +1,6 @@
 
 #include "bag_dataset.h"
+#include "bag_errors.h"
 #include "bag_exceptions.h"
 #include "bag_layer.h"
 #include "bag_metadata.h"
