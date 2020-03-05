@@ -10,16 +10,14 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 
 namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
-
 
 class BAG_API CompoundLayer final : public Layer
 {
@@ -48,6 +46,7 @@ protected:
         const std::string& name, Dataset& dataset,
         const RecordDefinition& definition, uint64_t chunkSize,
         unsigned int compressionLevel);
+
     static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
         CompoundLayerDescriptor& descriptor);
 
@@ -55,6 +54,7 @@ private:
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
         createH5indexDataSet(const Dataset& inDataSet,
             const CompoundLayerDescriptor& descriptor);
+
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
         createH5recordDataSet(const Dataset& inDataSet,
             const CompoundLayerDescriptor& descriptor);
@@ -82,11 +82,11 @@ private:
     friend ValueTable;
 };
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}   //namespace BAG
 
 #endif  //BAG_COMPOUNDLAYER
 

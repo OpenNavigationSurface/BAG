@@ -10,24 +10,6 @@
 
 namespace BAG {
 
-namespace {
-
-struct BagOptNodeGroup final
-{
-    float hyp_strength = 0.f;
-    uint32_t num_hypotheses = 0;
-};
-
-struct BagOptElevationSolutionGroup final
-{
-    float shoal_elevation = 0.f;
-    float stddev = 0.f;
-    uint32_t num_soundings = 0;
-
-};
-
-}   //namespace
-
 InterleavedLayer::InterleavedLayer(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor,
@@ -64,6 +46,9 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
+    if (!dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor()))
+        throw InvalidDescriptor{};
+
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
@@ -72,9 +57,6 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     // Query the file for the specified rows and columns.
     const auto h5fileSpace = m_pH5dataSet->getSpace();
     h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
-
-    if (!dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor()))
-        throw 123456;  // Invalid descriptor found.
 
     const auto& descriptor =
         static_cast<const InterleavedLayerDescriptor&>(this->getDescriptor());

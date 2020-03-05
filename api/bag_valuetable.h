@@ -7,13 +7,13 @@
 
 #include <memory>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 
 namespace BAG {
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#endif
 
 class BAG_API ValueTable final
 {
@@ -24,21 +24,21 @@ public:
     ValueTable& operator=(const ValueTable&) = delete;
     ValueTable& operator=(ValueTable&&) = delete;
 
-    void addRecord(const Record& record);
-    void addRecords(const Records& records);
-
     const Records& getRecords() const & noexcept;
-
     const RecordDefinition& getDefinition() const & noexcept;
-
-    const CompoundDataType& getValue(size_t recordIndex, const std::string& name) const &;
-    const CompoundDataType& getValue(size_t recordIndex, size_t fieldIndex) const &;
-
+    const CompoundDataType& getValue(size_t recordIndex,
+        const std::string& name) const &;
+    const CompoundDataType& getValue(size_t recordIndex,
+        size_t fieldIndex) const &;
     size_t getFieldIndex(const std::string& name) const;
     const char* getFieldName(size_t index) const &;
 
-    void setValue(size_t recordIndex, const std::string& name, const CompoundDataType& value);
-    void setValue(size_t recordIndex, size_t fieldIndex, const CompoundDataType& value);
+    void addRecord(const Record& record);
+    void addRecords(const Records& records);
+    void setValue(size_t recordIndex, const std::string& name,
+        const CompoundDataType& value);
+    void setValue(size_t recordIndex, size_t fieldIndex,
+        const CompoundDataType& value);
 
 protected:
     explicit ValueTable(const CompoundLayer& layer);
@@ -61,11 +61,11 @@ private:
     friend class CompoundLayer;
 };
 
-}  // namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_VALUE_TABLE_H
 

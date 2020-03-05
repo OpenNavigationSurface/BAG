@@ -13,7 +13,7 @@ namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
 class BAG_API VRTrackingList final
@@ -97,7 +97,7 @@ void VRTrackingList::emplace_back(Args&&... args) &
 #pragma warning(pop)
 #endif
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_VRTRACKINGLIST_H
+#endif  // BAG_VRTRACKINGLIST_H
 

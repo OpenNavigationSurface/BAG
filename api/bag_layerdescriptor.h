@@ -10,12 +10,12 @@
 #include <tuple>
 
 
+namespace BAG {
+
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
-
-namespace BAG {
 
 class BAG_API LayerDescriptor : public std::enable_shared_from_this<LayerDescriptor>
 {
@@ -27,31 +27,23 @@ public:
     LayerDescriptor& operator=(LayerDescriptor&&) = delete;
     virtual ~LayerDescriptor() = default;
 
-    const std::string& getName() const & noexcept;
-    LayerDescriptor& setName(std::string inName) & noexcept;
-
-    uint32_t getId() const noexcept;
-
-    DataType getDataType() const noexcept;
-
-    LayerType getLayerType() const noexcept;
-
-    //TODO What about layers with uint32_t min/max values?
-    std::tuple<float, float> getMinMax() const noexcept;
-    LayerDescriptor& setMinMax(float min, float max) & noexcept;
-
-    const std::string& getInternalPath() const & noexcept;
-
-    uint8_t getElementSize() const noexcept;
-
     uint64_t getChunkSize() const noexcept;
-
     unsigned int getCompressionLevel() const noexcept;
+    DataType getDataType() const noexcept;
+    uint8_t getElementSize() const noexcept;
+    uint32_t getId() const noexcept;
+    const std::string& getInternalPath() const & noexcept;
+    LayerType getLayerType() const noexcept;
+    std::tuple<float, float> getMinMax() const noexcept;
+    const std::string& getName() const & noexcept;
+
+    LayerDescriptor& setName(std::string inName) & noexcept;
+    LayerDescriptor& setMinMax(float min, float max) & noexcept;
 
 protected:
     LayerDescriptor(uint32_t id, std::string internalPath, std::string name,
         LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
-    LayerDescriptor(LayerType type, const Dataset& dataset,
+    LayerDescriptor(const Dataset& dataset, LayerType type,
         std::string internalPath = {}, std::string name = {});
 
     size_t getReadBufferSize(uint32_t rows, uint32_t columns) const noexcept;
@@ -77,17 +69,18 @@ private:
     //! The minimum and maximum value of this dataset.
     std::tuple<float, float> m_minMax{};
 
-    friend CompoundLayer;
-    friend InterleavedLayer;
-    friend SurfaceCorrections;
-    friend SimpleLayer;
+    friend class CompoundLayer;
+    friend class InterleavedLayer;
+    friend class SurfaceCorrections;
+    friend class SimpleLayer;
+    friend class VRMetadata;
 };
-
-}  // namespace BAG
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_LAYERDESCRIPTOR_H
 

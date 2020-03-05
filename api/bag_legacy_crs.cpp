@@ -1,3 +1,4 @@
+
 #include "bag_errors.h"
 #include "bag_legacy_crs.h"
 
@@ -13,8 +14,7 @@
 #include <vector>
 
 
-namespace
-{
+namespace {
 
 //! Projection parameters WKT names.
 const char k_latitude_of_origin[] = "latitude_of_origin";
@@ -69,8 +69,6 @@ struct InvalidDatumError final : virtual CoordSysError {};
 
 //! Simple exception thrown when we can not convert the ellipsoid.
 struct InvalidEllipsoidError final : virtual CoordSysError {};
-
-constexpr double PI_OVER_180 = M_PI / 180.0;
 
 std::vector<std::string> split(
     const std::string& str,
@@ -498,7 +496,7 @@ std::string getVDatum(const std::string& wkt)
     return wkt.substr(startPos, length);
 }
 
-}   //namespace
+}  // namespace
 
 //************************************************************************
 //      Method name:    bagLegacyToWkt()

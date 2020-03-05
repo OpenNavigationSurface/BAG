@@ -1,21 +1,11 @@
 
 #include "bag_dataset.h"
-#include "bag_errors.h"
 #include "bag_private.h"
 #include "bag_surfacecorrections.h"
 #include "bag_surfacecorrectionsdescriptor.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 #include <array>
 #include <H5Cpp.h>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 
 namespace BAG {
@@ -96,8 +86,7 @@ SurfaceCorrections::createH5dataSet(
     const SurfaceCorrectionsDescriptor& descriptor)
 {
     // Use the dimensions from the descriptor.
-    std::array<hsize_t, RANK> fileDims{};
-    std::tie(fileDims[0], fileDims[1]) = dataset.getDescriptor().getDims();
+    std::array<hsize_t, RANK> fileDims{0, 0};
     const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
     const ::H5::DataSpace h5fileDataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
 
@@ -198,7 +187,7 @@ std::unique_ptr<uint8_t[]> SurfaceCorrections::readProxy(
         throw UnexpectedLayerDescriptorType{};
 
     const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+        dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
     auto buffer = std::make_unique<uint8_t[]>(bufferSize);
@@ -223,7 +212,7 @@ void SurfaceCorrections::writeProxy(
         throw UnexpectedLayerDescriptorType{};
 
     auto& descriptor =
-        static_cast<SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+        dynamic_cast<SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
@@ -271,7 +260,7 @@ void SurfaceCorrections::writeAttributesProxy() const
         throw UnexpectedLayerDescriptorType{};
 
     const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+        dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     // Write any attributes, from the layer descriptor.
     // surface type

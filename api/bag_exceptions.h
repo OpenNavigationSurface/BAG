@@ -2,17 +2,19 @@
 #define BAG_EXCEPTIONS_H
 
 #include "bag_config.h"
+#include "bag_errors.h"
+#include "bag_types.h"
 
 #include <exception>
+#include <sstream>
 
+
+namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4275)
 #endif
-
-
-namespace BAG {
 
 // Attribute related.
 //! Attribute type not supported (yet)  //TODO temp exception
@@ -197,6 +199,24 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     }
 };
 
+//! An error occured loading metatada.
+struct BAG_API ErrorLoadingMetadata final : virtual std::exception
+{
+    ErrorLoadingMetadata(BagError bagError) : m_error(bagError)
+    {}
+
+    const char* what() const noexcept override
+    {
+        std::stringstream ss;
+
+        ss << "While importing metadata as XML, an error value " <<
+            m_error << " was returned.";
+
+        return ss.str().c_str();
+    }
+
+    BagError m_error = BAG_SUCCESS;
+};
 
 // SimpleLayer related.
 //! Cannot convert DataType to an HDF5 DataType.
@@ -296,11 +316,11 @@ struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
     }
 };
 
-}  // namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_EXCEPTIONS_H
 

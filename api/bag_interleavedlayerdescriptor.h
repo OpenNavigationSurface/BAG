@@ -7,12 +7,12 @@
 #include "bag_types.h"
 
 
+namespace BAG {
+
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
-
-namespace BAG {
 
 class BAG_API InterleavedLayerDescriptor final : public LayerDescriptor
 {
@@ -20,6 +20,7 @@ public:
     static std::shared_ptr<InterleavedLayerDescriptor> create(
         LayerType layerType, GroupType groupType, uint64_t chunkSize,
         unsigned int compressionLevel, const Dataset& dataset);
+
     static std::shared_ptr<InterleavedLayerDescriptor> open(
         LayerType layerType, GroupType groupType, const Dataset& dataset);
 
@@ -38,7 +39,7 @@ protected:
         GroupType groupType, const Dataset& dataset);
 
 private:
-    void validateTypes(LayerType layerType, GroupType groupType) const;
+    static void validateTypes(LayerType layerType, GroupType groupType);
 
     DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
@@ -52,11 +53,11 @@ private:
 
 };
 
-}  // namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_INTERLEAVEDLAYERDESCRIPTOR_H
 

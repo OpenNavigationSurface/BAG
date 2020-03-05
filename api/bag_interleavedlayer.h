@@ -14,7 +14,7 @@ namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
 class BAG_API InterleavedLayer final : public Layer
@@ -62,3 +62,4 @@ private:
 }   //namespace BAG
 
 #endif  //BAG_INTERLEAVEDLAYER
+

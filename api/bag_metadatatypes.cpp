@@ -5,20 +5,8 @@
 //************************************************************************
 #include "bag.h"
 #include "bag_metadata.h"
-#include "bag_metadatatypes.h"
-#include "bag_trackinglist.h"
-#include "bag_layer.h"
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 
 #include <H5Cpp.h>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 
 namespace {

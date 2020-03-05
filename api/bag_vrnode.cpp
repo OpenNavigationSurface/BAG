@@ -16,10 +16,10 @@ namespace {
 {
     const ::H5::CompType memDataType{sizeof(BagVRNodeItem)};
 
-    memDataType.insertMember("hyp_strength", HOFFSET(BagVRNodeItem, hyp_strength),
-        ::H5::PredType::NATIVE_FLOAT);
-    memDataType.insertMember("num_hypotheses", HOFFSET(BagVRNodeItem, num_hypotheses),
-        ::H5::PredType::NATIVE_UINT32);
+    memDataType.insertMember("hyp_strength",
+        HOFFSET(BagVRNodeItem, hyp_strength), ::H5::PredType::NATIVE_FLOAT);
+    memDataType.insertMember("num_hypotheses",
+        HOFFSET(BagVRNodeItem, num_hypotheses), ::H5::PredType::NATIVE_UINT32);
     memDataType.insertMember("n_samples", HOFFSET(BagVRNodeItem, n_samples),
         ::H5::PredType::NATIVE_UINT32);
 
@@ -56,8 +56,8 @@ std::unique_ptr<VRNode> VRNode::create(
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {
-    auto descriptor = VRNodeDescriptor::create(chunkSize, compressionLevel,
-        dataset);
+    auto descriptor = VRNodeDescriptor::create(dataset, chunkSize,
+        compressionLevel);
 
     auto h5dataSet = VRNode::createH5dataSet(dataset, *descriptor);
 
@@ -246,26 +246,26 @@ void VRNode::writeAttributesProxy() const
     // Write the attributes from the layer descriptor.
     // min/max hyp strength
     const auto minMaxHypStrength = descriptor.getMinMaxHypStrength();
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minMaxHypStrength), VR_NODE_MIN_HYP_STRENGTH);
 
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<1>(minMaxHypStrength), VR_NODE_MAX_HYP_STRENGTH);
 
     // min/max num hypotheses
     const auto minMaxNumHypotheses = descriptor.getMinMaxNumHypotheses();
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minMaxNumHypotheses), VR_NODE_MIN_NUM_HYPOTHESES);
 
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<1>(minMaxNumHypotheses), VR_NODE_MAX_NUM_HYPOTHESES);
 
     // min/max n samples
     const auto minMaxNSamples = descriptor.getMinMaxNSamples();
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minMaxNSamples), VR_NODE_MIN_N_SAMPLES);
 
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<1>(minMaxNSamples), VR_NODE_MAX_N_SAMPLES);
 }
 

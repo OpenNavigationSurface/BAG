@@ -8,11 +8,6 @@
 
 namespace BAG {
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 class BAG_API VRRefinementDescriptor final : public LayerDescriptor
 {
 public:
@@ -23,8 +18,9 @@ public:
     VRRefinementDescriptor& operator=(VRRefinementDescriptor&&) = delete;
 
     std::tuple<float, float> getMinMaxDepth() const noexcept;
-    void setMinMaxDepth(float minDepth, float maxDepth) noexcept;
     std::tuple<float, float> getMinMaxUncertainty() const noexcept;
+
+    void setMinMaxDepth(float minDepth, float maxDepth) noexcept;
     void setMinMaxUncertainty(float minUncertainty, float maxUncertainty) noexcept;
 
 protected:
@@ -32,8 +28,8 @@ protected:
         unsigned int compressionLevel);
     explicit VRRefinementDescriptor(const Dataset& dataset);
 
-    static std::shared_ptr<VRRefinementDescriptor> create(uint64_t chunkSize,
-        unsigned int compressionLevel, const Dataset& dataset);
+    static std::shared_ptr<VRRefinementDescriptor> create(const Dataset& dataset,
+        uint64_t chunkSize, unsigned int compressionLevel);
 
     static std::shared_ptr<VRRefinementDescriptor> open(const Dataset& dataset);
 
@@ -53,10 +49,6 @@ private:
     friend class Dataset;
     friend class VRRefinement;
 };
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 }  // namespace BAG
 

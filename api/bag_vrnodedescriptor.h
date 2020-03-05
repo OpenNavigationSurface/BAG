@@ -8,11 +8,6 @@
 
 namespace BAG {
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 class BAG_API VRNodeDescriptor final : public LayerDescriptor
 {
 public:
@@ -23,10 +18,11 @@ public:
     VRNodeDescriptor& operator=(VRNodeDescriptor&&) = delete;
 
     std::tuple<float, float> getMinMaxHypStrength() const noexcept;
-    void setMinMaxHypStrength(float minDepth, float maxDepth) noexcept;
     std::tuple<uint32_t, uint32_t> getMinMaxNumHypotheses() const noexcept;
-    void setMinMaxNumHypotheses(uint32_t minNumHypotheses, uint32_t maxNumHypotheses) noexcept;
     std::tuple<uint32_t, uint32_t> getMinMaxNSamples() const noexcept;
+
+    void setMinMaxHypStrength(float minHypStrength, float maxHypStrength) noexcept;
+    void setMinMaxNumHypotheses(uint32_t minNumHypotheses, uint32_t maxNumHypotheses) noexcept;
     void setMinMaxNSamples(uint32_t minNSamples, uint32_t maxNSamples) noexcept;
 
 protected:
@@ -34,8 +30,8 @@ protected:
         unsigned int compressionLevel);
     explicit VRNodeDescriptor(const Dataset& dataset);
 
-    static std::shared_ptr<VRNodeDescriptor> create(uint64_t chunkSize,
-        unsigned int compressionLevel, const Dataset& dataset);
+    static std::shared_ptr<VRNodeDescriptor> create(const Dataset& dataset,
+        uint64_t chunkSize, unsigned int compressionLevel);
 
     static std::shared_ptr<VRNodeDescriptor> open(const Dataset& dataset);
 
@@ -59,10 +55,6 @@ private:
     friend class Dataset;
     friend class VRNode;
 };
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 }  // namespace BAG
 

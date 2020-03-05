@@ -12,7 +12,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DL-interface when exporting
 #endif
 
 namespace BAG {
@@ -24,6 +24,7 @@ public:
         const std::string& name, DataType indexType,
         RecordDefinition definition, uint64_t chunkSize,
         unsigned int compressionLevel, Dataset& dataset);
+
     static std::shared_ptr<CompoundLayerDescriptor> open(
         const std::string& name, Dataset& dataset);
 

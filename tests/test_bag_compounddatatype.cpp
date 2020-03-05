@@ -1,5 +1,4 @@
 
-//#include "test_utils.h"
 #include <bag_compounddatatype.h>
 
 #include <catch2/catch.hpp>

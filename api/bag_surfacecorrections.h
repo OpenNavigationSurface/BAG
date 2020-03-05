@@ -8,13 +8,13 @@
 
 #include <memory>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 
 namespace BAG {
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#endif
 
 class BAG_API SurfaceCorrections final : public Layer
 {
@@ -65,11 +65,11 @@ private:
     friend SurfaceCorrectionsDescriptor;
 };
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#endif  //BAG_SURFACECORRECTIONS_H
+}  // namespace BAG
+
+#endif  // BAG_SURFACECORRECTIONS_H
 

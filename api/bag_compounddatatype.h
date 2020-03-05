@@ -19,23 +19,19 @@ public:
     explicit CompoundDataType(float value) noexcept
         : type(FLOAT32)
         , f(value)
-    {
-    }
+    {}
     explicit CompoundDataType(uint32_t value) noexcept
         : type(UINT32)
         , ui32(value)
-    {
-    }
+    {}
     explicit CompoundDataType(bool value) noexcept
         : type(BOOL)
         , b(value)
-    {
-    }
+    {}
     explicit CompoundDataType(std::string value) noexcept
         : type(STRING)
         , s(std::move(value))
-    {
-    }
+    {}
 
     CompoundDataType(const CompoundDataType& other)
         : type(other.type)
@@ -91,10 +87,11 @@ public:
         if (this == &rhs)
             return *this;
 
-        if (type == STRING && rhs.type == STRING)
-            s = rhs.s;
-        else if (type == STRING)
-            s.~basic_string<char>();
+        if (type == STRING)
+            if (rhs.type == STRING)
+                s = rhs.s;
+            else
+                s.~basic_string<char>();
 
         switch (rhs.type)
         {
@@ -120,10 +117,11 @@ public:
     }
     CompoundDataType& operator=(CompoundDataType&& rhs)
     {
-        if (type == STRING && rhs.type == STRING)
-            s = std::move(rhs.s);
-        else if (type == STRING)
-            s.~basic_string<char>();
+        if (type == STRING)
+            if (rhs.type == STRING)
+                s = std::move(rhs.s);
+            else
+                s.~basic_string<char>();
 
         switch (rhs.type)
         {
@@ -212,31 +210,36 @@ public:
 
     float asFloat() const
     {
-        if (type != FLOAT32) throw InvalidType{};
+        if (type != FLOAT32)
+            throw InvalidType{};
 
         return f;
     }
     uint32_t asUInt32() const
     {
-        if (type != UINT32) throw InvalidType{};
+        if (type != UINT32)
+            throw InvalidType{};
 
         return ui32;
     }
     bool asBool() const
     {
-        if (type != BOOL) throw InvalidType{};
+        if (type != BOOL)
+            throw InvalidType{};
 
         return b;
     }
     const std::string& asString() const &
     {
-        if (type != STRING) throw InvalidType{};
+        if (type != STRING)
+            throw InvalidType{};
 
         return s;
     }
     std::string& asString() &
     {
-        if (type != STRING) throw InvalidType{};
+        if (type != STRING)
+            throw InvalidType{};
 
         return s;
     }

@@ -314,5 +314,5 @@ void initResponsibleParty(BagResponsibleParty& responsibleParty) noexcept;
 void initSourceInfo(BagSource& sourceInfo) noexcept;
 void initProcessStep(BagProcessStep& processStep) noexcept;
 
-#endif  //BAG_METADATATYPES_H
+#endif  // BAG_METADATATYPES_H
 

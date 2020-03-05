@@ -54,8 +54,8 @@ std::unique_ptr<VRRefinement> VRRefinement::create(
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {
-    auto descriptor = VRRefinementDescriptor::create(chunkSize, compressionLevel,
-        dataset);
+    auto descriptor = VRRefinementDescriptor::create(dataset, chunkSize,
+        compressionLevel);
 
     auto h5dataSet = VRRefinement::createH5dataSet(dataset, *descriptor);
 
@@ -70,10 +70,8 @@ std::unique_ptr<VRRefinement> VRRefinement::open(
     auto& h5file = dataset.getH5file();
 
     // Read the attribute values from the file and set in the descriptor.
-    const auto minDepth = readAttribute<float>(h5file,
-        VR_REFINEMENT_MIN_DEPTH);
-    const auto maxDepth = readAttribute<float>(h5file,
-        VR_REFINEMENT_MAX_DEPTH);
+    const auto minDepth = readAttribute<float>(h5file, VR_REFINEMENT_MIN_DEPTH);
+    const auto maxDepth = readAttribute<float>(h5file, VR_REFINEMENT_MAX_DEPTH);
 
     descriptor.setMinMaxDepth(minDepth, maxDepth);
 
@@ -98,8 +96,8 @@ VRRefinement::createH5dataSet(
     const Dataset& dataset,
     const VRRefinementDescriptor& descriptor)
 {
-    const hsize_t fileLength = 0;
-    const hsize_t kMaxFileLength = H5S_UNLIMITED;
+    constexpr hsize_t fileLength = 0;
+    constexpr hsize_t kMaxFileLength = H5S_UNLIMITED;
     const ::H5::DataSpace h5fileDataSpace{1, &fileLength, &kMaxFileLength};
 
     // Use chunk size and compression level from the descriptor.
@@ -231,18 +229,18 @@ void VRRefinement::writeAttributesProxy() const
     // Write the attributes from the layer descriptor.
     // min/max depth
     const auto minMaxDepth = descriptor.getMinMaxDepth();
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minMaxDepth), VR_REFINEMENT_MIN_DEPTH);
 
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<1>(minMaxDepth), VR_REFINEMENT_MAX_DEPTH);
 
     // min/max uncertainty
     const auto minMaxUncertainty = descriptor.getMinMaxUncertainty();
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minMaxUncertainty), VR_REFINEMENT_MIN_UNCERTAINTY);
 
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<1>(minMaxUncertainty), VR_REFINEMENT_MAX_UNCERTAINTY);
 }
 

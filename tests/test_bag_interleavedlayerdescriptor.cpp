@@ -1,6 +1,5 @@
 
 #include "test_utils.h"
-
 #include <bag_dataset.h>
 #include <bag_interleavedlayer.h>
 #include <bag_interleavedlayerdescriptor.h>

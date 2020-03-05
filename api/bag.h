@@ -76,10 +76,10 @@ BAG_EXTERNAL BagError bagGetGeoCover(BagHandle handle, double* llx, double* lly,
 BAG_EXTERNAL const BagMetadata* bagGetMetaData(BagHandle handle);
 
 /* Layer access */
-BAG_EXTERNAL BagError bagGetMinMax(BagHandle hnd, BAG_LAYER_TYPE type, double* minValue, double* maxValue);
-BAG_EXTERNAL BagError bagSetMinMax(BagHandle hnd, BAG_LAYER_TYPE type, double* minValue, double* maxValue);
+BAG_EXTERNAL BagError bagGetMinMax(BagHandle hnd, BAG_LAYER_TYPE type, float* minValue, float* maxValue);
+BAG_EXTERNAL BagError bagSetMinMax(BagHandle hnd, BAG_LAYER_TYPE type, float minValue, float maxValue);
 BAG_EXTERNAL BagError bagGetNumLayers(BagHandle hnd, uint32_t* numLayers);
-BAG_EXTERNAL bool bagContainsLayer(BagHandle hnd, BAG_LAYER_TYPE type);
+BAG_EXTERNAL bool bagContainsLayer(BagHandle hnd, BAG_LAYER_TYPE type);  //TODO optional name? (needed by Compound)
 BAG_EXTERNAL BagError bagRead (BagHandle BagHandle, uint32_t start_row, uint32_t start_col, uint32_t end_row, uint32_t end_col, BAG_LAYER_TYPE type, uint8_t* data, double* x, double* y);
 BAG_EXTERNAL BagError bagWrite (BagHandle BagHandle, uint32_t start_row, uint32_t start_col, uint32_t end_row, uint32_t end_col, BAG_LAYER_TYPE type, uint8_t* data);
 
@@ -134,6 +134,9 @@ BAG_EXTERNAL BagError bagConvertCryptoFormat(uint8_t* object, bagCryptoObject ob
 BAG_EXTERNAL void bagFreeMetadata(BagMetadata* metadata);
 BAG_EXTERNAL void bagSetHomeFolder(const char* metadataFolder);*/
 
+//TODO
+/*VR* classes */
+//...
 
 #endif // BAG_H
 

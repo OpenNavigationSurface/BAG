@@ -64,8 +64,8 @@ std::unique_ptr<VRMetadata> VRMetadata::create(
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {
-    auto descriptor = VRMetadataDescriptor::create(chunkSize, compressionLevel,
-        dataset);
+    auto descriptor = VRMetadataDescriptor::create(dataset, chunkSize,
+        compressionLevel);
 
     auto h5dataSet = VRMetadata::createH5dataSet(dataset, *descriptor);
 
@@ -122,7 +122,7 @@ VRMetadata::createH5dataSet(
     const auto chunkSize = descriptor.getChunkSize();
 	std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
 
-    auto compressionLevel = descriptor.getCompressionLevel();
+    const auto compressionLevel = descriptor.getCompressionLevel();
 
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
@@ -254,34 +254,34 @@ void VRMetadata::writeAttributesProxy() const
     // Write the attributes from the layer descriptor.
     // min X,Y dimensions
     const auto minDims = descriptor.getMinDimensions();
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minDims), VR_METADATA_MIN_DIMS_X);
 
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<1>(minDims), VR_METADATA_MIN_DIMS_Y);
 
     // max X,Y dimensions
     const auto maxDims = descriptor.getMaxDimensions();
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(maxDims), VR_METADATA_MAX_DIMS_X);
 
-    writeAttribute<uint32_t>(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<1>(maxDims), VR_METADATA_MAX_DIMS_Y);
 
     // min X,Y resolution
     const auto minRes = descriptor.getMinResolution();
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minRes), VR_METADATA_MIN_RES_X);
 
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<1>(minRes), VR_METADATA_MIN_RES_Y);
 
     // max X,Y resolution
     const auto maxRes = descriptor.getMaxResolution();
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(maxRes), VR_METADATA_MAX_RES_X);
 
-    writeAttribute<float>(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<1>(maxRes), VR_METADATA_MAX_RES_Y);
 }
 

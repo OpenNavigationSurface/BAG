@@ -145,9 +145,8 @@ unsigned int getCompressionLevel(
 
         const auto filter = h5pList.getFilter(i, flags, cdNelmts,
             cdValues.data(), nameLen, name.data(), filterConfig);
-        if (filter == H5Z_FILTER_DEFLATE)
-            if (cdNelmts >= 1)
-                return cdValues.front();
+        if (filter == H5Z_FILTER_DEFLATE && cdNelmts >= 1)
+            return cdValues.front();
     }
 
     return 0;
@@ -166,22 +165,22 @@ size_t getH5compSize(
 const ::H5::AtomType& getH5fileType(
     DataType type)
 {
-    static ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};  //FORTRAN_S1
+    static ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};
 
     switch(type)
     {
     case UINT32:
-        return H5::PredType::NATIVE_UINT32;  //STD_U32LE
+        return H5::PredType::NATIVE_UINT32;
     case FLOAT32:
-        return ::H5::PredType::NATIVE_FLOAT;  //IEEE_F32LE
+        return ::H5::PredType::NATIVE_FLOAT;
     case UINT8:
-        return ::H5::PredType::NATIVE_UINT8;  //STD_U8LE
+        return ::H5::PredType::NATIVE_UINT8;
     case UINT16:
-        return ::H5::PredType::NATIVE_UINT16;  //STD_U16LE
+        return ::H5::PredType::NATIVE_UINT16;
     case UINT64:
-        return ::H5::PredType::NATIVE_UINT64;  //STD_U64LE
+        return ::H5::PredType::NATIVE_UINT64;
     case BOOL:
-        return ::H5::PredType::NATIVE_HBOOL;  //STD_U8LE
+        return ::H5::PredType::NATIVE_HBOOL;
     case STRING:
         return strType;
     case COMPOUND:  //[fallthrough]
@@ -225,10 +224,7 @@ const ::H5::AtomType& getH5memoryType(
     const ::H5::PredType& attributeType,
     const char* path)
 {
-    const ::H5::DataSpace kScalarDataSpace{};
-    //TODO Care about size?
-
-    return h5dataSet.createAttribute(path, attributeType, kScalarDataSpace);
+    return h5dataSet.createAttribute(path, attributeType, {});
 }
 
 void createAttributes(
@@ -255,12 +251,33 @@ void writeAttribute(
     att.write(attributeType, &value);
 }
 
-// Explicit template instantiations
+template <typename T>
+void writeAttributes(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    T value,
+    const std::vector<const char*>& paths)
+{
+    for (const auto& path : paths)
+        if (path)
+            writeAttribute(h5dataSet, attributeType, value, path);
+}
+
+
+// Explicit template instantiations.
 template void writeAttribute<float>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, float value, const char* path);
 
 template void writeAttribute<uint32_t>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, uint32_t value, const char* path);
+
+template void writeAttributes<float>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, float value,
+    const std::vector<const char*>& paths);
+
+template void writeAttributes<uint32_t>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, uint32_t value,
+    const std::vector<const char*>& paths);
 
 }  // namespace BAG
 
