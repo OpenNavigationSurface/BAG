@@ -8,13 +8,6 @@
 #include <memory>
 
 
-namespace H5 {
-
-class DataSet;
-class PredType;
-
-}  // namespace H5
-
 namespace BAG {
 
 #ifdef _MSC_VER
@@ -52,22 +45,6 @@ public:
 protected:
     Layer(Dataset& dataset, LayerDescriptor& descriptor);
 
-    struct AttributeInfo
-    {
-        AttributeInfo(const char* inMinName, const char* inMaxName,
-            const char* inPath, const ::H5::PredType& inH5type)
-            : minName(inMinName)
-            , maxName(inMaxName)
-            , path(inPath)
-            , h5type(inH5type)
-        {}
-        const char* minName = nullptr;
-        const char* maxName = nullptr;
-        const char* path = nullptr;
-        const ::H5::PredType& h5type;
-    };
-
-    static AttributeInfo getAttributeInfo(LayerType layerType);
     std::weak_ptr<Dataset> getDataset() & noexcept;
 
 private:

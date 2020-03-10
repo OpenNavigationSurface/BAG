@@ -1,4 +1,5 @@
 
+#include "bag_attributeinfo.h"
 #include "bag_compoundlayer.h"
 #include "bag_compoundlayerdescriptor.h"
 #include "bag_dataset.h"
@@ -411,7 +412,7 @@ std::tuple<bool, float, float> Dataset::getMinMax(
 {
     try
     {
-        const auto info = Layer::getAttributeInfo(type);
+        const auto info = getAttributeInfo(type);
         const auto& thePath = path.empty() ? info.path : path;
 
         return std::make_tuple(true,
