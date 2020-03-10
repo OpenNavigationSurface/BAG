@@ -1477,7 +1477,7 @@ BagError bagImportMetadataFromXmlV1(
     metadata.language = getContentsAsCharStar(*pRoot, "/smXML:MD_Metadata/language");
 
     //gmd:characterSet
-    metadata.characterSet = "eng";
+    metadata.characterSet = copyString("eng");
 
     //gmd:hierarchyLevel
     metadata.hierarchyLevel = copyString("dataset");
