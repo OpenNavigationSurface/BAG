@@ -2,13 +2,17 @@
 #define BAG_INTERLEAVEDLAYER
 
 #include "bag_config.h"
-#include "bag_dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_types.h"
 
 #include <memory>
 
+namespace H5 {
+
+class DataSet;
+
+}  // namespace H5
 
 namespace BAG {
 

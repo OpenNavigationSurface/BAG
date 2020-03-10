@@ -13,6 +13,11 @@
 #pragma warning(disable: 4251)
 #endif
 
+namespace H5 {
+
+class DataSet;
+
+}  // namespace H5
 
 namespace BAG {
 
