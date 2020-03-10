@@ -18,22 +18,22 @@ public:
 
     explicit CompoundDataType(float value) noexcept
         : type(DT_FLOAT32)
-        , f(value)
+        , m_data(value)
     {
     }
     explicit CompoundDataType(uint32_t value) noexcept
         : type(DT_UINT32)
-        , ui32(value)
+        , m_data(value)
     {
     }
     explicit CompoundDataType(bool value) noexcept
         : type(DT_BOOL)
-        , b(value)
+        , m_data(value)
     {
     }
     explicit CompoundDataType(std::string value) noexcept
         : type(DT_STRING)
-        , s(std::move(value))
+        , m_data(std::move(value))
     {
     }
 
@@ -43,16 +43,16 @@ public:
         switch (type)
         {
         case DT_FLOAT32:
-            f = other.f;
+            m_data.m_f = other.m_data.m_f;
             break;
         case DT_UINT32:
-            ui32 = other.ui32;
+            m_data.m_ui32 = other.m_data.m_ui32;
             break;
         case DT_BOOL:
-            b = other.b;
+            m_data.m_b = other.m_data.m_b;
             break;
         case DT_STRING:
-            new(&s) std::string{other.s};
+            new(&m_data.m_s) std::string{other.m_data.m_s};
             break;
         default:
             throw InvalidType{};
@@ -64,16 +64,16 @@ public:
         switch (type)
         {
         case DT_FLOAT32:
-            f = other.f;
+            m_data.m_f = other.m_data.m_f;
             break;
         case DT_UINT32:
-            ui32 = other.ui32;
+            m_data.m_ui32 = other.m_data.m_ui32;
             break;
         case DT_BOOL:
-            b = other.b;
+            m_data.m_b = other.m_data.m_b;
             break;
         case DT_STRING:
-            new(&s) std::string{std::move(other.s)};
+            new(&m_data.m_s) std::string{std::move(other.m_data.m_s)};
             break;
         default:
             throw InvalidType{};
@@ -83,7 +83,7 @@ public:
     ~CompoundDataType() noexcept
     {
         if (type == DT_STRING)
-            s.~basic_string<char>();
+            m_data.m_s.~basic_string<char>();
     }
 
     CompoundDataType& operator=(const CompoundDataType& rhs)
@@ -92,23 +92,23 @@ public:
             return *this;
 
         if (type == DT_STRING && rhs.type == DT_STRING)
-            s = rhs.s;
+            m_data.m_s = rhs.m_data.m_s;
         else if (type == DT_STRING)
-            s.~basic_string<char>();
+            m_data.m_s.~basic_string<char>();
 
         switch (rhs.type)
         {
         case DT_FLOAT32:
-            f = rhs.f;
+            m_data.m_f = rhs.m_data.m_f;
             break;
         case DT_UINT32:
-            ui32 = rhs.ui32;
+            m_data.m_ui32 = rhs.m_data.m_ui32;
             break;
         case DT_BOOL:
-            b = rhs.b;
+            m_data.m_b = rhs.m_data.m_b;
             break;
         case DT_STRING:
-            new(&s) std::string{rhs.s};
+            new(&m_data.m_s) std::string{rhs.m_data.m_s};
             break;
         default:
             throw InvalidType{};
@@ -121,23 +121,23 @@ public:
     CompoundDataType& operator=(CompoundDataType&& rhs)
     {
         if (type == DT_STRING && rhs.type == DT_STRING)
-            s = std::move(rhs.s);
+            m_data.m_s = std::move(rhs.m_data.m_s);
         else if (type == DT_STRING)
-            s.~basic_string<char>();
+            m_data.m_s.~basic_string<char>();
 
         switch (rhs.type)
         {
         case DT_FLOAT32:
-            f = rhs.f;
+            m_data.m_f = rhs.m_data.m_f;
             break;
         case DT_UINT32:
-            ui32 = rhs.ui32;
+            m_data.m_ui32 = rhs.m_data.m_ui32;
             break;
         case DT_BOOL:
-            b = rhs.b;
+            m_data.m_b = rhs.m_data.m_b;
             break;
         case DT_STRING:
-            new(&s) std::string{rhs.s};
+            new(&m_data.m_s) std::string{rhs.m_data.m_s};
             break;
         default:
             throw InvalidType{};
@@ -150,41 +150,41 @@ public:
     CompoundDataType& operator=(float rhs) noexcept
     {
         if (type == DT_STRING)
-            s.~basic_string<char>();
+            m_data.m_s.~basic_string<char>();
 
         type = DT_FLOAT32;
-        f = rhs;
+        m_data.m_f = rhs;
 
         return *this;
     }
     CompoundDataType& operator=(uint32_t rhs) noexcept
     {
         if (type == DT_STRING)
-            s.~basic_string<char>();
+            m_data.m_s.~basic_string<char>();
 
         type = DT_UINT32;
-        ui32 = rhs;
+        m_data.m_ui32 = rhs;
 
         return *this;
     }
     CompoundDataType& operator=(bool rhs) noexcept
     {
         if (type == DT_STRING)
-            s.~basic_string<char>();
+            m_data.m_s.~basic_string<char>();
 
         type = DT_BOOL;
-        b = rhs;
+        m_data.m_b = rhs;
 
         return *this;
     }
     CompoundDataType& operator=(std::string rhs) noexcept
     {
         if (type == DT_STRING)
-            s = rhs;
+            m_data.m_s = rhs;
         else
         {
             type = DT_STRING;
-            new(&s) std::string{std::move(rhs)};
+            new(&m_data.m_s) std::string{std::move(rhs)};
         }
 
         return *this;
@@ -198,13 +198,13 @@ public:
         switch (this->type)
         {
         case DT_FLOAT32:
-            return f == rhs.f;
+            return m_data.m_f == rhs.m_data.m_f;
         case DT_UINT32:
-            return ui32 == rhs.ui32;
+            return m_data.m_ui32 == rhs.m_data.m_ui32;
         case DT_BOOL:
-            return b == rhs.b;
+            return m_data.m_b == rhs.m_data.m_b;
         case DT_STRING:
-            return s == rhs.s;
+            return m_data.m_s == rhs.m_data.m_s;
         default:
             return false;
         }
@@ -214,31 +214,31 @@ public:
     {
         if (type != DT_FLOAT32) throw InvalidType{};
 
-        return f;
+        return m_data.m_f;
     }
     uint32_t asUInt32() const
     {
         if (type != DT_UINT32) throw InvalidType{};
 
-        return ui32;
+        return m_data.m_ui32;
     }
     bool asBool() const
     {
         if (type != DT_BOOL) throw InvalidType{};
 
-        return b;
+        return m_data.m_b;
     }
     const std::string& asString() const &
     {
         if (type != DT_STRING) throw InvalidType{};
 
-        return s;
+        return m_data.m_s;
     }
     std::string& asString() &
     {
         if (type != DT_STRING) throw InvalidType{};
 
-        return s;
+        return m_data.m_s;
     }
 
     DataType getType() const noexcept
@@ -247,12 +247,19 @@ public:
     }
 
 private:
-    union {
-        float f;
-        uint32_t ui32;
-        bool b;
-        std::string s;
-    };
+    union data {
+        data(): m_b(false) {}
+        data(float f): m_f(f) {}
+        data(uint32_t ui32): m_ui32(ui32) {}
+        data(bool b): m_b(b) {}
+        data(std::string s): m_s(s) {}
+        ~data() {}
+
+        float m_f;
+        uint32_t m_ui32;
+        bool m_b;
+        std::string m_s;
+    } m_data;
 
     DataType type = DT_UNKNOWN_DATA_TYPE;
 };
