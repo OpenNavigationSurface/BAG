@@ -1,4 +1,5 @@
 
+#include "bag_attributeinfo.h"
 #include "bag_private.h"
 #include "bag_simplelayer.h"
 #include "bag_simplelayerdescriptor.h"
@@ -96,7 +97,7 @@ SimpleLayer::createH5dataSet(
         DeleteH5dataSet{});
 
     // Create any attributes.
-    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
 
     const ::H5::DataSpace minElevDataSpace{};
     const auto minElevAtt = pH5dataSet->createAttribute(attInfo.minName,
@@ -149,7 +150,7 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
 void SimpleLayer::writeAttributesProxy() const
 {
     const auto& descriptor = this->getDescriptor();
-    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
 
     // Write any attributes, from the layer descriptor.
     // min value
@@ -194,7 +195,7 @@ void SimpleLayer::writeProxy(
 
     // Update min/max attributes
     auto& descriptor = this->getDescriptor();
-    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
     float min = 0.f, max = 0.f;
 
     if (attInfo.h5type == ::H5::PredType::NATIVE_FLOAT)

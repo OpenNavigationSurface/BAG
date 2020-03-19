@@ -9,15 +9,13 @@
 #include <string>
 
 
-namespace H5
-{
+namespace H5 {
 
 class DataSet;
 
-}
+}  // namespace H5
 
-namespace BAG
-{
+namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)

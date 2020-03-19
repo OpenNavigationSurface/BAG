@@ -1,8 +1,5 @@
 
-#include "bag_dataset.h"
-#include "bag_exceptions.h"
 #include "bag_private.h"
-#include "bag_trackinglist.h"
 
 #include <array>
 #include <H5Cpp.h>

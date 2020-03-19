@@ -57,7 +57,7 @@ private:
     uint8_t getElementSizeProxy() const noexcept override;
 
     //! The data type (depends on layer type).
-    DataType m_dataType = UNKNOWN_DATA_TYPE;
+    DataType m_dataType = DT_UNKNOWN_DATA_TYPE;
     //! The type of surface this correction applies to.
     BAG_SURFACE_CORRECTION_TOPOGRAPHY m_surfaceType = BAG_SURFACE_UNKNOWN;
     //! The size of a single "element" in the hdf5 file.

@@ -66,7 +66,7 @@ find_package(Catch2 REQUIRED)
 
 target_link_libraries(bag_tests
     PRIVATE
-        bag
+        baglib
         ${HDF5_hdf5_LIBRARY}
         ${HDF5_hdf5_cpp_LIBRARY}
         Catch2::Catch2

@@ -42,7 +42,7 @@ std::shared_ptr<VRRefinementDescriptor> VRRefinementDescriptor::open(
 
 DataType VRRefinementDescriptor::getDataTypeProxy() const noexcept
 {
-    return COMPOUND;
+    return DT_COMPOUND;
 }
 
 uint8_t VRRefinementDescriptor::getElementSizeProxy() const noexcept

@@ -9,6 +9,12 @@
 #include <vector>
 
 
+namespace H5 {
+
+class DataSet;
+
+}  // namespace H5
+
 namespace BAG {
 
 #ifdef _MSC_VER

@@ -42,7 +42,7 @@ std::shared_ptr<VRMetadataDescriptor> VRMetadataDescriptor::open(
 
 DataType VRMetadataDescriptor::getDataTypeProxy() const noexcept
 {
-    return COMPOUND;
+    return DT_COMPOUND;
 }
 
 uint8_t VRMetadataDescriptor::getElementSizeProxy() const noexcept

@@ -169,22 +169,22 @@ const ::H5::AtomType& getH5fileType(
 
     switch(type)
     {
-    case UINT32:
+    case DT_UINT32:
         return H5::PredType::NATIVE_UINT32;
-    case FLOAT32:
+    case DT_FLOAT32:
         return ::H5::PredType::NATIVE_FLOAT;
-    case UINT8:
+    case DT_UINT8:
         return ::H5::PredType::NATIVE_UINT8;
-    case UINT16:
+    case DT_UINT16:
         return ::H5::PredType::NATIVE_UINT16;
-    case UINT64:
+    case DT_UINT64:
         return ::H5::PredType::NATIVE_UINT64;
-    case BOOL:
+    case DT_BOOL:
         return ::H5::PredType::NATIVE_HBOOL;
-    case STRING:
+    case DT_STRING:
         return strType;
-    case COMPOUND:  //[fallthrough]
-    case UNKNOWN_DATA_TYPE:  //[fallthrough]
+    case DT_COMPOUND:  //[fallthrough]
+    case DT_UNKNOWN_DATA_TYPE:  //[fallthrough]
     default:
         throw UnsupportedDataType{};
     }
@@ -198,22 +198,22 @@ const ::H5::AtomType& getH5memoryType(
 
     switch(type)
     {
-    case UINT32:
+    case DT_UINT32:
         return H5::PredType::NATIVE_UINT32;
-    case FLOAT32:
+    case DT_FLOAT32:
         return ::H5::PredType::NATIVE_FLOAT;
-    case UINT8:
+    case DT_UINT8:
         return ::H5::PredType::NATIVE_UINT8;
-    case UINT16:
+    case DT_UINT16:
         return ::H5::PredType::NATIVE_UINT16;
-    case UINT64:
+    case DT_UINT64:
         return ::H5::PredType::NATIVE_UINT64;
-    case BOOL:
+    case DT_BOOL:
         return ::H5::PredType::NATIVE_HBOOL;
-    case STRING:
+    case DT_STRING:
         return strType;
-    case COMPOUND:  //[fallthrough]
-    case UNKNOWN_DATA_TYPE:  //[fallthrough]
+    case DT_COMPOUND:  //[fallthrough]
+    case DT_UNKNOWN_DATA_TYPE:  //[fallthrough]
     default:
         throw UnsupportedDataType{};
     }

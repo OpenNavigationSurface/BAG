@@ -11,6 +11,11 @@
 #include <memory>
 #include <string>
 
+namespace H5 {
+
+class DataSet;
+
+}  // namespace H5
 
 namespace BAG {
 

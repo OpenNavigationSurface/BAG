@@ -261,7 +261,7 @@ struct BagMetadata
     //! Contents of the gmd:characterSet node.
     //! See codelist for appropriate values. (http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode)
     //! Required
-    const char* characterSet;
+    char* characterSet;
     //! Contents of the gmd:hierarchyLevel node.
     //! See codelist for appropriate values. (http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode)
     //! Required
