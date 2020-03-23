@@ -9,6 +9,7 @@
 %{
 #include "bag_valuetable.h"
 %}
+
 #define final
 
 namespace BAG
@@ -16,8 +17,7 @@ namespace BAG
 class CompoundLayer;
 }
 
-
 %import "bag_config.h"
-%import "bag_compounddatatype.h"
+%import "bag_compounddatatype.i"
 %include "bag_valuetable.h"
 

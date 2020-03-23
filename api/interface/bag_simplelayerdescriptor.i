@@ -6,14 +6,13 @@
 
 %module bag_simplelayerdescriptor
 
-%include <std_shared_ptr.i>
-%shared_ptr(BAG::SimpleLayerDescriptor)
-
 %{
 #include "bag_simplelayerdescriptor.h"
 %}
 
-#define final
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::SimpleLayerDescriptor)
 
+#define final
 %import "bag_layerdescriptor.i"
 %include "bag_simplelayerdescriptor.h"

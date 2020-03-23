@@ -10,47 +10,69 @@
 #include "bag_trackinglist.h"
 %}
 
+namespace H5
+{
+    class DataSet;
+}
+
 #define final
-
 %import "bag_config.h"
-%include "bag_trackinglist.h"
 
+namespace BAG
+{
+class Dataset;
 
-//namespace H5
-//{
-//class DataSet;
-//}
-//namespace BAG
-//{
-//class Dataset;
-//}
+class BAG_API TrackingList final
+{
+public:
+    using value_type = TrackingItem;
+    using iterator = std::vector<value_type>::iterator;
+    using const_iterator = std::vector<value_type>::const_iterator;
+    using reference = value_type&;
+    using const_reference = const value_type&;
 
+    //TODO Temp, make sure only move operations are used until development is done.
+    TrackingList(const TrackingList&) = delete;
+    TrackingList(TrackingList&&) = delete;
+    TrackingList& operator=(const TrackingList&) = delete;
+    TrackingList& operator=(TrackingList&&) = delete;
 
-//%include "std_unique_ptr.i"
-//wrap_unique_ptr(H5DataUniquePtr, H5::DataSet);
+    iterator begin() & noexcept;
+    %ignore begin() const &;
+    iterator end() & noexcept;
+    %ignore end() const &;
+    const_iterator cbegin() const & noexcept;
+    const_iterator cend() const & noexcept;
 
-/*
-need to enable -builtin to get these working correctly?
+    void clear() noexcept;
+    %ignore push_back(const value_type& value);
+    void push_back(value_type&& value);
+    template <typename... Args>
+    void emplace_back(Args&&... args) &;
+        
+    reference front() &;
+    %ignore front() const &;
+    reference back() &;
+    %ignore back() const &;
+    void reserve(size_t newCapacity);
+    void resize(size_t count);
+    value_type* data() & noexcept;
+    %ignore data() const &;
 
-also need to extend/rename overriden push_back methods
-*/
+    bool empty() const noexcept;
+    size_t size() const noexcept;
+        
+    %rename(__getitem__) operator[];
+    %ignore operator[] const &;
 
-//swig cannot distinguish between const/non-const. 
-//either use %ignore or %rename/extend to handle differently
+    void write() const;
+};
+}
 
-//%rename(__getitem__) operator[] &;
-//%rename(__getitem__) operator[] const &;
-
-//%extend BAG::TrackingList {
-//    const_reference __getitem__(size_t index) const & {
-//        return (*($self))[index];
-//    }
-//}
-//%extend BAG::TrackingList {
-//    reference __getitem__(size_t index) & {
-//        return (*($self))[index];
-//    }
-//}
-
-
-
+%extend BAG::TrackingList
+{
+    BAG::TrackingList::reference __getitem__(size_t index)
+    {
+        return (*($self))[index];
+    }
+}
