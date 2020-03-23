@@ -4,6 +4,7 @@
 #include "bag_config.h"
 #include "bag_fordec.h"
 #include "bag_types.h"
+#include "bag_uintarray.h"
 
 #include <memory>
 
@@ -34,7 +35,7 @@ public:
     LayerDescriptor& getDescriptor() & noexcept;
     const LayerDescriptor& getDescriptor() const & noexcept;
 
-    std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
+    std::unique_ptr<UintArray> read(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 
     void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
@@ -48,7 +49,7 @@ protected:
     std::weak_ptr<Dataset> getDataset() & noexcept;
 
 private:
-    virtual std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
+    virtual std::unique_ptr<UintArray> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const = 0;
 
     virtual void writeProxy(uint32_t rowStart, uint32_t columnStart,

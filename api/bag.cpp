@@ -44,7 +44,7 @@ BagError bagFileOpen(
 
     *handle = new BagHandle{};
 
-    (*handle)->pDataset = BAG::Dataset::open(std::string{fileName}, accessMode);
+    (*handle)->pDataset = BAG::Dataset::read(std::string{fileName}, accessMode);
 
     return 0;
 }
@@ -262,7 +262,7 @@ BagError bagRead(
     x;
     y;
 
-    *data = buffer.release();
+    *data = buffer.release()->m_intlist;
 
     return 0;
 }

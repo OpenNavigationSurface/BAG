@@ -23,7 +23,7 @@ public:
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrections,
         uint64_t chunkSize, unsigned int compressionLevel,
         const Dataset& dataset);
-    static std::shared_ptr<SurfaceCorrectionsDescriptor> open(
+    static std::shared_ptr<SurfaceCorrectionsDescriptor> read(
         const Dataset& dataset);
 
     //TODO Temp, make sure only move operations are used until development is done.

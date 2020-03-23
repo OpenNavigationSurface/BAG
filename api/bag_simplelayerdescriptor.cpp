@@ -37,7 +37,7 @@ std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
         compressionLevel});
 }
 
-std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::open(
+std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::read(
     LayerType type,
     const Dataset& dataset)
 {

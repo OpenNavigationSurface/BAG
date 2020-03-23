@@ -41,7 +41,7 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
             chunkSize, compressionLevel, dataset});
 }
 
-std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
+std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::read(
     const std::string& name,
     Dataset& dataset)
 {

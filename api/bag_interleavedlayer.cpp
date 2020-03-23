@@ -37,7 +37,7 @@ InterleavedLayer::InterleavedLayer(
 {
 }
 
-std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
+std::unique_ptr<InterleavedLayer> InterleavedLayer::read(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor)
 {
@@ -58,7 +58,7 @@ std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
 }
 
 
-std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
+std::unique_ptr<UintArray> InterleavedLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -81,7 +81,7 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
 
     // Initialize the output buffer.
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UintArray>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
@@ -90,7 +90,7 @@ std::unique_ptr<uint8_t[]> InterleavedLayer::readProxy(
     const auto h5dataType = createH5compType(descriptor.getLayerType(),
         descriptor.getGroupType());
 
-    m_pH5dataSet->read(buffer.get(), h5dataType, h5memSpace, h5fileSpace);
+    m_pH5dataSet->read(buffer.get()->m_intlist, h5dataType, h5memSpace, h5fileSpace);
 
     return buffer;
 }
@@ -108,11 +108,6 @@ void InterleavedLayer::writeProxy(
 void InterleavedLayer::writeAttributesProxy() const
 {
     // Writing Interleaved layers not supported.
-}
-
-void InterleavedLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
 }
 
 }   //namespace BAG

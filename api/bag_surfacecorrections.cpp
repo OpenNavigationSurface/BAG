@@ -76,7 +76,7 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
         *descriptor, std::move(h5dataSet)});
 }
 
-std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
+std::unique_ptr<SurfaceCorrections> SurfaceCorrections::read(
     Dataset& dataset,
     SurfaceCorrectionsDescriptor& descriptor)
 {
@@ -90,7 +90,7 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
 }
 
 
-std::unique_ptr<::H5::DataSet, SurfaceCorrections::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SurfaceCorrections::createH5dataSet(
     const Dataset& dataset,
     const SurfaceCorrectionsDescriptor& descriptor)
@@ -121,7 +121,7 @@ SurfaceCorrections::createH5dataSet(
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    auto zeroData = std::make_unique<uint8_t[]>(descriptor.getElementSize());
+    auto zeroData = std::make_unique<UintArray>(descriptor.getElementSize());
     memset(zeroData.get(), 0, descriptor.getElementSize());
     h5createPropList.setFillValue(h5memDataType, zeroData.get());
 
@@ -178,7 +178,7 @@ const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
     return *m_pH5dataSet;
 }
 
-std::unique_ptr<uint8_t[]> SurfaceCorrections::readProxy(
+std::unique_ptr<UintArray> SurfaceCorrections::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -201,13 +201,13 @@ std::unique_ptr<uint8_t[]> SurfaceCorrections::readProxy(
         static_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UintArray>(bufferSize);
 
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    m_pH5dataSet->read(buffer.get(), h5memDataType, h5memSpace, h5fileDataSpace);
+    m_pH5dataSet->read(buffer.get()->m_intlist, h5memDataType, h5memSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -309,11 +309,6 @@ void SurfaceCorrections::writeAttributesProxy() const
         att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSY);
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(spacing));
     }
-}
-
-void SurfaceCorrections::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
 }
 
 }   //namespace BAG

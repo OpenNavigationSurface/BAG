@@ -22,7 +22,7 @@ public:
     static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
         uint64_t chunkSize, unsigned int compressionLevel,
         const Dataset& dataset);
-    static std::shared_ptr<SimpleLayerDescriptor> open(LayerType type,
+    static std::shared_ptr<SimpleLayerDescriptor> read(LayerType type,
         const Dataset& dataset);
 
     //TODO Temp, make sure only move operations are used until development is done.

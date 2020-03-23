@@ -125,7 +125,7 @@ SurfaceCorrectionsDescriptor::create(
 }
 
 std::shared_ptr<SurfaceCorrectionsDescriptor>
-SurfaceCorrectionsDescriptor::open(
+SurfaceCorrectionsDescriptor::read(
     const Dataset& dataset)
 {
     return std::shared_ptr<SurfaceCorrectionsDescriptor>(

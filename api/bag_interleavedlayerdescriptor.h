@@ -20,7 +20,7 @@ public:
     static std::shared_ptr<InterleavedLayerDescriptor> create(
         LayerType layerType, GroupType groupType, uint64_t chunkSize,
         unsigned int compressionLevel, const Dataset& dataset);
-    static std::shared_ptr<InterleavedLayerDescriptor> open(
+    static std::shared_ptr<InterleavedLayerDescriptor> read(
         LayerType layerType, GroupType groupType, const Dataset& dataset);
 
     //TODO Temp, make sure only move operations are used until development is done.

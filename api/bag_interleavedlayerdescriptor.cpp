@@ -55,7 +55,7 @@ std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
             groupType, chunkSize, compressionLevel});
 }
 
-std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::open(
+std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::read(
     LayerType layerType,
     GroupType groupType,
     const Dataset& dataset)

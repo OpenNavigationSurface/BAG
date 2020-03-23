@@ -147,7 +147,7 @@ std::string readStringAttributeFromGroup(
 
 }  // namespace
 
-std::shared_ptr<Dataset> Dataset::open(
+std::shared_ptr<Dataset> Dataset::read(
     const std::string& fileName,
     OpenMode openMode)
 {
@@ -514,8 +514,8 @@ void Dataset::readDataset(
 
         H5Dclose(id);
 
-        auto layerDesc = SimpleLayerDescriptor::open(layerType, *this);
-        this->addLayer(SimpleLayer::open(*this, *layerDesc));
+        auto layerDesc = SimpleLayerDescriptor::read(layerType, *this);
+        this->addLayer(SimpleLayer::read(*this, *layerDesc));
     }
 
     const auto bagVersion = getNumericalVersion(m_descriptor.getVersion());
@@ -529,14 +529,14 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Hypothesis_Strength
-            auto layerDesc = InterleavedLayerDescriptor::open(
+            auto layerDesc = InterleavedLayerDescriptor::read(
                 Hypothesis_Strength, NODE, *this);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLayer::read(*this, *layerDesc));
 
             // Num_Hypotheses
-            layerDesc = InterleavedLayerDescriptor::open(Num_Hypotheses, NODE,
+            layerDesc = InterleavedLayerDescriptor::read(Num_Hypotheses, NODE,
                 *this);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLayer::read(*this, *layerDesc));
         }
 
         id = H5Dopen2(bagGroup.getLocId(), ELEVATION_SOLUTION_GROUP_PATH, H5P_DEFAULT);
@@ -545,20 +545,20 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Shoal_Elevation
-            auto layerDesc = InterleavedLayerDescriptor::open(Shoal_Elevation,
+            auto layerDesc = InterleavedLayerDescriptor::read(Shoal_Elevation,
                 ELEVATION, *this);
 
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLayer::read(*this, *layerDesc));
 
             // Std_Dev
-            layerDesc = InterleavedLayerDescriptor::open(Std_Dev, ELEVATION,
+            layerDesc = InterleavedLayerDescriptor::read(Std_Dev, ELEVATION,
                 *this);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLayer::read(*this, *layerDesc));
 
             // Num_Soundings
-            layerDesc = InterleavedLayerDescriptor::open(Num_Soundings,
+            layerDesc = InterleavedLayerDescriptor::read(Num_Soundings,
                 ELEVATION, *this);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLayer::read(*this, *layerDesc));
         }
     }
 
@@ -589,8 +589,8 @@ void Dataset::readDataset(
                         (foundPos == (name.length() - kRecordsLen)))
                         continue;
 
-                    auto descriptor = CompoundLayerDescriptor::open(name, *this);
-                    this->addLayer(CompoundLayer::open(*this, *descriptor));
+                    auto descriptor = CompoundLayerDescriptor::read(name, *this);
+                    this->addLayer(CompoundLayer::read(*this, *descriptor));
                 }
                 catch(...)
                 {}
@@ -605,8 +605,8 @@ void Dataset::readDataset(
     {
         H5Dclose(id);
 
-        auto descriptor = SurfaceCorrectionsDescriptor::open(*this);
-        this->addLayer(SurfaceCorrections::open(*this, *descriptor));
+        auto descriptor = SurfaceCorrectionsDescriptor::read(*this);
+        this->addLayer(SurfaceCorrections::read(*this, *descriptor));
     }
 }
 

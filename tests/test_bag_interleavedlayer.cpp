@@ -13,7 +13,7 @@
 using BAG::Dataset;
 using BAG::Layer;
 
-//  virtual std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
+//  virtual std::unique_ptr<UintArray> read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read]")
 {
