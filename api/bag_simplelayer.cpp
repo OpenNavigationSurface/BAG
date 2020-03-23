@@ -53,7 +53,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
 }
 
 
-std::unique_ptr<::H5::DataSet, SimpleLayer::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SimpleLayer::createH5dataSet(
     const Dataset& dataset,
     const SimpleLayerDescriptor& descriptor)
@@ -117,7 +117,7 @@ SimpleLayer::createH5dataSet(
     return pH5dataSet;
 }
 
-std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
+std::unique_ptr<UInt8Array> SimpleLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -136,12 +136,12 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
         columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
-    m_pH5dataSet->read(buffer.get(), H5Dget_type(m_pH5dataSet->getId()),
+    m_pH5dataSet->read(buffer->get(), H5Dget_type(m_pH5dataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;
@@ -229,10 +229,5 @@ void SimpleLayer::writeProxy(
     descriptor.setMinMax(std::min(currentMin, min), std::max(currentMax, max));
 }
 
-void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
-
-}  // namespace BAG
+}   //namespace BAG
 

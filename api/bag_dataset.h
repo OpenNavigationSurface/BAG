@@ -36,7 +36,10 @@ namespace BAG {
 
 constexpr static uint32_t kInvalidId = std::numeric_limits<uint32_t>::max();
 
-class BAG_API Dataset final : public std::enable_shared_from_this<Dataset>
+class BAG_API Dataset final
+#ifndef SWIG
+    : public std::enable_shared_from_this<Dataset>
+#endif
 {
 public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,

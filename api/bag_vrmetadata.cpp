@@ -160,7 +160,7 @@ VRMetadata::createH5dataSet(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
-std::unique_ptr<uint8_t[]> VRMetadata::readProxy(
+std::unique_ptr<UInt8Array> VRMetadata::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -182,13 +182,13 @@ std::unique_ptr<uint8_t[]> VRMetadata::readProxy(
         dynamic_cast<const VRMetadataDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     const ::H5::DataSpace memDataSpace{RANK, count.data(), count.data()};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer.get(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer->get(), memDataType, memDataSpace, fileDataSpace);
 
     return buffer;
 }

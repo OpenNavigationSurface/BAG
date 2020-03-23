@@ -11,6 +11,7 @@ set(BAG_SOURCE_FILES
     bag_compoundlayer.cpp
     bag_compoundlayerdescriptor.cpp
     bag_dataset.cpp
+    bag_deleteh5dataset.cpp
     bag_descriptor.cpp
     bag_hdfhelper.cpp
     bag_interleavedlayer.cpp
@@ -51,6 +52,7 @@ set(BAG_HEADER_FILES
     bag_compoundlayerdescriptor.h
     bag_config.h
     bag_dataset.h
+    bag_deleteh5dataset.h
     bag_descriptor.h
     bag_errors.h
     bag_exceptions.h
@@ -78,6 +80,7 @@ set(BAG_HEADER_FILES
     bag_vrrefinementdescriptor.h
     bag_vrtrackinglist.h
     bag_types.h
+    bag_uint8array.h
     bag_valuetable.h
     bag_version.h
 )
@@ -156,6 +159,16 @@ if(BUILD_PYTHON)
         bag_interleavedlayerdescriptor
         bag_simplelayerdescriptor
         bag_surfacecorrectionsdescriptor
+        bag_trackinglist
+        bag_compounddatatype
+        bag_valuetable
+        bag_layer
+        bag_simplelayer
+        bag_interleavedlayer
+        bag_surfacecorrections
+        bag_compoundlayer
+        bag_compoundlayerdescriptor
+        bag_dataset
 
 
         ## temp disabled to avoid warnings:

@@ -179,7 +179,7 @@ const ::H5::AtomType& getH5fileType(
         return ::H5::PredType::NATIVE_UINT16;
     case DT_UINT64:
         return ::H5::PredType::NATIVE_UINT64;
-    case DT_BOOL:
+    case DT_BOOLEAN:
         return ::H5::PredType::NATIVE_HBOOL;
     case DT_STRING:
         return strType;
@@ -208,7 +208,7 @@ const ::H5::AtomType& getH5memoryType(
         return ::H5::PredType::NATIVE_UINT16;
     case DT_UINT64:
         return ::H5::PredType::NATIVE_UINT64;
-    case DT_BOOL:
+    case DT_BOOLEAN:
         return ::H5::PredType::NATIVE_HBOOL;
     case DT_STRING:
         return strType;

@@ -187,10 +187,6 @@ void Metadata::write() const
     m_pH5dataSet->write(buffer, ::H5::PredType::C_S1, h5dataSpace);
 }
 
-void Metadata::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
+}   //namespace BAG
 
-}  // namespace BAG
 

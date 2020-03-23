@@ -97,7 +97,7 @@ TEST_CASE("test compound data type assignment operators",
         UNSCOPED_INFO("Check using the assignment operator with a bool sets the type as expected");
         constexpr bool kExpectedValue = false;
         cdt = kExpectedValue;
-        CHECK(cdt.getType() == DT_BOOL);
+        CHECK(cdt.getType() == DT_BOOLEAN);
 
         UNSCOPED_INFO("Check getting the bool value via BAG::get() works.");
         CHECK(BAG::get<bool>(cdt) == kExpectedValue);

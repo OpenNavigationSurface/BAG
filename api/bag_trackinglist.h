@@ -4,6 +4,7 @@
 #include "bag_config.h"
 #include "bag_fordec.h"
 #include "bag_types.h"
+#include "bag_deleteh5dataset.h"
 
 #include <memory>
 #include <vector>
@@ -70,11 +71,6 @@ protected:
     TrackingList(const Dataset& dataset, unsigned int compressionLevel);
 
 private:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
 
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> createH5dataSet(
         unsigned int compressionLevel);

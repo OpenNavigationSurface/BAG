@@ -118,8 +118,8 @@ VRRefinement::createH5dataSet(
 
     const auto memDataType = makeDataType();
 
-    auto zeroData = std::make_unique<uint8_t[]>(descriptor.getElementSize());
-    memset(zeroData.get(), 0, descriptor.getElementSize());
+    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
+    memset(zeroData->get(), 0, descriptor.getElementSize());
     h5createPropList.setFillValue(memDataType, zeroData.get());
 
     // Create the DataSet using the above.
@@ -138,7 +138,7 @@ VRRefinement::createH5dataSet(
 }
 
 //! Ignore rows since the data is 1 dimensional.
-std::unique_ptr<uint8_t[]> VRRefinement::readProxy(
+std::unique_ptr<UInt8Array> VRRefinement::readProxy(
     uint32_t /*rowStart*/,
     uint32_t columnStart,
     uint32_t /*rowEnd*/,
@@ -159,13 +159,13 @@ std::unique_ptr<uint8_t[]> VRRefinement::readProxy(
 
     const auto bufferSize = descriptor.getReadBufferSize(1,
         static_cast<uint32_t>(columns));
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     const ::H5::DataSpace memDataSpace{1, &columns, &columns};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer.get(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer->get(), memDataType, memDataSpace, fileDataSpace);
 
     return buffer;
 }

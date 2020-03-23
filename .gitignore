@@ -22,6 +22,7 @@ lib/
 installed/
 api/Debug
 api/Release
+api/swig_wrapper/
 examples/Debug
 examples/Release
 

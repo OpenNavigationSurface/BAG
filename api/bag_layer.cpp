@@ -68,7 +68,7 @@ uint8_t Layer::getElementSize(DataType type)
         return sizeof(uint16_t);
     case DT_UINT64:
         return sizeof(uint64_t);
-    case DT_BOOL:
+    case DT_BOOLEAN:
         return sizeof(bool);
     case DT_STRING:
         return sizeof(char*);
@@ -121,7 +121,7 @@ std::string Layer::getInternalPath(
     }
 }
 
-std::unique_ptr<uint8_t[]> Layer::read(
+std::unique_ptr<UInt8Array> Layer::read(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,

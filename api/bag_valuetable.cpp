@@ -36,7 +36,7 @@ Record convertMemoryToRecord(
 
         switch(fieldType)
         {
-        case DT_BOOL:
+        case DT_BOOLEAN:
             value = *reinterpret_cast<const bool*>(buffer + fieldOffset);
             break;
         case DT_FLOAT32:
@@ -84,7 +84,7 @@ void convertRecordToMemory(
         const auto fieldType = field.getType();
         switch(fieldType)
         {
-        case DT_BOOL:
+        case DT_BOOLEAN:
             *reinterpret_cast<bool*>(buffer + fieldOffset) = field.asBool();
             break;
         case DT_FLOAT32:

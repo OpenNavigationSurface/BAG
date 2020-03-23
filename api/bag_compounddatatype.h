@@ -27,7 +27,7 @@ public:
     {
     }
     explicit CompoundDataType(bool value) noexcept
-        : type(DT_BOOL)
+        : type(DT_BOOLEAN)
         , m_data(value)
     {
     }
@@ -48,7 +48,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = other.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = other.m_data.m_b;
             break;
         case DT_STRING:
@@ -69,7 +69,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = other.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = other.m_data.m_b;
             break;
         case DT_STRING:
@@ -105,7 +105,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = rhs.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = rhs.m_data.m_b;
             break;
         case DT_STRING:
@@ -135,7 +135,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = rhs.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = rhs.m_data.m_b;
             break;
         case DT_STRING:
@@ -174,7 +174,7 @@ public:
         if (type == DT_STRING)
             m_data.m_s.~basic_string<char>();
 
-        type = DT_BOOL;
+        type = DT_BOOLEAN;
         m_data.m_b = rhs;
 
         return *this;
@@ -203,7 +203,7 @@ public:
             return m_data.m_f == rhs.m_data.m_f;
         case DT_UINT32:
             return m_data.m_ui32 == rhs.m_data.m_ui32;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             return m_data.m_b == rhs.m_data.m_b;
         case DT_STRING:
             return m_data.m_s == rhs.m_data.m_s;
@@ -228,7 +228,7 @@ public:
     }
     bool asBool() const
     {
-        if (type != DT_BOOL)
+        if (type != DT_BOOLEAN)
             throw InvalidType{};
 
         return m_data.m_b;

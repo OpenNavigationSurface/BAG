@@ -38,3 +38,4 @@ AttributeInfo getAttributeInfo(LayerType layerType);
 
 #endif  //BAG_ATTRIBUTEINFO_H
 
+

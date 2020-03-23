@@ -134,7 +134,7 @@ const TrackingList::value_type* TrackingList::data() const & noexcept
     return m_items.data();
 }
 
-std::unique_ptr<::H5::DataSet, TrackingList::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 TrackingList::createH5dataSet(
     unsigned int compressionLevel)
 {
@@ -185,7 +185,7 @@ TrackingList::createH5dataSet(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
-std::unique_ptr<::H5::DataSet, TrackingList::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 TrackingList::openH5dataSet()
 {
     if (m_pBagDataset.expired())
@@ -278,11 +278,6 @@ void TrackingList::write() const
     ::H5::DataSpace h5fileSpace{1, &numItems, &kMaxSize};
 
     m_pH5dataSet->write(m_items.data(), h5type, h5memSpace, h5fileSpace);
-}
-
-void TrackingList::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
 }
 
 }   //namespace BAG

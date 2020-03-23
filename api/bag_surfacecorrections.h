@@ -5,6 +5,7 @@
 #include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_types.h"
+#include "bag_deleteh5dataset.h"
 
 #include <memory>
 
@@ -26,11 +27,6 @@ public:
     SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
 
 protected:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
 
     SurfaceCorrections(Dataset& dataset,
         SurfaceCorrectionsDescriptor& descriptor,
@@ -50,7 +46,7 @@ private:
 
     const ::H5::DataSet& getH5dataSet() const & noexcept;
 
-    std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
+    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart,
