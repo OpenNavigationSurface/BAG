@@ -11,6 +11,7 @@ set(BAG_SOURCE_FILES
     bag_compoundlayer.cpp
     bag_compoundlayerdescriptor.cpp
     bag_dataset.cpp
+    bag_deleteh5dataset.cpp
     bag_descriptor.cpp
     #bag_hdf.c
     bag_hdfhelper.cpp
@@ -50,6 +51,7 @@ set(BAG_HEADER_FILES
     bag_compoundlayerdescriptor.h
     bag_config.h
     bag_dataset.h
+    bag_deleteh5dataset.h
     bag_descriptor.h
     bag_errors.h
     bag_exceptions.h
@@ -72,6 +74,7 @@ set(BAG_HEADER_FILES
     bag_surfacecorrectionsdescriptor.h
     bag_trackinglist.h
     bag_types.h
+    bag_uintarray.h
     bag_valuetable.h
     bag_version.h
     #bag_xml_meta.h
@@ -150,38 +153,26 @@ set(BAG_SWIG_INPUT_FILES
     bag_interleavedlayerdescriptor
     bag_simplelayerdescriptor
     bag_surfacecorrectionsdescriptor
-    
-
-    ## temp disabled to avoid warnings:  
-    # bag_trackinglist      #needs overloaded operator[] and push_back(), etc to be redefined
-    # bag_compounddatatype  #need to handle overloaded operator=
-    # bag_valuetable        #compiles, just needs bag_compounddatatype enabled
-
-    # bag_layer     # need to add support for std::unique_ptr<uint8_t>
-
-
-    ## these need layer:
-    #   bag_compoundlayer
-    #   bag_compoundlayerdescriptor
-    #   bag_interleavedlayer
-    #   bag_simplelayer
-    #   bag_surfacecorrections
-
-    #  bag_dataset         #needs all of the above?
-
+    bag_trackinglist
+    bag_compounddatatype
+    bag_valuetable
+    bag_layer
+    bag_simplelayer
+    bag_interleavedlayer
+    bag_surfacecorrections
+    bag_compoundlayer
+    bag_compoundlayerdescriptor
+    bag_dataset
 
     ## not sure about these?
-    #   #bag_xml_meta
-    #   bag.hdfhelper
     #   bag_legacy_crs
-    #   #bag_metadata_def
-    #   #bag_opt_surfaces
 
     ## these should not be needed:
     #   bag_config
     #   bag_errors
     #   bag_fordec
     #   bag_version
+    #   bag_hdfhelper
 )
 
 # Build Python bindings
