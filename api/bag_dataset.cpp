@@ -696,8 +696,8 @@ void Dataset::readDataset(
                         (foundPos == (name.length() - kRecordsLen)))
                         continue;
 
-                    auto descriptor = CompoundLayerDescriptor::read(name, *this);
-                    this->addLayer(CompoundLayer::read(*this, *descriptor));
+                    auto descriptor = CompoundLayerDescriptor::open(name, *this);
+                    this->addLayer(CompoundLayer::open(*this, *descriptor));
                 }
                 catch(...)
                 {}

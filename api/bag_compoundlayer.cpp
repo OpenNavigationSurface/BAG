@@ -70,7 +70,7 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
     return layer;
 }
 
-std::unique_ptr<CompoundLayer> CompoundLayer::read(
+std::unique_ptr<CompoundLayer> CompoundLayer::open(
     Dataset& dataset,
     CompoundLayerDescriptor& descriptor)
 {
