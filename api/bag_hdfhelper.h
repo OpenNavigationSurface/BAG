@@ -24,24 +24,24 @@ class PredType;
 
 namespace BAG {
 
-BAG_API ::H5::CompType createH5compType(LayerType layerType,
+::H5::CompType createH5compType(LayerType layerType,
     GroupType groupType);
 
-BAG_API ::H5::CompType createH5fileCompType(const RecordDefinition& definition);
+::H5::CompType createH5fileCompType(const RecordDefinition& definition);
 
-BAG_API ::H5::CompType createH5memoryCompType(const RecordDefinition& definition);
+::H5::CompType createH5memoryCompType(const RecordDefinition& definition);
 
-BAG_API uint64_t getChunkSize(const ::H5::H5File& h5file,
+uint64_t getChunkSize(const ::H5::H5File& h5file,
     const std::string& path);
 
-BAG_API unsigned int getCompressionLevel(const ::H5::H5File& h5file,
+unsigned int getCompressionLevel(const ::H5::H5File& h5file,
     const std::string& path);
 
-BAG_API size_t getH5compSize(const RecordDefinition& definition);
+size_t getH5compSize(const RecordDefinition& definition);
 
-BAG_API const ::H5::AtomType& getH5fileType(DataType type);
+const ::H5::AtomType& getH5fileType(DataType type);
 
-BAG_API const ::H5::AtomType& getH5memoryType(DataType type);
+const ::H5::AtomType& getH5memoryType(DataType type);
 
 //! Create attribute on a DataSet.
 ::H5::Attribute createAttribute(const ::H5::DataSet& h5dataSet,
