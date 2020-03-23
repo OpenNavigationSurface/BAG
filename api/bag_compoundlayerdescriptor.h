@@ -24,7 +24,7 @@ public:
         const std::string& name, DataType indexType,
         RecordDefinition definition, uint64_t chunkSize,
         unsigned int compressionLevel, Dataset& dataset);
-    static std::shared_ptr<CompoundLayerDescriptor> read(
+    static std::shared_ptr<CompoundLayerDescriptor> open(
         const std::string& name, Dataset& dataset);
 
     //TODO Temp, make sure only move operations are used until development is done.

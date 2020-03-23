@@ -47,7 +47,7 @@ protected:
         const std::string& name, Dataset& dataset,
         const RecordDefinition& definition, uint64_t chunkSize,
         unsigned int compressionLevel);
-    static std::unique_ptr<CompoundLayer> read(Dataset& dataset,
+    static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
         CompoundLayerDescriptor& descriptor);
 
 private:

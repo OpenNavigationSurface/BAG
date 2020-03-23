@@ -17,10 +17,7 @@
 
 namespace BAG {
 
-class BAG_API LayerDescriptor
-#ifndef SWIG
-    : public std::enable_shared_from_this<LayerDescriptor>
-#endif
+class BAG_API LayerDescriptor : public std::enable_shared_from_this<LayerDescriptor>
 {
 public:
     //TODO Temp, make sure only move operations are used until development is done.
