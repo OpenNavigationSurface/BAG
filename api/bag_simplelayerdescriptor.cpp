@@ -18,31 +18,31 @@ SimpleLayerDescriptor::SimpleLayerDescriptor(
 }
 
 SimpleLayerDescriptor::SimpleLayerDescriptor(
-    LayerType type,
-    const Dataset& dataset)
-    : LayerDescriptor(type, dataset)
+    const Dataset& dataset,
+    LayerType type)
+    : LayerDescriptor(dataset, type)
     , m_dataType(Layer::getDataType(type))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
 {
 }
 
 std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
+    const Dataset& dataset,
     LayerType type,
     uint64_t chunkSize,
-    unsigned int compressionLevel,
-    const Dataset& dataset)
+    unsigned int compressionLevel)
 {
     return std::shared_ptr<SimpleLayerDescriptor>(
         new SimpleLayerDescriptor{dataset.getNextId(), type, chunkSize,
         compressionLevel});
 }
 
-std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::read(
-    LayerType type,
-    const Dataset& dataset)
+std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::open(
+    const Dataset& dataset,
+    LayerType type)
 {
     return std::shared_ptr<SimpleLayerDescriptor>(
-        new SimpleLayerDescriptor{type, dataset});
+        new SimpleLayerDescriptor{dataset, type});
 }
 
 

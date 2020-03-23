@@ -13,7 +13,6 @@ set(BAG_SOURCE_FILES
     bag_dataset.cpp
     bag_deleteh5dataset.cpp
     bag_descriptor.cpp
-    #bag_hdf.c
     bag_hdfhelper.cpp
     bag_interleavedlayer.cpp
     bag_interleavedlayerdescriptor.cpp
@@ -24,17 +23,19 @@ set(BAG_SOURCE_FILES
     bag_metadata_export.cpp
     bag_metadata_import.cpp
     bag_metadatatypes.cpp
-    #bag_opt_group.c                TODO
-    #bag_opt_surfaces.c             TODO
-    #bag_surface_correct.c
-    #bag_surfaces.c
-    #bag_tracking_list.c
     bag_simplelayer.cpp
     bag_simplelayerdescriptor.cpp
     bag_surfacecorrections.cpp
     bag_surfacecorrectionsdescriptor.cpp
     bag_trackinglist.cpp
     bag_valuetable.cpp
+    bag_vrmetadata.cpp
+    bag_vrmetadatadescriptor.cpp
+    bag_vrnode.cpp
+    bag_vrnodedescriptor.cpp
+    bag_vrrefinement.cpp
+    bag_vrrefinementdescriptor.cpp
+    bag_vrtrackinglist.cpp
 )
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
 
@@ -63,21 +64,25 @@ set(BAG_HEADER_FILES
     bag_layerdescriptor.h
     bag_legacy_crs.h
     bag_metadata.h
-    #bag_metadata_def.h
     bag_metadata_export.h
     bag_metadata_import.h
     bag_metadatatypes.h
-    #bag_opt_surfaces.h
     bag_simplelayer.h
     bag_simplelayerdescriptor.h
     bag_surfacecorrections.h
     bag_surfacecorrectionsdescriptor.h
     bag_trackinglist.h
+    bag_vrmetadata.h
+    bag_vrmetadatadescriptor.h
+    bag_vrnode.h
+    bag_vrnodedescriptor.h
+    bag_vrrefinement.h
+    bag_vrrefinementdescriptor.h
+    bag_vrtrackinglist.h
     bag_types.h
-    bag_uintarray.h
+    bag_uint8array.h
     bag_valuetable.h
     bag_version.h
-    #bag_xml_meta.h
 )
 source_group("Header Files" FILES ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES})
 
@@ -136,47 +141,68 @@ target_link_libraries(baglib
 )
 
 
-
-# copied from BAG_HEADER_FILES. 
-# Other non-header files might need to be added, 
-# and some of these might not be needed?
-set(BAG_SWIG_INPUT_FILES
-    bag_c_types
-    bag_metadatatypes   
-    bag_types
-    bag_metadata
-    bag_metadata_import
-    bag_metadata_export
-    bag_exceptions
-    bag_layerdescriptor
-    bag_descriptor
-    bag_interleavedlayerdescriptor
-    bag_simplelayerdescriptor
-    bag_surfacecorrectionsdescriptor
-    bag_trackinglist
-    bag_compounddatatype
-    bag_valuetable
-    bag_layer
-    bag_simplelayer
-    bag_interleavedlayer
-    bag_surfacecorrections
-    bag_compoundlayer
-    bag_compoundlayerdescriptor
-    bag_dataset
-
-    ## not sure about these?
-    #   bag_legacy_crs
-
-    ## these should not be needed:
-    #   bag_config
-    #   bag_errors
-    #   bag_fordec
-    #   bag_version
-    #   bag_hdfhelper
-)
-
 # Build Python bindings
 if(BUILD_PYTHON)
+    # copied from BAG_HEADER_FILES.
+    # Other non-header files might need to be added,
+    # and some of these might not be needed?
+    set(BAG_SWIG_INPUT_FILES
+        bag_c_types
+        bag_metadatatypes
+        bag_types
+        bag_metadata
+        bag_metadata_import
+        bag_metadata_export
+        bag_exceptions
+        bag_layerdescriptor
+        bag_descriptor
+        bag_interleavedlayerdescriptor
+        bag_simplelayerdescriptor
+        bag_surfacecorrectionsdescriptor
+        bag_trackinglist
+        bag_compounddatatype
+        bag_valuetable
+        bag_layer
+        bag_simplelayer
+        bag_interleavedlayer
+        bag_surfacecorrections
+        bag_compoundlayer
+        bag_compoundlayerdescriptor
+        bag_dataset
+
+
+        ## temp disabled to avoid warnings:
+        # bag_trackinglist      #needs overloaded operator[] and push_back(), etc to be redefined
+        # bag_compounddatatype  #need to handle overloaded operator=
+        # bag_valuetable        #compiles, just needs bag_compounddatatype enabled
+
+        # bag_layer     # need to add support for std::unique_ptr<uint8_t>
+
+
+        ## these need layer:
+        #   bag_compoundlayer
+        #   bag_compoundlayerdescriptor
+        #   bag_interleavedlayer
+        #   bag_simplelayer
+        #   bag_surfacecorrections
+
+        #  bag_dataset         #needs all of the above?
+
+
+        ## not sure about these?
+        #   #bag_xml_meta
+        #   bag.hdfhelper
+        #   bag_legacy_crs
+        #   #bag_metadata_def
+        #   #bag_opt_surfaces
+
+        ## these should not be needed:
+        #   bag_config
+        #   bag_errors
+        #   bag_fordec
+        #   bag_version
+    )
+
     # https://cmake.org/cmake/help/latest/module/FindPython3.html
     #testing: http://www.swig.org/Doc4.0/Introduction.html#Introduction_build_system
     FIND_PACKAGE(PythonLibs COMPONENTS Interpreter Development REQUIRED)
@@ -191,7 +217,7 @@ if(BUILD_PYTHON)
 
     INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
-    # The -importall directive tells SWIG to follow all #include statements as imports. 
+    # The -importall directive tells SWIG to follow all #include statements as imports.
     # This might be useful if you want to extract type definitions from system header files without generating any wrappers.
     # http://www.swig.org/Doc4.0/Preprocessor.html#Preprocessor_nn3
 
@@ -204,13 +230,13 @@ if(BUILD_PYTHON)
         ###set_source_files_properties(file.i PROPERTIES SWIG_FLAGS "-threads")
         ###set_source_files_properties(bag_metadata.i PROPERTIES SWIG_FLAGS "-v -c++ -cppext cpp")
 
-        
-        SET_SOURCE_FILES_PROPERTIES("interface/${ifile}.i" PROPERTIES 
+
+        SET_SOURCE_FILES_PROPERTIES("interface/${ifile}.i" PROPERTIES
             CPLUSPLUS ON
             COMPILE_FLAGS "--std=c++14"
             )
 
-        swig_add_library(${ifile} TYPE SHARED LANGUAGE python 
+        swig_add_library(${ifile} TYPE SHARED LANGUAGE python
             OUTFILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/swig_wrapper"
             #OUTPUT_DIR "${CMAKE_BINARY_DIR}/swig_python"  # change the dir of output .py files, but .pyd files don't move so this doesn't work
             SOURCES "interface/${ifile}.i"

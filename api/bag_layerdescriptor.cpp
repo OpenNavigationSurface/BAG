@@ -1,5 +1,4 @@
 
-
 #include "bag_dataset.h"
 #include "bag_hdfhelper.h"
 #include "bag_layer.h"
@@ -29,8 +28,8 @@ LayerDescriptor::LayerDescriptor(
 }
 
 LayerDescriptor::LayerDescriptor(
-    LayerType type,
     const Dataset& dataset,
+    LayerType type,
     std::string internalPath,
     std::string name)
     : m_id(dataset.getNextId())
@@ -52,15 +51,14 @@ LayerDescriptor::LayerDescriptor(
 }
 
 
-const std::string& LayerDescriptor::getName() const & noexcept
+uint64_t LayerDescriptor::getChunkSize() const noexcept
 {
-    return m_name;
+    return m_chunkSize;
 }
 
-LayerDescriptor& LayerDescriptor::setName(std::string inName) & noexcept
+unsigned int LayerDescriptor::getCompressionLevel() const noexcept
 {
-    m_name = std::move(inName);
-    return *this;
+    return m_compressionLevel;
 }
 
 DataType LayerDescriptor::getDataType() const noexcept
@@ -68,22 +66,9 @@ DataType LayerDescriptor::getDataType() const noexcept
     return this->getDataTypeProxy();
 }
 
-LayerType LayerDescriptor::getLayerType() const noexcept
+uint8_t LayerDescriptor::getElementSize() const noexcept
 {
-    return m_layerType;
-}
-
-std::tuple<float, float> LayerDescriptor::getMinMax() const noexcept
-{
-    return m_minMax;
-}
-
-LayerDescriptor& LayerDescriptor::setMinMax(
-    float min,
-    float max) & noexcept
-{
-    m_minMax = {min, max};
-    return *this;
+    return this->getElementSizeProxy();
 }
 
 uint32_t LayerDescriptor::getId() const noexcept
@@ -96,15 +81,19 @@ const std::string& LayerDescriptor::getInternalPath() const & noexcept
     return m_internalPath;
 }
 
-LayerDescriptor& LayerDescriptor::setInternalPath(std::string inPath) & noexcept
+LayerType LayerDescriptor::getLayerType() const noexcept
 {
-    m_internalPath = std::move(inPath);
-    return *this;
+    return m_layerType;
 }
 
-uint8_t LayerDescriptor::getElementSize() const noexcept
+std::tuple<float, float> LayerDescriptor::getMinMax() const noexcept
 {
-    return this->getElementSizeProxy();
+    return m_minMax;
+}
+
+const std::string& LayerDescriptor::getName() const & noexcept
+{
+    return m_name;
 }
 
 size_t LayerDescriptor::getReadBufferSize(
@@ -114,14 +103,24 @@ size_t LayerDescriptor::getReadBufferSize(
     return rows * columns * this->getElementSize();
 }
 
-uint64_t LayerDescriptor::getChunkSize() const noexcept
+LayerDescriptor& LayerDescriptor::setMinMax(
+    float min,
+    float max) & noexcept
 {
-    return m_chunkSize;
+    m_minMax = {min, max};
+    return *this;
 }
 
-unsigned int LayerDescriptor::getCompressionLevel() const noexcept
+LayerDescriptor& LayerDescriptor::setInternalPath(std::string inPath) & noexcept
 {
-    return m_compressionLevel;
+    m_internalPath = std::move(inPath);
+    return *this;
+}
+
+LayerDescriptor& LayerDescriptor::setName(std::string inName) & noexcept
+{
+    m_name = std::move(inName);
+    return *this;
 }
 
 }  // namespace BAG

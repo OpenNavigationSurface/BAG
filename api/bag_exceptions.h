@@ -2,17 +2,19 @@
 #define BAG_EXCEPTIONS_H
 
 #include "bag_config.h"
+#include "bag_errors.h"
+#include "bag_types.h"
 
 #include <exception>
+#include <sstream>
 
+
+namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4275)
 #endif
-
-
-namespace BAG {
 
 // Attribute related.
 //! Attribute type not supported (yet)  //TODO temp exception
@@ -197,6 +199,24 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     }
 };
 
+//! An error occured loading metatada.
+struct BAG_API ErrorLoadingMetadata final : virtual std::exception
+{
+    ErrorLoadingMetadata(BagError bagError) : m_error(bagError)
+    {}
+
+    const char* what() const noexcept override
+    {
+        std::stringstream ss;
+
+        ss << "While importing metadata as XML, an error value " <<
+            m_error << " was returned.";
+
+        return ss.str().c_str();
+    }
+
+    BagError m_error = BAG_SUCCESS;
+};
 
 // SimpleLayer related.
 //! Cannot convert DataType to an HDF5 DataType.
@@ -268,6 +288,15 @@ struct BAG_API InvalidCompoundRecordsSize final : virtual std::exception
     }
 };
 
+//! Attempt to write a record to an invalid index.
+struct BAG_API InvalidRecordsIndex final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record index specified while writing a record.";
+    }
+};
+
 //! Attempt to use an invalid record index.
 struct BAG_API RecordNotFound final : virtual std::exception
 {
@@ -278,11 +307,20 @@ struct BAG_API RecordNotFound final : virtual std::exception
     }
 };
 
-}  // namespace BAG
+// VRRefinement related.
+struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The variable resolution refinement layer is not 1 dimensional.";
+    }
+};
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_EXCEPTIONS_H
 

@@ -68,7 +68,7 @@ uint8_t Layer::getElementSize(DataType type)
         return sizeof(uint16_t);
     case DT_UINT64:
         return sizeof(uint64_t);
-    case DT_BOOL:
+    case DT_BOOLEAN:
         return sizeof(bool);
     case DT_STRING:
         return sizeof(char*);
@@ -99,15 +99,15 @@ std::string Layer::getInternalPath(
     case Uncertainty:
         return UNCERTAINTY_PATH;
     case Hypothesis_Strength:
-        return HYPOTHESIS_STRENGTH_PATH;  // Also part of the NODE (NODE_GROUP_PATH).
+        return HYPOTHESIS_STRENGTH_PATH;
     case Num_Hypotheses:
-        return NUM_HYPOTHESES_PATH;  // Also part of the NODE group (NODE_GROUP_PATH).
+        return NUM_HYPOTHESES_PATH;
     case Shoal_Elevation:
-        return SHOAL_ELEVATION_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return SHOAL_ELEVATION_PATH;
     case Std_Dev:
-        return STANDARD_DEV_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return STANDARD_DEV_PATH;
     case Num_Soundings:
-        return NUM_SOUNDINGS_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return NUM_SOUNDINGS_PATH;
     case Average_Elevation:
         return AVERAGE_PATH;
     case Nominal_Elevation:
@@ -121,7 +121,7 @@ std::string Layer::getInternalPath(
     }
 }
 
-std::unique_ptr<UintArray> Layer::read(
+std::unique_ptr<UInt8Array> Layer::read(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -171,5 +171,5 @@ void Layer::writeAttributes() const
     this->writeAttributesProxy();
 }
 
-}   //namespace BAG
+}  // namespace BAG
 

@@ -80,7 +80,7 @@ struct BagProjectionParameters
 struct BagLegacyReferenceSystem
 {
     CoordinateType coordSys{CoordinateType::Unknown}; /* either Geodetic or Mercator Transvers_Mercator,etc */
-    BagProjectionParameters geoParameters;            /* Parameters for projection information                        */
+    BagProjectionParameters geoParameters;            /* Parameters for projection information              */
 };
 
 CoordinateType bagCoordsys(const char* str) noexcept;
@@ -102,21 +102,5 @@ BagDatum bagDatumID(const char* str) noexcept;
 BagError bagLegacyToWkt(const BagLegacyReferenceSystem& system,
     char* hBuffer, size_t hBufferSize, char* vBuffer, size_t vBufferSize);
 
-/*! \brief  bagWktToLegacy
-* Description:
-*     Utility function used to convert a WKT (Well Known Text) reference system definition
-*     into the old reference system definition structures.
-*
-*     Some WKT definitions can not be converted into the old structures.
-*
-*  \param    horizWKT       String buffer containing the horizontal WKT reference system definition.
-*  \param    vertWKT        String buffer containing the vertical WKT reference system definition.
-*  \param	  system	    Modified to contain the legacy reference system type.
-*
-* \return On success, a value of zero is returned.  On failure a value of -1 is returned.
-*/
-BagError bagWktToLegacy(const char* horizWKT, const char* vertWKT,
-    BagLegacyReferenceSystem* system);
-
-#endif  //BAG_LEGACY_CRS_H
+#endif  // BAG_LEGACY_CRS_H
 

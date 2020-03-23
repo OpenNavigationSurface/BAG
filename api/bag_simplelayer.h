@@ -19,7 +19,7 @@ namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
 class BAG_API SimpleLayer final : public Layer
@@ -39,7 +39,7 @@ protected:
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
         LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
 
-    static std::unique_ptr<SimpleLayer> read(Dataset& dataset,
+    static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
         SimpleLayerDescriptor& descriptor);
 
 private:
@@ -47,7 +47,7 @@ private:
         createH5dataSet(const Dataset& inDataSet,
             const SimpleLayerDescriptor& descriptor);
 
-    std::unique_ptr<UintArray> readProxy(uint32_t rowStart,
+    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart,
@@ -65,7 +65,7 @@ private:
 #pragma warning(pop)
 #endif
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_SIMPLELAYER_H
+#endif  // BAG_SIMPLELAYER_H
 

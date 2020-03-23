@@ -30,7 +30,7 @@ namespace BAG {
             h5type = ::H5::CompType{sizeof(unsigned int)};
             h5type.insertMember("num_hypotheses",
                 0,
-                ::H5::PredType::NATIVE_UINT);
+                ::H5::PredType::NATIVE_UINT32);
             break;
         default:
             throw UnsupportedLayerType{};
@@ -56,7 +56,7 @@ namespace BAG {
             h5type = ::H5::CompType{sizeof(int)};
             h5type.insertMember("num_soundings",
                 0,
-                ::H5::PredType::NATIVE_INT);
+                ::H5::PredType::NATIVE_INT32);
             break;
         default:
             throw UnsupportedLayerType{};
@@ -145,9 +145,8 @@ unsigned int getCompressionLevel(
 
         const auto filter = h5pList.getFilter(i, flags, cdNelmts,
             cdValues.data(), nameLen, name.data(), filterConfig);
-        if (filter == H5Z_FILTER_DEFLATE)
-            if (cdNelmts >= 1)
-                return cdValues.front();
+        if (filter == H5Z_FILTER_DEFLATE && cdNelmts >= 1)
+            return cdValues.front();
     }
 
     return 0;
@@ -166,38 +165,7 @@ size_t getH5compSize(
 const ::H5::AtomType& getH5fileType(
     DataType type)
 {
-    static ::H5::StrType strType{::H5::PredType::C_S1};  //FORTRAN_S1
-    strType.setSize(H5T_VARIABLE);
-
-    switch(type)
-    {
-    case DT_UINT32:
-        return H5::PredType::NATIVE_UINT32;  //STD_U32LE
-    case DT_FLOAT32:
-        return ::H5::PredType::NATIVE_FLOAT;  //IEEE_F32LE
-    case DT_UINT8:
-        return ::H5::PredType::NATIVE_UINT8;  //STD_U8LE
-    case DT_UINT16:
-        return ::H5::PredType::NATIVE_UINT16;  //STD_U16LE
-    case DT_UINT64:
-        return ::H5::PredType::NATIVE_UINT64;  //STD_U64LE
-    case DT_BOOL:
-        return ::H5::PredType::NATIVE_HBOOL;  //STD_U8LE
-    case DT_STRING:
-        return strType;
-    case DT_COMPOUND:  //[fallthrough]
-    case DT_UNKNOWN_DATA_TYPE:  //[fallthrough]
-    default:
-        throw UnsupportedDataType{};
-    }
-}
-
-//! Determine the HDF5 memory DataType from the specified DataType.
-const ::H5::AtomType& getH5memoryType(
-    DataType type)
-{
-    static ::H5::StrType strType{::H5::PredType::C_S1};
-    strType.setSize(H5T_VARIABLE);
+    static ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};
 
     switch(type)
     {
@@ -211,7 +179,7 @@ const ::H5::AtomType& getH5memoryType(
         return ::H5::PredType::NATIVE_UINT16;
     case DT_UINT64:
         return ::H5::PredType::NATIVE_UINT64;
-    case DT_BOOL:
+    case DT_BOOLEAN:
         return ::H5::PredType::NATIVE_HBOOL;
     case DT_STRING:
         return strType;
@@ -221,6 +189,95 @@ const ::H5::AtomType& getH5memoryType(
         throw UnsupportedDataType{};
     }
 }
+
+//! Determine the HDF5 memory DataType from the specified DataType.
+const ::H5::AtomType& getH5memoryType(
+    DataType type)
+{
+    static ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};
+
+    switch(type)
+    {
+    case DT_UINT32:
+        return H5::PredType::NATIVE_UINT32;
+    case DT_FLOAT32:
+        return ::H5::PredType::NATIVE_FLOAT;
+    case DT_UINT8:
+        return ::H5::PredType::NATIVE_UINT8;
+    case DT_UINT16:
+        return ::H5::PredType::NATIVE_UINT16;
+    case DT_UINT64:
+        return ::H5::PredType::NATIVE_UINT64;
+    case DT_BOOLEAN:
+        return ::H5::PredType::NATIVE_HBOOL;
+    case DT_STRING:
+        return strType;
+    case DT_COMPOUND:  //[fallthrough]
+    case DT_UNKNOWN_DATA_TYPE:  //[fallthrough]
+    default:
+        throw UnsupportedDataType{};
+    }
+}
+
+::H5::Attribute createAttribute(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    const char* path)
+{
+    return h5dataSet.createAttribute(path, attributeType, {});
+}
+
+void createAttributes(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    const std::vector<const char*>& paths)
+{
+    if (paths.empty())
+        return;
+
+    for (const auto& path : paths)
+        if (path)
+            createAttribute(h5dataSet, attributeType, path);
+}
+
+template <typename T>
+void writeAttribute(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    T value,
+    const char* path)
+{
+    const auto att = h5dataSet.openAttribute(path);
+    att.write(attributeType, &value);
+}
+
+template <typename T>
+void writeAttributes(
+    const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType,
+    T value,
+    const std::vector<const char*>& paths)
+{
+    for (const auto& path : paths)
+        if (path)
+            writeAttribute(h5dataSet, attributeType, value, path);
+}
+
+
+// Explicit template instantiations.
+template void writeAttribute<float>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, float value, const char* path);
+
+template void writeAttribute<uint32_t>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, uint32_t value, const char* path);
+
+template void writeAttributes<float>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, float value,
+    const std::vector<const char*>& paths);
+
+template void writeAttributes<uint32_t>(const ::H5::DataSet& h5dataSet,
+    const ::H5::PredType& attributeType, uint32_t value,
+    const std::vector<const char*>& paths);
 
 }  // namespace BAG
 

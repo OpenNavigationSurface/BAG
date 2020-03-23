@@ -1,21 +1,11 @@
 
 #include "bag_dataset.h"
-#include "bag_errors.h"
 #include "bag_private.h"
 #include "bag_surfacecorrections.h"
 #include "bag_surfacecorrectionsdescriptor.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 #include <array>
 #include <H5Cpp.h>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 
 namespace BAG {
@@ -76,7 +66,7 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
         *descriptor, std::move(h5dataSet)});
 }
 
-std::unique_ptr<SurfaceCorrections> SurfaceCorrections::read(
+std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
     Dataset& dataset,
     SurfaceCorrectionsDescriptor& descriptor)
 {
@@ -96,8 +86,7 @@ SurfaceCorrections::createH5dataSet(
     const SurfaceCorrectionsDescriptor& descriptor)
 {
     // Use the dimensions from the descriptor.
-    std::array<hsize_t, RANK> fileDims{};
-    std::tie(fileDims[0], fileDims[1]) = dataset.getDescriptor().getDims();
+    std::array<hsize_t, RANK> fileDims{0, 0};
     const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
     const ::H5::DataSpace h5fileDataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
 
@@ -121,9 +110,9 @@ SurfaceCorrections::createH5dataSet(
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    auto zeroData = std::make_unique<UintArray>(descriptor.getElementSize());
-    memset(zeroData.get(), 0, descriptor.getElementSize());
-    h5createPropList.setFillValue(h5memDataType, zeroData.get());
+    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
+    memset(zeroData->get(), 0, descriptor.getElementSize());
+    h5createPropList.setFillValue(h5memDataType, zeroData->get());
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
@@ -178,7 +167,7 @@ const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
     return *m_pH5dataSet;
 }
 
-std::unique_ptr<UintArray> SurfaceCorrections::readProxy(
+std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -198,16 +187,16 @@ std::unique_ptr<UintArray> SurfaceCorrections::readProxy(
         throw UnexpectedLayerDescriptorType{};
 
     const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+        dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<UintArray>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    m_pH5dataSet->read(buffer.get()->m_intlist, h5memDataType, h5memSpace, h5fileDataSpace);
+    m_pH5dataSet->read(buffer->get(), h5memDataType, h5memSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -223,7 +212,7 @@ void SurfaceCorrections::writeProxy(
         throw UnexpectedLayerDescriptorType{};
 
     auto& descriptor =
-        static_cast<SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+        dynamic_cast<SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
@@ -271,7 +260,7 @@ void SurfaceCorrections::writeAttributesProxy() const
         throw UnexpectedLayerDescriptorType{};
 
     const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+        dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     // Write any attributes, from the layer descriptor.
     // surface type

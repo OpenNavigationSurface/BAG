@@ -10,24 +10,6 @@
 
 namespace BAG {
 
-namespace {
-
-struct BagOptNodeGroup final
-{
-    float hyp_strength = 0.f;
-    uint32_t num_hypotheses = 0;
-};
-
-struct BagOptElevationSolutionGroup final
-{
-    float shoal_elevation = 0.f;
-    float stddev = 0.f;
-    uint32_t num_soundings = 0;
-
-};
-
-}   //namespace
-
 InterleavedLayer::InterleavedLayer(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor,
@@ -37,7 +19,7 @@ InterleavedLayer::InterleavedLayer(
 {
 }
 
-std::unique_ptr<InterleavedLayer> InterleavedLayer::read(
+std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor)
 {
@@ -58,12 +40,15 @@ std::unique_ptr<InterleavedLayer> InterleavedLayer::read(
 }
 
 
-std::unique_ptr<UintArray> InterleavedLayer::readProxy(
+std::unique_ptr<UInt8Array> InterleavedLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
+    if (!dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor()))
+        throw InvalidDescriptor{};
+
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
     const std::array<hsize_t, RANK> count{rows, columns};
@@ -73,15 +58,12 @@ std::unique_ptr<UintArray> InterleavedLayer::readProxy(
     const auto h5fileSpace = m_pH5dataSet->getSpace();
     h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
-    if (!dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor()))
-        throw 123456;  // Invalid descriptor found.
-
     const auto& descriptor =
         static_cast<const InterleavedLayerDescriptor&>(this->getDescriptor());
 
     // Initialize the output buffer.
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<UintArray>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
@@ -90,7 +72,7 @@ std::unique_ptr<UintArray> InterleavedLayer::readProxy(
     const auto h5dataType = createH5compType(descriptor.getLayerType(),
         descriptor.getGroupType());
 
-    m_pH5dataSet->read(buffer.get()->m_intlist, h5dataType, h5memSpace, h5fileSpace);
+    m_pH5dataSet->read(buffer->get(), h5dataType, h5memSpace, h5fileSpace);
 
     return buffer;
 }

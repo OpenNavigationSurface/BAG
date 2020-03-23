@@ -23,14 +23,14 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     this->setInternalPath(groupType == NODE ?
         NODE_GROUP_PATH : ELEVATION_SOLUTION_GROUP_PATH);
 
-    this->validateTypes(layerType, groupType);
+    InterleavedLayerDescriptor::validateTypes(layerType, groupType);
 }
 
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     LayerType layerType,
     GroupType groupType,
     const Dataset& dataset)
-    : LayerDescriptor(layerType, dataset,
+    : LayerDescriptor(dataset, layerType,
         groupType == NODE
             ? NODE_GROUP_PATH
             : groupType == ELEVATION
@@ -40,7 +40,7 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
-    this->validateTypes(layerType, groupType);
+    InterleavedLayerDescriptor::validateTypes(layerType, groupType);
 }
 
 std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
@@ -55,7 +55,7 @@ std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
             groupType, chunkSize, compressionLevel});
 }
 
-std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::read(
+std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::open(
     LayerType layerType,
     GroupType groupType,
     const Dataset& dataset)
@@ -83,7 +83,7 @@ GroupType InterleavedLayerDescriptor::getGroupType() const noexcept
 //! Verify the proper group and layer combination is given.
 void InterleavedLayerDescriptor::validateTypes(
     LayerType layerType,
-    GroupType groupType) const
+    GroupType groupType)
 {
     if (groupType == ELEVATION)
     {

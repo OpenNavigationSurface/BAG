@@ -9,21 +9,16 @@
 #include <memory>
 
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 namespace BAG {
 
 class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
 {
 public:
-    static std::shared_ptr<SimpleLayerDescriptor> create(LayerType type,
-        uint64_t chunkSize, unsigned int compressionLevel,
-        const Dataset& dataset);
-    static std::shared_ptr<SimpleLayerDescriptor> read(LayerType type,
-        const Dataset& dataset);
+    static std::shared_ptr<SimpleLayerDescriptor> create(const Dataset& dataset,
+        LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
+
+    static std::shared_ptr<SimpleLayerDescriptor> open(const Dataset& dataset,
+        LayerType type);
 
     //TODO Temp, make sure only move operations are used until development is done.
     SimpleLayerDescriptor(const SimpleLayerDescriptor&) = delete;
@@ -34,7 +29,7 @@ public:
 protected:
     SimpleLayerDescriptor(uint32_t id, LayerType type, uint64_t chunkSize,
         unsigned int compressionLevel);
-    SimpleLayerDescriptor(LayerType type, const Dataset& dataset);
+    SimpleLayerDescriptor(const Dataset& dataset, LayerType type);
 
 private:
     DataType getDataTypeProxy() const noexcept override;
@@ -47,10 +42,6 @@ private:
 };
 
 }  // namespace BAG
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 #endif  // BAG_SIMPLELAYERDESCRIPTOR_H
 

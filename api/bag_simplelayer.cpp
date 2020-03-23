@@ -25,15 +25,15 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {
-    auto descriptor = SimpleLayerDescriptor::create(type, chunkSize,
-        compressionLevel, dataset);
+    auto descriptor = SimpleLayerDescriptor::create(dataset, type, chunkSize,
+        compressionLevel);
     auto h5dataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
 
     return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, *descriptor,
         std::move(h5dataSet)});
 }
 
-std::unique_ptr<SimpleLayer> SimpleLayer::read(
+std::unique_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
     SimpleLayerDescriptor& descriptor)
 {
@@ -65,7 +65,8 @@ SimpleLayer::createH5dataSet(
 
     ::H5::DataSpace h5dataSpace{RANK, fileDims.data(), fileDims.data()};
 
-    ::H5::AtomType h5dataType{::H5::PredType::NATIVE_FLOAT};
+    ::H5::FloatType h5dataType;
+    h5dataType.copy(::H5::PredType::NATIVE_FLOAT);
     h5dataType.setOrder(H5T_ORDER_LE);
 
     // Create the creation property list.
@@ -91,9 +92,9 @@ SimpleLayer::createH5dataSet(
     const auto& h5file = dataset.getH5file();
 
     auto pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-            new ::H5::DataSet{h5file.createDataSet(descriptor.getInternalPath(),
-                h5dataType, h5dataSpace, h5createPropList)},
-            DeleteH5dataSet{});
+        new ::H5::DataSet{h5file.createDataSet(descriptor.getInternalPath(),
+            h5dataType, h5dataSpace, h5createPropList)},
+        DeleteH5dataSet{});
 
     // Create any attributes.
     const auto attInfo = getAttributeInfo(descriptor.getLayerType());
@@ -102,20 +103,21 @@ SimpleLayer::createH5dataSet(
     const auto minElevAtt = pH5dataSet->createAttribute(attInfo.minName,
         attInfo.h5type, minElevDataSpace);
 
-    constexpr float minElev = std::numeric_limits<float>::lowest();
-    minElevAtt.write(attInfo.h5type, &minElev);
-
     const ::H5::DataSpace maxElevDataSpace{};
     const auto maxElevAtt = pH5dataSet->createAttribute(attInfo.maxName,
         attInfo.h5type, maxElevDataSpace);
 
-    constexpr float maxElev = std::numeric_limits<float>::max();
+    // Set initial min/max values.
+    constexpr float minElev = std::numeric_limits<float>::max();
+    minElevAtt.write(attInfo.h5type, &minElev);
+
+    constexpr float maxElev = std::numeric_limits<float>::lowest();
     maxElevAtt.write(attInfo.h5type, &maxElev);
 
     return pH5dataSet;
 }
 
-std::unique_ptr<UintArray> SimpleLayer::readProxy(
+std::unique_ptr<UInt8Array> SimpleLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -134,12 +136,12 @@ std::unique_ptr<UintArray> SimpleLayer::readProxy(
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
         columns);
-    auto buffer = std::make_unique<UintArray>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
-    m_pH5dataSet->read(buffer.get()->m_intlist, H5Dget_type(m_pH5dataSet->getId()),
+    m_pH5dataSet->read(buffer->get(), H5Dget_type(m_pH5dataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;

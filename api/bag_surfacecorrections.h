@@ -9,18 +9,13 @@
 
 #include <memory>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
-namespace H5 {
-
-class DataSet;
-
-}  // namespace H5
 
 namespace BAG {
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#endif
 
 class BAG_API SurfaceCorrections final : public Layer
 {
@@ -41,7 +36,7 @@ protected:
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, unsigned int compressionLevel);
 
-    static std::unique_ptr<SurfaceCorrections> read(Dataset& dataset,
+    static std::unique_ptr<SurfaceCorrections> open(Dataset& dataset,
         SurfaceCorrectionsDescriptor& descriptor);
 
 private:
@@ -51,7 +46,7 @@ private:
 
     const ::H5::DataSet& getH5dataSet() const & noexcept;
 
-    std::unique_ptr<UintArray> readProxy(uint32_t rowStart,
+    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart,
@@ -66,11 +61,11 @@ private:
     friend SurfaceCorrectionsDescriptor;
 };
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#endif  //BAG_SURFACECORRECTIONS_H
+}  // namespace BAG
+
+#endif  // BAG_SURFACECORRECTIONS_H
 

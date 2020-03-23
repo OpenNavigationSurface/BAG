@@ -19,7 +19,7 @@ namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
 class BAG_API InterleavedLayer final : public Layer
@@ -37,11 +37,11 @@ protected:
         InterleavedLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
-    static std::unique_ptr<InterleavedLayer> read(Dataset& dataset,
+    static std::unique_ptr<InterleavedLayer> open(Dataset& dataset,
         InterleavedLayerDescriptor& descriptor);
 
 private:
-    std::unique_ptr<UintArray> readProxy(uint32_t rowStart,
+    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
@@ -62,3 +62,4 @@ private:
 }   //namespace BAG
 
 #endif  //BAG_INTERLEAVEDLAYER
+

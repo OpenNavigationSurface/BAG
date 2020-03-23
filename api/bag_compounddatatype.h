@@ -27,7 +27,7 @@ public:
     {
     }
     explicit CompoundDataType(bool value) noexcept
-        : type(DT_BOOL)
+        : type(DT_BOOLEAN)
         , m_data(value)
     {
     }
@@ -48,7 +48,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = other.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = other.m_data.m_b;
             break;
         case DT_STRING:
@@ -69,7 +69,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = other.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = other.m_data.m_b;
             break;
         case DT_STRING:
@@ -91,10 +91,11 @@ public:
         if (this == &rhs)
             return *this;
 
-        if (type == DT_STRING && rhs.type == DT_STRING)
-            m_data.m_s = rhs.m_data.m_s;
-        else if (type == DT_STRING)
-            m_data.m_s.~basic_string<char>();
+        if (type == DT_STRING)
+            if (rhs.type == DT_STRING)
+                m_data.m_s = rhs.m_data.m_s;
+            else
+                m_data.m_s.~basic_string<char>();
 
         switch (rhs.type)
         {
@@ -104,7 +105,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = rhs.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = rhs.m_data.m_b;
             break;
         case DT_STRING:
@@ -120,10 +121,11 @@ public:
     }
     CompoundDataType& operator=(CompoundDataType&& rhs)
     {
-        if (type == DT_STRING && rhs.type == DT_STRING)
-            m_data.m_s = std::move(rhs.m_data.m_s);
-        else if (type == DT_STRING)
-            m_data.m_s.~basic_string<char>();
+        if (type == DT_STRING)
+            if (rhs.type == DT_STRING)
+                m_data.m_s = std::move(rhs.m_data.m_s);
+            else
+                m_data.m_s.~basic_string<char>();
 
         switch (rhs.type)
         {
@@ -133,7 +135,7 @@ public:
         case DT_UINT32:
             m_data.m_ui32 = rhs.m_data.m_ui32;
             break;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             m_data.m_b = rhs.m_data.m_b;
             break;
         case DT_STRING:
@@ -172,7 +174,7 @@ public:
         if (type == DT_STRING)
             m_data.m_s.~basic_string<char>();
 
-        type = DT_BOOL;
+        type = DT_BOOLEAN;
         m_data.m_b = rhs;
 
         return *this;
@@ -201,7 +203,7 @@ public:
             return m_data.m_f == rhs.m_data.m_f;
         case DT_UINT32:
             return m_data.m_ui32 == rhs.m_data.m_ui32;
-        case DT_BOOL:
+        case DT_BOOLEAN:
             return m_data.m_b == rhs.m_data.m_b;
         case DT_STRING:
             return m_data.m_s == rhs.m_data.m_s;
@@ -212,31 +214,36 @@ public:
 
     float asFloat() const
     {
-        if (type != DT_FLOAT32) throw InvalidType{};
+        if (type != DT_FLOAT32)
+            throw InvalidType{};
 
         return m_data.m_f;
     }
     uint32_t asUInt32() const
     {
-        if (type != DT_UINT32) throw InvalidType{};
+        if (type != DT_UINT32)
+            throw InvalidType{};
 
         return m_data.m_ui32;
     }
     bool asBool() const
     {
-        if (type != DT_BOOL) throw InvalidType{};
+        if (type != DT_BOOLEAN)
+            throw InvalidType{};
 
         return m_data.m_b;
     }
     const std::string& asString() const &
     {
-        if (type != DT_STRING) throw InvalidType{};
+        if (type != DT_STRING)
+            throw InvalidType{};
 
         return m_data.m_s;
     }
     std::string& asString() &
     {
-        if (type != DT_STRING) throw InvalidType{};
+        if (type != DT_STRING)
+            throw InvalidType{};
 
         return m_data.m_s;
     }
@@ -247,21 +254,21 @@ public:
     }
 
 private:
-    union data {
-        data(): m_b(false) {}
-        data(float f): m_f(f) {}
-        data(uint32_t ui32): m_ui32(ui32) {}
-        data(bool b): m_b(b) {}
-        data(std::string s): m_s(s) {}
-        ~data() {}
+    DataType type = DT_UNKNOWN_DATA_TYPE;
+
+    union Data {
+        Data(): m_b(false) {}
+        Data(float f): m_f(f) {}
+        Data(uint32_t ui32): m_ui32(ui32) {}
+        Data(bool b): m_b(b) {}
+        Data(std::string s): m_s(s) {}
+        ~Data() {}
 
         float m_f;
         uint32_t m_ui32;
         bool m_b;
         std::string m_s;
     } m_data;
-
-    DataType type = DT_UNKNOWN_DATA_TYPE;
 };
 
 
@@ -303,10 +310,15 @@ T get(const CompoundDataType& v)
 // Terminology  -> record made of fields
 struct FieldDefinition final
 {
+    FieldDefinition() = default;
+    FieldDefinition(const char* inName, DataType inType)
+        : name(inName), type(static_cast<uint8_t>(inType))
+    {}
+
     //! The name of the definition.
-    char* name;
+    const char* name = nullptr;
     //! The type of the definition; represents a DataType.
-    uint8_t type;
+    uint8_t type = DT_UNKNOWN_DATA_TYPE;
 };
 
 using RecordDefinition = std::vector<FieldDefinition>;

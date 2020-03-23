@@ -5,16 +5,8 @@
 //************************************************************************
 #include "bag_metadatatypes.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
+#include <H5Cpp.h>
 #include <string>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 
 namespace {

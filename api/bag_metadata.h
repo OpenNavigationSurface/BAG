@@ -9,20 +9,19 @@
 #include <memory>
 #include <string>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 
-namespace H5
-{
+namespace H5 {
 
 class DataSet;
 
-}
+}  // namespace H5
 
-namespace BAG
-{
+namespace BAG {
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#endif
 
 class BAG_API Metadata final
 {
@@ -37,7 +36,7 @@ public:
     Metadata& operator=(Metadata&&) = delete;
     ~Metadata() noexcept;
 
-    const BagMetadata& getStruct() const noexcept;
+    const BagMetadata& getStruct() const & noexcept;
 
     uint32_t columns() const noexcept;
     double columnResolution() const noexcept;
@@ -73,12 +72,12 @@ private:
     friend Dataset;
 };
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#endif  //BAG_METADATA_H
+}  // namespace BAG
+
+#endif  // BAG_METADATA_H
 
 

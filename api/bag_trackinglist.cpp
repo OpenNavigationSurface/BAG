@@ -1,20 +1,8 @@
 
-#include "bag_dataset.h"
-#include "bag_exceptions.h"
 #include "bag_private.h"
-#include "bag_trackinglist.h"
-
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 
 #include <array>
 #include <H5Cpp.h>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 
 namespace BAG {
@@ -101,7 +89,7 @@ void TrackingList::push_back(const value_type& value)
 
 void TrackingList::push_back(value_type&& value)
 {
-    m_items.push_back(std::move(value));
+    m_items.push_back(value);
     ++m_length;
 }
 
@@ -163,12 +151,18 @@ TrackingList::createH5dataSet(
 
     const ::H5::CompType h5dataType{sizeof(value_type)};
 
-    h5dataType.insertMember("row", HOFFSET(value_type, row), ::H5::PredType::NATIVE_UINT);
-    h5dataType.insertMember("col", HOFFSET(value_type, col), ::H5::PredType::NATIVE_UINT);
-    h5dataType.insertMember("depth", HOFFSET(value_type, depth), ::H5::PredType::NATIVE_FLOAT);
-    h5dataType.insertMember("uncertainty", HOFFSET(value_type, uncertainty), ::H5::PredType::NATIVE_FLOAT);
-    h5dataType.insertMember("track_code", HOFFSET(value_type, track_code), ::H5::PredType::NATIVE_UCHAR);
-    h5dataType.insertMember("list_series", HOFFSET(value_type, list_series), ::H5::PredType::NATIVE_SHORT);
+    h5dataType.insertMember("row", HOFFSET(value_type, row),
+        ::H5::PredType::NATIVE_UINT32);
+    h5dataType.insertMember("col", HOFFSET(value_type, col),
+        ::H5::PredType::NATIVE_UINT32);
+    h5dataType.insertMember("depth", HOFFSET(value_type, depth),
+        ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("uncertainty", HOFFSET(value_type, uncertainty),
+        ::H5::PredType::NATIVE_FLOAT);
+    h5dataType.insertMember("track_code", HOFFSET(value_type, track_code),
+        ::H5::PredType::NATIVE_UCHAR);
+    h5dataType.insertMember("list_series", HOFFSET(value_type, list_series),
+        ::H5::PredType::NATIVE_SHORT);
 
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setChunk(1, &kTrackingListChunkSize);
@@ -226,12 +220,18 @@ TrackingList::openH5dataSet()
 
     // Set up the structure for reading.
     ::H5::CompType h5type(sizeof(value_type));
-    h5type.insertMember("row", HOFFSET(value_type, row), ::H5::PredType::NATIVE_UINT32);
-    h5type.insertMember("col", HOFFSET(value_type, col), ::H5::PredType::NATIVE_UINT32);
-    h5type.insertMember("depth", HOFFSET(value_type, depth), ::H5::PredType::NATIVE_FLOAT);
-    h5type.insertMember("uncertainty", HOFFSET(value_type, uncertainty), ::H5::PredType::NATIVE_FLOAT);
-    h5type.insertMember("track_code", HOFFSET(value_type, track_code), ::H5::PredType::NATIVE_UINT8);
-    h5type.insertMember("list_series", HOFFSET(value_type, list_series), ::H5::PredType::NATIVE_INT16);
+    h5type.insertMember("row", HOFFSET(value_type, row),
+        ::H5::PredType::NATIVE_UINT32);
+    h5type.insertMember("col", HOFFSET(value_type, col),
+        ::H5::PredType::NATIVE_UINT32);
+    h5type.insertMember("depth", HOFFSET(value_type, depth),
+        ::H5::PredType::NATIVE_FLOAT);
+    h5type.insertMember("uncertainty", HOFFSET(value_type, uncertainty),
+        ::H5::PredType::NATIVE_FLOAT);
+    h5type.insertMember("track_code", HOFFSET(value_type, track_code),
+        ::H5::PredType::NATIVE_UINT8);
+    h5type.insertMember("list_series", HOFFSET(value_type, list_series),
+        ::H5::PredType::NATIVE_INT16);
 
     h5dataSet.read(m_items.data(), h5type);
 
@@ -258,12 +258,18 @@ void TrackingList::write() const
     // Write the data.
     const ::H5::CompType h5type{sizeof(value_type)};
 
-    h5type.insertMember("row", HOFFSET(value_type, row), ::H5::PredType::NATIVE_UINT32);
-    h5type.insertMember("col", HOFFSET(value_type, col), ::H5::PredType::NATIVE_UINT32);
-    h5type.insertMember("depth", HOFFSET(value_type, depth), ::H5::PredType::NATIVE_FLOAT);
-    h5type.insertMember("uncertainty", HOFFSET(value_type, uncertainty), ::H5::PredType::NATIVE_FLOAT);
-    h5type.insertMember("track_code", HOFFSET(value_type, track_code), ::H5::PredType::NATIVE_UINT8);
-    h5type.insertMember("list_series", HOFFSET(value_type, list_series), ::H5::PredType::NATIVE_INT16);
+    h5type.insertMember("row", HOFFSET(value_type, row),
+        ::H5::PredType::NATIVE_UINT32);
+    h5type.insertMember("col", HOFFSET(value_type, col),
+        ::H5::PredType::NATIVE_UINT32);
+    h5type.insertMember("depth", HOFFSET(value_type, depth),
+        ::H5::PredType::NATIVE_FLOAT);
+    h5type.insertMember("uncertainty", HOFFSET(value_type, uncertainty),
+        ::H5::PredType::NATIVE_FLOAT);
+    h5type.insertMember("track_code", HOFFSET(value_type, track_code),
+        ::H5::PredType::NATIVE_UINT8);
+    h5type.insertMember("list_series", HOFFSET(value_type, list_series),
+        ::H5::PredType::NATIVE_INT16);
 
     constexpr hsize_t kMaxSize = H5F_UNLIMITED;
 

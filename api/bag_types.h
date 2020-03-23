@@ -17,6 +17,7 @@ using OpenMode = BAG_OPEN_MODE;
 using GroupType = BAG_GROUP_TYPE;
 
 using TrackingItem = BagTrackingItem;
+using VRTrackingItem = BagVRTrackingItem;
 
 const std::unordered_map<LayerType, const char*> kLayerTypeMapString {
     {Elevation, "Elevation"},
@@ -30,6 +31,9 @@ const std::unordered_map<LayerType, const char*> kLayerTypeMapString {
     {Nominal_Elevation, "Nominal_Elevation"},
     {Surface_Correction, "Surface_Correction"},
     //{Compound, "Compound"},
+    {VarRes_Metadata, "Variable_Resolution_Metadata"},
+    {VarRes_Refinement, "Variable_Resolution_Refinement"},
+    {VarRes_Node, "Variable_Resolution_Node"},
 };
 
 }   //namespace BAG

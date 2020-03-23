@@ -1,4 +1,6 @@
+
 #include "bag_dataset.h"
+#include "bag_errors.h"
 #include "bag_exceptions.h"
 #include "bag_layer.h"
 #include "bag_metadata.h"
@@ -6,17 +8,8 @@
 #include "bag_metadata_import.h"
 #include "bag_private.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
 #include <fstream>
 #include <H5Cpp.h>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
 
 
 namespace BAG
@@ -103,7 +96,7 @@ void Metadata::createH5dataSet(
     m_pH5dataSet->extend(&xmlLength);
 }
 
-const BagMetadata& Metadata::getStruct() const noexcept
+const BagMetadata& Metadata::getStruct() const & noexcept
 {
     return *m_pMetaStruct;
 }
@@ -136,8 +129,8 @@ void Metadata::loadFromFile(const std::string& fileName)
 {
     const BagError err = bagImportMetadataFromXmlFile(fileName.c_str(),
         *m_pMetaStruct, false);
-    if (err)
-        throw err;
+    if (err != BAG_SUCCESS)
+        throw ErrorLoadingMetadata{err};
 
     std::ifstream ifs{fileName, std::ios_base::in|std::ios_base::binary};
     ifs.seekg(0, std::ios_base::end);
@@ -148,8 +141,8 @@ void Metadata::loadFromBuffer(const std::string& xmlBuffer)
 {
     const BagError err = bagImportMetadataFromXmlBuffer(xmlBuffer.c_str(),
         static_cast<int>(xmlBuffer.size()), *m_pMetaStruct, false);
-    if (err)
-        throw err;
+    if (err != BAG_SUCCESS)
+        throw ErrorLoadingMetadata{err};
 
     m_xmlLength = xmlBuffer.size();
 }
@@ -180,7 +173,7 @@ std::string Metadata::verticalReferenceSystemAsWKT() const
     if (!type || type != std::string{"WKT"})
         return {};
 
-    return m_pMetaStruct->horizontalReferenceSystem->definition;
+    return m_pMetaStruct->verticalReferenceSystem->definition;
 }
 
 void Metadata::write() const

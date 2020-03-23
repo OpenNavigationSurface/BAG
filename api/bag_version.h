@@ -7,5 +7,5 @@
 #define BAG_VER_MINOR       0
 #define BAG_VER_REVISION    0
 
-#endif  //BAG_VERSION_H
+#endif  // BAG_VERSION_H
 

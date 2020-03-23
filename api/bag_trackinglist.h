@@ -9,10 +9,6 @@
 #include <memory>
 #include <vector>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 
 namespace H5 {
 
@@ -21,6 +17,11 @@ class DataSet;
 }  // namespace H5
 
 namespace BAG {
+
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#endif
 
 class BAG_API TrackingList final
 {
@@ -94,11 +95,11 @@ void TrackingList::emplace_back(Args&&... args) &
     ++m_length;
 }
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#endif  //BAG_TRACKINGLIST_H
+}  // namespace BAG
+
+#endif  // BAG_TRACKINGLIST_H
 

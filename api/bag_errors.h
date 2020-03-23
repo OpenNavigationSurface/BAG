@@ -95,4 +95,5 @@ enum BAG_ERRORS {
 
 };
 
-#endif
+#endif  // BAG_ERRORS_H
+

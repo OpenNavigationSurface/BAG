@@ -5,20 +5,22 @@
 #ifndef BAG_DELETEH5DATASET_H
 #define BAG_DELETEH5DATASET_H
 
-#include "bag_config.h"
 
-namespace H5 
+namespace H5
 {
-    class DataSet;
-}
 
-namespace BAG 
+class DataSet;
+
+}  //namespace H5
+
+namespace BAG {
+
+struct DeleteH5dataSet final
 {
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
+    void operator()(::H5::DataSet* ptr) noexcept;
 };
 
-#endif  //BAG_DELETEH5DATASET_H
+}  // namespace BAG
+
+#endif  // BAG_DELETEH5DATASET_H
 

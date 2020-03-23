@@ -7,6 +7,7 @@
 
 #include "bag_types.h"
 
+
 namespace H5 {
 
 class PredType;
@@ -14,7 +15,7 @@ class PredType;
 }  // namespace H5
 
 namespace BAG {
-    
+
 struct AttributeInfo
 {
     AttributeInfo(const char* inMinName, const char* inMaxName,
@@ -24,6 +25,7 @@ struct AttributeInfo
         , path(inPath)
         , h5type(inH5type)
     {}
+
     const char* minName = nullptr;
     const char* maxName = nullptr;
     const char* path = nullptr;
@@ -32,7 +34,8 @@ struct AttributeInfo
 
 AttributeInfo getAttributeInfo(LayerType layerType);
 
-};
+}  // namespace BAG
 
 #endif  //BAG_ATTRIBUTEINFO_H
+
 

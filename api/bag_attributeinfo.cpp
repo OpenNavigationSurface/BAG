@@ -1,7 +1,10 @@
+
 #include "bag_attributeinfo.h"
+#include "bag_exceptions.h"
 #include "bag_private.h"
 
 #include <H5Cpp.h>
+
 
 namespace BAG {
 
@@ -43,4 +46,6 @@ AttributeInfo getAttributeInfo(LayerType layerType)
     }
 }
 
-}
+}  // namespace BAG
+
+

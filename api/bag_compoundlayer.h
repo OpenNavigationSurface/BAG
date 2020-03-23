@@ -11,7 +11,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace H5 {
 
@@ -23,9 +22,8 @@ namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
-
 
 class BAG_API CompoundLayer final : public Layer
 {
@@ -56,6 +54,7 @@ private:
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
         createH5indexDataSet(const Dataset& inDataSet,
             const CompoundLayerDescriptor& descriptor);
+
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
         createH5recordDataSet(const Dataset& inDataSet,
             const CompoundLayerDescriptor& descriptor);
@@ -64,7 +63,7 @@ private:
 
     void setValueTable(std::unique_ptr<ValueTable> table) noexcept;
 
-    std::unique_ptr<UintArray> readProxy(uint32_t rowStart, uint32_t columnStart,
+    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart, uint32_t columnStart,
         uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
@@ -83,11 +82,11 @@ private:
     friend ValueTable;
 };
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}   //namespace BAG
 
 #endif  //BAG_COMPOUNDLAYER
 

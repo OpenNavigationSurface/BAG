@@ -12,5 +12,5 @@ BagError bagImportMetadataFromXmlBuffer(const char* xmlBuffer, int bufferSize,
 
 void bagSetHomeFolder(const char* homeFolder);
 
-#endif  //BAG_METADATAIMPORT_H
+#endif  // BAG_METADATAIMPORT_H
 

@@ -4,7 +4,7 @@
 #include "bag_config.h"
 #include "bag_fordec.h"
 #include "bag_types.h"
-#include "bag_uintarray.h"
+#include "bag_uint8array.h"
 
 #include <memory>
 
@@ -13,7 +13,7 @@ namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
 class BAG_API Layer
@@ -35,7 +35,7 @@ public:
     LayerDescriptor& getDescriptor() & noexcept;
     const LayerDescriptor& getDescriptor() const & noexcept;
 
-    std::unique_ptr<UintArray> read(uint32_t rowStart,
+    std::unique_ptr<UInt8Array> read(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 
     void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
@@ -49,7 +49,7 @@ protected:
     std::weak_ptr<Dataset> getDataset() & noexcept;
 
 private:
-    virtual std::unique_ptr<UintArray> readProxy(uint32_t rowStart,
+    virtual std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const = 0;
 
     virtual void writeProxy(uint32_t rowStart, uint32_t columnStart,
@@ -70,7 +70,7 @@ private:
 #pragma warning(pop)
 #endif
 
-}   //namespace BAG
+}  // namespace BAG
 
 #endif  //BAG_LAYER_H
 

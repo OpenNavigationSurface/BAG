@@ -7,6 +7,7 @@
 #include <array>
 #include <H5Cpp.h>
 #include <limits>
+#include <vector>
 
 
 namespace BAG {
@@ -147,8 +148,7 @@ CompoundLayer::createH5indexDataSet(
         const ::H5::DataSpace fileDataSpace{1, &dims, &dims};
 
         // Create the compound type for the Record Definition.
-        const ::H5::StrType strType{::H5::PredType::C_S1};
-        strType.setSize(H5T_VARIABLE);
+        const ::H5::StrType strType{::H5::PredType::C_S1, H5T_VARIABLE};
 
         //works
         const ::H5::CompType fileDataType{sizeof(FieldDefinition)};
@@ -217,7 +217,7 @@ const ValueTable& CompoundLayer::getValueTable() const & noexcept
     return *m_pValueTable;
 }
 
-std::unique_ptr<UintArray> CompoundLayer::readProxy(
+std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -248,12 +248,12 @@ std::unique_ptr<UintArray> CompoundLayer::readProxy(
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
         columns);
-    auto buffer = std::make_unique<UintArray>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
-    m_pH5indexDataSet->read(buffer.get()->m_intlist, H5Dget_type(m_pH5indexDataSet->getId()),
+    m_pH5indexDataSet->read(buffer->get(), H5Dget_type(m_pH5indexDataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;

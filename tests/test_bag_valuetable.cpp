@@ -361,12 +361,16 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     const char kFieldName2[]{"bool value"};
     const char kFieldName3[]{"string value"};
 
-    BAG::RecordDefinition kExpectredDefinition {
-        {_strdup(kFieldName0), static_cast<uint8_t>(DT_FLOAT32)},
-        {_strdup(kFieldName1), static_cast<uint8_t>(DT_UINT32)},
-        {_strdup(kFieldName2), static_cast<uint8_t>(DT_BOOL)},
-        {_strdup(kFieldName3), static_cast<uint8_t>(DT_STRING)}
-    };
+    BAG::RecordDefinition kExpectredDefinition;
+    kExpectredDefinition.resize(4);
+    kExpectredDefinition[0].name = kFieldName0;
+    kExpectredDefinition[0].type = DT_FLOAT32;
+    kExpectredDefinition[1].name = kFieldName1;
+    kExpectredDefinition[1].type = DT_UINT32;
+    kExpectredDefinition[2].name = kFieldName2;
+    kExpectredDefinition[2].type = DT_BOOLEAN;
+    kExpectredDefinition[3].name = kFieldName3;
+    kExpectredDefinition[3].type = DT_STRING;
 
     auto& pLayer = pDataset->createCompoundLayer(indexType, layerName,
         kExpectredDefinition, chunkSize, compressionLevel);
@@ -381,8 +385,8 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     CHECK(definition[2] == kExpectredDefinition[2]);
     CHECK(definition[3] == kExpectredDefinition[3]);
 
-    UNSCOPED_INFO("Check dataset has a single (filler) record.");
-    CHECK(valueTable.getRecords().size() == 1);
+    UNSCOPED_INFO("Check dataset has no records.");
+    CHECK(valueTable.getRecords().empty());
 
     UNSCOPED_INFO("Check getting the field index returns the expected result.");
     CHECK(valueTable.getFieldIndex(kFieldName0) == 0);
@@ -405,16 +409,16 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
 {
     const TestUtils::RandomFileGuard tmpFileName;
     const std::string kExpectedLayerName = "uncertainty";
-    constexpr size_t kExpectedNumRecords = 2;
+    constexpr size_t kExpectedNumRecords = 1;
 
     BAG::Record kExpectedNewRecord0 {
-//        BAG::CompoundDataType{std::string{"string value 0"}},
-//        BAG::CompoundDataType{std::string{"string value 1"}},
+        BAG::CompoundDataType{std::string{"Bob"}},
+        BAG::CompoundDataType{std::string{"Jones"}},
         BAG::CompoundDataType{42.2f},
         BAG::CompoundDataType{102u},
         BAG::CompoundDataType{true},
         BAG::CompoundDataType{1234.567f},
-//        BAG::CompoundDataType{std::string{"string value2"}}.
+        BAG::CompoundDataType{std::string{"101 Tape Drive"}},
     };
 
     // Write a record.
@@ -432,23 +436,30 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         // Make a new Value Table.
         constexpr BAG::DataType indexType = DT_UINT16;
 
-        BAG::RecordDefinition definition {
-//            {_strdup("string value0"), static_cast<uint8_t>(STRING)},
-//            {_strdup("string value1"), static_cast<uint8_t>(STRING)},
-            {_strdup("float value0"), static_cast<uint8_t>(DT_FLOAT32)},
-            {_strdup("uint32 value"), static_cast<uint8_t>(DT_UINT32)},
-            {_strdup("bool value"), static_cast<uint8_t>(DT_BOOL)},
-            {_strdup("float value1"), static_cast<uint8_t>(DT_FLOAT32)},
-//            {_strdup("string value2"), static_cast<uint8_t>(STRING)}.
-        };
+        BAG::RecordDefinition definition;
+        definition.resize(7);
+        definition[0].name = "first name";
+        definition[0].type = DT_STRING;
+        definition[1].name = "last name";
+        definition[1].type = DT_STRING;
+        definition[2].name = "float value0";
+        definition[2].type = DT_FLOAT32;
+        definition[3].name = "bool value";
+        definition[3].type = DT_UINT32;
+        definition[4].name = "uint32 value";
+        definition[4].type = DT_BOOLEAN;
+        definition[5].name = "float value1";
+        definition[5].type = DT_FLOAT32;
+        definition[6].name = "address";
+        definition[6].type = DT_STRING;
 
         auto& pLayer = pDataset->createCompoundLayer(indexType,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         auto& valueTable = pLayer.getValueTable();
 
-        UNSCOPED_INFO("Check the expected filler record is in the value table.");
-        CHECK(valueTable.getRecords().size() == 1);
+        UNSCOPED_INFO("Check that no records are in the value table.");
+        CHECK(valueTable.getRecords().empty());
 
         UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
         REQUIRE_NOTHROW(valueTable.addRecord(kExpectedNewRecord0));
@@ -460,7 +471,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         BAG::Record kJunkRecord;
         REQUIRE_THROWS(valueTable.addRecord(kJunkRecord));
 
-        UNSCOPED_INFO("Check there are still two records in the value table.");
+        UNSCOPED_INFO("Check there is still one record in the value table.");
         CHECK(valueTable.getRecords().size() == kExpectedNumRecords);
     }
 
@@ -476,7 +487,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 1;
+        constexpr size_t kRecordIndex = 0;
         size_t fieldIndex = 0;
 
         const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
@@ -495,23 +506,29 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         CHECK(field3value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-#if 0
         const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field4value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
-#endif
+
+        const auto& field5value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field5value == kExpectedNewRecord0[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field6value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field6value == kExpectedNewRecord0[fieldIndex]);
+        ++fieldIndex;
 
         REQUIRE_THROWS(valueTable.getValue(kRecordIndex, fieldIndex));
     }
 
     BAG::Record kExpectedNewRecord1 {
-//        BAG::CompoundDataType{std::string{"string value0"}},
-//        BAG::CompoundDataType{std::string{"string value1"}},
+        BAG::CompoundDataType{std::string{"Ernie"}},
+        BAG::CompoundDataType{std::string{"Jones"}},
         BAG::CompoundDataType{987.6543f},
         BAG::CompoundDataType{1001u},
         BAG::CompoundDataType{false},
         BAG::CompoundDataType{0.08642f},
-//        BAG::CompoundDataType{std::string{"string value2"}},
+        BAG::CompoundDataType{std::string{"404 Disk Drive"}},
     };
 
     // Set some new values an existing record.
@@ -527,7 +544,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 1;
+        constexpr size_t kRecordIndex = 0;
         size_t fieldIndex = 0;
 
         // Read values back from memory.
@@ -554,13 +571,23 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
 
-#if 0
         ++fieldIndex;
         valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
         const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field4value == kExpectedNewRecord1[fieldIndex]);
-#endif
+
+        ++fieldIndex;
+        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+
+        const auto& field5value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field5value == kExpectedNewRecord1[fieldIndex]);
+
+        ++fieldIndex;
+        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+
+        const auto& field6value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field6value == kExpectedNewRecord1[fieldIndex]);
     }
 
     // Read new values back from the HDF5 file.
@@ -576,7 +603,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 1;
+        constexpr size_t kRecordIndex = 0;
         size_t fieldIndex = 0;
 
         const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
@@ -595,76 +622,119 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-#if 0
         const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
         CHECK(field4value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
-#endif
+
+        const auto& field5value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field5value == kExpectedNewRecord1[fieldIndex]);
+        ++fieldIndex;
+
+        const auto& field6value = valueTable.getValue(kRecordIndex, fieldIndex);
+        CHECK(field6value == kExpectedNewRecord1[fieldIndex]);
+        ++fieldIndex;
 
         REQUIRE_THROWS(valueTable.getValue(kRecordIndex, fieldIndex));
     }
 }
 
-#if 0
-    void addRecords(const Records& records);
-#endif
-//TODO implement
-
-
-
-#if 0
-TEST_CASE("test having var len string in compound type", "[abc123]")
+//  void addRecords(const Records& records);
+TEST_CASE("test value table add records", "[valuetable][constructor][addRecords][getRecords]")
 {
-    // create new hdf5 file
     const TestUtils::RandomFileGuard tmpFileName;
+    const std::string kExpectedLayerName = "elevation";
 
-    BAG::Metadata metadata;
-    metadata.loadFromBuffer(kMetadataXML);
+    // The Record definition.
+    BAG::Record kExpectedNewRecord0 {
+        BAG::CompoundDataType{false},
+        BAG::CompoundDataType{std::string{"string1"}},
+        BAG::CompoundDataType{true},
+    };
 
-    constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    // The expected Records.
+    using BAG::CompoundDataType;
+    const BAG::Records kExpectedRecords {
+        {CompoundDataType{true}, CompoundDataType{std::string{"string 1"}}, CompoundDataType{true}},
+        {CompoundDataType{true}, CompoundDataType{std::string{"string 2"}}, CompoundDataType{false}},
+        {CompoundDataType{false}, CompoundDataType{std::string{"string 3"}}, CompoundDataType{true}},
+        {CompoundDataType{false}, CompoundDataType{std::string{"string 4"}}, CompoundDataType{false}},
+    };
 
-    auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
-        chunkSize, compressionLevel);
-    REQUIRE(pDataset);
+    const size_t kExpectedNumRecords = kExpectedRecords.size();
 
-    // set up writing stuff
-    // Prepare the memory details.
-    const auto rawMemory = this->convertRecordToRaw(record);
-
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
-
-    const auto memDataType = createH5memoryCompType(descriptor.getDefinition());
-    constexpr hsize_t one = 1;
-    ::H5::DataSpace memDataSpace(1, &one, &one);
-
-    // Prepare the file details.
-    const auto& h5recordDataSet = m_layer.getRecordDataSet();
-
-    if (recordIndex == m_records.size())
+    // Write a record.
     {
-        // Make room for a new record.
-        const hsize_t newNumRecords = recordIndex + 1;
-        h5recordDataSet.extend(&newNumRecords);
+        BAG::Metadata metadata;
+        metadata.loadFromBuffer(kMetadataXML);
+
+        constexpr uint64_t chunkSize = 100;
+        constexpr unsigned int compressionLevel = 6;
+
+        auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
+            chunkSize, compressionLevel);
+        REQUIRE(pDataset);
+
+        // Make a new Value Table.
+        constexpr BAG::DataType indexType = DT_UINT16;
+
+        BAG::RecordDefinition definition;
+        definition.resize(3);
+        definition[0].name = "bool1";
+        definition[0].type = DT_BOOLEAN;
+        definition[1].name = "string";
+        definition[1].type = DT_STRING;
+        definition[2].name = "bool2";
+        definition[2].type = DT_BOOLEAN;
+
+        auto& pLayer = pDataset->createCompoundLayer(indexType,
+            kExpectedLayerName, definition, chunkSize, compressionLevel);
+
+        auto& valueTable = pLayer.getValueTable();
+
+        UNSCOPED_INFO("Check there are no records in the value table.");
+        CHECK(valueTable.getRecords().empty());
+
+        UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
+        REQUIRE_NOTHROW(valueTable.addRecords(kExpectedRecords));
+
+        UNSCOPED_INFO("Check there are four records in the value table.");
+        CHECK(valueTable.getRecords().size() == kExpectedNumRecords);
     }
-    else if (recordIndex > m_records.size())
-        throw 123;  // trying to add a new record beyond the end
 
-    const auto fileDataSpace = h5recordDataSet.getSpace();
+    // Read the new records.
+    {
+        const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
+        REQUIRE(pDataset);
 
-    // select the record to write
-    const hsize_t indexToModify = recordIndex;
-    fileDataSpace.selectElements(H5S_SELECT_SET, 1, &indexToModify);
+        auto const* layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        REQUIRE(layer);
 
-    h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,
-        fileDataSpace);
+        const auto& valueTable = layer->getValueTable();
+        const auto& records = valueTable.getRecords();
+        CHECK(records.size() == kExpectedNumRecords);
 
-    // write to hdf5
+        // Read a record and make sure the values are expected.
+        constexpr size_t kRecordIndex = 1;  // Get the second record value.
 
-    // set up reading stuff
+        {
+            constexpr size_t fieldIndex = 1;  // Second field (string).
 
-    // read from hdf5
+            const auto& value = valueTable.getValue(kRecordIndex, fieldIndex);
+            CHECK(value == kExpectedRecords[kRecordIndex][fieldIndex]);
+            CHECK(value == records[kRecordIndex][fieldIndex]);
+        }
+
+        {
+            std::string fieldName{"string"};  // Field called "string".
+            const size_t kExpectedFieldIndex = 1;
+
+            const auto fieldIndex = valueTable.getFieldIndex(fieldName);
+            CHECK(fieldIndex == kExpectedFieldIndex);
+
+            const auto& value = valueTable.getValue(kRecordIndex, fieldName);
+            CHECK(value == kExpectedRecords[kRecordIndex][fieldIndex]);
+            CHECK(value == records[kRecordIndex][fieldIndex]);
+        }
+    }
 }
-#endif
 

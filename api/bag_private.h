@@ -14,6 +14,8 @@ namespace BAG
 {
 
 constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
+constexpr auto VARRES_TRACKING_LIST_BLOCK_SIZE = 1024;
+
 constexpr unsigned int kMaxCompressionLevel = 9;
 
 /*! Path names for BAG entities */
@@ -35,6 +37,12 @@ constexpr unsigned int kMaxCompressionLevel = 9;
 #define STANDARD_DEV_PATH	            ROOT_PATH "/standard_dev"
 #define NUM_SOUNDINGS_PATH              ROOT_PATH "/num_soundings"  //TODO Discuss this.
 #define COMPOUND_PATH                   ROOT_PATH "/Georef_metadata/"
+
+/*! Path names for optional VR BAG entities */
+#define VR_TRACKING_LIST_PATH           ROOT_PATH "/varres_tracking_list"
+#define VR_METADATA_PATH                ROOT_PATH "/varres_metadata"
+#define VR_REFINEMENT_PATH              ROOT_PATH "/varres_refinements"
+#define VR_NODE_PATH                    ROOT_PATH "/varres_nodes"
 
 /*! Names for BAG Attributes */
 #define BAG_VERSION_NAME                "Bag Version"                /*!< Name for version attribute, value set in bag.h */
@@ -70,7 +78,30 @@ constexpr unsigned int kMaxCompressionLevel = 9;
 #define COMPOUND_RECORD_DEFINITION      "Record Definition"          /*<Name for the record definition attribute */
 #define COMPOUND_RECORDS                "_records"                   /*<Name for the records attribute */
 
-}   //namespace BAG
+#define VR_METADATA_MIN_DIMS_X          "min_dimensions_x"
+#define VR_METADATA_MIN_DIMS_Y          "min_dimensions_y"
+#define VR_METADATA_MAX_DIMS_X          "max_dimensions_x"
+#define VR_METADATA_MAX_DIMS_Y          "max_dimensions_y"
+#define VR_METADATA_MIN_RES_X           "min_resolution_x"
+#define VR_METADATA_MIN_RES_Y           "min_resolution_y"
+#define VR_METADATA_MAX_RES_X           "max_resolution_x"
+#define VR_METADATA_MAX_RES_Y           "max_resolution_y"
 
-#endif  //BAG_PRIVATE_H
+#define VR_REFINEMENT_MIN_DEPTH         "min_depth"
+#define VR_REFINEMENT_MAX_DEPTH         "max_depth"
+#define VR_REFINEMENT_MIN_UNCERTAINTY   "min_uncrt"
+#define VR_REFINEMENT_MAX_UNCERTAINTY   "max_uncrt"
+
+#define VR_NODE_MIN_HYP_STRENGTH        "min_hyp_strength"
+#define VR_NODE_MAX_HYP_STRENGTH        "max_hyp_strength"
+#define VR_NODE_MIN_NUM_HYPOTHESES      "min_num_hypotheses"
+#define VR_NODE_MAX_NUM_HYPOTHESES      "max_num_hypotheses"
+#define VR_NODE_MIN_N_SAMPLES           "min_n_samples"
+#define VR_NODE_MAX_N_SAMPLES           "max_n_samples"
+
+#define VR_TRACKING_LIST_LENGTH_NAME    "VR Tracking List Length"
+
+}  // namespace BAG
+
+#endif  // BAG_PRIVATE_H
 

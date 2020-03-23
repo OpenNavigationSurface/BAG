@@ -12,7 +12,7 @@
 
 #ifdef _MSC_VER
 #pragma warning(push)
-#pragma warning(disable: 4251)
+#pragma warning(disable: 4251)  // std classes do not have DL-interface when exporting
 #endif
 
 namespace BAG {

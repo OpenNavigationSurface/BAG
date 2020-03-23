@@ -38,5 +38,5 @@
 
 #endif /* BAG_DLL && _MSC_VER */
 
-#endif
+#endif  // BAG_CONFIG_H
 

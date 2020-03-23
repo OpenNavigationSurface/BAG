@@ -339,7 +339,6 @@ TEST_CASE("test simple layer get name", "[simplelayer][getDescriptor]")
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 TEST_CASE("test simple layer read", "[simplelayer][read]")
 {
-    //TODO Redo this with an in-memory/temp file.
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/NAVO_data/JD211_public_Release_1-4_UTM.bag"};
 
@@ -370,7 +369,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
         1'000'000.0f, -52.161003f, -52.172005f,
         1'000'000.0f, -52.177002f, -52.174004f};
 
-    const float* floats = reinterpret_cast<const float*>(buffer.get());
+    const float* floats = reinterpret_cast<const float*>(buffer->get());
     for (size_t i=0; i<kExpectedNumNodes; ++i)
         CHECK(kExpectedBuffer[i] == floats[i]);
 }
@@ -439,7 +438,7 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
         auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
         REQUIRE(buffer);
 
-        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.get());
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer->get());
 
         std::array<float, kExpectedNumNodes> kExpectedBuffer;
         kExpectedBuffer.fill(kFloatValue);

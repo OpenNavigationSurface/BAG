@@ -5,11 +5,12 @@
 #include "bag_config.h"
 #include "bag_descriptor.h"
 #include "bag_exceptions.h"
+#include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_metadata.h"
-#include "bag_surfacecorrections.h"
 #include "bag_trackinglist.h"
 #include "bag_types.h"
+#include "bag_vrtrackinglist.h"
 
 #include <functional>
 #include <memory>
@@ -18,10 +19,6 @@
 #include <unordered_map>
 #include <vector>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251 4275)
-#endif
 
 namespace H5 {
 
@@ -31,6 +28,12 @@ class H5File;
 
 namespace BAG {
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#pragma warning(disable: 4275)  // non-DLL-interface class used as base class
+#endif
+
 constexpr static uint32_t kInvalidId = std::numeric_limits<uint32_t>::max();
 
 class BAG_API Dataset final
@@ -39,8 +42,9 @@ class BAG_API Dataset final
 #endif
 {
 public:
-    static std::shared_ptr<Dataset> read(const std::string &fileName,
+    static std::shared_ptr<Dataset> open(const std::string &fileName,
         OpenMode openMode);
+
     static std::shared_ptr<Dataset> create(const std::string &fileName,
         Metadata&& metadata, uint64_t chunkSize, unsigned int compressionLevel);
 
@@ -61,6 +65,8 @@ public:
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, unsigned int compressionLevel) &;
+    void createVR(uint64_t chunkSize, unsigned int compressionLevel);
+    void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
 
     std::vector<LayerType> getLayerTypes() const;
 
@@ -69,15 +75,21 @@ public:
     const Metadata& getMetadata() const & noexcept;
     CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
     const CompoundLayer* getCompoundLayer(const std::string& name) const & noexcept;
-    std::vector<CompoundLayer*> getCompoundLayers() & noexcept;  //TODO implement
+    std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
+    VRMetadata* getVRMetadata() & noexcept;
+    const VRMetadata* getVRMetadata() const & noexcept;
+    VRNode* getVRNode() & noexcept;
+    const VRNode* getVRNode() const & noexcept;
+    VRRefinement* getVRRefinement() & noexcept;
+    const VRRefinement* getVRRefinement() const & noexcept;
+    VRTrackingList* getVRTrackingList() & noexcept;
+    const VRTrackingList* getVRTrackingList() const & noexcept;
 
     Descriptor& getDescriptor() & noexcept;
     const Descriptor& getDescriptor() const & noexcept;
 
-    //TODO Perhaps a struct GridPoint {uint32_t column; uint32_t row;}; ?
-    //TODO Perhaps a struct GeoPoint {double x; double y;}; ?
     std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept;
     std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
 
@@ -112,6 +124,8 @@ private:
     std::unique_ptr<TrackingList> m_pTrackingList;
     //! The descriptor.
     Descriptor m_descriptor;
+    //! The VR tracking list.
+    std::unique_ptr<VRTrackingList> m_pVRTrackingList;
 
     friend class CompoundLayer;
     friend class CompoundLayerDescriptor;
@@ -125,13 +139,20 @@ private:
     friend class SurfaceCorrections;
     friend class SurfaceCorrectionsDescriptor;
     friend class ValueTable;
+    friend class VRMetadata;
+    friend class VRMetadataDescriptor;
+    friend class VRNode;
+    friend class VRNodeDescriptor;
+    friend class VRRefinement;
+    friend class VRRefinementDescriptor;
+    friend class VRTrackingList;
 };
-
-}   //namespace BAG
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}   //namespace BAG
 
 #endif  //BAG_DATASET_H
 
