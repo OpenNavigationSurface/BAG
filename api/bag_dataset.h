@@ -55,6 +55,8 @@ public:
 
     Layer& getLayer(uint32_t id) &;
     const Layer& getLayer(uint32_t id) const &;
+    Layer* getLayer(LayerType type, const std::string& name) &;
+    const Layer* getLayer(LayerType type, const std::string& name) const &;
     std::vector<Layer*> getLayers() const &;
 
     std::vector<LayerType> getLayerTypes() const;
@@ -67,17 +69,23 @@ public:
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, unsigned int compressionLevel) &;
+
     void createVR(uint64_t chunkSize, unsigned int compressionLevel);
     void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
 
+    const Metadata& getMetadata() const & noexcept;
+
     TrackingList& getTrackingList() & noexcept;
     const TrackingList& getTrackingList() const & noexcept;
-    const Metadata& getMetadata() const & noexcept;
+
     CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
     const CompoundLayer* getCompoundLayer(const std::string& name) const & noexcept;
     std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
+    SimpleLayer* getSimpleLayer(LayerType type) & noexcept;
+    const SimpleLayer* getSimpleLayer(LayerType type) const & noexcept;
+
     VRMetadata* getVRMetadata() & noexcept;
     const VRMetadata* getVRMetadata() const & noexcept;
     VRNode* getVRNode() & noexcept;

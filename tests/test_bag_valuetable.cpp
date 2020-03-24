@@ -315,8 +315,6 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 
 }  // namespace
 
-namespace BAG {
-
 bool operator==(
     const FieldDefinition& lhs,
     const FieldDefinition& rhs)
@@ -329,8 +327,6 @@ bool operator==(
 
     return strcmp(lhs.name, rhs.name) == 0;
 }
-
-}  // namespace BAG
 
 //  const Records& getRecords() const & noexcept;
 //  const RecordDefinition& getDefinition() const & noexcept;

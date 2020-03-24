@@ -7,7 +7,7 @@
 
 
 struct BagHandle {
-    std::shared_ptr<BAG::Dataset> pDataset;
+    std::shared_ptr<BAG::Dataset> dataset;
 };
 
 namespace BAG

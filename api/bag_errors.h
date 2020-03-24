@@ -15,6 +15,7 @@
 #define BAG_CRYPTO_ERROR_BASE                   200
 #define BAG_METADATA_ERROR_BASE                 400
 #define BAG_HDFV_ERROR_BASE                     600
+#define BAG_NEW_METADATA_ERROR_BASE            1000
 
 /*! General error conditions, including success */
 enum BAG_ERRORS {
@@ -26,6 +27,11 @@ enum BAG_ERRORS {
     BAG_INVALID_BAG_HANDLE                     =   5, /*!< bagHandle cannot be NULL */
     BAG_INVALID_FUNCTION_ARGUMENT              =   6, /*!< Inconsistency or illegal value contained in function arguments */
     BAG_INVALID_ERROR_CODE                     =   7, /*!< An undefined bagError code was encountered */
+
+    BAG_COMPOUND_LAYER_NAME_MISSING            =  10, /*!< A compound layer name is required */
+    BAG_COMPOUND_LAYER_EXISTS                  =  11, /*!< The specified layer already exists */
+
+    BAG_SURFACE_CORRECTIONS_MISSING            =  20, /*!< The surface corrections layer is missing */
 
     BAG_CRYPTO_SIGNATURE_OK                    = 200, /*!< Signature found, and valid */
     BAG_CRYPTO_NO_SIGNATURE_FOUND              = 201, /*!< No signature found in file */
@@ -92,6 +98,12 @@ enum BAG_ERRORS {
     BAG_HDF_DATASET_OPEN_FAILURE               = 629, /*!< HDF Unable to open Dataset */
     BAG_HDF_TYPE_CREATE_FAILURE                = 630, /*!< HDF Unable to create Datatype */
     BAG_HDF_INVALID_COMPRESSION_LEVEL          = 631, /*!< HDF compression level not in acceptable range of 0 to 9 */
+    BAG_HDF_WRITE_ATTRIBUTE_FAILURE            = 632, /*!< HDF Unable to write to Attribute */
+
+    BAG_NEWMETADATA_RECORD_NOT_FOUND           = BAG_NEW_METADATA_ERROR_BASE, /*!< Unable to find record. */
+    BAG_NEWMETADATA_FIELD_NOT_FOUND            = BAG_NEW_METADATA_ERROR_BASE + 1, /*!< Unable to find field. */
+    BAG_NEWMETADATA_NO_VALUE_FOUND             = BAG_NEW_METADATA_ERROR_BASE + 2, /*!< Unable to find the value. */
+    BAG_NEWMETADATA_INVALID_RECORD_DEFINITION  = BAG_NEW_METADATA_ERROR_BASE + 3, /*!< The provided record does not match the definition in the compound layer. */
 
 };
 

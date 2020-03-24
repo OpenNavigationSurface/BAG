@@ -459,6 +459,20 @@ const Layer& Dataset::getLayer(uint32_t id) const &
     return *m_layers[id];
 }
 
+Layer* Dataset::getLayer(
+    LayerType type,
+    const std::string& name) &
+{
+    return BAG::getLayer(m_layers, type, name);
+}
+
+const Layer* Dataset::getLayer(
+    LayerType type,
+    const std::string& name) const &
+{
+    return BAG::getLayer(m_layers, type, name);
+}
+
 std::vector<Layer*> Dataset::getLayers() const &
 {
     std::vector<Layer*> layers;
@@ -508,6 +522,18 @@ std::tuple<bool, float, float> Dataset::getMinMax(
 uint32_t Dataset::getNextId() const noexcept
 {
     return static_cast<uint32_t>(m_layers.size());
+}
+
+SimpleLayer* Dataset::getSimpleLayer(
+    LayerType type) & noexcept
+{
+    return dynamic_cast<SimpleLayer*>(BAG::getLayer(m_layers, type));
+}
+
+const SimpleLayer* Dataset::getSimpleLayer(
+    LayerType type) const & noexcept
+{
+    return dynamic_cast<SimpleLayer*>(BAG::getLayer(m_layers, type));
 }
 
 SurfaceCorrections* Dataset::getSurfaceCorrections() & noexcept

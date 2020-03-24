@@ -8,16 +8,18 @@
 #include "bag_metadata_import.h"
 #include "bag_metadatatypes.h"
 
+#include <iostream>
 #include <libxml/xmlschemas.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <vector>
 
+
+namespace BAG {
 
 namespace {
 
@@ -1878,4 +1880,6 @@ BagError bagImportMetadataFromXmlFile(
 
     return bagImportMetadataFromXml(*pDocument, metadata, doValidation);
 }
+
+}  // namespace BAG
 
