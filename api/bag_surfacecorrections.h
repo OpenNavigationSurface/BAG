@@ -2,10 +2,10 @@
 #define BAG_SURFACECORRECTIONS_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_types.h"
-#include "bag_deleteh5dataset.h"
 
 #include <memory>
 
@@ -25,6 +25,13 @@ public:
     SurfaceCorrections(SurfaceCorrections&&) = delete;
     SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
     SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
+
+    std::unique_ptr<UInt8Array> readCorrected(uint32_t rowStart,
+        uint32_t rowEnd, uint32_t columnStart, uint32_t columnEnd,
+        uint8_t corrector, const SimpleLayer& layer) const;
+    std::unique_ptr<UInt8Array> readCorrectedRow(uint32_t row,
+        uint32_t columnStart, uint32_t columnEnd, uint8_t corrector,
+        const SimpleLayer& layer) const;
 
 protected:
 

@@ -57,6 +57,8 @@ public:
     const Layer& getLayer(uint32_t id) const &;
     std::vector<Layer*> getLayers() const &;
 
+    std::vector<LayerType> getLayerTypes() const;
+
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
         unsigned int compressionLevel) &;
     CompoundLayer& createCompoundLayer(DataType indexType,
@@ -67,8 +69,6 @@ public:
         uint64_t chunkSize, unsigned int compressionLevel) &;
     void createVR(uint64_t chunkSize, unsigned int compressionLevel);
     void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
-
-    std::vector<LayerType> getLayerTypes() const;
 
     TrackingList& getTrackingList() & noexcept;
     const TrackingList& getTrackingList() const & noexcept;

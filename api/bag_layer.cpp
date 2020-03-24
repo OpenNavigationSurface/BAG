@@ -21,6 +21,11 @@ std::weak_ptr<Dataset> Layer::getDataset() & noexcept
     return m_pBagDataset;
 }
 
+std::weak_ptr<const Dataset> Layer::getDataset() const & noexcept
+{
+    return m_pBagDataset;
+}
+
 DataType Layer::getDataType(LayerType layerType) noexcept
 {
     switch (layerType)

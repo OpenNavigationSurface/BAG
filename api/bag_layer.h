@@ -47,6 +47,7 @@ protected:
     Layer(Dataset& dataset, LayerDescriptor& descriptor);
 
     std::weak_ptr<Dataset> getDataset() & noexcept;
+    std::weak_ptr<const Dataset> getDataset() const & noexcept;
 
 private:
     virtual std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,

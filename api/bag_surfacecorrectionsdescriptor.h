@@ -33,12 +33,15 @@ public:
     SurfaceCorrectionsDescriptor& operator=(const SurfaceCorrectionsDescriptor&) = delete;
     SurfaceCorrectionsDescriptor& operator=(SurfaceCorrectionsDescriptor&&) = delete;
 
+    std::tuple<uint32_t, uint32_t> getDims() const noexcept;
     uint8_t getNumCorrectors() const noexcept;
     std::tuple<double, double> getOrigin() const noexcept;
     std::tuple<double, double> getSpacing() const noexcept;
     BAG_SURFACE_CORRECTION_TOPOGRAPHY getSurfaceType() const noexcept;
     const std::string& getVerticalDatums() const & noexcept;
 
+    SurfaceCorrectionsDescriptor& setDims(uint32_t numRws,
+        uint32_t numColumns) & noexcept;
     SurfaceCorrectionsDescriptor& setVerticalDatum(
         std::string verticalDatums) & noexcept;
     SurfaceCorrectionsDescriptor& setOrigin(double swX,
@@ -56,8 +59,6 @@ private:
     DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
 
-    //! The data type (depends on layer type).
-    DataType m_dataType = DT_UNKNOWN_DATA_TYPE;
     //! The type of surface this correction applies to.
     BAG_SURFACE_CORRECTION_TOPOGRAPHY m_surfaceType = BAG_SURFACE_UNKNOWN;
     //! The size of a single "element" in the hdf5 file.
@@ -74,6 +75,10 @@ private:
     double m_xSpacing = 0.;
     //! Node spacing Y.
     double m_ySpacing = 0.;
+    //! Number of rows.
+    uint32_t m_numRows = 0;
+    //! Number of columns.
+    uint32_t m_numColumns = 0;
 
 };
 

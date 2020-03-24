@@ -145,7 +145,9 @@ struct BagVerticalDatumCorrectionsGridded
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
-#define BAG_NULL_ELEVATION 1000000
+#define BAG_NULL_ELEVATION      1000000
+#define BAG_NULL_GENERIC        1000000
+#define BAG_NULL_UNCERTAINTY    1000000
 
 #ifdef __cplusplus
 }  // extern "C"
