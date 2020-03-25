@@ -148,6 +148,7 @@ if(BUILD_PYTHON)
     # and some of these might not be needed?
     set(BAG_SWIG_INPUT_FILES
         bag_c_types
+        bag_uint8array
         bag_metadatatypes
         bag_types
         bag_metadata
@@ -169,25 +170,7 @@ if(BUILD_PYTHON)
         bag_compoundlayer
         bag_compoundlayerdescriptor
         bag_dataset
-
-
-        ## temp disabled to avoid warnings:
-        # bag_trackinglist      #needs overloaded operator[] and push_back(), etc to be redefined
-        # bag_compounddatatype  #need to handle overloaded operator=
-        # bag_valuetable        #compiles, just needs bag_compounddatatype enabled
-
-        # bag_layer     # need to add support for std::unique_ptr<uint8_t>
-
-
-        ## these need layer:
-        #   bag_compoundlayer
-        #   bag_compoundlayerdescriptor
-        #   bag_interleavedlayer
-        #   bag_simplelayer
-        #   bag_surfacecorrections
-
-        #  bag_dataset         #needs all of the above?
-
+        bagpy
 
         ## not sure about these?
         #   #bag_xml_meta
@@ -211,7 +194,7 @@ if(BUILD_PYTHON)
     INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
 
     # https://cmake.org/cmake/help/latest/module/FindSWIG.html
-    find_package(SWIG 4.0.1 REQUIRED)
+    find_package(SWIG 4.0.1 REQUIRED COMPONENTS python)
     # https://cmake.org/cmake/help/v3.12/module/UseSWIG.html
     include(${SWIG_USE_FILE})
 
@@ -224,35 +207,36 @@ if(BUILD_PYTHON)
     set(CMAKE_SWIG_FLAGS "-Wall" "-v")
     #set(CMAKE_SWIG_FLAGS "-debug-symtabs") #write out symbol tables when building
 
-    foreach(ifile IN LISTS BAG_SWIG_INPUT_FILES)
-
-        #ATTEMPT1
-        ###set_source_files_properties(file.i PROPERTIES SWIG_FLAGS "-threads")
-        ###set_source_files_properties(bag_metadata.i PROPERTIES SWIG_FLAGS "-v -c++ -cppext cpp")
+   # foreach(ifile IN LISTS BAG_SWIG_INPUT_FILES)
 
 
-        SET_SOURCE_FILES_PROPERTIES("interface/${ifile}.i" PROPERTIES
+        SET_SOURCE_FILES_PROPERTIES("interface/bagpy.i" PROPERTIES
+            SWIG_MODULE_NAME bagPy
             CPLUSPLUS ON
             COMPILE_FLAGS "--std=c++14"
             )
 
-        swig_add_library(${ifile} TYPE SHARED LANGUAGE python
+        swig_add_library(bagPy TYPE SHARED LANGUAGE python
             OUTFILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/swig_wrapper"
-            #OUTPUT_DIR "${CMAKE_BINARY_DIR}/swig_python"  # change the dir of output .py files, but .pyd files don't move so this doesn't work
-            SOURCES "interface/${ifile}.i"
+            OUTPUT_DIR "${CMAKE_HOME_DIRECTORY}/python"  # change the dir of output .py files. Compiled pyd files get moved by later custom_command
+            SOURCES "interface/bagpy.i" #${CMAKE_CURRENT_SOURCE_DIR}/${ifile}.h
             )
-        SWIG_LINK_LIBRARIES(${ifile} baglib ${PYTHON_LIBRARIES})
 
-        #END_ATTEMPT1
+        target_include_directories(bagPy
+            PUBLIC 
+                ${HDF5_INCLUDE_DIRS}
+                ${PYTHON_INCLUDE_DIRS}
+        )
 
-        ###OLD:
+#        set_property(TARGET bagPy PROPERTY 
+#             SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
 
-
-        #ATTEMPT2
-        #    target_include_directories(pyBag PRIVATE ${Python3_INCLUDE_DIRS})
-        #    set_property(TARGET pyBag PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
-        #    target_link_libraries(pyBag PRIVATE bag ${Python3_LIBRARIES})
-        #END_ATTEMPT2
+        swig_link_libraries(bagPy
+            baglib
+            ${PYTHON_LIBRARIES} 
+            ${HDF5_hdf5_LIBRARY}
+            ${HDF5_hdf5_cpp_LIBRARY}
+            LibXml2::LibXml2)
 
         # Install
         # Get the python site packages directory by invoking python
@@ -260,7 +244,14 @@ if(BUILD_PYTHON)
         #message("PYTHON_SITE_PACKAGES = ${PYTHON_SITE_PACKAGES}")
         #install(TARGETS _bag DESTINATION ${PYTHON_SITE_PACKAGES})
         #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bag.py DESTINATION ${PYTHON_SITE_PACKAGES})
-    endforeach()
+        
+   # endforeach()
+
+    # copy the generated pyd file to test dir
+    add_custom_command(TARGET bagPy POST_BUILD
+       COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:bagPy> "${CMAKE_HOME_DIRECTORY}/python"
+    )
+
 endif()
 
 
