@@ -10,7 +10,7 @@
 %shared_ptr(BAG::InterleavedLayerDescriptor)
 
 %{
-#include "bag_interleavedlayerdescriptor.h"
+#include "../bag_interleavedlayerdescriptor.h"
 %}
 
 #define final

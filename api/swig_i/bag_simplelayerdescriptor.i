@@ -7,7 +7,7 @@
 %module bag_simplelayerdescriptor
 
 %{
-#include "bag_simplelayerdescriptor.h"
+#include "../bag_simplelayerdescriptor.h"
 %}
 
 %include <std_shared_ptr.i>

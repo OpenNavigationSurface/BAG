@@ -7,14 +7,14 @@
 %module bag_exceptions
 
 %{
-#include "bag_exceptions.h"
+#include "../bag_exceptions.h"
 %}
 
 
 #define final
 
-%import "bag_config.h"
+%import "../bag_config.h"
 %include "std_except.i"
 %include "exception.i" // is this needed?
-%include "bag_exceptions.h"
+%include "../bag_exceptions.h"
 

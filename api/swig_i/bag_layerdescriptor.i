@@ -10,7 +10,7 @@
 %shared_ptr(BAG::LayerDescriptor)
 
 %{
-#include "bag_layerdescriptor.h"
+#include "../bag_layerdescriptor.h"
 %}
 
 namespace BAG
@@ -18,7 +18,7 @@ namespace BAG
 class Dataset;
 }
 
-%import "bag_config.h"
+%import "../bag_config.h"
 %import "bag_types.i"
 
 namespace BAG {

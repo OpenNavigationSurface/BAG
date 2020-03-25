@@ -7,7 +7,7 @@
 %module bag_metadata_import
 
 %{
-#include "bag_metadata_import.h"
+#include "../bag_metadata_import.h"
 %}
 
-%include "bag_metadata_import.h"
+%include "../bag_metadata_import.h"

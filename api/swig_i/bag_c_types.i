@@ -7,7 +7,7 @@
 %module bag_c_types
 
 %{
-#include "bag_c_types.h"
+#include "../bag_c_types.h"
 %}
 
-%include "bag_c_types.h"
+%include "../bag_c_types.h"

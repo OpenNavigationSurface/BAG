@@ -7,7 +7,7 @@
 %module bag_dataset
 
 %{
-#include "bag_dataset.h"
+#include "../bag_dataset.h"
 %}
 
 #define final
@@ -25,7 +25,7 @@ namespace std
     %template(LayerTypeVector) vector<BAG::LayerType>;
 }
 
-%import "bag_config.h"
+%import "../bag_config.h"
 %import "bag_descriptor.i"
 %import "bag_metadata.i"
 %import "bag_surfacecorrections.i"

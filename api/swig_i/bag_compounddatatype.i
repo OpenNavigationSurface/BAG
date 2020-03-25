@@ -7,7 +7,7 @@
 %module bag_compounddatatype
 
 %{
-#include "bag_compounddatatype.h"
+#include "../bag_compounddatatype.h"
 %}
 
 #define final

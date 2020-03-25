@@ -9,7 +9,7 @@
 %shared_ptr(BAG::Descriptor)
 
 %{
-#include "bag_descriptor.h"
+#include "../bag_descriptor.h"
 %}
 
 #define final

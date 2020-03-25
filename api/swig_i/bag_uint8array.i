@@ -7,15 +7,11 @@
 %module bag_uint8array
 
 %{
-#include "bag_uint8array.h"
+#include "../bag_uint8array.h"
 %}
 
 #define final
-//%import "bag_config.h"
-
 %include "stdint.i"
-//%include "bag_uint8array.h"
-
 
 namespace BAG
 {
@@ -34,11 +30,9 @@ public:
     %ignore get() const &;
     uint8_t* release();
     %rename(__getitem__) operator[];
-    //uint8_t& operator[](size_t index) &;
     size_t size();
 };
 }
-
 
 %extend BAG::UInt8Array
 {

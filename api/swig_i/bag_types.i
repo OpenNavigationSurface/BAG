@@ -7,7 +7,7 @@
 %module bag_types
 
 %{
-#include "bag_types.h"
+#include "../bag_types.h"
 %}
 
-%include "bag_types.h"
+%include "../bag_types.h"

@@ -7,11 +7,11 @@
 %module bag_simplelayer
 
 %{
-#include "bag_simplelayer.h"
+#include "../bag_simplelayer.h"
 %}
 
 #define final
-%import "bag_config.h"
+%import "../bag_config.h"
 %import "bag_layer.i"
 
 namespace BAG {

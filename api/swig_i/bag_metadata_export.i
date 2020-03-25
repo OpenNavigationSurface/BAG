@@ -7,9 +7,9 @@
 %module bag_metadata_export
 
 %{
-#include "bag_metadata_export.h"
+#include "../bag_metadata_export.h"
 %}
 
-%import "bag_config.h"
-%include "bag_metadata_export.h"
+%import "../bag_config.h"
+%include "../bag_metadata_export.h"
 

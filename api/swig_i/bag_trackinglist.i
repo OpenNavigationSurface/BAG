@@ -7,7 +7,7 @@
 %module bag_trackinglist
 
 %{
-#include "bag_trackinglist.h"
+#include "../bag_trackinglist.h"
 %}
 
 namespace H5
@@ -16,7 +16,7 @@ namespace H5
 }
 
 #define final
-%import "bag_config.h"
+%import "../bag_config.h"
 
 namespace BAG
 {

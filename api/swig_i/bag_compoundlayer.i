@@ -7,12 +7,12 @@
 %module bag_compoundlayer
 
 %{
-#include "bag_compoundlayer.h"
+#include "../bag_compoundlayer.h"
 %}
 
 #define final
 
-%import "bag_config.h"
+%import "../bag_config.h"
 %import "bag_layer.i"
 %import "bag_valuetable.i"
 

@@ -7,11 +7,11 @@
 %module bag_compoundlayerdescriptor
 
 %{
-#include "bag_compoundlayerdescriptor.h"
+#include "../bag_compoundlayerdescriptor.h"
 %}
 
 #define final
-%import "bag_config.h"
+%import "../bag_config.h"
 %import "bag_compoundlayer.i"
 %import "bag_layerdescriptor.i"
 

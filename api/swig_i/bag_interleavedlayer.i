@@ -7,11 +7,11 @@
 %module bag_interleavedlayer
 
 %{
-#include "bag_interleavedlayer.h"
+#include "../bag_interleavedlayer.h"
 %}
 
 #define final
-%import "bag_config.h"
+%import "../bag_config.h"
 %import "bag_layer.i"
 
 namespace BAG {

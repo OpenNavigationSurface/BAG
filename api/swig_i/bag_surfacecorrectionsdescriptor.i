@@ -10,7 +10,7 @@
 %shared_ptr(BAG::SurfaceCorrectionsDescriptor)
 
 %{
-#include "bag_surfacecorrectionsdescriptor.h"
+#include "../bag_surfacecorrectionsdescriptor.h"
 %}
 
 #define final

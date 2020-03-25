@@ -7,7 +7,7 @@
 %module bag_metadata
 
 %{
-#include "bag_metadata.h"
+#include "../bag_metadata.h"
 %}
 
 #define final
@@ -17,7 +17,7 @@ namespace H5
 class DataSet;
 }
 
-%import "bag_config.h"
+%import "../bag_config.h"
 
 namespace BAG
 {

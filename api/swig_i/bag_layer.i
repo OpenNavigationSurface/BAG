@@ -7,11 +7,11 @@
 %module bag_layer
 
 %{
-#include "bag_layer.h"
+#include "../bag_layer.h"
 %}
 
 #define final
-%import "bag_config.h"
+%import "../bag_config.h"
 %import "bag_types.i"
 %import "bag_uint8array.i"
 %import "bag_layerdescriptor.i"

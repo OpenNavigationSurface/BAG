@@ -7,7 +7,7 @@
 %module bag_metadatatypes
 
 %{
-#include "bag_metadatatypes.h"
+#include "../bag_metadatatypes.h"
 %}
 
-%include "bag_metadatatypes.h"
+%include "../bag_metadatatypes.h"
