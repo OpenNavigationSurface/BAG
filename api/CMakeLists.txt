@@ -210,7 +210,7 @@ if(BUILD_PYTHON)
    # foreach(ifile IN LISTS BAG_SWIG_INPUT_FILES)
 
 
-        SET_SOURCE_FILES_PROPERTIES("interface/bagpy.i" PROPERTIES
+        SET_SOURCE_FILES_PROPERTIES("swig_i/bagpy.i" PROPERTIES
             SWIG_MODULE_NAME bagPy
             CPLUSPLUS ON
             COMPILE_FLAGS "--std=c++14"
@@ -219,7 +219,7 @@ if(BUILD_PYTHON)
         swig_add_library(bagPy TYPE SHARED LANGUAGE python
             OUTFILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/swig_wrapper"
             OUTPUT_DIR "${CMAKE_HOME_DIRECTORY}/python"  # change the dir of output .py files. Compiled pyd files get moved by later custom_command
-            SOURCES "interface/bagpy.i" #${CMAKE_CURRENT_SOURCE_DIR}/${ifile}.h
+            SOURCES "swig_i/bagpy.i" #${CMAKE_CURRENT_SOURCE_DIR}/${ifile}.h
             )
 
         target_include_directories(bagPy
