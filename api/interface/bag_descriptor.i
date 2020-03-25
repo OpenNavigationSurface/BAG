@@ -32,41 +32,31 @@ namespace BAG {
         %ignore operator=(Descriptor&&);
 
         std::vector<LayerType> getLayerTypes() const;
-
         bool isReadOnly() const noexcept;
-        Descriptor& setReadOnly(bool readOnly) & noexcept;
-
-        const std::string& getVersion() const& noexcept;
-        Descriptor& setVersion(std::string inVersion) & noexcept;
-
+        std::vector<uint32_t> getLayerIds() const noexcept;
         const std::vector<std::shared_ptr<const LayerDescriptor>>&
-            getLayerDescriptors() const& noexcept;
-
-        const LayerDescriptor& getLayerDescriptor(LayerType id) const&;
-        Descriptor& addLayerDescriptor(const LayerDescriptor& inDescriptor)&;
-
-        const std::string& getHorizontalReferenceSystem() const& noexcept;
+            getLayerDescriptors() const & noexcept;
+        const LayerDescriptor& getLayerDescriptor(LayerType id) const &;
+        const std::string& getVersion() const & noexcept;
+        const std::string& getHorizontalReferenceSystem() const & noexcept;
         void setHorizontalReferenceSystem(
             const std::string& horizontalReferenceSystem) & noexcept;
+        const std::string& getVerticalReferenceSystem() const & noexcept;
+        const std::tuple<uint32_t, uint32_t>& getDims() const & noexcept;
+        const std::tuple<double, double, double, double>&
+            getProjectedCover() const & noexcept;
+        const std::tuple<double, double>& getOrigin() const & noexcept;
+        const std::tuple<double, double>& getGridSpacing() const & noexcept;
 
-        const std::string& getVerticalReferenceSystem() const& noexcept;
+        Descriptor& addLayerDescriptor(const LayerDescriptor& inDescriptor) &;
         void setVerticalReferenceSystem(
             const std::string& verticalReferenceSystem) & noexcept;
-
-        const std::tuple<uint32_t, uint32_t>& getDims() const& noexcept;
         void setDims(uint32_t rows, uint32_t columns) & noexcept;
-
-        const std::tuple<double, double, double, double>&
-            getProjectedCover() const& noexcept;
         void setProjectedCover(double llX, double llY, double urX,
             double urY) & noexcept;
-
-        const std::tuple<double, double>& getOrigin() const& noexcept;
         void setOrigin(double llX, double llY) & noexcept;
-
-        const std::tuple<double, double>& getGridSpacing() const& noexcept;
         void setGridSpacing(double xSpacing, double ySpacing) & noexcept;
-
-        std::vector<uint32_t> getLayerIds() const noexcept;
+        Descriptor& setReadOnly(bool readOnly) & noexcept;
+        Descriptor& setVersion(std::string inVersion) & noexcept;
     };
 }

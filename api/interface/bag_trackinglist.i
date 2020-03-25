@@ -49,7 +49,6 @@ public:
     void push_back(value_type&& value);
     template <typename... Args>
     void emplace_back(Args&&... args) &;
-        
     reference front() &;
     %ignore front() const &;
     reference back() &;

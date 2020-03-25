@@ -29,12 +29,20 @@ class CompoundDataType final {
         CompoundDataType(const CompoundDataType& other);
         %ignore CompoundDataType(CompoundDataType&& other);
         ~CompoundDataType() noexcept;
-        %rename(assignConst) operator=(const CompoundDataType& rhs);
-        %rename(assign) operator=(CompoundDataType&& rhs);
-        %rename(assignFloat) operator=(float rhs);
-        %rename(assignInt) operator=(uint32_t rhs);
-        %rename(assignBool) operator=(bool rhs);
-        %rename(assignString) operator=(std::string rhs);
+        
+        %rename(assignConst) operator=(const CompoundDataType&);
+        CompoundDataType& operator=(const CompoundDataType& rhs);
+        %rename(assign) operator=(CompoundDataType&&);
+        CompoundDataType& operator=(CompoundDataType&& rhs);
+        %rename(assignFloat) operator=(float);
+        CompoundDataType& operator=(float rhs);
+        %rename(assignInt) operator=(uint32_t);
+        CompoundDataType& operator=(uint32_t rhs);
+        %rename(assignBool) operator=(bool);
+        CompoundDataType& operator=(bool rhs);
+        %rename(assignString) operator=(std::string);
+        CompoundDataType& operator=(std::string rhs);
+
         bool operator==(const CompoundDataType& rhs) const noexcept;
         float asFloat() const;
         uint32_t asUInt32() const;

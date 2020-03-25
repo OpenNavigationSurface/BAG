@@ -21,6 +21,8 @@
 namespace std 
 {
     %template(CompoundLayerVector) vector<BAG::CompoundLayer*>;
+    %template(LayerVector) vector<BAG::Layer*>;
+    %template(LayerTypeVector) vector<BAG::LayerType>;
 }
 
 %import "bag_config.h"
@@ -38,7 +40,8 @@ class BAG_API Dataset final
 #endif
 {
 public:
-    static std::shared_ptr<Dataset> read(const std::string & fileName,
+    %rename(openDataset) open(const std::string &, OpenMode);
+    static std::shared_ptr<Dataset> open(const std::string & fileName,
         OpenMode openMode);
     static std::shared_ptr<Dataset> create(const std::string& fileName,
         Metadata&& metadata, uint64_t chunkSize, unsigned int compressionLevel);
@@ -52,33 +55,47 @@ public:
     %ignore getLayer(uint32_t id) const&;
     std::vector<Layer*> getLayers() const&;
 
+    std::vector<LayerType> getLayerTypes() const;
+
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
-        unsigned int compressionLevel)&;
+        unsigned int compressionLevel) &;
     CompoundLayer& createCompoundLayer(DataType indexType,
         const std::string& name, const RecordDefinition& definition,
-        uint64_t chunkSize, unsigned int compressionLevel)&;
+        uint64_t chunkSize, unsigned int compressionLevel) &;
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
-        uint64_t chunkSize, unsigned int compressionLevel)&;
+        uint64_t chunkSize, unsigned int compressionLevel) &;
 
-    std::vector<LayerType> getLayerTypes() const;
+    // TODO: renable after adding swig interfaces for VR classes
+    /*
+    void createVR(uint64_t chunkSize, unsigned int compressionLevel);
+    void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
+    */
 
     TrackingList& getTrackingList() & noexcept;
     %ignore getTrackingList() const& noexcept;
-    const Metadata& getMetadata() const& noexcept;
+    const Metadata& getMetadata() const & noexcept;
     CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
-    %ignore getCompoundLayer(const std::string& name) const& noexcept;
-    
-    //std::vector<CompoundLayer*> getCompoundLayers() & noexcept;  //TODO implement
-    
+    %ignore getCompoundLayer(const std::string& name) const & noexcept;
+    std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
-    %ignore getSurfaceCorrections() const& noexcept;
+    %ignore getSurfaceCorrections() const & noexcept;
+
+    // TODO: renable after adding swig interfaces for VR classes
+    /*
+    VRMetadata* getVRMetadata() & noexcept;
+    %ignore getVRMetadata() const & noexcept;
+    VRNode* getVRNode() & noexcept;
+    %ignore getVRNode() const & noexcept;
+    VRRefinement* getVRRefinement() & noexcept;
+    %ignore getVRRefinement() const & noexcept;
+    VRTrackingList* getVRTrackingList() & noexcept;
+    %ignore getVRTrackingList() const & noexcept;
+    */
 
     Descriptor& getDescriptor() & noexcept;
-    %ignore getDescriptor() const& noexcept;
+    %ignore getDescriptor() const & noexcept;
 
-    //TODO Perhaps a struct GridPoint {uint32_t column; uint32_t row;}; ?
-    //TODO Perhaps a struct GeoPoint {double x; double y;}; ?
     std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept;
     std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
 };
