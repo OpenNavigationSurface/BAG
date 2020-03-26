@@ -42,14 +42,9 @@ if(NOT BUILD_PYTHON)
     add_subdirectory(examples)
 endif()
 
-## turning on testing produces errors about not finding the bag files?
-
 # Testing
-if(NOT BUILD_PYTHON)
-    option(BUILD_TESTS "Build Tests" ON)
-
-    if(BUILD_TESTS)
-        add_subdirectory(tests)
-    endif()
+option(BUILD_TESTS "Build Tests" ON)
+if(BUILD_TESTS)
+    add_subdirectory(tests)
 endif()
 
