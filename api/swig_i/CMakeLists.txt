@@ -2,8 +2,7 @@
 
 # https://cmake.org/cmake/help/latest/module/FindPython3.html
 #testing: http://www.swig.org/Doc4.0/Introduction.html#Introduction_build_system
-FIND_PACKAGE(PythonLibs COMPONENTS Interpreter Development REQUIRED)
-INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
+FIND_PACKAGE(Python3 COMPONENTS Interpreter Development REQUIRED)
 
 # https://cmake.org/cmake/help/latest/module/FindSWIG.html
 find_package(SWIG 4.0.1 REQUIRED COMPONENTS python)
@@ -35,10 +34,11 @@ target_include_directories(bagPy
 
 swig_link_libraries(bagPy
     baglib
-    ${PYTHON_LIBRARIES} 
     ${HDF5_hdf5_LIBRARY}
     ${HDF5_hdf5_cpp_LIBRARY}
-    LibXml2::LibXml2)
+    LibXml2::LibXml2
+    Python3::Python
+)
 
 # copy the generated .pyd file to test dir
 add_custom_command(TARGET bagPy POST_BUILD
