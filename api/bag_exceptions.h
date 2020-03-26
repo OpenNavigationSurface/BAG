@@ -16,6 +16,16 @@ namespace BAG {
 #pragma warning(disable: 4275)
 #endif
 
+// General
+//! Compression was requested, but no chunking was specified.
+struct BAG_API CompressionNeedsChunkingSet final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "If compression is desired, a chunk positive chunk size must be set.";
+    }
+};
+
 // Attribute related.
 //! Attribute type not supported (yet)  //TODO temp exception
 struct BAG_API UnsupportedAttributeType final : virtual std::exception
@@ -328,6 +338,7 @@ struct BAG_API RecordNotFound final : virtual std::exception
 };
 
 // VRRefinement related.
+//! VR Refinements are the wrong dimension.
 struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
 {
     const char* what() const noexcept override

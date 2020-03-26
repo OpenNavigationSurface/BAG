@@ -14,11 +14,11 @@ namespace {
 
 ::H5::CompType makeDataType()
 {
-    const ::H5::CompType memDataType{sizeof(BagVRRefinementItem)};
+    const ::H5::CompType memDataType{sizeof(VRRefinementItem)};
 
-    memDataType.insertMember("depth", HOFFSET(BagVRRefinementItem, depth),
+    memDataType.insertMember("depth", HOFFSET(VRRefinementItem, depth),
         ::H5::PredType::NATIVE_FLOAT);
-    memDataType.insertMember("depth_uncrt", HOFFSET(BagVRRefinementItem, depth_uncrt),
+    memDataType.insertMember("depth_uncrt", HOFFSET(VRRefinementItem, depth_uncrt),
         ::H5::PredType::NATIVE_FLOAT);
 
     return memDataType;
@@ -100,27 +100,22 @@ VRRefinement::createH5dataSet(
     constexpr hsize_t kMaxFileLength = H5S_UNLIMITED;
     const ::H5::DataSpace h5fileDataSpace{1, &fileLength, &kMaxFileLength};
 
-    // Use chunk size and compression level from the descriptor.
-    const auto chunkSize = descriptor.getChunkSize();
-    const auto compressionLevel = descriptor.getCompressionLevel();
-
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    if (compressionLevel <= kMaxCompressionLevel)
-    {
-        h5createPropList.setLayout(H5D_CHUNKED);
-        h5createPropList.setChunk(1, &chunkSize);
+    h5createPropList.setLayout(H5D_CHUNKED);
+
+    // Get chunk size (min 100) and compression level from the descriptor.
+    const auto chunkSize = std::max(100ull, descriptor.getChunkSize());
+    h5createPropList.setChunk(1, &chunkSize);
+
+    const auto compressionLevel = descriptor.getCompressionLevel();
+    if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
-    }
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
     const auto memDataType = makeDataType();
-
-    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
-    memset(zeroData->get(), 0, descriptor.getElementSize());
-    h5createPropList.setFillValue(memDataType, zeroData.get());
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
@@ -237,7 +232,7 @@ void VRRefinement::writeProxy(
     std::tie(minUncert, maxUncert) = descriptor.getMinMaxUncertainty();
 
     // Update the min/max from new data.
-    const auto* items = reinterpret_cast<const BagVRRefinementItem*>(buffer);
+    const auto* items = reinterpret_cast<const VRRefinementItem*>(buffer);
 
     auto* item = items;
     const auto end = items + columns;

@@ -3,11 +3,11 @@
 
 #include "bag_compounddatatype.h"
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_types.h"
 #include "bag_valuetable.h"
-#include "bag_deleteh5dataset.h"
 
 #include <memory>
 #include <string>

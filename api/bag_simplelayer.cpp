@@ -76,17 +76,21 @@ SimpleLayer::createH5dataSet(
     constexpr float kFillValue = BAG_NULL_ELEVATION;
     h5createPropList.setFillValue(h5dataType, &kFillValue);
 
-    // Use chunk size and compression level from the descriptor.
+    // Get chunk size (min 100) and compression level from the descriptor.
+    const auto chunkSize = descriptor.getChunkSize();
     const auto compressionLevel = descriptor.getCompressionLevel();
-    if (compressionLevel <= kMaxCompressionLevel)
+    if (chunkSize > 0)
     {
         h5createPropList.setLayout(H5D_CHUNKED);
 
-        const std::array<uint64_t, 2> chunkSize{descriptor.getChunkSize(),
-            descriptor.getChunkSize()};
-        h5createPropList.setChunk(RANK, chunkSize.data());
-        h5createPropList.setDeflate(compressionLevel);
+        const std::array<uint64_t, 2> chunkDims{chunkSize, chunkSize};
+        h5createPropList.setChunk(RANK, chunkDims.data());
+
+        if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+            h5createPropList.setDeflate(compressionLevel);
     }
+    else if (compressionLevel > 0)
+        throw CompressionNeedsChunkingSet{};
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();

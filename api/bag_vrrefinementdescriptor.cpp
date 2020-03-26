@@ -47,7 +47,7 @@ DataType VRRefinementDescriptor::getDataTypeProxy() const noexcept
 
 uint8_t VRRefinementDescriptor::getElementSizeProxy() const noexcept
 {
-    return sizeof(BagVRRefinementItem);
+    return sizeof(VRRefinementItem);
 }
 
 std::tuple<float, float>

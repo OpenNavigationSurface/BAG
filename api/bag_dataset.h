@@ -46,7 +46,8 @@ public:
         OpenMode openMode);
 
     static std::shared_ptr<Dataset> create(const std::string &fileName,
-        Metadata&& metadata, uint64_t chunkSize, unsigned int compressionLevel);
+        Metadata&& metadata, uint64_t chunkSize = 100,
+        unsigned int compressionLevel = 5);
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
@@ -70,8 +71,8 @@ public:
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, unsigned int compressionLevel) &;
 
-    void createVR(uint64_t chunkSize, unsigned int compressionLevel);
-    void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
+    void createVR(uint64_t chunkSize, unsigned int compressionLevel,
+        bool createNode);
 
     const Metadata& getMetadata() const & noexcept;
 

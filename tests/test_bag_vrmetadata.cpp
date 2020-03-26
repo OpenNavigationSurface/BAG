@@ -341,7 +341,7 @@ TEST_CASE("test vr metadata create open", "[vrmetadata][create][open]")
         REQUIRE(pDataset);
 
         UNSCOPED_INFO("Check that creating optional variable resolution layers does not throw.");
-        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
+        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
         auto* pVrMetadata = pDataset->getVRMetadata();
         UNSCOPED_INFO("Check that the optional variable resolution metadata layer exists.");
@@ -424,7 +424,7 @@ TEST_CASE("test vr metadata write read", "[vrmetadata][write][read]")
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check creating variable resolution layers does not throw.");
-    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
+    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
     UNSCOPED_INFO("Check the variable resolution metadata exists.");
     auto* pVrMetadata = pDataset->getVRMetadata();
@@ -435,7 +435,7 @@ TEST_CASE("test vr metadata write read", "[vrmetadata][write][read]")
         pVrMetadata->getDescriptor()));
 
     UNSCOPED_INFO("Write one record.");
-    constexpr BagVRMetadataItem kExpectedItem0{
+    constexpr BAG::VRMetadataItem kExpectedItem0{
         0, 1, 2, 3.45f, 6.789f, 1001.01f, 4004.004f};
 
     const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
@@ -451,20 +451,20 @@ TEST_CASE("test vr metadata write read", "[vrmetadata][write][read]")
     auto result = pVrMetadata->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
     REQUIRE(result);
 
-    const auto* res = reinterpret_cast<const BagVRMetadataItem*>(result->get());
-    UNSCOPED_INFO("Check the expected value of BagVRMetadataItem::index.");
+    const auto* res = reinterpret_cast<const BAG::VRMetadataItem*>(result->get());
+    UNSCOPED_INFO("Check the expected value of VRMetadataItem::index.");
     CHECK(res->index == kExpectedItem0.index);
-    UNSCOPED_INFO("Check the expected value of BagVRMetadataItem::dimensions_x.");
+    UNSCOPED_INFO("Check the expected value of VRMetadataItem::dimensions_x.");
     CHECK(res->dimensions_x == kExpectedItem0.dimensions_x);
-    UNSCOPED_INFO("Check the expected value of BagVRMetadataItem::dimensions_y.");
+    UNSCOPED_INFO("Check the expected value of VRMetadataItem::dimensions_y.");
     CHECK(res->dimensions_y == kExpectedItem0.dimensions_y);
-    UNSCOPED_INFO("Check the expected value of BagVRMetadataItem::resolution_x.");
+    UNSCOPED_INFO("Check the expected value of VRMetadataItem::resolution_x.");
     CHECK(res->resolution_x == kExpectedItem0.resolution_x);
-    UNSCOPED_INFO("Check the expected value of BagVRMetadataItem::resolution_y.");
+    UNSCOPED_INFO("Check the expected value of VRMetadataItem::resolution_y.");
     CHECK(res->resolution_y == kExpectedItem0.resolution_y);
-    UNSCOPED_INFO("Check the expected value of BagVRMetadataItem::sw_corner_x.");
+    UNSCOPED_INFO("Check the expected value of VRMetadataItem::sw_corner_x.");
     CHECK(res->sw_corner_x == kExpectedItem0.sw_corner_x);
-    UNSCOPED_INFO("Check the expected value of BagVRMetadataItem::sw_corner_y.");
+    UNSCOPED_INFO("Check the expected value of VRMetadataItem::sw_corner_y.");
     CHECK(res->sw_corner_y == kExpectedItem0.sw_corner_y);
 }
 

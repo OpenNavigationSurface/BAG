@@ -2,10 +2,10 @@
 #define BAG_SIMPLELAYER_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_types.h"
-#include "bag_deleteh5dataset.h"
 
 #include <memory>
 

@@ -117,16 +117,15 @@ CompoundLayer::createH5indexDataSet(
         h5createPropList.setFillValue(memDataType, fillValue.data());
 
         // Use chunk size and compression level from the descriptor.
-        const auto compressionLevel = descriptor.getCompressionLevel();
-        if (compressionLevel <= kMaxCompressionLevel)
-        {
-            h5createPropList.setLayout(H5D_CHUNKED);
+        h5createPropList.setLayout(H5D_CHUNKED);
+        const auto chunkSize = descriptor.getChunkSize();
 
-            const std::array<uint64_t, 2> chunkSize{descriptor.getChunkSize(),
-                descriptor.getChunkSize()};
-            h5createPropList.setChunk(RANK, chunkSize.data());
+        const std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
+        h5createPropList.setChunk(RANK, chunkDims.data());
+
+        const auto compressionLevel = descriptor.getCompressionLevel();
+        if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
             h5createPropList.setDeflate(compressionLevel);
-        }
 
         const ::H5::DataSpace fileDataSpace{RANK, fileDims.data(), fileDims.data()};
 

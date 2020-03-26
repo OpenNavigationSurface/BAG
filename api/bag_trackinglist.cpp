@@ -165,9 +165,11 @@ TrackingList::createH5dataSet(
         ::H5::PredType::NATIVE_SHORT);
 
     const ::H5::DSetCreatPropList h5createPropList{};
+
+    h5createPropList.setLayout(H5D_CHUNKED);
     h5createPropList.setChunk(1, &kTrackingListChunkSize);
 
-    if (compressionLevel <= kMaxCompressionLevel)
+    if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
 
     const auto h5dataSet = h5file.createDataSet(TRACKING_LIST_PATH,

@@ -330,8 +330,7 @@ TEST_CASE("test vr node descriptor min/max hyp strength",
         kChunkSize, kCompressionLevel);
     REQUIRE(pDataset);
 
-    pDataset->createVR(kChunkSize, kCompressionLevel);
-    pDataset->createVRNode(kChunkSize, kCompressionLevel);
+    pDataset->createVR(kChunkSize, kCompressionLevel, true);
     auto* pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
@@ -371,8 +370,7 @@ TEST_CASE("test vr node descriptor min/max num hypotheses",
         kChunkSize, kCompressionLevel);
     REQUIRE(pDataset);
 
-    pDataset->createVR(kChunkSize, kCompressionLevel);
-    pDataset->createVRNode(kChunkSize, kCompressionLevel);
+    pDataset->createVR(kChunkSize, kCompressionLevel, true);
     auto* pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
@@ -413,8 +411,7 @@ TEST_CASE("test vr node descriptor min/max n samples",
         kChunkSize, kCompressionLevel);
     REQUIRE(pDataset);
 
-    pDataset->createVR(kChunkSize, kCompressionLevel);
-    pDataset->createVRNode(kChunkSize, kCompressionLevel);
+    pDataset->createVR(kChunkSize, kCompressionLevel, true);
     auto* pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 

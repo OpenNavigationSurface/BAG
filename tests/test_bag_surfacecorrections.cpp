@@ -10,7 +10,6 @@
 
 
 using BAG::Dataset;
-using BAG::SurfaceCorrections;
 using BAG::SurfaceCorrectionsDescriptor;
 
 
@@ -135,7 +134,7 @@ TEST_CASE("test surface corrections create and write irregular",
     UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
     REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
 
-    constexpr BagVerticalDatumCorrections kExpectedItem0{1.2, 2.1, {3.4f, 4.5f}};
+    constexpr BAG::VerticalDatumCorrections kExpectedItem0{1.2, 2.1, {3.4f, 4.5f}};
 
     UNSCOPED_INFO("Write one record.");
     const uint8_t* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
@@ -149,7 +148,7 @@ TEST_CASE("test surface corrections create and write irregular",
     UNSCOPED_INFO("Read the record back.");
     auto result = corrections.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
 
-    const auto* res = reinterpret_cast<const BagVerticalDatumCorrections*>(result->get());
+    const auto* res = reinterpret_cast<const BAG::VerticalDatumCorrections*>(result->get());
     CHECK(res->x == kExpectedItem0.x);
     CHECK(res->y == kExpectedItem0.y);
     CHECK(res->z[0] == kExpectedItem0.z[0]);
