@@ -18,6 +18,7 @@ class DataSet;
 }
 
 %import "../bag_config.h"
+%include <std_string.i>
 
 namespace BAG
 {
