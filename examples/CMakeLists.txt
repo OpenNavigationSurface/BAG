@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0...3.15)
+cmake_minimum_required(VERSION 3.0...3.16)
 project(OpenNS_Examples LANGUAGES C CXX)
 
 #-----------------------------------------------------------------------------
@@ -27,7 +27,7 @@ foreach(example ${examples})
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BUILD_SHARED_LIBS>>:BAG_DLL>
     )
 
-    target_compile_options(bag
+    target_compile_options(baglib
         PRIVATE
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.10>>:/permissive- /W4 /WX>
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.13>>:/experimental:external /external:W0 /external:templates->
@@ -35,7 +35,7 @@ foreach(example ${examples})
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
     )
 
-    target_link_libraries(${example} bag)
+    target_link_libraries(${example} baglib)
 
     set_target_properties(${example}
         PROPERTIES

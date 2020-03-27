@@ -275,7 +275,7 @@ BagError bagRead(
     x;
     y;
 
-    *data = buffer.release();
+    *data = buffer.release()->release();
 
     return BAG_SUCCESS;
 }

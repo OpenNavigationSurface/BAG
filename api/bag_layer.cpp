@@ -5,8 +5,6 @@
 #include "bag_trackinglist.h"
 
 #include <array>
-#include <H5Cpp.h>
-
 
 namespace BAG {
 
@@ -18,46 +16,12 @@ Layer::Layer(
 {
 }
 
-
-Layer::AttributeInfo Layer::getAttributeInfo(LayerType layerType)
+std::weak_ptr<Dataset> Layer::getDataset() & noexcept
 {
-    switch (layerType)
-    {
-    case Elevation:
-        return AttributeInfo(MIN_ELEVATION_NAME, MAX_ELEVATION_NAME,
-            ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Uncertainty:
-        return AttributeInfo(MIN_UNCERTAINTY_NAME, MAX_UNCERTAINTY_NAME,
-            UNCERTAINTY_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Hypothesis_Strength:
-        return AttributeInfo(MIN_HYPOTHESIS_STRENGTH, MAX_HYPOTHESIS_STRENGTH,
-            HYPOTHESIS_STRENGTH_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Num_Hypotheses:
-        return AttributeInfo(MIN_NUM_HYPOTHESES, MAX_NUM_HYPOTHESES,
-            NUM_HYPOTHESES_PATH, ::H5::PredType::NATIVE_UINT32);
-    case Shoal_Elevation:
-        return AttributeInfo(MIN_SHOAL_ELEVATION, MAX_SHOAL_ELEVATION,
-            SHOAL_ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Std_Dev:
-        return AttributeInfo(MIN_STANDARD_DEV_NAME, MAX_STANDARD_DEV_NAME,
-            STANDARD_DEV_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Num_Soundings:
-        return AttributeInfo(MIN_NUM_SOUNDINGS, MAX_NUM_SOUNDINGS,
-            NUM_SOUNDINGS_PATH, ::H5::PredType::NATIVE_UINT32);
-    case Average_Elevation:
-        return AttributeInfo(MIN_AVERAGE, MAX_AVERAGE, AVERAGE_PATH,
-            ::H5::PredType::NATIVE_FLOAT);
-    case Nominal_Elevation:
-        return AttributeInfo(MIN_NOMINAL_ELEVATION, MAX_NOMINAL_ELEVATION,
-            NOMINAL_ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Surface_Correction:  //[[fallthrough]];
-    case Compound:  //[[fallthrough]];
-    default:
-        throw UnknownSimpleLayerType{};
-    }
+    return m_pBagDataset;
 }
 
-std::weak_ptr<Dataset> Layer::getDataset() & noexcept
+std::weak_ptr<const Dataset> Layer::getDataset() const & noexcept
 {
     return m_pBagDataset;
 }
@@ -73,15 +37,15 @@ DataType Layer::getDataType(LayerType layerType) noexcept
     case Std_Dev:  //[[fallthrough]];
     case Average_Elevation:  //[[fallthrough]];
     case Nominal_Elevation:
-        return FLOAT32;
+        return DT_FLOAT32;
     case Num_Hypotheses:  //[[fallthrough]];
     case Num_Soundings:
-        return UINT32;
+        return DT_UINT32;
     case Surface_Correction:
     case Compound:  //[[fallthrough]];
-        return COMPOUND;
+        return DT_COMPOUND;
     default:
-        return UNKNOWN_DATA_TYPE;
+        return DT_UNKNOWN_DATA_TYPE;
     }
 }
 
@@ -99,22 +63,22 @@ uint8_t Layer::getElementSize(DataType type)
 {
     switch (type)
     {
-    case FLOAT32:
+    case DT_FLOAT32:
         return sizeof(float);
-    case UINT32:
+    case DT_UINT32:
         return sizeof(uint32_t);
-    case UINT8:
+    case DT_UINT8:
         return sizeof(uint8_t);
-    case UINT16:
+    case DT_UINT16:
         return sizeof(uint16_t);
-    case UINT64:
+    case DT_UINT64:
         return sizeof(uint64_t);
-    case BOOL:
+    case DT_BOOLEAN:
         return sizeof(bool);
-    case STRING:
+    case DT_STRING:
         return sizeof(char*);
-    case COMPOUND:  //[[fallthrough]]
-    case UNKNOWN_DATA_TYPE:  //[[fallthrough]]
+    case DT_COMPOUND:  //[[fallthrough]]
+    case DT_UNKNOWN_DATA_TYPE:  //[[fallthrough]]
     default:
         throw UnsupportedElementSize{};
     }
@@ -162,7 +126,7 @@ std::string Layer::getInternalPath(
     }
 }
 
-std::unique_ptr<uint8_t[]> Layer::read(
+std::unique_ptr<UInt8Array> Layer::read(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,

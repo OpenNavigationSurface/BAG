@@ -4,16 +4,10 @@
 #include "bag_config.h"
 #include "bag_fordec.h"
 #include "bag_types.h"
+#include "bag_uint8array.h"
 
 #include <memory>
 
-
-namespace H5 {
-
-class DataSet;
-class PredType;
-
-}  // namespace H5
 
 namespace BAG {
 
@@ -41,7 +35,7 @@ public:
     LayerDescriptor& getDescriptor() & noexcept;
     const LayerDescriptor& getDescriptor() const & noexcept;
 
-    std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
+    std::unique_ptr<UInt8Array> read(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 
     void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
@@ -50,29 +44,13 @@ public:
     void writeAttributes() const;
 
 protected:
-    struct AttributeInfo
-    {
-        AttributeInfo(const char* inMinName, const char* inMaxName,
-            const char* inPath, const ::H5::PredType& inH5type)
-            : minName(inMinName)
-            , maxName(inMaxName)
-            , path(inPath)
-            , h5type(inH5type)
-        {}
-        const char* minName = nullptr;
-        const char* maxName = nullptr;
-        const char* path = nullptr;
-        const ::H5::PredType& h5type;
-    };
-
     Layer(Dataset& dataset, LayerDescriptor& descriptor);
 
-    static AttributeInfo getAttributeInfo(LayerType layerType);
-
     std::weak_ptr<Dataset> getDataset() & noexcept;
+    std::weak_ptr<const Dataset> getDataset() const & noexcept;
 
 private:
-    virtual std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
+    virtual std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const = 0;
 
     virtual void writeProxy(uint32_t rowStart, uint32_t columnStart,

@@ -335,7 +335,7 @@ TEST_CASE("test simple layer get name", "[simplelayer][getDescriptor]")
     CHECK(std::string{descriptor.getName()} == BAG::kLayerTypeMapString.at(Elevation));
 }
 
-//  virtual std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
+//  virtual std::unique_ptr<UintArray> read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 TEST_CASE("test simple layer read", "[simplelayer][read]")
 {
@@ -369,7 +369,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
         1'000'000.0f, -52.161003f, -52.172005f,
         1'000'000.0f, -52.177002f, -52.174004f};
 
-    const float* floats = reinterpret_cast<const float*>(buffer.get());
+    const float* floats = reinterpret_cast<const float*>(buffer->get());
     for (size_t i=0; i<kExpectedNumNodes; ++i)
         CHECK(kExpectedBuffer[i] == floats[i]);
 }
@@ -438,7 +438,7 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
         auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
         REQUIRE(buffer);
 
-        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.get());
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer->get());
 
         std::array<float, kExpectedNumNodes> kExpectedBuffer;
         kExpectedBuffer.fill(kFloatValue);

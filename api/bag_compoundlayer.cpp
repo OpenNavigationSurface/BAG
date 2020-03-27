@@ -19,13 +19,13 @@ hsize_t getDataTypeMax(
 {
     switch(dataType)
     {
-    case UINT8:
+    case DT_UINT8:
         return std::numeric_limits<uint8_t>::max();
-    case UINT16:
+    case DT_UINT16:
         return std::numeric_limits<uint16_t>::max();
-    case UINT32:
+    case DT_UINT32:
         return std::numeric_limits<uint32_t>::max();
-    case UINT64:
+    case DT_UINT64:
         return std::numeric_limits<uint64_t>::max();
     default:
         throw UnsupportedDataType{};
@@ -53,8 +53,8 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
     uint64_t chunkSize,
     unsigned int compressionLevel)
 {
-    if (indexType != UINT8 && indexType != UINT16 && indexType != UINT32 &&
-        indexType != UINT64)
+    if (indexType != DT_UINT8 && indexType != DT_UINT16 && indexType != DT_UINT32 &&
+        indexType != DT_UINT64)
         throw InvalidIndexType{};
 
     auto pDescriptor = CompoundLayerDescriptor::create(name, indexType,
@@ -93,7 +93,7 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
 }
 
 
-std::unique_ptr<::H5::DataSet, CompoundLayer::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 CompoundLayer::createH5indexDataSet(
     const Dataset& dataset,
     const CompoundLayerDescriptor& descriptor)
@@ -166,7 +166,7 @@ CompoundLayer::createH5indexDataSet(
     return pH5dataSet;
 }
 
-std::unique_ptr<::H5::DataSet, CompoundLayer::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 CompoundLayer::createH5recordDataSet(
     const Dataset& dataset,
     const CompoundLayerDescriptor& descriptor)
@@ -217,7 +217,7 @@ const ValueTable& CompoundLayer::getValueTable() const & noexcept
     return *m_pValueTable;
 }
 
-std::unique_ptr<uint8_t[]> CompoundLayer::readProxy(
+std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -248,12 +248,12 @@ std::unique_ptr<uint8_t[]> CompoundLayer::readProxy(
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
         columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
-    m_pH5indexDataSet->read(buffer.get(), H5Dget_type(m_pH5indexDataSet->getId()),
+    m_pH5indexDataSet->read(buffer->get(), H5Dget_type(m_pH5indexDataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;
@@ -304,10 +304,6 @@ void CompoundLayer::writeAttributesProxy() const
     // Nothing to be done.  Attributes are not modified.
 }
 
-void CompoundLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
 
 }
 

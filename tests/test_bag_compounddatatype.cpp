@@ -14,7 +14,7 @@ TEST_CASE("test compound data type default creation",
 {
     UNSCOPED_INFO("Check the default type is unknown.");
     const CompoundDataType cdt;
-    CHECK(cdt.getType() == UNKNOWN_DATA_TYPE);
+    CHECK(cdt.getType() == DT_UNKNOWN_DATA_TYPE);
 }
 
 //  CompoundDataType(float value) noexcept
@@ -26,7 +26,7 @@ TEST_CASE("test compound data type float creation",
 {
     UNSCOPED_INFO("Check the type when constructed with a float is expected.");
     constexpr float kExpectedValue = 42.3f;
-    constexpr auto kExpectedType = FLOAT32;
+    constexpr auto kExpectedType = DT_FLOAT32;
     const CompoundDataType cdt{kExpectedValue};
     CHECK(cdt.getType() == kExpectedType);
 
@@ -47,7 +47,7 @@ TEST_CASE("test compound data type uint32_t creation",
     // Default constructor
     UNSCOPED_INFO("Check the default type is unknown.");
     constexpr uint32_t kExpectedValue = 42;
-    constexpr auto kExpectedType = UINT32;
+    constexpr auto kExpectedType = DT_UINT32;
     const CompoundDataType cdt{kExpectedValue};
     CHECK(cdt.getType() == kExpectedType);
 
@@ -71,13 +71,13 @@ TEST_CASE("test compound data type assignment operators",
 {
     UNSCOPED_INFO("Check the default type is unknown.");
     CompoundDataType cdt;
-    CHECK(cdt.getType() == UNKNOWN_DATA_TYPE);
+    CHECK(cdt.getType() == DT_UNKNOWN_DATA_TYPE);
 
     {
         UNSCOPED_INFO("Check using the assignment operator with a uint32_t sets the type as expected");
         constexpr float kExpectedValue = 123.456f;
         cdt = kExpectedValue;
-        CHECK(cdt.getType() == FLOAT32);
+        CHECK(cdt.getType() == DT_FLOAT32);
 
         UNSCOPED_INFO("Check getting the float value via BAG::get() works.");
         CHECK(BAG::get<float>(cdt) == kExpectedValue);
@@ -87,7 +87,7 @@ TEST_CASE("test compound data type assignment operators",
         UNSCOPED_INFO("Check using the assignment operator with a float sets the type as expected");
         constexpr uint32_t kExpectedValue = 101;
         cdt = kExpectedValue;
-        CHECK(cdt.getType() == UINT32);
+        CHECK(cdt.getType() == DT_UINT32);
 
         UNSCOPED_INFO("Check getting the float value via BAG::get() works.");
         CHECK(BAG::get<uint32_t>(cdt) == kExpectedValue);
@@ -97,7 +97,7 @@ TEST_CASE("test compound data type assignment operators",
         UNSCOPED_INFO("Check using the assignment operator with a bool sets the type as expected");
         constexpr bool kExpectedValue = false;
         cdt = kExpectedValue;
-        CHECK(cdt.getType() == BOOL);
+        CHECK(cdt.getType() == DT_BOOLEAN);
 
         UNSCOPED_INFO("Check getting the bool value via BAG::get() works.");
         CHECK(BAG::get<bool>(cdt) == kExpectedValue);
@@ -107,7 +107,7 @@ TEST_CASE("test compound data type assignment operators",
         UNSCOPED_INFO("Check using the assignment operator with a std::string sets the type as expected");
         const std::string kExpectedValue{"once upon a time"};
         cdt = kExpectedValue;
-        CHECK(cdt.getType() == STRING);
+        CHECK(cdt.getType() == DT_STRING);
 
         UNSCOPED_INFO("Check getting the string value via BAG::get() works.");
         CHECK(BAG::get<std::string>(cdt) == kExpectedValue);

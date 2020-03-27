@@ -1,4 +1,5 @@
 
+#include "bag_attributeinfo.h"
 #include "bag_private.h"
 #include "bag_simplelayer.h"
 #include "bag_simplelayerdescriptor.h"
@@ -52,7 +53,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
 }
 
 
-std::unique_ptr<::H5::DataSet, SimpleLayer::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SimpleLayer::createH5dataSet(
     const Dataset& dataset,
     const SimpleLayerDescriptor& descriptor)
@@ -96,7 +97,7 @@ SimpleLayer::createH5dataSet(
         DeleteH5dataSet{});
 
     // Create any attributes.
-    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
 
     const ::H5::DataSpace minElevDataSpace{};
     const auto minElevAtt = pH5dataSet->createAttribute(attInfo.minName,
@@ -116,7 +117,7 @@ SimpleLayer::createH5dataSet(
     return pH5dataSet;
 }
 
-std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
+std::unique_ptr<UInt8Array> SimpleLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -135,12 +136,12 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
         columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
-    m_pH5dataSet->read(buffer.get(), H5Dget_type(m_pH5dataSet->getId()),
+    m_pH5dataSet->read(buffer->get(), H5Dget_type(m_pH5dataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;
@@ -149,7 +150,7 @@ std::unique_ptr<uint8_t[]> SimpleLayer::readProxy(
 void SimpleLayer::writeAttributesProxy() const
 {
     const auto& descriptor = this->getDescriptor();
-    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
 
     // Write any attributes, from the layer descriptor.
     // min value
@@ -194,7 +195,7 @@ void SimpleLayer::writeProxy(
 
     // Update min/max attributes
     auto& descriptor = this->getDescriptor();
-    const auto attInfo = Layer::getAttributeInfo(descriptor.getLayerType());
+    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
     float min = 0.f, max = 0.f;
 
     if (attInfo.h5type == ::H5::PredType::NATIVE_FLOAT)
@@ -228,10 +229,5 @@ void SimpleLayer::writeProxy(
     descriptor.setMinMax(std::min(currentMin, min), std::max(currentMax, max));
 }
 
-void SimpleLayer::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
-
-}  // namespace BAG
+}   //namespace BAG
 

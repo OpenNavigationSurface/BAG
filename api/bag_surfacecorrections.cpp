@@ -1,16 +1,19 @@
 
 #include "bag_dataset.h"
 #include "bag_private.h"
+#include "bag_simplelayer.h"
 #include "bag_surfacecorrections.h"
 #include "bag_surfacecorrectionsdescriptor.h"
 
 #include <array>
+#include <cmath>
 #include <H5Cpp.h>
 
 
 namespace BAG {
 
 constexpr uint8_t kMaxDatumsLength = 255;
+constexpr int32_t kSearchRadius = 3;
 
 namespace {
 
@@ -80,7 +83,7 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
 }
 
 
-std::unique_ptr<::H5::DataSet, SurfaceCorrections::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SurfaceCorrections::createH5dataSet(
     const Dataset& dataset,
     const SurfaceCorrectionsDescriptor& descriptor)
@@ -110,9 +113,9 @@ SurfaceCorrections::createH5dataSet(
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    auto zeroData = std::make_unique<uint8_t[]>(descriptor.getElementSize());
-    memset(zeroData.get(), 0, descriptor.getElementSize());
-    h5createPropList.setFillValue(h5memDataType, zeroData.get());
+    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
+    memset(zeroData->get(), 0, descriptor.getElementSize());
+    h5createPropList.setFillValue(h5memDataType, zeroData->get());
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
@@ -167,7 +170,263 @@ const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
     return *m_pH5dataSet;
 }
 
-std::unique_ptr<uint8_t[]> SurfaceCorrections::readProxy(
+std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
+    uint32_t rowStart,
+    uint32_t rowEnd,
+    uint32_t columnStart,
+    uint32_t columnEnd,
+    uint8_t corrector,
+    const SimpleLayer& layer) const
+{
+    const auto* descriptor =
+        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
+    if (!descriptor)
+        throw InvalidDescriptor{};
+
+    auto weakDataset = this->getDataset();
+    if (weakDataset.expired())
+        throw DatasetNotFound{};
+
+    auto dataset = weakDataset.lock();
+
+    uint32_t ncols = 0, nrows = 0;
+    std::tie(ncols, nrows) = dataset->getDescriptor().getDims();
+
+    if (columnEnd >= ncols || rowEnd >= nrows || rowStart > rowEnd
+        || columnStart > columnEnd)
+        throw InvalidReadSize{};
+
+    std::unique_ptr<UInt8Array> data = std::make_unique<UInt8Array>(
+        ((columnEnd - columnStart + 1) * (rowEnd - rowStart + 1)) * sizeof(float));
+
+    for (uint32_t f=0, i=0; i<nrows; ++i)
+    {
+        if (i >= rowStart && i <= rowEnd)
+        {
+            //! By row at a time, fill the whole buffer
+            auto sepData = this->readCorrectedRow(i, columnStart, columnEnd,
+                corrector, layer);
+
+            //! For each column in the transfer set
+            for (uint32_t j=0; j<columnEnd-columnStart + 1; ++j)
+                (*data)[(columnEnd - columnStart + 1) * f + j] = (*sepData)[j];
+
+            f++;
+        }
+    }
+
+    return data;
+}
+
+std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
+    uint32_t row,
+    uint32_t columnStart,
+    uint32_t columnEnd,
+    uint8_t corrector,  // aka type
+    const SimpleLayer& layer) const
+{
+    const auto* descriptor =
+        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
+    if (!descriptor)
+        throw InvalidDescriptor{};
+
+    const auto surfaceType = descriptor->getSurfaceType();  // aka topography
+
+    if (surfaceType != BAG_SURFACE_GRID_EXTENTS)
+        throw UnsupportedSurfaceType{};
+
+    if (corrector < 1 || corrector > descriptor->getNumCorrectors())
+        throw InvalidCorrector{};
+
+    --corrector;  // This is 0 based when used.
+
+    auto originalRow = layer.read(row, row, columnStart, columnEnd);
+    auto* data = reinterpret_cast<float*>(originalRow->get());
+
+    // BagVerticalDatumCorrectionsGridded == bagVerticalCorrectorNode
+    // allocate one entire row (# cols), to avoid reallocating in loop below
+    //  (C++ fails at this, we return an allocated row each iteration
+    //  rework as a private/internal version?
+
+    //! Obtain cell resolution and SW origin (0,1,1,0).
+    double swCornerX = 0., swCornerY = 0.;
+    std::tie(swCornerX, swCornerY) = descriptor->getOrigin();
+
+    double nodeSpacingX = 0., nodeSpacingY = 0.;
+    std::tie(nodeSpacingX, nodeSpacingY) = descriptor->getSpacing();
+
+    const auto resratio = nodeSpacingX / nodeSpacingY;
+
+    uint32_t ncols = 0, nrows = 0;
+    std::tie(nrows, ncols) = descriptor->getDims();
+
+    std::array<int32_t, 2> lastP{-1, -1};
+
+    auto weakDataset = this->getDataset();
+    if (weakDataset.expired())
+        throw DatasetNotFound{};
+
+    auto dataset = weakDataset.lock();
+
+    double swCornerXsimple = 0., swCornerYsimple = 0.;
+    std::tie(swCornerXsimple, swCornerYsimple) = dataset->getDescriptor().getOrigin();
+
+    double nodeSpacingXsimple = 0., nodeSpacingYsimple = 0.;
+    std::tie(nodeSpacingXsimple, nodeSpacingYsimple) = dataset->getDescriptor().getGridSpacing();
+
+    using std::floor;  using std::fabs;  using std::ceil;
+
+    // Compute an SEP for each cell in the row.
+    for (auto j=columnStart; j<=columnEnd; ++j)
+    {
+        const uint32_t rowIndex = j - columnStart;
+
+        if (data[rowIndex] == BAG_NULL_GENERIC ||
+            data[rowIndex] == BAG_NULL_ELEVATION ||
+            data[rowIndex] == BAG_NULL_UNCERTAINTY)
+            continue;
+
+        std::array<uint32_t, 2> rowRange{0, 0};
+        std::array<uint32_t, 2> colRange{0, 0};
+
+        //! Determine the X and Y values of given cell.
+        const double nodeX = swCornerXsimple + j * nodeSpacingXsimple;
+        const double nodeY = swCornerYsimple + row * nodeSpacingYsimple;
+
+#if 0  // Dead code (see logic above); saved from C code for now.
+        if (surfaceType == BAG_SURFACE_IRREGULARLY_SPACED)
+        {
+            if (lastP[0] == -1 || lastP[1] == -1)
+            {
+                colRange[0] = 0;
+                colRange[1] = ncols -1;
+                rowRange[0] = 0;
+                rowRange[1] = nrows -1;
+            }
+            else
+            {
+                colRange[0] = lastP[0] - kSearchRadius;
+                colRange[1] = lastP[0] + kSearchRadius;
+                rowRange[0] = lastP[1] - kSearchRadius;
+                rowRange[1] = lastP[1] + kSearchRadius;
+            }
+        }
+        else
+#endif
+        if (surfaceType == BAG_SURFACE_GRID_EXTENTS)
+        {
+            //! A simple calculation for 4 nearest corrector nodes.
+            colRange[0] = static_cast<uint32_t>(fabs(floor((swCornerX - nodeX) / nodeSpacingX)));
+            colRange[1] = static_cast<uint32_t>(fabs(ceil((swCornerX - nodeX) / nodeSpacingX)));
+            rowRange[0] = static_cast<uint32_t>(fabs(floor((swCornerY - nodeY) / nodeSpacingY)));
+            rowRange[1] = static_cast<uint32_t>(fabs(ceil((swCornerY - nodeY) / nodeSpacingY)));
+        }
+
+        //! Enforce dataset limits.
+        if (colRange[0] > colRange[1])
+            std::swap(colRange[0], colRange[1]);
+
+        if (colRange[0] >= ncols)
+            colRange[0] = ncols -1;
+
+        if (colRange[1] >= ncols)
+            colRange[1] = ncols -1;
+
+        if (rowRange[0] > rowRange[1])
+            std::swap(rowRange[0], rowRange[1]);
+
+        if (rowRange[0] >= nrows)
+            rowRange[0] = nrows -1;
+
+        if (rowRange[1] >= nrows)
+            rowRange[1] = nrows -1;
+
+        if (colRange[1] == colRange[0])
+        {
+            if (colRange[0] > 0)
+                --colRange[0];
+
+            if ((colRange[1] + 1) < ncols)
+                ++colRange[1];
+        }
+        if (rowRange[1] == rowRange[0])
+        {
+
+            if (rowRange[0] > 0)
+                --rowRange[0];
+
+            if ((rowRange[1] + 1) < nrows)
+                ++rowRange[1];
+        }
+
+        //fprintf(stderr, "INDX: %d Row: %d RC:  %d  / %d\n", rowIndex, row,  rowRange[0], rowRange[1]);
+
+        bool isZeroDistance = false;
+        double sum_sep = 0.0;
+        double sum = 0.0;
+        double leastDistSq = std::numeric_limits<double>::max();
+
+        //! Look through the SEPs and calculate the weighted average between them and this position.
+        for (auto q=rowRange[0]; !isZeroDistance && q <= rowRange[1]; ++q)
+        {
+            //! The SEP should be accessed, up to entire row of all columns of Surface_Correction.
+            const auto buffer = this->read(q, q, colRange[0], colRange[1]);
+            const auto* readbuf = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(buffer->get());
+            const auto y1 = swCornerY + q * nodeSpacingY;
+
+            for (auto u=colRange[0]; u<=colRange[1]; ++u)
+            {
+                const auto* vertCorr = readbuf + (u - colRange[0]);
+
+                const auto z1 = vertCorr->z[corrector - 1];
+                const auto x1 = swCornerX + u * nodeSpacingX;
+
+                double distSq = 0.;
+
+                if (nodeX ==  x1 && nodeY == y1)
+                {
+                    isZeroDistance = true;
+                    distSq = 1.0;
+                    data[rowIndex] += z1;
+
+                    break;
+                }
+
+                //! Calculate distance weight between nodeX/nodeY and y1/x1
+                distSq = std::pow(fabs(static_cast<double>(nodeX - x1)), 2.0) +
+                    std::pow(resratio * fabs(static_cast<double>(nodeY - y1)), 2.0);
+
+
+                if (leastDistSq > distSq)
+                {
+                    leastDistSq = distSq;
+                    lastP[0] = u;
+                    lastP[1] = q;
+                }
+
+                //! Inverse distance calculation
+                sum_sep += z1 / distSq;
+                sum += 1.0 / distSq;
+            }
+        }
+
+//      fprintf(stderr, "sum sum %f / %f =  %f : %f\n", sum_sep, sum, sum_sep / sum, data[rowIndex]);
+
+        if (!isZeroDistance)
+        {
+            //! is not a constant SEP with one point?
+            if (sum_sep != 0.0 && sum != 0.0)
+                data[rowIndex] += static_cast<float>(sum_sep / sum);
+            else
+                data[rowIndex] = BAG_NULL_GENERIC;
+        }
+
+    }
+
+    return originalRow;
+}
+
+std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -190,13 +449,13 @@ std::unique_ptr<uint8_t[]> SurfaceCorrections::readProxy(
         dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    m_pH5dataSet->read(buffer.get(), h5memDataType, h5memSpace, h5fileDataSpace);
+    m_pH5dataSet->read(buffer->get(), h5memDataType, h5memSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -208,11 +467,11 @@ void SurfaceCorrections::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    if (!dynamic_cast<SurfaceCorrectionsDescriptor*>(&this->getDescriptor()))
-        throw UnexpectedLayerDescriptorType{};
+    auto* descriptor =
+        dynamic_cast<SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
 
-    auto& descriptor =
-        dynamic_cast<SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+    if (!descriptor)
+        throw UnexpectedLayerDescriptorType{};
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
@@ -249,28 +508,37 @@ void SurfaceCorrections::writeProxy(
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
-    const auto h5memDataType = getCompoundType(descriptor);
+    const auto h5memDataType = getCompoundType(*descriptor);
 
     m_pH5dataSet->write(buffer, h5memDataType, h5memDataSpace, h5fileDataSpace);
+
+    // Update descriptor.
+    const auto h5Space = m_pH5dataSet->getSpace();
+
+    std::array<hsize_t, RANK> dims{};
+    h5Space.getSimpleExtentDims(dims.data());
+
+    descriptor->setDims(static_cast<uint32_t>(dims[0]),
+        static_cast<uint32_t>(dims[1]));
 }
 
 void SurfaceCorrections::writeAttributesProxy() const
 {
-    if (!dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor()))
-        throw UnexpectedLayerDescriptorType{};
+    const auto* descriptor =
+        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
 
-    const auto& descriptor =
-        dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
+    if (!descriptor)
+        throw UnexpectedLayerDescriptorType{};
 
     // Write any attributes, from the layer descriptor.
     // surface type
     auto att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SURFACE_TYPE);
-    const auto surfaceType = descriptor.getSurfaceType();
+    const auto surfaceType = descriptor->getSurfaceType();
     const auto tmpSurfaceType = static_cast<uint8_t>(surfaceType);
     att.write(::H5::PredType::NATIVE_UINT8, &tmpSurfaceType);
 
     // vertical datums
-    auto tmpDatums = descriptor.getVerticalDatums();
+    auto tmpDatums = descriptor->getVerticalDatums();
     if (tmpDatums.size() > kMaxDatumsLength)
         tmpDatums.resize(kMaxDatumsLength);
 
@@ -282,7 +550,7 @@ void SurfaceCorrections::writeAttributesProxy() const
     {
         // sw corner x
         att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWX);
-        const auto origin = descriptor.getOrigin();
+        const auto origin = descriptor->getOrigin();
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(origin));
 
         // sw corner y
@@ -290,7 +558,7 @@ void SurfaceCorrections::writeAttributesProxy() const
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(origin));
 
         // node spacing x
-        const auto spacing = descriptor.getSpacing();
+        const auto spacing = descriptor->getSpacing();
         att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSX);
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(spacing));
 
@@ -298,11 +566,6 @@ void SurfaceCorrections::writeAttributesProxy() const
         att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSY);
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(spacing));
     }
-}
-
-void SurfaceCorrections::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
 }
 
 }   //namespace BAG

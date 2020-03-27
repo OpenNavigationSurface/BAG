@@ -10,12 +10,12 @@
 #include <tuple>
 
 
-namespace BAG {
-
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
+
+namespace BAG {
 
 class BAG_API LayerDescriptor : public std::enable_shared_from_this<LayerDescriptor>
 {

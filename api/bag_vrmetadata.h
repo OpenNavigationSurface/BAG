@@ -46,7 +46,7 @@ private:
         createH5dataSet(const Dataset& dataset,
             const VRMetadataDescriptor& descriptor);
 
-    std::unique_ptr<uint8_t[]> readProxy(uint32_t rowStart,
+    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
@@ -55,7 +55,7 @@ private:
     void writeAttributesProxy() const override;
 
     //! The HDF5 DataSet.
-    std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };

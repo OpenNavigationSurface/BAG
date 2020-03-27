@@ -38,15 +38,15 @@ enum BAG_OPEN_MODE
 
 enum BAG_DATA_TYPE
 {
-    FLOAT32 = 0,
-    UINT32,
-    UINT8,
-    UINT16,
-    UINT64,
-    BOOL,
-    STRING,
-    COMPOUND,
-    UNKNOWN_DATA_TYPE,
+    DT_FLOAT32 = 0,
+    DT_UINT32,
+    DT_UINT8,
+    DT_UINT16,
+    DT_UINT64,
+    DT_BOOLEAN,
+    DT_STRING,
+    DT_COMPOUND,
+    DT_UNKNOWN_DATA_TYPE,
 };
 
 //! The type of interleaved group.
@@ -145,7 +145,9 @@ struct BagVerticalDatumCorrectionsGridded
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
-#define BAG_NULL_ELEVATION 1000000
+#define BAG_NULL_ELEVATION      1000000
+#define BAG_NULL_GENERIC        1000000
+#define BAG_NULL_UNCERTAINTY    1000000
 
 #ifdef __cplusplus
 }  // extern "C"

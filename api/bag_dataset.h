@@ -36,7 +36,10 @@ namespace BAG {
 
 constexpr static uint32_t kInvalidId = std::numeric_limits<uint32_t>::max();
 
-class BAG_API Dataset final : public std::enable_shared_from_this<Dataset>
+class BAG_API Dataset final
+#ifndef SWIG
+    : public std::enable_shared_from_this<Dataset>
+#endif
 {
 public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,
@@ -54,6 +57,8 @@ public:
     const Layer& getLayer(uint32_t id) const &;
     std::vector<Layer*> getLayers() const &;
 
+    std::vector<LayerType> getLayerTypes() const;
+
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
         unsigned int compressionLevel) &;
     CompoundLayer& createCompoundLayer(DataType indexType,
@@ -64,8 +69,6 @@ public:
         uint64_t chunkSize, unsigned int compressionLevel) &;
     void createVR(uint64_t chunkSize, unsigned int compressionLevel);
     void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
-
-    std::vector<LayerType> getLayerTypes() const;
 
     TrackingList& getTrackingList() & noexcept;
     const TrackingList& getTrackingList() const & noexcept;

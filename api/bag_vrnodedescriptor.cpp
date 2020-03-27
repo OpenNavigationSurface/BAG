@@ -42,7 +42,7 @@ std::shared_ptr<VRNodeDescriptor> VRNodeDescriptor::open(
 
 DataType VRNodeDescriptor::getDataTypeProxy() const noexcept
 {
-    return COMPOUND;
+    return DT_COMPOUND;
 }
 
 uint8_t VRNodeDescriptor::getElementSizeProxy() const noexcept

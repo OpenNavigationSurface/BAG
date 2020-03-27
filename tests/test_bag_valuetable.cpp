@@ -352,7 +352,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     REQUIRE(pDataset);
 
     // Make a new Value Table.
-    constexpr BAG::DataType indexType = UINT8;
+    constexpr BAG::DataType indexType = DT_UINT8;
     const std::string layerName{"elevation"};
     constexpr size_t kExpectedDefinitionSize = 4;
 
@@ -362,11 +362,15 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     const char kFieldName3[]{"string value"};
 
     BAG::RecordDefinition kExpectredDefinition;
-    kExpectredDefinition.reserve(4);
-    kExpectredDefinition.emplace_back(kFieldName0, FLOAT32);
-    kExpectredDefinition.emplace_back(kFieldName1, UINT32);
-    kExpectredDefinition.emplace_back(kFieldName2, BOOL);
-    kExpectredDefinition.emplace_back(kFieldName3, STRING);
+    kExpectredDefinition.resize(4);
+    kExpectredDefinition[0].name = kFieldName0;
+    kExpectredDefinition[0].type = DT_FLOAT32;
+    kExpectredDefinition[1].name = kFieldName1;
+    kExpectredDefinition[1].type = DT_UINT32;
+    kExpectredDefinition[2].name = kFieldName2;
+    kExpectredDefinition[2].type = DT_BOOLEAN;
+    kExpectredDefinition[3].name = kFieldName3;
+    kExpectredDefinition[3].type = DT_STRING;
 
     auto& pLayer = pDataset->createCompoundLayer(indexType, layerName,
         kExpectredDefinition, chunkSize, compressionLevel);
@@ -430,17 +434,24 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         REQUIRE(pDataset);
 
         // Make a new Value Table.
-        constexpr BAG::DataType indexType = UINT16;
+        constexpr BAG::DataType indexType = DT_UINT16;
 
         BAG::RecordDefinition definition;
-        definition.reserve(7);
-        definition.emplace_back("first name", STRING);
-        definition.emplace_back("last name", STRING);
-        definition.emplace_back("float value0", FLOAT32);
-        definition.emplace_back("uint32 value", UINT32);
-        definition.emplace_back("bool value", BOOL);
-        definition.emplace_back("float value1", FLOAT32);
-        definition.emplace_back("address", STRING);
+        definition.resize(7);
+        definition[0].name = "first name";
+        definition[0].type = DT_STRING;
+        definition[1].name = "last name";
+        definition[1].type = DT_STRING;
+        definition[2].name = "float value0";
+        definition[2].type = DT_FLOAT32;
+        definition[3].name = "bool value";
+        definition[3].type = DT_UINT32;
+        definition[4].name = "uint32 value";
+        definition[4].type = DT_BOOLEAN;
+        definition[5].name = "float value1";
+        definition[5].type = DT_FLOAT32;
+        definition[6].name = "address";
+        definition[6].type = DT_STRING;
 
         auto& pLayer = pDataset->createCompoundLayer(indexType,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
@@ -664,13 +675,16 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         REQUIRE(pDataset);
 
         // Make a new Value Table.
-        constexpr BAG::DataType indexType = UINT16;
+        constexpr BAG::DataType indexType = DT_UINT16;
 
         BAG::RecordDefinition definition;
-        definition.reserve(3);
-        definition.emplace_back("bool1", BOOL);
-        definition.emplace_back("string", STRING);
-        definition.emplace_back("bool2", BOOL);
+        definition.resize(3);
+        definition[0].name = "bool1";
+        definition[0].type = DT_BOOLEAN;
+        definition[1].name = "string";
+        definition[1].type = DT_STRING;
+        definition[2].name = "bool2";
+        definition[2].type = DT_BOOLEAN;
 
         auto& pLayer = pDataset->createCompoundLayer(indexType,
             kExpectedLayerName, definition, chunkSize, compressionLevel);

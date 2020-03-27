@@ -132,8 +132,8 @@ VRNode::createH5dataSet(
 
     const auto memDataType = makeDataType();
 
-    auto zeroData = std::make_unique<uint8_t[]>(descriptor.getElementSize());
-    memset(zeroData.get(), 0, descriptor.getElementSize());
+    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
+    memset(zeroData->get(), 0, descriptor.getElementSize());
     h5createPropList.setFillValue(memDataType, zeroData.get());
 
     // Create the DataSet using the above.
@@ -150,12 +150,25 @@ VRNode::createH5dataSet(
         {VR_NODE_MIN_NUM_HYPOTHESES, VR_NODE_MAX_NUM_HYPOTHESES,
         VR_NODE_MIN_N_SAMPLES, VR_NODE_MAX_N_SAMPLES});
 
+    // Set initial min/max values.
+    writeAttribute(h5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::numeric_limits<float>::max(), VR_NODE_MIN_HYP_STRENGTH);
+    writeAttribute(h5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::numeric_limits<float>::lowest(), VR_NODE_MAX_HYP_STRENGTH);
+
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::numeric_limits<uint32_t>::max(), {VR_NODE_MIN_NUM_HYPOTHESES,
+        VR_NODE_MIN_N_SAMPLES});
+    BAG::writeAttributes(h5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::numeric_limits<uint32_t>::lowest(), {VR_NODE_MAX_NUM_HYPOTHESES,
+        VR_NODE_MAX_N_SAMPLES});
+
     return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
 //! Ignore rows since the data is 1 dimensional.
-std::unique_ptr<uint8_t[]> VRNode::readProxy(
+std::unique_ptr<UInt8Array> VRNode::readProxy(
     uint32_t /*rowStart*/,
     uint32_t columnStart,
     uint32_t /*rowEnd*/,
@@ -176,13 +189,13 @@ std::unique_ptr<uint8_t[]> VRNode::readProxy(
 
     const auto bufferSize = descriptor.getReadBufferSize(1,
         static_cast<uint32_t>(columns));
-    auto buffer = std::make_unique<uint8_t[]>(bufferSize);
+    auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     const ::H5::DataSpace memDataSpace{1, &columns, &columns};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer.get(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer->get(), memDataType, memDataSpace, fileDataSpace);
 
     return buffer;
 }
@@ -233,6 +246,42 @@ void VRNode::writeProxy(
     const auto memDataType = makeDataType();
 
     m_pH5dataSet->write(buffer, memDataType, memDataSpace, fileDataSpace);
+
+    // Update min/max attributes
+    auto& descriptor =
+        dynamic_cast<VRNodeDescriptor&>(this->getDescriptor());
+
+    // Get the current min/max from descriptor.
+    float minHypStr = 0.f, maxHypStr = 0.f;
+    std::tie(minHypStr, maxHypStr) = descriptor.getMinMaxHypStrength();
+
+    uint32_t minNumHyp = 0, maxNumHyp = 0;
+    std::tie(minNumHyp, maxNumHyp) = descriptor.getMinMaxNumHypotheses();
+
+    uint32_t minNSamples = 0, maxNSamples = 0;
+    std::tie(minNSamples, maxNSamples) = descriptor.getMinMaxNSamples();
+
+    // Update the min/max from new data.
+    const auto* items = reinterpret_cast<const BagVRNodeItem*>(buffer);
+
+    auto* item = items;
+    const auto end = items + columns;
+
+    for (; item != end; ++item)
+    {
+        minHypStr = item->hyp_strength < minHypStr ? item->hyp_strength : minHypStr;
+        maxHypStr = item->hyp_strength > maxHypStr ? item->hyp_strength : maxHypStr;
+
+        minNumHyp = item->num_hypotheses < minNumHyp ? item->num_hypotheses : minNumHyp;
+        maxNumHyp = item->num_hypotheses > maxNumHyp ? item->num_hypotheses : maxNumHyp;
+
+        minNSamples = item->n_samples < minNSamples ? item->n_samples : minNSamples;
+        maxNSamples = item->n_samples > maxNSamples ? item->n_samples : maxNSamples;
+    }
+
+    descriptor.setMinMaxHypStrength(minHypStr, maxHypStr);
+    descriptor.setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
+    descriptor.setMinMaxNSamples(minNSamples, maxNSamples);
 }
 
 void VRNode::writeAttributesProxy() const

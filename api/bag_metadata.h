@@ -4,20 +4,19 @@
 #include "bag_config.h"
 #include "bag_fordec.h"
 #include "bag_metadatatypes.h"
+#include "bag_deleteh5dataset.h"
 
 #include <memory>
 #include <string>
 
 
-namespace H5
-{
+namespace H5 {
 
 class DataSet;
 
-}
+}  // namespace H5
 
-namespace BAG
-{
+namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -56,11 +55,6 @@ public:
     size_t getXMLlength() const noexcept;
 
 private:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
 
     void createH5dataSet(const Dataset& inDataSet);
 

@@ -24,7 +24,6 @@ public:
         const std::string& name, DataType indexType,
         RecordDefinition definition, uint64_t chunkSize,
         unsigned int compressionLevel, Dataset& dataset);
-
     static std::shared_ptr<CompoundLayerDescriptor> open(
         const std::string& name, Dataset& dataset);
 
@@ -49,7 +48,7 @@ private:
     //! The dataset this layer is from.
     std::weak_ptr<Dataset> m_pBagDataset;
     //! The data type (depends on layer type).
-    DataType m_dataType = UNKNOWN_DATA_TYPE;
+    DataType m_dataType = DT_UNKNOWN_DATA_TYPE;
     //! The size of a single index in the HDF5 file.
     uint8_t m_elementSize = 0;
     //! The record definition.

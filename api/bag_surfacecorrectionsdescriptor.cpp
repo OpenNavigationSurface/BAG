@@ -31,7 +31,6 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     : LayerDescriptor(id, Layer::getInternalPath(Surface_Correction),
         kLayerTypeMapString.at(Surface_Correction), Surface_Correction,
         chunkSize, compressionLevel)
-    , m_dataType(Layer::getDataType(Surface_Correction))
     , m_surfaceType(type)
     , m_elementSize(BAG::getElementSize(type, numCorrectors))
     , m_numCorrectors(numCorrectors)
@@ -41,7 +40,6 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     const Dataset& dataset)
     : LayerDescriptor(dataset, Surface_Correction)
-    , m_dataType(Layer::getDataType(Surface_Correction))
 {
     const auto h5dataSet = dataset.getH5file().openDataSet(
         Layer::getInternalPath(Surface_Correction));
@@ -102,6 +100,15 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 
     // Element size.
     m_elementSize = BAG::getElementSize(m_surfaceType, m_numCorrectors);
+
+    // Number of rows & columns.
+    const auto h5Space = h5dataSet.getSpace();
+
+    std::array<hsize_t, RANK> dims{};
+    h5Space.getSimpleExtentDims(dims.data());
+
+    this->setDims(static_cast<uint32_t>(dims[0]),
+        static_cast<uint32_t>(dims[1]));
 }
 
 std::shared_ptr<SurfaceCorrectionsDescriptor>
@@ -135,7 +142,12 @@ SurfaceCorrectionsDescriptor::open(
 
 DataType SurfaceCorrectionsDescriptor::getDataTypeProxy() const noexcept
 {
-    return m_dataType;
+    return Layer::getDataType(Surface_Correction);
+}
+
+std::tuple<uint32_t, uint32_t> SurfaceCorrectionsDescriptor::getDims() const noexcept
+{
+    return {m_numRows, m_numColumns};
 }
 
 uint8_t SurfaceCorrectionsDescriptor::getElementSizeProxy() const noexcept
@@ -176,6 +188,15 @@ SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setVerticalDatum(
     std::string verticalDatums) & noexcept
 {
     m_verticalDatums = std::move(verticalDatums);
+    return *this;
+}
+
+SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setDims(
+    uint32_t numRows,
+    uint32_t numColumns) & noexcept
+{
+    m_numRows = numRows;
+    m_numColumns = numColumns;
     return *this;
 }
 

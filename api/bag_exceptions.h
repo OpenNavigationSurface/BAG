@@ -258,6 +258,26 @@ struct BAG_API CannotReadNumCorrections final : virtual std::exception
     }
 };
 
+//! Invalid corrector specified (1-10).
+struct BAG_API InvalidCorrector final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid corrector specified.  The range is 1-10, but a Surface "
+            "Corrections layer may contain less.";
+    }
+};
+
+//! The surface type is not supported for this operation.
+struct BAG_API UnsupportedSurfaceType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The type of Surface Correction layer (gridded or sparse) is not"
+            " support for this operation.";
+    }
+};
+
 // Value Table related.
 //! The specified field does not exist.
 struct BAG_API FieldNotFound final : virtual std::exception
