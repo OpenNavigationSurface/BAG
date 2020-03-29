@@ -51,14 +51,14 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
     Dataset& dataset,
     const RecordDefinition& definition,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     if (indexType != DT_UINT8 && indexType != DT_UINT16 && indexType != DT_UINT32 &&
         indexType != DT_UINT64)
         throw InvalidIndexType{};
 
-    auto pDescriptor = CompoundLayerDescriptor::create(name, indexType,
-        definition, chunkSize, compressionLevel, dataset);
+    auto pDescriptor = CompoundLayerDescriptor::create(dataset, name, indexType,
+        definition, chunkSize, compressionLevel);
     auto h5indexDataSet = CompoundLayer::createH5indexDataSet(dataset, *pDescriptor);
     auto h5recordDataSet = CompoundLayer::createH5recordDataSet(dataset, *pDescriptor);
 
@@ -104,7 +104,7 @@ CompoundLayer::createH5indexDataSet(
         // Use the dimensions from the descriptor.
         uint32_t dim0 = 0, dim1 = 0;
         std::tie(dim0, dim1) = dataset.getDescriptor().getDims();
-        const std::array<hsize_t, RANK> fileDims{dim0, dim1};
+        const std::array<hsize_t, kRank> fileDims{dim0, dim1};
 
         // Create the creation property list.
         const ::H5::DSetCreatPropList h5createPropList{};
@@ -117,17 +117,16 @@ CompoundLayer::createH5indexDataSet(
         h5createPropList.setFillValue(memDataType, fillValue.data());
 
         // Use chunk size and compression level from the descriptor.
-        h5createPropList.setLayout(H5D_CHUNKED);
-        const auto chunkSize = descriptor.getChunkSize();
-
-        const std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
-        h5createPropList.setChunk(RANK, chunkDims.data());
-
         const auto compressionLevel = descriptor.getCompressionLevel();
         if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+        {
+            const std::array<uint64_t, 2> chunkSize{descriptor.getChunkSize(),
+                descriptor.getChunkSize()};
+            h5createPropList.setChunk(kRank, chunkSize.data());
             h5createPropList.setDeflate(compressionLevel);
+        }
 
-        const ::H5::DataSpace fileDataSpace{RANK, fileDims.data(), fileDims.data()};
+        const ::H5::DataSpace fileDataSpace{kRank, fileDims.data(), fileDims.data()};
 
         const auto& fileDataType = BAG::getH5fileType(dataType);
 
@@ -183,7 +182,7 @@ CompoundLayer::createH5recordDataSet(
     const ::H5::DSetCreatPropList h5createPropList{};
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
-    const std::vector<uint8_t> fillValue(BAG::getH5compSize(definition), 0);
+    const std::vector<uint8_t> fillValue(BAG::getRecordSize(definition), 0);
     h5createPropList.setFillValue(fileDataType, fillValue.data());
 
     constexpr hsize_t kChunkSize = 100;
@@ -227,10 +226,10 @@ std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
 
     // Make sure the area being read from does not exceed the file dimensions.
     const auto numDims = h5fileDataSpace.getSimpleExtentNdims();
-    if (numDims != RANK)
+    if (numDims != kRank)
         throw InvalidReadSize{};
 
-    std::array<hsize_t, RANK> fileDims{};
+    std::array<hsize_t, kRank> fileDims{};
     h5fileDataSpace.getSimpleExtentDims(fileDims.data());
 
     if ((rowEnd >= fileDims[0]) || (columnEnd >= fileDims[1]))
@@ -239,8 +238,8 @@ std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
 
-    const std::array<hsize_t, RANK> count{rows, columns};
-    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
@@ -250,7 +249,7 @@ std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
     auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
-    const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
+    const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
     m_pH5indexDataSet->read(buffer->get(), H5Dget_type(m_pH5indexDataSet->getId()),
         h5memSpace, h5fileDataSpace);
@@ -275,10 +274,10 @@ void CompoundLayer::writeProxy(
 
     // Make sure the area being written to does not exceed the file dimensions.
     const auto numDims = h5fileDataSpace.getSimpleExtentNdims();
-    if (numDims != RANK)
+    if (numDims != kRank)
         throw InvalidWriteSize{};
 
-    std::array<hsize_t, RANK> fileDims{};
+    std::array<hsize_t, kRank> fileDims{};
     h5fileDataSpace.getSimpleExtentDims(fileDims.data());
 
     if ((rowEnd >= fileDims[0]) || (columnEnd >= fileDims[1]))
@@ -286,13 +285,13 @@ void CompoundLayer::writeProxy(
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
-    const std::array<hsize_t, RANK> count{rows, columns};
-    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Prepare the memory space.
-    const ::H5::DataSpace h5memDataSpace{RANK, count.data(), count.data()};
+    const ::H5::DataSpace h5memDataSpace{kRank, count.data(), count.data()};
 
     m_pH5indexDataSet->write(buffer, H5Dget_type(m_pH5indexDataSet->getId()),
         h5memDataSpace, h5fileDataSpace);

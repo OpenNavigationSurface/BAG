@@ -18,15 +18,14 @@ class BAG_API InterleavedLayerDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<InterleavedLayerDescriptor> create(
-        LayerType layerType, GroupType groupType, uint64_t chunkSize,
-        unsigned int compressionLevel, const Dataset& dataset);
+        const Dataset& dataset, LayerType layerType, GroupType groupType);
 
     static std::shared_ptr<InterleavedLayerDescriptor> open(
-        LayerType layerType, GroupType groupType, const Dataset& dataset);
+        const Dataset& dataset, LayerType layerType, GroupType groupType);
 
-    //TODO Temp, make sure only move operations are used until development is done.
     InterleavedLayerDescriptor(const InterleavedLayerDescriptor&) = delete;
     InterleavedLayerDescriptor(InterleavedLayerDescriptor&&) = delete;
+
     InterleavedLayerDescriptor& operator=(const InterleavedLayerDescriptor&) = delete;
     InterleavedLayerDescriptor& operator=(InterleavedLayerDescriptor&&) = delete;
 
@@ -34,9 +33,9 @@ public:
 
 protected:
     InterleavedLayerDescriptor(uint32_t id, LayerType layerType,
-        GroupType groupType, uint64_t chunkSize, unsigned int compressionLevel);
-    InterleavedLayerDescriptor(LayerType layerType,
-        GroupType groupType, const Dataset& dataset);
+        GroupType groupType);
+    InterleavedLayerDescriptor(const Dataset& dataset, LayerType layerType,
+        GroupType groupType);
 
 private:
     static void validateTypes(LayerType layerType, GroupType groupType);
@@ -46,8 +45,6 @@ private:
 
     //! The group type.
     GroupType m_groupType = UNKNOWN_GROUP_TYPE;
-    //! The data type (depends on layer type).
-    DataType m_dataType = DT_UNKNOWN_DATA_TYPE;
     //! The size of a record in the HDF5 DataSet (depends on group type).
     uint8_t m_elementSize = 0;
 

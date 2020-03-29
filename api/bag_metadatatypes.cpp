@@ -13,7 +13,7 @@ namespace {
 
 char* copyString(const char* source)
 {
-    if (!source || strlen(source) == 0)
+    if (!source || source[0] == '\0')
         return nullptr;
 
     char* result = new char[strlen(source) + 1];

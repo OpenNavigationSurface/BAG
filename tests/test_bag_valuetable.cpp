@@ -341,7 +341,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     metadata.loadFromBuffer(kMetadataXML);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
         chunkSize, compressionLevel);
@@ -423,7 +423,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
 
         auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             chunkSize, compressionLevel);
@@ -664,7 +664,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
 
         auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             chunkSize, compressionLevel);

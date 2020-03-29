@@ -18,9 +18,9 @@ namespace BAG {
 class BAG_API VRNode final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     VRNode(const VRNode&) = delete;
     VRNode(VRNode&&) = delete;
+
     VRNode& operator=(const VRNode&) = delete;
     VRNode& operator=(VRNode&&) = delete;
 
@@ -36,7 +36,7 @@ protected:
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
     static std::unique_ptr<VRNode> create(Dataset& dataset,
-        uint64_t chunkSize, unsigned int compressionLevel);
+        uint64_t chunkSize, int compressionLevel);
 
     static std::unique_ptr<VRNode> open(Dataset& dataset,
         VRNodeDescriptor& descriptor);

@@ -9,6 +9,7 @@
 
 #include <memory>
 
+
 namespace H5 {
 
 class DataSet;
@@ -25,14 +26,13 @@ namespace BAG {
 class BAG_API InterleavedLayer final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     InterleavedLayer(const InterleavedLayer&) = delete;
     InterleavedLayer(InterleavedLayer&&) = delete;
+
     InterleavedLayer& operator=(const InterleavedLayer&) = delete;
     InterleavedLayer& operator=(InterleavedLayer&&) = delete;
 
 protected:
-
     InterleavedLayer(Dataset& dataset,
         InterleavedLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);

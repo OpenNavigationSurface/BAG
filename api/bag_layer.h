@@ -19,13 +19,13 @@ namespace BAG {
 class BAG_API Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
+    virtual ~Layer() = default;
+
     Layer(const Layer&) = delete;
     Layer(Layer&&) = delete;
+
     Layer& operator=(const Layer&) = delete;
     Layer& operator=(Layer&&) = delete;
-
-    virtual ~Layer() = default;
 
     static DataType getDataType(LayerType layerType) noexcept;
     static uint8_t getElementSize(DataType type);

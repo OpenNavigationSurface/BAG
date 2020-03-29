@@ -9,7 +9,7 @@ namespace BAG {
 VRMetadataDescriptor::VRMetadataDescriptor(
     uint32_t id,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
     : LayerDescriptor(id, VR_METADATA_PATH,
         kLayerTypeMapString.at(VarRes_Metadata), VarRes_Metadata, chunkSize,
         compressionLevel)
@@ -25,7 +25,7 @@ VRMetadataDescriptor::VRMetadataDescriptor(
 std::shared_ptr<VRMetadataDescriptor> VRMetadataDescriptor::create(
     const Dataset& dataset,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     return std::shared_ptr<VRMetadataDescriptor>(
         new VRMetadataDescriptor{dataset.getNextId(), chunkSize,
@@ -56,12 +56,10 @@ VRMetadataDescriptor::getMaxDimensions() const noexcept
     return {m_maxDimX, m_maxDimY};
 }
 
-void VRMetadataDescriptor::setMaxDimensions(
-    uint32_t maxDimX,
-    uint32_t maxDimY) noexcept
+std::tuple<float, float>
+VRMetadataDescriptor::getMaxResolution() const noexcept
 {
-    m_maxDimX = maxDimX;
-    m_maxDimY = maxDimY;
+    return {m_maxResX, m_maxResY};
 }
 
 std::tuple<uint32_t, uint32_t>
@@ -70,40 +68,46 @@ VRMetadataDescriptor::getMinDimensions() const noexcept
     return {m_minDimX, m_minDimY};
 }
 
-void VRMetadataDescriptor::setMinDimensions(
-    uint32_t minDimX,
-    uint32_t minDimY) noexcept
-{
-    m_minDimX = minDimX;
-    m_minDimY = minDimY;
-}
-
-std::tuple<float, float>
-VRMetadataDescriptor::getMaxResolution() const noexcept
-{
-    return {m_maxResX, m_maxResY};
-}
-
-void VRMetadataDescriptor::setMaxResolution(
-    float maxResX,
-    float maxResY) noexcept
-{
-    m_maxResX = maxResX;
-    m_maxResY = maxResY;
-}
-
 std::tuple<float, float>
 VRMetadataDescriptor::getMinResolution() const noexcept
 {
     return {m_minResX, m_minResY};
 }
 
-void VRMetadataDescriptor::setMinResolution(
+VRMetadataDescriptor& VRMetadataDescriptor::setMaxDimensions(
+    uint32_t maxDimX,
+    uint32_t maxDimY) & noexcept
+{
+    m_maxDimX = maxDimX;
+    m_maxDimY = maxDimY;
+    return *this;
+}
+
+VRMetadataDescriptor& VRMetadataDescriptor::setMaxResolution(
+    float maxResX,
+    float maxResY) & noexcept
+{
+    m_maxResX = maxResX;
+    m_maxResY = maxResY;
+    return *this;
+}
+
+VRMetadataDescriptor& VRMetadataDescriptor::setMinDimensions(
+    uint32_t minDimX,
+    uint32_t minDimY) & noexcept
+{
+    m_minDimX = minDimX;
+    m_minDimY = minDimY;
+    return *this;
+}
+
+VRMetadataDescriptor& VRMetadataDescriptor::setMinResolution(
     float minResX,
-    float minResY) noexcept
+    float minResY) & noexcept
 {
     m_minResX = minResX;
     m_minResY = minResY;
+    return *this;
 }
 
 }  // namespace BAG

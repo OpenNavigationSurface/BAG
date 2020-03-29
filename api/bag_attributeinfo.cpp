@@ -39,10 +39,8 @@ AttributeInfo getAttributeInfo(LayerType layerType)
     case Nominal_Elevation:
         return AttributeInfo(MIN_NOMINAL_ELEVATION, MAX_NOMINAL_ELEVATION,
             NOMINAL_ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Surface_Correction:  //[[fallthrough]];
-    case Compound:  //[[fallthrough]];
     default:
-        throw UnknownSimpleLayerType{};
+        throw UnsupportedSimpleLayerType{};
     }
 }
 

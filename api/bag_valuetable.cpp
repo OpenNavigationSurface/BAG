@@ -143,7 +143,7 @@ ValueTable::ValueTable(
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
     const auto& definition = descriptor.getDefinition();
 
-    const size_t recordSize = getH5compSize(definition);
+    const size_t recordSize = getRecordSize(definition);
     std::vector<uint8_t> buffer(recordSize * numRecords, 0);
 
     const auto memDataType = createH5memoryCompType(definition);
@@ -152,7 +152,6 @@ ValueTable::ValueTable(
 
     h5recordDataSet.read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
 
-    //TODO copy this into bag.cpp; convert when receiving void* from C.
     // Convert the raw memory into Records.
     size_t rawIndex = 0;
 
@@ -180,6 +179,9 @@ size_t ValueTable::addRecord(
 void ValueTable::addRecords(
     const Records& records)
 {
+    if (records.empty())
+        return;
+
     const bool allValid = std::all_of(cbegin(records), cend(records),
         [this](const auto& record) {
             return this->validateRecord(record);
@@ -198,7 +200,7 @@ std::vector<uint8_t> ValueTable::convertRecordToRaw(
     const auto& descriptor =
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
 
-    std::vector<uint8_t> buffer(getH5compSize(descriptor.getDefinition()), 0);
+    std::vector<uint8_t> buffer(getRecordSize(descriptor.getDefinition()), 0);
 
     convertRecordToMemory(record, buffer.data());
 
@@ -208,11 +210,14 @@ std::vector<uint8_t> ValueTable::convertRecordToRaw(
 std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     const std::vector<Record>& records) const
 {
+    if (records.empty())
+        return {};
+
     const auto& descriptor =
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
 
-    const auto h5RecordSize = getH5compSize(descriptor.getDefinition());
-    std::vector<uint8_t> buffer(h5RecordSize * records.size(), 0);
+    const auto recordSize = getRecordSize(descriptor.getDefinition());
+    std::vector<uint8_t> buffer(recordSize * records.size(), 0);
 
     // Write values into memory.
     size_t offset = 0;
@@ -220,7 +225,7 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     for (const auto& record : records)
     {
         convertRecordToMemory(record, buffer.data() + offset);
-        offset += h5RecordSize;
+        offset += recordSize;
     }
 
     return buffer;
@@ -321,12 +326,14 @@ void ValueTable::setValue(
 
 //! Compare the record to the definition.  Not valid if any type is unknown.
 bool ValueTable::validateRecord(
-    const Record& record) const noexcept
+    const Record& record) const
 {
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
+    const auto* descriptor =
+        dynamic_cast<const CompoundLayerDescriptor*>(&m_layer.getDescriptor());
+    if (!descriptor)
+        throw InvalidDescriptor{};
 
-    const auto& definition = descriptor.getDefinition();
+    const auto& definition = descriptor->getDefinition();
 
     if (record.size() != definition.size())
         return false;
@@ -336,11 +343,12 @@ bool ValueTable::validateRecord(
     for (const auto& field : record)
     {
         const auto defType = static_cast<DataType>(definition[defIndex++].type);
-        const auto fieldType = field.getType();
 
-        if (defType == DT_UNKNOWN_DATA_TYPE || field.getType() == DT_UNKNOWN_DATA_TYPE)
+        if (defType == DT_UNKNOWN_DATA_TYPE
+            || field.getType() == DT_UNKNOWN_DATA_TYPE)
             return false;
 
+        const auto fieldType = field.getType();
         if (fieldType != defType)
             return false;
     }

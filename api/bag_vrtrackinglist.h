@@ -25,9 +25,9 @@ public:
     using reference = value_type&;
     using const_reference = const value_type&;
 
-    //TODO Temp, make sure only move operations are used until development is done.
     VRTrackingList(const VRTrackingList&) = delete;
     VRTrackingList(VRTrackingList&&) = delete;
+
     VRTrackingList& operator=(const VRTrackingList&) = delete;
     VRTrackingList& operator=(VRTrackingList&&) = delete;
 
@@ -61,7 +61,7 @@ public:
 
 protected:
     explicit VRTrackingList(const Dataset& dataset);
-    VRTrackingList(const Dataset& dataset, unsigned int compressionLevel);
+    VRTrackingList(const Dataset& dataset, int compressionLevel);
 
 private:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
@@ -71,15 +71,13 @@ private:
     };
 
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> createH5dataSet(
-        unsigned int compressionLevel);
+        int compressionLevel);
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
     //! The associated dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
     //! The items making up the tracking list.
     std::vector<value_type> m_items;
-    //! The length attribute in the tracking list DataSet.
-    uint32_t m_length = 0;
     //! The HDF5 DataSet this class relates to.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
@@ -90,7 +88,6 @@ template <typename... Args>
 void VRTrackingList::emplace_back(Args&&... args) &
 {
     m_items.emplace_back(std::forward<Args>(args)...);
-    ++m_length;
 }
 
 #ifdef _MSC_VER

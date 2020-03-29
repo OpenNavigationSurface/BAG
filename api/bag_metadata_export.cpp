@@ -57,10 +57,10 @@ public:
 
 private:
     //! The encoded string.
-    xmlChar* m_pEncodedString;
+    xmlChar* m_pEncodedString = nullptr;
 };
 
-#define XMLCast(__value__) reinterpret_cast<const xmlChar*>(__value__)
+#define XMLCast(value) reinterpret_cast<const xmlChar*>(value)
 
 //************************************************************************
 //! Add a CharacterString node to the supplied parent XML node.
@@ -290,7 +290,7 @@ xmlNode* addBooleanNode(xmlNode &parentNode, bool value)
     return pBoolNode;
 }
 
-}   //namespace
+}  // namespace
 
 
 //************************************************************************

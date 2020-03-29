@@ -10,14 +10,10 @@ namespace BAG {
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     uint32_t id,
     LayerType layerType,
-    GroupType groupType,
-    uint64_t chunkSize,
-    unsigned int compressionLevel)
+    GroupType groupType)
     : LayerDescriptor(id, Layer::getInternalPath(layerType),
-        kLayerTypeMapString.at(layerType), layerType, chunkSize,
-        compressionLevel)
+        kLayerTypeMapString.at(layerType), layerType, 0, 0)
     , m_groupType(groupType)
-    , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
     this->setInternalPath(groupType == NODE ?
@@ -27,9 +23,9 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
 }
 
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
+    const Dataset& dataset,
     LayerType layerType,
-    GroupType groupType,
-    const Dataset& dataset)
+    GroupType groupType)
     : LayerDescriptor(dataset, layerType,
         groupType == NODE
             ? NODE_GROUP_PATH
@@ -37,37 +33,34 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
                 ? ELEVATION_SOLUTION_GROUP_PATH
                 : "")
     , m_groupType(groupType)
-    , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
     InterleavedLayerDescriptor::validateTypes(layerType, groupType);
 }
 
 std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
+    const Dataset& dataset,
     LayerType layerType,
-    GroupType groupType,
-    uint64_t chunkSize,
-    unsigned int compressionLevel,
-    const Dataset& dataset)
+    GroupType groupType)
 {
     return std::shared_ptr<InterleavedLayerDescriptor>(
         new InterleavedLayerDescriptor{dataset.getNextId(), layerType,
-            groupType, chunkSize, compressionLevel});
+            groupType});
 }
 
 std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::open(
+    const Dataset& dataset,
     LayerType layerType,
-    GroupType groupType,
-    const Dataset& dataset)
+    GroupType groupType)
 {
     return std::shared_ptr<InterleavedLayerDescriptor>(
-        new InterleavedLayerDescriptor{layerType, groupType, dataset});
+        new InterleavedLayerDescriptor{dataset, layerType, groupType});
 }
 
 
 DataType InterleavedLayerDescriptor::getDataTypeProxy() const noexcept
 {
-    return m_dataType;
+    return Layer::getDataType(this->getLayerType());
 }
 
 uint8_t InterleavedLayerDescriptor::getElementSizeProxy() const noexcept

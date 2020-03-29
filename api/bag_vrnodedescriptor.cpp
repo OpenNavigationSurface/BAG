@@ -9,7 +9,7 @@ namespace BAG {
 VRNodeDescriptor::VRNodeDescriptor(
     uint32_t id,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
     : LayerDescriptor(id, VR_NODE_PATH,
         kLayerTypeMapString.at(VarRes_Node), VarRes_Node, chunkSize,
         compressionLevel)
@@ -25,7 +25,7 @@ VRNodeDescriptor::VRNodeDescriptor(
 std::shared_ptr<VRNodeDescriptor> VRNodeDescriptor::create(
     const Dataset& dataset,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     return std::shared_ptr<VRNodeDescriptor>(
         new VRNodeDescriptor{dataset.getNextId(), chunkSize,
@@ -56,12 +56,10 @@ VRNodeDescriptor::getMinMaxHypStrength() const noexcept
     return {m_minHypStrength, m_maxHypStrength};
 }
 
-void VRNodeDescriptor::setMinMaxHypStrength(
-    float minHypStrength,
-    float maxHypStrength) noexcept
+std::tuple<uint32_t, uint32_t>
+VRNodeDescriptor::getMinMaxNSamples() const noexcept
 {
-    m_minHypStrength = minHypStrength;
-    m_maxHypStrength = maxHypStrength;
+    return {m_minNSamples, m_maxNSamples};
 }
 
 std::tuple<uint32_t, uint32_t>
@@ -70,26 +68,31 @@ VRNodeDescriptor::getMinMaxNumHypotheses() const noexcept
     return {m_minNumHypotheses, m_maxNumHypotheses};
 }
 
-void VRNodeDescriptor::setMinMaxNumHypotheses(
-    uint32_t minNumHypotheses,
-    uint32_t maxNumHypotheses) noexcept
+VRNodeDescriptor& VRNodeDescriptor::setMinMaxHypStrength(
+    float minHypStrength,
+    float maxHypStrength) & noexcept
 {
-    m_minNumHypotheses = minNumHypotheses;
-    m_maxNumHypotheses = maxNumHypotheses;
+    m_minHypStrength = minHypStrength;
+    m_maxHypStrength = maxHypStrength;
+    return *this;
 }
 
-std::tuple<uint32_t, uint32_t>
-VRNodeDescriptor::getMinMaxNSamples() const noexcept
-{
-    return {m_minNSamples, m_maxNSamples};
-}
-
-void VRNodeDescriptor::setMinMaxNSamples(
+VRNodeDescriptor& VRNodeDescriptor::setMinMaxNSamples(
     uint32_t minNSamples,
-    uint32_t maxNSamples) noexcept
+    uint32_t maxNSamples) & noexcept
 {
     m_minNSamples = minNSamples;
     m_maxNSamples = maxNSamples;
+    return *this;
+}
+
+VRNodeDescriptor& VRNodeDescriptor::setMinMaxNumHypotheses(
+    uint32_t minNumHypotheses,
+    uint32_t maxNumHypotheses) & noexcept
+{
+    m_minNumHypotheses = minNumHypotheses;
+    m_maxNumHypotheses = maxNumHypotheses;
+    return *this;
 }
 
 }  // namespace BAG

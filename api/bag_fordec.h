@@ -23,11 +23,11 @@ class VRMetadata;
 class VRMetadataDescriptor;
 class VRNode;
 class VRNodeDescriptor;
-class VRRefinement;
-class VRRefinementDescriptor;
+class VRRefinements;
+class VRRefinementsDescriptor;
 class VRTrackingList;
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_FORDEC_H
+#endif  // BAG_FORDEC_H
 

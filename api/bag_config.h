@@ -7,7 +7,6 @@
 #define BAG_CONFIG_H
 
 #if defined(BAG_DLL) && defined(_MSC_VER)
-
     #ifdef __cplusplus
         #ifdef BAG_EXPORTS
             #define BAG_EXTERNAL extern "C" __declspec(dllexport)
@@ -25,9 +24,7 @@
             #define BAG_API
         #endif
     #endif
-
 #else
-
     #ifdef __cplusplus
         #define BAG_EXTERNAL extern "C"
         #define BAG_API
@@ -35,8 +32,7 @@
         #define BAG_EXTERNAL extern
         #define BAG_API
     #endif
-
-#endif /* BAG_DLL && _MSC_VER */
+#endif  // BAG_DLL && _MSC_VER
 
 #endif  // BAG_CONFIG_H
 

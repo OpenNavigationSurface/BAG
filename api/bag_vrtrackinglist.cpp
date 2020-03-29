@@ -10,7 +10,7 @@
 
 namespace BAG {
 
-constexpr hsize_t kTrackingListChunkSize = VARRES_TRACKING_LIST_BLOCK_SIZE;
+constexpr hsize_t kChunkSize = 1024;
 
 VRTrackingList::VRTrackingList(
     const Dataset& dataset)
@@ -21,7 +21,7 @@ VRTrackingList::VRTrackingList(
 
 VRTrackingList::VRTrackingList(
     const Dataset& dataset,
-    unsigned int compressionLevel)
+    int compressionLevel)
     : m_pBagDataset(dataset.shared_from_this())
 {
     m_pH5dataSet = createH5dataSet(compressionLevel);
@@ -82,19 +82,16 @@ size_t VRTrackingList::size() const noexcept
 void VRTrackingList::clear() noexcept
 {
     m_items.clear();
-    m_length = 0;
 }
 
 void VRTrackingList::push_back(const value_type& value)
 {
     m_items.push_back(value);
-    ++m_length;
 }
 
 void VRTrackingList::push_back(value_type&& value)
 {
     m_items.push_back(value);
-    ++m_length;
 }
 
 VRTrackingList::reference VRTrackingList::front() &
@@ -125,7 +122,6 @@ void VRTrackingList::reserve(size_t newCapacity)
 void VRTrackingList::resize(size_t count)
 {
     m_items.resize(count);
-    m_length = static_cast<uint32_t>(count);
 }
 
 VRTrackingList::value_type* VRTrackingList::data() & noexcept
@@ -140,7 +136,7 @@ const VRTrackingList::value_type* VRTrackingList::data() const & noexcept
 
 std::unique_ptr<::H5::DataSet, VRTrackingList::DeleteH5dataSet>
 VRTrackingList::createH5dataSet(
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};
@@ -172,11 +168,7 @@ VRTrackingList::createH5dataSet(
         ::H5::PredType::NATIVE_UINT16);
 
     const ::H5::DSetCreatPropList h5createPropList{};
-
-    h5createPropList.setLayout(H5D_CHUNKED);
-
-    // Use chunk size and compression level from the descriptor.
-    h5createPropList.setChunk(1, &kTrackingListChunkSize);
+    h5createPropList.setChunk(1, &kChunkSize);
 
     if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
@@ -203,19 +195,19 @@ VRTrackingList::openH5dataSet()
         throw DatasetNotFound{};
 
     m_items.clear();
-    m_length = 0;
 
     const auto pDataset = m_pBagDataset.lock();
 
-    // Read the tracking list from the BAG file.
+    // Read the tracking list from the BAG.
     // Get the attribute VR_TRACKING_LIST_LENGTH_NAME (uint32)
     const auto h5dataSet = pDataset->getH5file().openDataSet(
         VR_TRACKING_LIST_PATH);
     const auto attribute = h5dataSet.openAttribute(VR_TRACKING_LIST_LENGTH_NAME);
 
-    attribute.read(attribute.getDataType(), &m_length);
+    uint32_t length = 0;
+    attribute.read(attribute.getDataType(), &length);
 
-    if (m_length == 0)
+    if (length == 0)
         return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
             new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 
@@ -266,10 +258,11 @@ void VRTrackingList::write() const
     const ::H5::Attribute listLengthAtt = m_pH5dataSet->openAttribute(
         VR_TRACKING_LIST_LENGTH_NAME);
 
-    listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &m_length);
+    const uint32_t length = static_cast<uint32_t>(m_items.size());
+    listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &length);
 
     // Resize the DataSet to reflect the new data size.
-    const hsize_t numItems = m_length;
+    const hsize_t numItems = length;
     m_pH5dataSet->extend(&numItems);
 
     // Write the data.

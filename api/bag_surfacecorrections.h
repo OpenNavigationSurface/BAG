@@ -20,9 +20,9 @@ namespace BAG {
 class BAG_API SurfaceCorrections final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     SurfaceCorrections(const SurfaceCorrections&) = delete;
     SurfaceCorrections(SurfaceCorrections&&) = delete;
+
     SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
     SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
 
@@ -34,14 +34,13 @@ public:
         const SimpleLayer& layer) const;
 
 protected:
-
     SurfaceCorrections(Dataset& dataset,
         SurfaceCorrectionsDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
 
     static std::unique_ptr<SurfaceCorrections> create(Dataset& dataset,
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
-        uint64_t chunkSize, unsigned int compressionLevel);
+        uint64_t chunkSize, int compressionLevel);
 
     static std::unique_ptr<SurfaceCorrections> open(Dataset& dataset,
         SurfaceCorrectionsDescriptor& descriptor);

@@ -11,27 +11,30 @@ namespace BAG {
 class BAG_API VRNodeDescriptor final : public LayerDescriptor
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     VRNodeDescriptor(const VRNodeDescriptor&) = delete;
     VRNodeDescriptor(VRNodeDescriptor&&) = delete;
+
     VRNodeDescriptor& operator=(const VRNodeDescriptor&) = delete;
     VRNodeDescriptor& operator=(VRNodeDescriptor&&) = delete;
 
     std::tuple<float, float> getMinMaxHypStrength() const noexcept;
-    std::tuple<uint32_t, uint32_t> getMinMaxNumHypotheses() const noexcept;
     std::tuple<uint32_t, uint32_t> getMinMaxNSamples() const noexcept;
+    std::tuple<uint32_t, uint32_t> getMinMaxNumHypotheses() const noexcept;
 
-    void setMinMaxHypStrength(float minHypStrength, float maxHypStrength) noexcept;
-    void setMinMaxNumHypotheses(uint32_t minNumHypotheses, uint32_t maxNumHypotheses) noexcept;
-    void setMinMaxNSamples(uint32_t minNSamples, uint32_t maxNSamples) noexcept;
+    VRNodeDescriptor& setMinMaxHypStrength(float minHypStrength,
+        float maxHypStrength) & noexcept;
+    VRNodeDescriptor& setMinMaxNSamples(uint32_t minNSamples,
+        uint32_t maxNSamples) & noexcept;
+    VRNodeDescriptor& setMinMaxNumHypotheses(uint32_t minNumHypotheses,
+        uint32_t maxNumHypotheses) & noexcept;
 
 protected:
     VRNodeDescriptor(uint32_t id, uint64_t chunkSize,
-        unsigned int compressionLevel);
+        int compressionLevel);
     explicit VRNodeDescriptor(const Dataset& dataset);
 
     static std::shared_ptr<VRNodeDescriptor> create(const Dataset& dataset,
-        uint64_t chunkSize, unsigned int compressionLevel);
+        uint64_t chunkSize, int compressionLevel);
 
     static std::shared_ptr<VRNodeDescriptor> open(const Dataset& dataset);
 

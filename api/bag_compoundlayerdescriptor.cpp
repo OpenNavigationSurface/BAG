@@ -13,12 +13,12 @@
 namespace BAG {
 
 CompoundLayerDescriptor::CompoundLayerDescriptor(
+    Dataset& dataset,
     const std::string& name,
     DataType indexType,
     RecordDefinition definition,
     uint64_t chunkSize,
-    unsigned int compressionLevel,
-    Dataset& dataset)
+    int compressionLevel)
     : LayerDescriptor(dataset.getNextId(), COMPOUND_PATH + name, name, Compound,
         chunkSize, compressionLevel)
     , m_pBagDataset(dataset.shared_from_this())
@@ -29,21 +29,21 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
 }
 
 std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
+    Dataset& dataset,
     const std::string& name,
     DataType indexType,
     RecordDefinition definition,
     uint64_t chunkSize,
-    unsigned int compressionLevel,
-    Dataset& dataset)
+    int compressionLevel)
 {
     return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{name, indexType, std::move(definition),
-            chunkSize, compressionLevel, dataset});
+        new CompoundLayerDescriptor{dataset, name, indexType,
+            std::move(definition), chunkSize, compressionLevel});
 }
 
 std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
-    const std::string& name,
-    Dataset& dataset)
+    Dataset& dataset,
+    const std::string& name)
 {
     const auto& h5file = dataset.getH5file();
 
@@ -93,8 +93,8 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     const auto compressionLevel = BAG::getCompressionLevel(h5file, internalPath);
 
     return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{name, indexType, definition, chunkSize,
-            compressionLevel, dataset});
+        new CompoundLayerDescriptor{dataset, name, indexType, definition,
+            chunkSize, compressionLevel});
 }
 
 

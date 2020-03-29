@@ -9,6 +9,7 @@
 
 #include <memory>
 
+
 namespace H5 {
 
 class DataSet;
@@ -25,19 +26,18 @@ namespace BAG {
 class BAG_API SimpleLayer final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     SimpleLayer(const SimpleLayer&) = delete;
     SimpleLayer(SimpleLayer&&) = delete;
+
     SimpleLayer& operator=(const SimpleLayer&) = delete;
     SimpleLayer& operator=(SimpleLayer&&) = delete;
 
 protected:
-
     SimpleLayer(Dataset& dataset, SimpleLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
-        LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
+        LayerType type, uint64_t chunkSize, int compressionLevel);
 
     static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
         SimpleLayerDescriptor& descriptor);

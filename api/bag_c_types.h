@@ -115,7 +115,7 @@ struct BagVRMetadataItem
 };
 
 //! The type found in the variable resolution refinement layer.
-struct BagVRRefinementItem
+struct BagVRRefinementsItem
 {
     float depth;
     float depth_uncrt;

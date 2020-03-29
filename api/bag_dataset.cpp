@@ -16,8 +16,8 @@
 #include "bag_vrmetadatadescriptor.h"
 #include "bag_vrnode.h"
 #include "bag_vrnodedescriptor.h"
-#include "bag_vrrefinement.h"
-#include "bag_vrrefinementdescriptor.h"
+#include "bag_vrrefinements.h"
+#include "bag_vrrefinementsdescriptor.h"
 
 #include <algorithm>
 #include <array>
@@ -47,6 +47,9 @@ Layer* getLayer(
     LayerType type,
     const std::string& name = {})
 {
+    if (type == Compound && name.empty())
+        throw NameRequired{};
+
     std::string nameLower{name};
     std::transform(begin(nameLower), end(nameLower), begin(nameLower),
         [](char c) noexcept {
@@ -54,7 +57,7 @@ Layer* getLayer(
         });
 
     auto layerIter = std::find_if(cbegin(layers), cend(layers),
-        [&nameLower, type](const std::unique_ptr<Layer>& layer) {
+        [type, &nameLower](const std::unique_ptr<Layer>& layer) {
             const auto& descriptor = layer->getDescriptor();
 
             if (descriptor.getLayerType() != type)
@@ -178,7 +181,7 @@ std::shared_ptr<Dataset> Dataset::open(
     OpenMode openMode)
 {
 #ifdef NDEBUG
-    ::H5::Exception::dontPrint();  //TODO Add a way to toggle this
+    ::H5::Exception::dontPrint();
 #endif
 
     std::shared_ptr<Dataset> pDataset{new Dataset};
@@ -191,7 +194,7 @@ std::shared_ptr<Dataset> Dataset::create(
     const std::string& fileName,
     Metadata&& metadata,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     std::shared_ptr<Dataset> pDataset{new Dataset};
     pDataset->createDataset(fileName, std::move(metadata), chunkSize,
@@ -218,7 +221,7 @@ CompoundLayer& Dataset::createCompoundLayer(
     const std::string& name,
     const RecordDefinition& definition,
     uint64_t chunkSize,
-    unsigned int compressionLevel) &
+    int compressionLevel) &
 {
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
@@ -271,7 +274,7 @@ void Dataset::createDataset(
     const std::string& fileName,
     Metadata&& metadata,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
 #ifdef NDEBUG
     ::H5::Exception::dontPrint();
@@ -318,7 +321,7 @@ void Dataset::createDataset(
 Layer& Dataset::createSimpleLayer(
     LayerType type,
     uint64_t chunkSize,
-    unsigned int compressionLevel) &
+    int compressionLevel) &
 {
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
@@ -351,7 +354,7 @@ SurfaceCorrections& Dataset::createSurfaceCorrections(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
-    unsigned int compressionLevel) &
+    int compressionLevel) &
 {
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
@@ -367,7 +370,7 @@ SurfaceCorrections& Dataset::createSurfaceCorrections(
 
 void Dataset::createVR(
     uint64_t chunkSize,
-    unsigned int compressionLevel,
+    int compressionLevel,
     bool createNode)
 {
     if (m_descriptor.isReadOnly())
@@ -383,7 +386,7 @@ void Dataset::createVR(
         new VRTrackingList{*this, compressionLevel});
 
     this->addLayer(VRMetadata::create(*this, chunkSize, compressionLevel));
-    this->addLayer(VRRefinement::create(*this, chunkSize, compressionLevel));
+    this->addLayer(VRRefinements::create(*this, chunkSize, compressionLevel));
 
     if (createNode)
         this->addLayer(VRNode::create(*this, chunkSize, compressionLevel));
@@ -485,8 +488,19 @@ std::vector<LayerType> Dataset::getLayerTypes() const
     std::vector<LayerType> types;
     types.reserve(m_layers.size());
 
+    bool compoundLayerAdded = false;
+
     for (auto&& layer : m_layers)
-        types.push_back(layer->getDescriptor().getLayerType());
+    {
+        const auto type = layer->getDescriptor().getLayerType();
+        if (type == Compound)
+            if (compoundLayerAdded)
+                continue;
+            else
+                compoundLayerAdded = true;
+
+        types.push_back(type);
+    }
 
     return types;
 }
@@ -509,7 +523,7 @@ std::tuple<bool, float, float> Dataset::getMinMax(
             readAttributeFromDataSet<float>(*m_pH5file, thePath, info.minName),
             readAttributeFromDataSet<float>(*m_pH5file, thePath, info.maxName)};
     }
-    catch(const UnknownSimpleLayerType&)
+    catch(const UnsupportedSimpleLayerType&)
     {
         return {false, 0.f, 0.f};  // No min/max attributes.
     }
@@ -574,15 +588,15 @@ const VRNode* Dataset::getVRNode() const & noexcept
     return dynamic_cast<VRNode*>(BAG::getLayer(m_layers, VarRes_Node));
 }
 
-VRRefinement* Dataset::getVRRefinement() & noexcept
+VRRefinements* Dataset::getVRRefinements() & noexcept
 {
-    return dynamic_cast<VRRefinement*>(
+    return dynamic_cast<VRRefinements*>(
         BAG::getLayer(m_layers, VarRes_Refinement));
 }
 
-const VRRefinement* Dataset::getVRRefinement() const & noexcept
+const VRRefinements* Dataset::getVRRefinements() const & noexcept
 {
-    return dynamic_cast<VRRefinement*>(
+    return dynamic_cast<VRRefinements*>(
         BAG::getLayer(m_layers, VarRes_Refinement));
 }
 
@@ -658,35 +672,36 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Hypothesis_Strength
-            auto layerDesc = InterleavedLayerDescriptor::open(
-                Hypothesis_Strength, NODE, *this);
+            auto layerDesc = InterleavedLayerDescriptor::open(*this,
+                Hypothesis_Strength, NODE);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Num_Hypotheses
-            layerDesc = InterleavedLayerDescriptor::open(Num_Hypotheses, NODE,
-                *this);
+            layerDesc = InterleavedLayerDescriptor::open(*this, Num_Hypotheses,
+                NODE);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
         }
 
-        id = H5Dopen2(bagGroup.getLocId(), ELEVATION_SOLUTION_GROUP_PATH, H5P_DEFAULT);
+        id = H5Dopen2(bagGroup.getLocId(), ELEVATION_SOLUTION_GROUP_PATH,
+            H5P_DEFAULT);
         if (id >= 0)
         {
             H5Dclose(id);
 
             // Shoal_Elevation
-            auto layerDesc = InterleavedLayerDescriptor::open(Shoal_Elevation,
-                ELEVATION, *this);
+            auto layerDesc = InterleavedLayerDescriptor::open(*this,
+                Shoal_Elevation, ELEVATION);
 
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Std_Dev
-            layerDesc = InterleavedLayerDescriptor::open(Std_Dev, ELEVATION,
-                *this);
+            layerDesc = InterleavedLayerDescriptor::open(*this, Std_Dev,
+                ELEVATION);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
 
             // Num_Soundings
-            layerDesc = InterleavedLayerDescriptor::open(Num_Soundings,
-                ELEVATION, *this);
+            layerDesc = InterleavedLayerDescriptor::open(*this, Num_Soundings,
+                ELEVATION);
             this->addLayer(InterleavedLayer::open(*this, *layerDesc));
         }
     }
@@ -718,7 +733,7 @@ void Dataset::readDataset(
                         (foundPos == (name.length() - kRecordsLen)))
                         continue;
 
-                    auto descriptor = CompoundLayerDescriptor::open(name, *this);
+                    auto descriptor = CompoundLayerDescriptor::open(*this, name);
                     this->addLayer(CompoundLayer::open(*this, *descriptor));
                 }
                 catch(...)
@@ -754,8 +769,8 @@ void Dataset::readDataset(
         }
 
         {
-            auto descriptor = VRRefinementDescriptor::open(*this);
-            this->addLayer(VRRefinement::open(*this, *descriptor));
+            auto descriptor = VRRefinementsDescriptor::open(*this);
+            this->addLayer(VRRefinements::open(*this, *descriptor));
         }
 
         // optional VRNodeLayer

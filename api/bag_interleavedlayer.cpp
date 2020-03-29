@@ -13,9 +13,9 @@ namespace BAG {
 InterleavedLayer::InterleavedLayer(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet)
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet)
     : Layer(dataset, descriptor)
-    , m_pH5dataSet(std::move(h5dataSet))
+    , m_pH5dataSet(std::move(pH5dataSet))
 {
 }
 
@@ -46,31 +46,30 @@ std::unique_ptr<UInt8Array> InterleavedLayer::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
-    if (!dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor()))
+    const auto* descriptor =
+        dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor());
+    if (!descriptor)
         throw InvalidDescriptor{};
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
-    const std::array<hsize_t, RANK> count{rows, columns};
-    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
 
     // Query the file for the specified rows and columns.
     const auto h5fileSpace = m_pH5dataSet->getSpace();
     h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
-    const auto& descriptor =
-        static_cast<const InterleavedLayerDescriptor&>(this->getDescriptor());
-
     // Initialize the output buffer.
-    const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
+    const auto bufferSize = descriptor->getReadBufferSize(rows, columns);
     auto buffer = std::make_unique<UInt8Array>(bufferSize);
 
     // Prepare the memory space.
-    const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
+    const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
     // Set up the type.
-    const auto h5dataType = createH5compType(descriptor.getLayerType(),
-        descriptor.getGroupType());
+    const auto h5dataType = createH5compType(descriptor->getLayerType(),
+        descriptor->getGroupType());
 
     m_pH5dataSet->read(buffer->get(), h5dataType, h5memSpace, h5fileSpace);
 

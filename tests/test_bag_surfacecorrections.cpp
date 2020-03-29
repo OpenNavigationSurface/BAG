@@ -51,7 +51,7 @@ TEST_CASE("test surface corrections create empty irregular",
 
     UNSCOPED_INFO("Check dataset was created successfully.");
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
     auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
         compressionLevel);
     REQUIRE(pDataset);
@@ -86,7 +86,7 @@ TEST_CASE("test surface corrections create empty gridded",
 
     UNSCOPED_INFO("Check dataset was created successfully.");
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
     auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
         compressionLevel);
     REQUIRE(pDataset);
@@ -121,7 +121,7 @@ TEST_CASE("test surface corrections create and write irregular",
 
     UNSCOPED_INFO("Check dataset was created successfully.");
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
     auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
         compressionLevel);
     REQUIRE(pDataset);
@@ -162,7 +162,7 @@ TEST_CASE("test surface corrections create and write gridded",
 
     UNSCOPED_INFO("Check dataset was created successfully.");
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
     auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
         compressionLevel);
     REQUIRE(pDataset);

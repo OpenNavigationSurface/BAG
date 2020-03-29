@@ -34,8 +34,6 @@ namespace BAG {
 #pragma warning(disable: 4275)  // non-DLL-interface class used as base class
 #endif
 
-constexpr static uint32_t kInvalidId = std::numeric_limits<uint32_t>::max();
-
 class BAG_API Dataset final
 #ifndef SWIG
     : public std::enable_shared_from_this<Dataset>
@@ -47,10 +45,11 @@ public:
 
     static std::shared_ptr<Dataset> create(const std::string &fileName,
         Metadata&& metadata, uint64_t chunkSize = 100,
-        unsigned int compressionLevel = 5);
+        int compressionLevel = 5);
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
+
     Dataset& operator=(const Dataset&) = delete;
     Dataset& operator=(Dataset&&) = delete;
 
@@ -63,16 +62,14 @@ public:
     std::vector<LayerType> getLayerTypes() const;
 
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
-        unsigned int compressionLevel) &;
+        int compressionLevel) &;
     CompoundLayer& createCompoundLayer(DataType indexType,
         const std::string& name, const RecordDefinition& definition,
-        uint64_t chunkSize, unsigned int compressionLevel) &;
+        uint64_t chunkSize, int compressionLevel) &;
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
-        uint64_t chunkSize, unsigned int compressionLevel) &;
-
-    void createVR(uint64_t chunkSize, unsigned int compressionLevel,
-        bool createNode);
+        uint64_t chunkSize, int compressionLevel) &;
+    void createVR(uint64_t chunkSize, int compressionLevel, bool makeNode);
 
     const Metadata& getMetadata() const & noexcept;
 
@@ -91,8 +88,8 @@ public:
     const VRMetadata* getVRMetadata() const & noexcept;
     VRNode* getVRNode() & noexcept;
     const VRNode* getVRNode() const & noexcept;
-    VRRefinement* getVRRefinement() & noexcept;
-    const VRRefinement* getVRRefinement() const & noexcept;
+    VRRefinements* getVRRefinements() & noexcept;
+    const VRRefinements* getVRRefinements() const & noexcept;
     VRTrackingList* getVRTrackingList() & noexcept;
     const VRTrackingList* getVRTrackingList() const & noexcept;
 
@@ -108,7 +105,7 @@ private:
 
     void readDataset(const std::string& fileName, OpenMode openMode);
     void createDataset(const std::string& fileName, Metadata&& metadata,
-        uint64_t chunkSize, unsigned int compressionLevel);
+        uint64_t chunkSize, int compressionLevel);
 
     //TODO What about uint32_t type min/max?
     std::tuple<bool, float, float> getMinMax(LayerType type,
@@ -152,8 +149,8 @@ private:
     friend class VRMetadataDescriptor;
     friend class VRNode;
     friend class VRNodeDescriptor;
-    friend class VRRefinement;
-    friend class VRRefinementDescriptor;
+    friend class VRRefinements;
+    friend class VRRefinementsDescriptor;
     friend class VRTrackingList;
 };
 

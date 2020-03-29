@@ -1,5 +1,6 @@
 
 #include "bag_private.h"
+#include "bag_trackinglist.h"
 
 #include <array>
 #include <H5Cpp.h>
@@ -7,7 +8,7 @@
 
 namespace BAG {
 
-constexpr hsize_t kTrackingListChunkSize = TRACKING_LIST_BLOCK_SIZE;
+constexpr hsize_t kChunkSize = 10;
 
 TrackingList::TrackingList(const Dataset& dataset)
     : m_pBagDataset(dataset.shared_from_this())
@@ -17,7 +18,7 @@ TrackingList::TrackingList(const Dataset& dataset)
 
 TrackingList::TrackingList(
     const Dataset& dataset,
-    unsigned int compressionLevel)
+    int compressionLevel)
     : m_pBagDataset(dataset.shared_from_this())
 {
     m_pH5dataSet = createH5dataSet(compressionLevel);
@@ -78,19 +79,16 @@ size_t TrackingList::size() const noexcept
 void TrackingList::clear() noexcept
 {
     m_items.clear();
-    m_length = 0;
 }
 
 void TrackingList::push_back(const value_type& value)
 {
     m_items.push_back(value);
-    ++m_length;
 }
 
 void TrackingList::push_back(value_type&& value)
 {
     m_items.push_back(value);
-    ++m_length;
 }
 
 TrackingList::reference TrackingList::front() &
@@ -121,7 +119,6 @@ void TrackingList::reserve(size_t newCapacity)
 void TrackingList::resize(size_t count)
 {
     m_items.resize(count);
-    m_length = static_cast<uint32_t>(count);
 }
 
 TrackingList::value_type* TrackingList::data() & noexcept
@@ -136,7 +133,7 @@ const TrackingList::value_type* TrackingList::data() const & noexcept
 
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 TrackingList::createH5dataSet(
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};
@@ -165,9 +162,7 @@ TrackingList::createH5dataSet(
         ::H5::PredType::NATIVE_SHORT);
 
     const ::H5::DSetCreatPropList h5createPropList{};
-
-    h5createPropList.setLayout(H5D_CHUNKED);
-    h5createPropList.setChunk(1, &kTrackingListChunkSize);
+    h5createPropList.setChunk(1, &kChunkSize);
 
     if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
@@ -194,18 +189,18 @@ TrackingList::openH5dataSet()
         throw DatasetNotFound{};
 
     m_items.clear();
-    m_length = 0;
 
     auto pDataset = m_pBagDataset.lock();
 
-    // Read the tracking list from the BAG file.
-    // Get the attribute TRACKING_LIST_LENGTH_NAME (uint32)
+    // Read the tracking list from the BAG.
+    // Get the attribute TRACKING_LIST_LENGTH_NAME
     const auto h5dataSet = pDataset->getH5file().openDataSet(TRACKING_LIST_PATH);
     const auto attribute = h5dataSet.openAttribute(TRACKING_LIST_LENGTH_NAME);
 
-    attribute.read(attribute.getDataType(), &m_length);
+    uint32_t length = 0;
+    attribute.read(attribute.getDataType(), &length);
 
-    if (m_length == 0)
+    if (length == 0)
         return std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
             new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 
@@ -251,10 +246,11 @@ void TrackingList::write() const
     const ::H5::Attribute listLengthAtt = m_pH5dataSet->openAttribute(
         TRACKING_LIST_LENGTH_NAME);
 
-    listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &m_length);
+    const uint32_t length = static_cast<uint32_t>(m_items.size());
+    listLengthAtt.write(::H5::PredType::NATIVE_UINT32, &length);
 
     // Resize the DataSet to reflect the new data size.
-    const hsize_t numItems = m_length;
+    const hsize_t numItems = length;
     m_pH5dataSet->extend(&numItems);
 
     // Write the data.

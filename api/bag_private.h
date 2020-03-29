@@ -6,17 +6,17 @@
 #include <memory>
 
 
-struct BagHandle {
+//! The "bucket" used by the C interface.
+struct BagHandle
+{
+    //! The BAG Dataset that holds all the BAG information.
     std::shared_ptr<BAG::Dataset> dataset;
 };
 
 namespace BAG
 {
 
-constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
-constexpr auto VARRES_TRACKING_LIST_BLOCK_SIZE = 1024;
-
-constexpr unsigned int kMaxCompressionLevel = 9;
+constexpr int kMaxCompressionLevel = 9;
 
 /*! Path names for BAG entities */
 #define ROOT_PATH                       "/BAG_root"

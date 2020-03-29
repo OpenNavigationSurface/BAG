@@ -16,7 +16,7 @@ LayerDescriptor::LayerDescriptor(
     std::string name,
     LayerType type,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
     : m_id(id)
     , m_layerType(type)
     , m_internalPath(std::move(internalPath))
@@ -56,7 +56,7 @@ uint64_t LayerDescriptor::getChunkSize() const noexcept
     return m_chunkSize;
 }
 
-unsigned int LayerDescriptor::getCompressionLevel() const noexcept
+int LayerDescriptor::getCompressionLevel() const noexcept
 {
     return m_compressionLevel;
 }

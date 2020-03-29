@@ -28,9 +28,9 @@ namespace BAG {
 class BAG_API CompoundLayer final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     CompoundLayer(const CompoundLayer&) = delete;
     CompoundLayer(CompoundLayer&&) = delete;
+
     CompoundLayer& operator=(const CompoundLayer&) = delete;
     CompoundLayer& operator=(CompoundLayer&&) = delete;
 
@@ -38,7 +38,6 @@ public:
     const ValueTable& getValueTable() const & noexcept;
 
 protected:
-
     CompoundLayer(Dataset& dataset, CompoundLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5indexDataSet,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5recordDataSet);
@@ -46,7 +45,7 @@ protected:
     static std::unique_ptr<CompoundLayer> create(DataType indexType,
         const std::string& name, Dataset& dataset,
         const RecordDefinition& definition, uint64_t chunkSize,
-        unsigned int compressionLevel);
+        int compressionLevel);
     static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
         CompoundLayerDescriptor& descriptor);
 
@@ -86,7 +85,7 @@ private:
 #pragma warning(pop)
 #endif
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_COMPOUNDLAYER
+#endif  // BAG_COMPOUNDLAYER
 

@@ -29,10 +29,10 @@ namespace {
 template<typename T>
 T readAttribute(
     const ::H5::H5File& h5file,
-    const char* const attributeName)
+    const char* const name)
 {
     const auto h5DataSet = h5file.openDataSet(VR_NODE_PATH);
-    const auto attribute = h5DataSet.openAttribute(attributeName);
+    const auto attribute = h5DataSet.openAttribute(name);
 
     T value{};
     attribute.read(attribute.getDataType(), &value);
@@ -54,7 +54,7 @@ VRNode::VRNode(
 std::unique_ptr<VRNode> VRNode::create(
     Dataset& dataset,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     auto descriptor = VRNodeDescriptor::create(dataset, chunkSize,
         compressionLevel);
@@ -117,15 +117,18 @@ VRNode::createH5dataSet(
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    h5createPropList.setLayout(H5D_CHUNKED);
-
-    // Get chunk size (min 100) and compression level from the descriptor.
-    const auto chunkSize = std::max(100ull, descriptor.getChunkSize());
-    h5createPropList.setChunk(1, &chunkSize);
-
+    // Use chunk size and compression level from the descriptor.
+    const hsize_t chunkSize = descriptor.getChunkSize();
     const auto compressionLevel = descriptor.getCompressionLevel();
-    if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
-        h5createPropList.setDeflate(compressionLevel);
+    if (chunkSize > 0)
+    {
+        h5createPropList.setChunk(1, &chunkSize);
+
+        if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+            h5createPropList.setDeflate(compressionLevel);
+    }
+    else if (compressionLevel > 0)
+        throw CompressionNeedsChunkingSet{};
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
@@ -203,7 +206,8 @@ void VRNode::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    if (!dynamic_cast<VRNodeDescriptor*>(&this->getDescriptor()))
+    auto* descriptor = dynamic_cast<VRNodeDescriptor*>(&this->getDescriptor());
+    if (!descriptor)
         throw UnexpectedLayerDescriptorType{};
 
     const hsize_t columns = (columnEnd - columnStart) + 1;
@@ -243,18 +247,15 @@ void VRNode::writeProxy(
     m_pH5dataSet->write(buffer, memDataType, memDataSpace, fileDataSpace);
 
     // Update min/max attributes
-    auto& descriptor =
-        dynamic_cast<VRNodeDescriptor&>(this->getDescriptor());
-
     // Get the current min/max from descriptor.
     float minHypStr = 0.f, maxHypStr = 0.f;
-    std::tie(minHypStr, maxHypStr) = descriptor.getMinMaxHypStrength();
+    std::tie(minHypStr, maxHypStr) = descriptor->getMinMaxHypStrength();
 
     uint32_t minNumHyp = 0, maxNumHyp = 0;
-    std::tie(minNumHyp, maxNumHyp) = descriptor.getMinMaxNumHypotheses();
+    std::tie(minNumHyp, maxNumHyp) = descriptor->getMinMaxNumHypotheses();
 
     uint32_t minNSamples = 0, maxNSamples = 0;
-    std::tie(minNSamples, maxNSamples) = descriptor.getMinMaxNSamples();
+    std::tie(minNSamples, maxNSamples) = descriptor->getMinMaxNSamples();
 
     // Update the min/max from new data.
     const auto* items = reinterpret_cast<const BagVRNodeItem*>(buffer);
@@ -274,22 +275,21 @@ void VRNode::writeProxy(
         maxNSamples = item->n_samples > maxNSamples ? item->n_samples : maxNSamples;
     }
 
-    descriptor.setMinMaxHypStrength(minHypStr, maxHypStr);
-    descriptor.setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
-    descriptor.setMinMaxNSamples(minNSamples, maxNSamples);
+    descriptor->setMinMaxHypStrength(minHypStr, maxHypStr);
+    descriptor->setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
+    descriptor->setMinMaxNSamples(minNSamples, maxNSamples);
 }
 
 void VRNode::writeAttributesProxy() const
 {
-    if (!dynamic_cast<const VRNodeDescriptor*>(&this->getDescriptor()))
+    const auto* descriptor =
+        dynamic_cast<const VRNodeDescriptor*>(&this->getDescriptor());
+    if (!descriptor)
         throw UnexpectedLayerDescriptorType{};
-
-    const auto& descriptor =
-        dynamic_cast<const VRNodeDescriptor&>(this->getDescriptor());
 
     // Write the attributes from the layer descriptor.
     // min/max hyp strength
-    const auto minMaxHypStrength = descriptor.getMinMaxHypStrength();
+    const auto minMaxHypStrength = descriptor->getMinMaxHypStrength();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minMaxHypStrength), VR_NODE_MIN_HYP_STRENGTH);
 
@@ -297,7 +297,7 @@ void VRNode::writeAttributesProxy() const
         std::get<1>(minMaxHypStrength), VR_NODE_MAX_HYP_STRENGTH);
 
     // min/max num hypotheses
-    const auto minMaxNumHypotheses = descriptor.getMinMaxNumHypotheses();
+    const auto minMaxNumHypotheses = descriptor->getMinMaxNumHypotheses();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minMaxNumHypotheses), VR_NODE_MIN_NUM_HYPOTHESES);
 
@@ -305,7 +305,7 @@ void VRNode::writeAttributesProxy() const
         std::get<1>(minMaxNumHypotheses), VR_NODE_MAX_NUM_HYPOTHESES);
 
     // min/max n samples
-    const auto minMaxNSamples = descriptor.getMinMaxNSamples();
+    const auto minMaxNSamples = descriptor->getMinMaxNSamples();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minMaxNSamples), VR_NODE_MIN_N_SAMPLES);
 

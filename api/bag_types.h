@@ -9,12 +9,14 @@
 namespace BAG
 {
 
-constexpr int RANK = 2;
+constexpr static int kRank = 2;
 
-using LayerType = BAG_LAYER_TYPE;
+constexpr static uint32_t kInvalidLayerId = std::numeric_limits<uint32_t>::max();
+
 using DataType = BAG_DATA_TYPE;
-using OpenMode = BAG_OPEN_MODE;
+using LayerType = BAG_LAYER_TYPE;
 using GroupType = BAG_GROUP_TYPE;
+using OpenMode = BAG_OPEN_MODE;
 
 using TrackingItem = BagTrackingItem;
 
@@ -22,7 +24,7 @@ using VerticalDatumCorrections = BagVerticalDatumCorrections;
 
 using VRMetadataItem = BagVRMetadataItem;
 using VRNodeItem = BagVRNodeItem;
-using VRRefinementItem = BagVRRefinementItem;
+using VRRefinementsItem = BagVRRefinementsItem;
 using VRTrackingItem = BagVRTrackingItem;
 
 const std::unordered_map<LayerType, const char*> kLayerTypeMapString {

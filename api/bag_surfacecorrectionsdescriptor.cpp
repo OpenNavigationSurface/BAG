@@ -27,7 +27,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
     : LayerDescriptor(id, Layer::getInternalPath(Surface_Correction),
         kLayerTypeMapString.at(Surface_Correction), Surface_Correction,
         chunkSize, compressionLevel)
@@ -104,7 +104,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     // Number of rows & columns.
     const auto h5Space = h5dataSet.getSpace();
 
-    std::array<hsize_t, RANK> dims{};
+    std::array<hsize_t, kRank> dims{};
     h5Space.getSimpleExtentDims(dims.data());
 
     this->setDims(static_cast<uint32_t>(dims[0]),
@@ -113,11 +113,11 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 
 std::shared_ptr<SurfaceCorrectionsDescriptor>
 SurfaceCorrectionsDescriptor::create(
+    const Dataset& dataset,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
-    unsigned int compressionLevel,
-    const Dataset& dataset)
+    int compressionLevel)
 {
     if (type != BAG_SURFACE_GRID_EXTENTS &&
         type != BAG_SURFACE_IRREGULARLY_SPACED)

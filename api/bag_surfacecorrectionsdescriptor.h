@@ -20,16 +20,15 @@ class BAG_API SurfaceCorrectionsDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
-        BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrections,
-        uint64_t chunkSize, unsigned int compressionLevel,
-        const Dataset& dataset);
+        const Dataset& dataset, BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
+        uint8_t numCorrections, uint64_t chunkSize, int compressionLevel);
 
     static std::shared_ptr<SurfaceCorrectionsDescriptor> open(
         const Dataset& dataset);
 
-    //TODO Temp, make sure only move operations are used until development is done.
     SurfaceCorrectionsDescriptor(const SurfaceCorrectionsDescriptor&) = delete;
     SurfaceCorrectionsDescriptor(SurfaceCorrectionsDescriptor&&) = delete;
+
     SurfaceCorrectionsDescriptor& operator=(const SurfaceCorrectionsDescriptor&) = delete;
     SurfaceCorrectionsDescriptor& operator=(SurfaceCorrectionsDescriptor&&) = delete;
 
@@ -52,7 +51,7 @@ public:
 protected:
     SurfaceCorrectionsDescriptor(uint32_t id,
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
-        uint64_t chunkSize, unsigned int compressionLevel);
+        uint64_t chunkSize, int compressionLevel);
     explicit SurfaceCorrectionsDescriptor(const Dataset& dataset);
 
 private:

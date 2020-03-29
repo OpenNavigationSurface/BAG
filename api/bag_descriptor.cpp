@@ -5,6 +5,7 @@
 #include "bag_metadata.h"
 
 #include <algorithm>
+#include <cctype>
 
 
 namespace BAG {
@@ -26,7 +27,11 @@ Descriptor& Descriptor::addLayerDescriptor(
 {
     const auto foundIter = std::find_if(cbegin(m_layerDescriptors),
         cend(m_layerDescriptors),
-        [&inDescriptor](const auto& descriptor) {
+        [&inDescriptor](const std::weak_ptr<const LayerDescriptor>& desc) {
+            if (desc.expired())
+                return false;
+
+            auto descriptor = desc.lock();
             return inDescriptor.getInternalPath() == descriptor->getInternalPath();
         });
     if (foundIter != cend(m_layerDescriptors))
@@ -57,18 +62,70 @@ std::vector<uint32_t> Descriptor::getLayerIds() const noexcept
     std::vector<uint32_t> ids;
     ids.reserve(m_layerDescriptors.size());
 
-    for (const auto& descriptor : m_layerDescriptors)
+    for (const auto& desc : m_layerDescriptors)
+    {
+        if (desc.expired())
+            continue;
+
+        auto descriptor = desc.lock();
         ids.emplace_back(descriptor->getId());
+    }
 
     return ids;
 }
 
-const LayerDescriptor& Descriptor::getLayerDescriptor(LayerType type) const &
+const LayerDescriptor& Descriptor::getLayerDescriptor(
+    uint32_t id) const &
 {
-    return *m_layerDescriptors.at(type);
+    const auto& desc = m_layerDescriptors.at(id);
+    if (desc.expired())
+        throw InvalidLayerDescriptor{};
+
+    return *desc.lock();
 }
 
-const std::vector<std::shared_ptr<const LayerDescriptor>>&
+const LayerDescriptor* Descriptor::getLayerDescriptor(
+    LayerType type,
+    const std::string& name) const &
+{
+    if (type == Compound && name.empty())
+        throw NameRequired{};
+
+    std::string nameLower{name};
+    std::transform(begin(nameLower), end(nameLower), begin(nameLower),
+        [](char c) noexcept {
+            return static_cast<char>(std::tolower(c));
+        });
+
+    const auto& layerDesc = std::find_if(cbegin(m_layerDescriptors),
+        cend(m_layerDescriptors),
+        [type, &nameLower](const std::weak_ptr<const LayerDescriptor>& d) {
+            if (d.expired())
+                return false;
+
+            auto desc = d.lock();
+
+            if (desc->getLayerType() != type)
+                return false;
+
+            if (nameLower.empty())
+                return true;
+
+            std::string foundNameLower{desc->getName()};
+            std::transform(begin(foundNameLower), end(foundNameLower), begin(foundNameLower),
+                [](char c) noexcept {
+                    return static_cast<char>(std::tolower(c));
+                });
+
+            return foundNameLower == nameLower;
+        });
+    if (layerDesc == cend(m_layerDescriptors))
+        throw LayerNotFound{};
+
+    return layerDesc->lock().get();
+}
+
+const std::vector<std::weak_ptr<const LayerDescriptor>>&
 Descriptor::getLayerDescriptors() const & noexcept
 {
     return m_layerDescriptors;
@@ -79,8 +136,26 @@ std::vector<LayerType> Descriptor::getLayerTypes() const
     std::vector<LayerType> types;
     types.reserve(m_layerDescriptors.size());
 
-    for (const auto& layerDescriptor : m_layerDescriptors)
-        types.emplace_back(layerDescriptor->getLayerType());
+    bool addedCompoundLayer = false;
+
+    for (const auto& desc : m_layerDescriptors)
+    {
+        if (desc.expired())
+            continue;
+
+        auto layerDescriptor = desc.lock();
+
+        const auto type = layerDescriptor->getLayerType();
+        if (type == Compound)
+        {
+            if (!addedCompoundLayer)
+                addedCompoundLayer = true;
+            else
+                continue;
+        }
+
+        types.emplace_back(type);
+    }
 
     return types;
 }
@@ -111,40 +186,45 @@ bool Descriptor::isReadOnly() const noexcept
     return m_isReadOnly;
 }
 
-void Descriptor::setDims(
+Descriptor& Descriptor::setDims(
     uint32_t rows,
     uint32_t columns) & noexcept
 {
     m_dims = {rows, columns};
+    return *this;
 }
 
-void Descriptor::setGridSpacing(
+Descriptor& Descriptor::setGridSpacing(
     double xSpacing,
     double ySpacing) & noexcept
 {
     m_gridSpacing = {xSpacing, ySpacing};
+    return *this;
 }
 
-void Descriptor::setHorizontalReferenceSystem(
+Descriptor& Descriptor::setHorizontalReferenceSystem(
     const std::string& horizontalReferenceSystem) & noexcept
 {
     m_horizontalReferenceSystem = horizontalReferenceSystem;
+    return *this;
 }
 
-void Descriptor::setOrigin(
+Descriptor& Descriptor::setOrigin(
     double llX,
     double llY) & noexcept
 {
     m_origin = {llX, llY};
+    return *this;
 }
 
-void Descriptor::setProjectedCover(
+Descriptor& Descriptor::setProjectedCover(
     double llX,
     double llY,
     double urX,
     double urY) & noexcept
 {
     m_projectedCover = {llX, llY, urX, urY};
+    return *this;
 }
 
 Descriptor& Descriptor::setReadOnly(bool inReadOnly) & noexcept
@@ -159,10 +239,11 @@ Descriptor& Descriptor::setVersion(std::string inVersion) & noexcept
     return *this;
 }
 
-void Descriptor::setVerticalReferenceSystem(
+Descriptor& Descriptor::setVerticalReferenceSystem(
     const std::string& verticalReferenceSystem) & noexcept
 {
     m_verticalReferenceSystem = verticalReferenceSystem;
+    return *this;
 }
 
 }  // namespace BAG

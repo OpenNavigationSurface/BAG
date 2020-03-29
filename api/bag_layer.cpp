@@ -133,7 +133,7 @@ std::unique_ptr<UInt8Array> Layer::read(
     uint32_t columnEnd) const
 {
     if (rowStart > rowEnd || columnStart > columnEnd)
-        InvalidReadSize{};
+        throw InvalidReadSize{};
 
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};

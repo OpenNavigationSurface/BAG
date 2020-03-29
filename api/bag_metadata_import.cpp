@@ -19,8 +19,6 @@
 #include <vector>
 
 
-namespace BAG {
-
 namespace {
 
 //! The location of the BAG home folder.
@@ -438,6 +436,8 @@ bool getContentsAsBool(
 }
 
 }  // namespace
+
+namespace BAG {
 
 //************************************************************************
 //! Get the current setting for the BAG_HOME directory.

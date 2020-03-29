@@ -7,7 +7,8 @@
 #include <cstdint>
 
 
-/* Legacy BAG datum definition */
+namespace BAG {
+
 enum class BagDatum
 {
     wgs84,
@@ -101,6 +102,8 @@ BagDatum bagDatumID(const char* str) noexcept;
 */
 BagError bagLegacyToWkt(const BagLegacyReferenceSystem& system,
     char* hBuffer, size_t hBufferSize, char* vBuffer, size_t vBufferSize);
+
+}  // namespace BAG
 
 #endif  // BAG_LEGACY_CRS_H
 

@@ -33,8 +33,8 @@ set(BAG_SOURCE_FILES
     bag_vrmetadatadescriptor.cpp
     bag_vrnode.cpp
     bag_vrnodedescriptor.cpp
-    bag_vrrefinement.cpp
-    bag_vrrefinementdescriptor.cpp
+    bag_vrrefinements.cpp
+    bag_vrrefinementsdescriptor.cpp
     bag_vrtrackinglist.cpp
 )
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
@@ -76,8 +76,8 @@ set(BAG_HEADER_FILES
     bag_vrmetadatadescriptor.h
     bag_vrnode.h
     bag_vrnodedescriptor.h
-    bag_vrrefinement.h
-    bag_vrrefinementdescriptor.h
+    bag_vrrefinements.h
+    bag_vrrefinementsdescriptor.h
     bag_vrtrackinglist.h
     bag_types.h
     bag_uint8array.h

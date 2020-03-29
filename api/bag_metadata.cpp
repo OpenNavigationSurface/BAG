@@ -53,11 +53,11 @@ Metadata::~Metadata() noexcept
 {
     if (m_pMetaStruct)
     {
-        // Prevent any exceptions from escaping.
-        try {
+        try
+        {
             bagFreeMetadata(*m_pMetaStruct);
         }
-        catch(...)
+        catch(...)  // Prevent any exceptions from escaping.
         {}
     }
 }
@@ -74,11 +74,11 @@ uint32_t Metadata::columns() const noexcept
 }
 
 void Metadata::createH5dataSet(
-    const Dataset& inDataset)
+    const Dataset& dataset)
 {
-    m_pBagDataset = inDataset.shared_from_this();
+    m_pBagDataset = dataset.shared_from_this();
 
-    const auto& h5file = inDataset.getH5file();
+    const auto& h5file = dataset.getH5file();
 
     const auto buffer = exportMetadataToXML(this->getStruct());
     const hsize_t xmlLength{buffer.size()};

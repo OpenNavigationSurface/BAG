@@ -6,8 +6,8 @@
 #include "bag_vrmetadatadescriptor.h"
 #include "bag_vrnode.h"
 #include "bag_vrnodedescriptor.h"
-#include "bag_vrrefinement.h"
-#include "bag_vrrefinementdescriptor.h"
+#include "bag_vrrefinements.h"
+#include "bag_vrrefinementsdescriptor.h"
 #include "bag_vrtrackinglist.h"
 
 #include <iomanip>
@@ -188,13 +188,13 @@ PATH == D:/caris_work/BAG/BAG2/examples/sample-data
                 ")\n";
         }
 
-        const auto* vrRefinement = pDataset->getVRRefinement();
+        const auto* vrRefinements = pDataset->getVRRefinements();
         std::cout << "\nVR Refinements:\n";
 
         {
             const auto& descriptor =
-                dynamic_cast<const BAG::VRRefinementDescriptor&>(
-                    vrRefinement->getDescriptor());
+                dynamic_cast<const BAG::VRRefinementsDescriptor&>(
+                    vrRefinements->getDescriptor());
 
             std::cout << "\t" << descriptor.getName() << " Layer .. id(" <<
                 descriptor.getId() << ")\n";

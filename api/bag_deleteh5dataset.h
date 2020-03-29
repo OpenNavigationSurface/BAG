@@ -10,7 +10,7 @@ namespace H5 {
 
 class DataSet;
 
-}  //namespace H5
+}  // namespace H5
 
 namespace BAG {
 

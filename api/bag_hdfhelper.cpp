@@ -72,7 +72,7 @@ namespace BAG {
 ::H5::CompType createH5fileCompType(
     const RecordDefinition& definition)
 {
-    ::H5::CompType h5type{getH5compSize(definition)};
+    ::H5::CompType h5type{getRecordSize(definition)};
     size_t fieldOffset = 0;
 
     for (const auto& field : definition)
@@ -90,7 +90,7 @@ namespace BAG {
 ::H5::CompType createH5memoryCompType(
     const RecordDefinition& definition)
 {
-    ::H5::CompType h5type{getH5compSize(definition)};
+    ::H5::CompType h5type{getRecordSize(definition)};
     size_t fieldOffset = 0;
 
     for (const auto& field : definition)
@@ -115,10 +115,10 @@ uint64_t getChunkSize(
 
     if (h5pList.getLayout() == H5D_CHUNKED)
     {
-        std::array<hsize_t, RANK> maxDims{};
+        std::array<hsize_t, kRank> maxDims{};
 
-        const int rankChunk = h5pList.getChunk(RANK, maxDims.data());
-        if (rankChunk == RANK)
+        const int rankChunk = h5pList.getChunk(kRank, maxDims.data());
+        if (rankChunk == kRank)
             return {maxDims[0]};  // Using {} to prevent narrowing.
     }
 
@@ -126,7 +126,7 @@ uint64_t getChunkSize(
 }
 
 //! Get the compression level from a HDF file.
-unsigned int getCompressionLevel(
+int getCompressionLevel(
     const ::H5::H5File& h5file,
     const std::string& path)
 {
@@ -146,13 +146,13 @@ unsigned int getCompressionLevel(
         const auto filter = h5pList.getFilter(i, flags, cdNelmts,
             cdValues.data(), nameLen, name.data(), filterConfig);
         if (filter == H5Z_FILTER_DEFLATE && cdNelmts >= 1)
-            return cdValues.front();
+            return static_cast<int>(cdValues.front());
     }
 
     return 0;
 }
 
-size_t getH5compSize(
+size_t getRecordSize(
     const RecordDefinition& definition)
 {
     return std::accumulate(cbegin(definition), cend(definition), 0ULL,
@@ -258,6 +258,9 @@ void writeAttributes(
     T value,
     const std::vector<const char*>& paths)
 {
+    if (paths.empty())
+        return;
+
     for (const auto& path : paths)
         if (path)
             writeAttribute(h5dataSet, attributeType, value, path);
