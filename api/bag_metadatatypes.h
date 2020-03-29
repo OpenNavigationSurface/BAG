@@ -19,7 +19,7 @@
 extern "C" {
 #endif
 
-/* Value to which floats and ints will be initialized. */
+//! Value to which floats and ints will be initialized.
 #define INIT_VALUE -999
 
 //! This structure contains the contents of the gmd:CI_ResponsibleParty node.

@@ -10,8 +10,14 @@
 
 namespace BAG {
 
+//! The HDF5 DataSet chunk size.
 constexpr hsize_t kChunkSize = 1024;
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this variable resolution tracking list belongs to.
+*/
 VRTrackingList::VRTrackingList(
     const Dataset& dataset)
     : m_pBagDataset(dataset.shared_from_this())
@@ -19,6 +25,13 @@ VRTrackingList::VRTrackingList(
     m_pH5dataSet = openH5dataSet();
 }
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this variable resolution tracking list belongs to.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+*/
 VRTrackingList::VRTrackingList(
     const Dataset& dataset,
     int compressionLevel)
@@ -28,112 +41,225 @@ VRTrackingList::VRTrackingList(
 }
 
 
+//! Retrieve an iterator to the first item in the variable resolution tracking list.
+/*!
+\return
+    An iterator to the first item in the variable resolution tracking list.
+*/
 VRTrackingList::iterator VRTrackingList::begin() & noexcept
 {
     return std::begin(m_items);
 }
 
+//! Retrieve an iterator to the first item in the variable resolution tracking list.
+/*!
+\return
+    An iterator to the first item in the variable resolution tracking list.
+*/
 VRTrackingList::const_iterator VRTrackingList::begin() const & noexcept
 {
     return std::begin(m_items);
 }
 
+//! Retrieve an iterator to the first item in the variable resolution tracking list.
+/*!
+\return
+    An iterator to the first item in the variable resolution tracking list.
+*/
 VRTrackingList::const_iterator VRTrackingList::cbegin() const & noexcept
 {
     return std::cbegin(m_items);
 }
 
+//! Retrieve an iterator to one past the last item in the tracking list.
+/*!
+\return
+    An iterator to one past the last item in the tracking list.
+*/
 VRTrackingList::const_iterator VRTrackingList::cend() const & noexcept
 {
     return std::cend(m_items);
 }
 
+//! Determine if the variable resolution tracking list is empty.
+/*!
+\return
+    \e true if the variable resolution tracking list is empty.
+    \e false otherwise.
+*/
 bool VRTrackingList::empty() const noexcept
 {
     return m_items.empty();
 }
 
+//! Retrieve an iterator to one past the last item in the tracking list.
+/*!
+\return
+    An iterator to one past the last item in the tracking list.
+*/
 VRTrackingList::iterator VRTrackingList::end() & noexcept
 {
     return std::end(m_items);
 }
 
+//! Retrieve an iterator to one past the last item in the tracking list.
+/*!
+\return
+    An iterator to one past the last item in the tracking list.
+*/
 VRTrackingList::const_iterator VRTrackingList::end() const & noexcept
 {
     return std::end(m_items);
 }
 
+//! Retrieve the item at the specified index.
+/*!
+\return
+    The item at the specified index.
+*/
 VRTrackingList::reference VRTrackingList::operator[](size_t index) & noexcept
 {
     return m_items[index];
 }
 
+//! Retrieve the item at the specified index.
+/*!
+\return
+    The item at the specified index.
+*/
 VRTrackingList::const_reference VRTrackingList::operator[](
     size_t index) const & noexcept
 {
     return m_items[index];
 }
 
+//! Retrieve the number of items in the tracking list.
+/*!
+\return
+    The number of items in the tracking list.
+*/
 size_t VRTrackingList::size() const noexcept
 {
     return m_items.size();
 }
 
+//! Empty the tracking list.
 void VRTrackingList::clear() noexcept
 {
     m_items.clear();
 }
 
+//! Add an item to the end of the tracking list.
+/*!
+\param value
+    The item to add.
+*/
 void VRTrackingList::push_back(const value_type& value)
 {
     m_items.push_back(value);
 }
 
+//! Add an item to the end of the tracking list.
+/*!
+\param value
+    The item to add.
+*/
 void VRTrackingList::push_back(value_type&& value)
 {
     m_items.push_back(value);
 }
 
+//! Retrieve the first item in the tracking list.
+/*!
+\return
+    The first item in the tracking list.
+*/
 VRTrackingList::reference VRTrackingList::front() &
 {
     return m_items.front();
 }
 
+//! Retrieve the first item in the tracking list.
+/*!
+\return
+    The first item in the tracking list.
+*/
 VRTrackingList::const_reference VRTrackingList::front() const &
 {
     return m_items.front();
 }
 
+//! Retrieve the last item in the tracking list.
+/*!
+\return
+    The last item in the tracking list.
+*/
 VRTrackingList::reference VRTrackingList::back() &
 {
     return m_items.back();
 }
 
+//! Retrieve the last item in the tracking list.
+/*!
+\return
+    The last item in the tracking list.
+*/
 VRTrackingList::const_reference VRTrackingList::back() const &
 {
     return m_items.back();
 }
 
+//! Reserve more space in the tracking list.
+/*!
+    Reserve more space in the tracking list.  If the amount to be reserved is
+    less than the current capacity, do nothing.
+
+\param newCapacity
+    The new capacity of the tracking list.
+*/
 void VRTrackingList::reserve(size_t newCapacity)
 {
     m_items.reserve(newCapacity);
 }
 
+//! Resize the tracking list to the new value.
+/*!
+\param count
+    The new size of the tracking list.
+*/
 void VRTrackingList::resize(size_t count)
 {
     m_items.resize(count);
 }
 
+//! Retrieve a pointer to the first item in the tracking list.
+/*!
+\return
+    A pointer to the first item in the tracking list.
+*/
 VRTrackingList::value_type* VRTrackingList::data() & noexcept
 {
     return m_items.data();
 }
 
+//! Retrieve a pointer to the first item in the tracking list.
+/*!
+\return
+    A pointer to the first item in the tracking list.
+*/
 const VRTrackingList::value_type* VRTrackingList::data() const & noexcept
 {
     return m_items.data();
 }
 
+//! Create the HDF5 DataSet the tracking list wraps.
+/*!
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The HDF5 DataSet the tracking list wraps.
+*/
 std::unique_ptr<::H5::DataSet, VRTrackingList::DeleteH5dataSet>
 VRTrackingList::createH5dataSet(
     int compressionLevel)
@@ -188,6 +314,11 @@ VRTrackingList::createH5dataSet(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
+//! Open an existing HDF5 DataSet the tracking list wraps.
+/*!
+\return
+    The HDF5 DataSet the tracking list wraps.
+*/
 std::unique_ptr<::H5::DataSet, VRTrackingList::DeleteH5dataSet>
 VRTrackingList::openH5dataSet()
 {
@@ -248,6 +379,7 @@ VRTrackingList::openH5dataSet()
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
+//! Write the tracking list to the HDF5 DataSet.
 void VRTrackingList::write() const
 {
     if (m_pBagDataset.expired() || !m_pH5dataSet)

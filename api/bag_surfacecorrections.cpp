@@ -12,11 +12,21 @@
 
 namespace BAG {
 
+//! The maximum length of the list of datums.
 constexpr uint16_t kMaxDatumsLength = 256;
+//! The radius to use while searching for nearest neighbours.
 constexpr int32_t kSearchRadius = 3;
 
 namespace {
 
+//! Get the HDF5 CompType specified by the surface corrections descriptor.
+/*!
+\param descriptor
+    The surface corrections descriptor.
+
+\return
+    The HDF5 CompType as specified by the descriptor.
+*/
 ::H5::CompType getCompoundType(
     const SurfaceCorrectionsDescriptor& descriptor)
 {
@@ -44,6 +54,15 @@ namespace {
 
 }  // namespace
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param pH5dataSet
+    The HDF5 DataSet that stores this interleaved layer.
+*/
 SurfaceCorrections::SurfaceCorrections(
     Dataset& dataset,
     SurfaceCorrectionsDescriptor& descriptor,
@@ -53,6 +72,23 @@ SurfaceCorrections::SurfaceCorrections(
 {
 }
 
+//! Create a surface corrections layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param type
+    The type of surface correction topography.
+\param numCorrectors
+    The number of correctors provided.
+    Valid range is 1-10.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The new surface corrections layer.
+*/
 std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
     Dataset& dataset,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
@@ -69,6 +105,16 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
         *descriptor, std::move(h5dataSet)});
 }
 
+//! Open an existing surface corrections layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The new surface corrections layer.
+*/
 std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
     Dataset& dataset,
     SurfaceCorrectionsDescriptor& descriptor)
@@ -83,6 +129,16 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
 }
 
 
+//! Create the HDF5 DataSet.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The new HDF5 DataSet.
+*/
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SurfaceCorrections::createH5dataSet(
     const Dataset& dataset,
@@ -162,11 +218,31 @@ SurfaceCorrections::createH5dataSet(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
+//! Retrieve the HDF5 DataSet.
 const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
 {
     return *m_pH5dataSet;
 }
 
+//! Read a corrected region from a simple layer using the specified corrector.
+/*!
+\param rowStart
+    The starting row.
+\param columnStart
+    The starting column.
+\param rowEnd
+    The ending row (inclusive).
+\param columnEnd
+    The ending column (inclusive).
+\param corrector
+    The corrector to use when applying a correction.
+    Valid values are 1-10.
+\param layer
+    The simple layer to correct.
+
+\return
+    The corrected date from the simple layer using the specified corrector.
+*/
 std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
     uint32_t rowStart,
     uint32_t rowEnd,
@@ -215,6 +291,23 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
     return data;
 }
 
+//! Read a corrected row from a simple layer using the specified corrector.
+/*!
+\param row
+    The row.
+\param columnStart
+    The starting column.
+\param columnEnd
+    The ending column (inclusive).
+\param corrector
+    The corrector to use when applying a correction.
+    Valid values are 1-10.
+\param layer
+    The simple layer to correct.
+
+\return
+    The corrected date from the simple layer using the specified corrector.
+*/
 std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
     uint32_t row,
     uint32_t columnStart,
@@ -418,6 +511,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
     return originalRow;
 }
 
+//! \copydoc Layer::read
 std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -452,6 +546,54 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
     return buffer;
 }
 
+//! \copydoc Layer::writeAttributes
+void SurfaceCorrections::writeAttributesProxy() const
+{
+    const auto* descriptor =
+        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
+
+    if (!descriptor)
+        throw UnexpectedLayerDescriptorType{};
+
+    // Write any attributes, from the layer descriptor.
+    // surface type
+    auto att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SURFACE_TYPE);
+    const auto surfaceType = descriptor->getSurfaceType();
+    const auto tmpSurfaceType = static_cast<uint8_t>(surfaceType);
+    att.write(::H5::PredType::NATIVE_UINT8, &tmpSurfaceType);
+
+    // vertical datums
+    auto tmpDatums = descriptor->getVerticalDatums();
+    if (tmpDatums.size() > kMaxDatumsLength)
+        tmpDatums.resize(kMaxDatumsLength);
+
+    att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_VERTICAL_DATUM);
+    att.write(::H5::PredType::C_S1, tmpDatums);
+
+    // Write any optional attributes.
+    if (surfaceType == BAG_SURFACE_GRID_EXTENTS)
+    {
+        // sw corner x
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWX);
+        const auto origin = descriptor->getOrigin();
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(origin));
+
+        // sw corner y
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWY);
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(origin));
+
+        // node spacing x
+        const auto spacing = descriptor->getSpacing();
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSX);
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(spacing));
+
+        // node spacing y
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSY);
+        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(spacing));
+    }
+}
+
+//! \copydoc Layer::write
 void SurfaceCorrections::writeProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -512,52 +654,6 @@ void SurfaceCorrections::writeProxy(
 
     descriptor->setDims(static_cast<uint32_t>(dims[0]),
         static_cast<uint32_t>(dims[1]));
-}
-
-void SurfaceCorrections::writeAttributesProxy() const
-{
-    const auto* descriptor =
-        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
-
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
-
-    // Write any attributes, from the layer descriptor.
-    // surface type
-    auto att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SURFACE_TYPE);
-    const auto surfaceType = descriptor->getSurfaceType();
-    const auto tmpSurfaceType = static_cast<uint8_t>(surfaceType);
-    att.write(::H5::PredType::NATIVE_UINT8, &tmpSurfaceType);
-
-    // vertical datums
-    auto tmpDatums = descriptor->getVerticalDatums();
-    if (tmpDatums.size() > kMaxDatumsLength)
-        tmpDatums.resize(kMaxDatumsLength);
-
-    att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_VERTICAL_DATUM);
-    att.write(::H5::PredType::C_S1, tmpDatums);
-
-    // Write any optional attributes.
-    if (surfaceType == BAG_SURFACE_GRID_EXTENTS)
-    {
-        // sw corner x
-        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWX);
-        const auto origin = descriptor->getOrigin();
-        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(origin));
-
-        // sw corner y
-        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWY);
-        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(origin));
-
-        // node spacing x
-        const auto spacing = descriptor->getSpacing();
-        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSX);
-        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(spacing));
-
-        // node spacing y
-        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSY);
-        att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(spacing));
-    }
 }
 
 }   //namespace BAG

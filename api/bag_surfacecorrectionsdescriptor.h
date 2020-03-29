@@ -16,6 +16,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! Describe a surface corrections layer.
 class BAG_API SurfaceCorrectionsDescriptor final : public LayerDescriptor
 {
 public:
@@ -60,7 +61,7 @@ private:
 
     //! The type of surface this correction applies to.
     BAG_SURFACE_CORRECTION_TOPOGRAPHY m_surfaceType = BAG_SURFACE_UNKNOWN;
-    //! The size of a single "element" in the hdf5 file.
+    //! The size of a node.
     uint8_t m_elementSize = 0;
     //! Number of correction values.
     uint8_t m_numCorrectors = 0;

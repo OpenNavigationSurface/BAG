@@ -23,6 +23,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a tracking list.
 class BAG_API TrackingList final
 {
 public:
@@ -76,16 +77,21 @@ private:
         int compressionLevel);
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
-    //! The associated dataset.
+    //! The associated BAG Dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
-    //! The items making up the tracking list.
+    //! The items in the tracking list.
     std::vector<value_type> m_items;
-    //! The HDF5 DataSet this class relates to.
+    //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };
 
+//! Add an item to the end of the tracking list.
+/*!
+\param args
+    One or more parameters to hand to the constructor of TrackingItem.
+*/
 template <typename... Args>
 void TrackingList::emplace_back(Args&&... args) &
 {

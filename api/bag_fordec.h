@@ -1,6 +1,8 @@
 #ifndef BAG_FORDEC_H
 #define BAG_FORDEC_H
 
+//! Forward declarations of BAG C++ classes.
+
 namespace BAG
 {
 

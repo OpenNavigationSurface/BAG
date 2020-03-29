@@ -12,6 +12,22 @@
 
 namespace BAG {
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param name
+    The name of the simple layer this layer has metadata for.
+\param indexType
+    The type of index in the indices.
+    Must be DT_UINT8, DT_UINT16, DT_UINT32, or DT_UINT64.
+\param definition
+    The list of fields describing a record this layer contains for each node.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+*/
 CompoundLayerDescriptor::CompoundLayerDescriptor(
     Dataset& dataset,
     const std::string& name,
@@ -28,6 +44,25 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
 {
 }
 
+//! Create a compound layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param name
+    The name of the simple layer this layer has metadata for.
+\param indexType
+    The type of index in the indices.
+    Must be DT_UINT8, DT_UINT16, DT_UINT32, or DT_UINT64.
+\param definition
+    The list of fields describing a record this layer contains for each node.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The new compound layer.
+*/
 std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
     Dataset& dataset,
     const std::string& name,
@@ -41,6 +76,16 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
             std::move(definition), chunkSize, compressionLevel});
 }
 
+//! Open an existing compound layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param name
+    The name of the simple layer this layer has metadata for.
+
+\return
+    The existing compound layer.
+*/
 std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     Dataset& dataset,
     const std::string& name)
@@ -98,21 +143,33 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
 }
 
 
+//! \copydoc LayerDescriptor::getDataType
 DataType CompoundLayerDescriptor::getDataTypeProxy() const noexcept
 {
     return m_dataType;
 }
 
+//! Retrieve the BAG Dataset this layer belongs to.
+/*!
+\return
+    The BAG Dataset.
+*/
 std::weak_ptr<Dataset> CompoundLayerDescriptor::getDataset() const &
 {
     return m_pBagDataset;
 }
 
+//! \copydoc LayerDescriptor::getElementSize
 uint8_t CompoundLayerDescriptor::getElementSizeProxy() const noexcept
 {
     return m_elementSize;
 }
 
+//! Retrieve the definition of a record in this layer.
+/*!
+\return
+    The definition of a record in this layer.
+*/
 const RecordDefinition&
 CompoundLayerDescriptor::getDefinition() const & noexcept
 {

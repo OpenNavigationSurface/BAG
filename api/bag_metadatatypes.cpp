@@ -11,6 +11,14 @@
 
 namespace {
 
+//! Make a copy of the input string.
+/*!
+\param source
+    The source string to copy.
+
+\return
+    A copy of the input string.
+*/
 char* copyString(const char* source)
 {
     if (!source || source[0] == '\0')

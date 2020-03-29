@@ -15,7 +15,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
-//! An interface for The variable resolution refinements layer.
+//! The interface for the variable resolution refinements layer.
 class BAG_API VRRefinements final : public Layer
 {
 public:

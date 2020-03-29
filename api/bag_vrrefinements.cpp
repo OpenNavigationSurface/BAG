@@ -13,6 +13,10 @@ namespace BAG {
 namespace {
 
 //! Create an HDF5 CompType for the variable resolution refinements layer.
+/*!
+\return
+    The HDF5 CompType for the variable resolution refinements layer.
+*/
 ::H5::CompType makeDataType()
 {
     const ::H5::CompType memDataType{sizeof(BagVRRefinementsItem)};
@@ -53,9 +57,9 @@ T readAttribute(
 \param dataset
     The BAG Dataset this layer belongs to.
 \param descriptor
-    The descriptor of the interleaved layer.
+    The descriptor of this layer.
 \param h5dataSet
-    The HDF5 DataSet that stores this variable resolution refinements layer.
+    The HDF5 DataSet that stores this layer.
 */
 VRRefinements::VRRefinements(
     Dataset& dataset,
@@ -97,7 +101,7 @@ std::unique_ptr<VRRefinements> VRRefinements::create(
 \param dataset
     The BAG Dataset this layer belongs to.
 \param descriptor
-    The descriptor of the interleaved layer.
+    The descriptor of this layer.
 
 \return
     The existing variable resolution refinements layer.
@@ -135,7 +139,7 @@ std::unique_ptr<VRRefinements> VRRefinements::open(
 \param dataset
     The BAG Dataset this layer belongs to.
 \param descriptor
-    The descriptor of the interleaved layer.
+    The descriptor of this layer.
 
 \return
     A new HDF5 DataSet.

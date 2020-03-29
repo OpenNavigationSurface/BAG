@@ -17,6 +17,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for the surface corrections layer.
 class BAG_API SurfaceCorrections final : public Layer
 {
 public:

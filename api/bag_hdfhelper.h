@@ -10,6 +10,8 @@
 #include <string>
 
 
+//! Forward declarations of HDF5 classes used, to avoid exposing dependencies
+//! to users of this library.
 namespace H5 {
 
 class AtomType;

@@ -8,6 +8,7 @@
 
 namespace BAG {
 
+//! Describe the variable resolution node.
 class BAG_API VRNodeDescriptor final : public LayerDescriptor
 {
 public:
@@ -42,17 +43,17 @@ private:
     DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
 
-    //! The minimum hyp strength.
+    //! The minimum hypotheses strength.
     float m_minHypStrength = std::numeric_limits<float>::max();
-    //! The maximum hyp strength.
+    //! The maximum hypotheses strength.
     float m_maxHypStrength = std::numeric_limits<float>::lowest();
-    //! The minimum uncertainty.
+    //! The minimum number of hypotheses.
     uint32_t m_minNumHypotheses = std::numeric_limits<uint32_t>::max();
-    //! The maximum uncertainty.
+    //! The maximum number of hypotheses.
     uint32_t m_maxNumHypotheses = std::numeric_limits<uint32_t>::lowest();
-    //! The minimum uncertainty.
+    //! The minimum number of samples..
     uint32_t m_minNSamples = std::numeric_limits<uint32_t>::max();
-    //! The maximum uncertainty.
+    //! The maximum number of samples.
     uint32_t m_maxNSamples = std::numeric_limits<uint32_t>::lowest();
 
     friend class Dataset;

@@ -56,6 +56,17 @@ const char k_wgs84[] = "wgs_1984";
 const char k_wgs72[] = "wgs_1972";
 const char k_nad83[] = "north_american_datum_1983";
 
+//! Split a string by the specified separator.
+/*!
+\param str
+    The string to split.
+\param separator
+    The separator to split the string by.
+    Defaults to space.
+
+\return
+    A list of words split by separator.
+*/
 std::vector<std::string> split(
     const std::string& str,
     const char separator = ' ')

@@ -15,7 +15,16 @@ namespace BAG {
 
 namespace {
 
-//! Convert a raw chunk of memory and a definition into a Record.
+//! Convert a chunk of memory and a definition into a Record.
+/*!
+\param buffer
+    A chunk of memory representing a Record for a compound layer.
+\param definition
+    The definition of the Record for a compound layer.
+
+\return
+    A compound layer record using the buffer and definition.
+*/
 Record convertMemoryToRecord(
     const uint8_t* const buffer,
     const RecordDefinition& definition)
@@ -72,7 +81,13 @@ Record convertMemoryToRecord(
     return record;
 }
 
-//! Convert a Record into a raw chunk of memory.
+//! Convert a Record into a chunk of memory.
+/*!
+\param record
+    The record to convert into a chunk of memory.
+\param buffer
+    The memory to store the record in.
+*/
 void convertRecordToMemory(
     const Record& record,
     uint8_t* buffer)
@@ -114,6 +129,11 @@ void convertRecordToMemory(
 
 }  // namespace
 
+//! Constructor.
+/*!
+\param layer
+    The layer the value table holds records for.
+*/
 ValueTable::ValueTable(
     const CompoundLayer& layer)
     : m_layer(layer)
@@ -163,6 +183,14 @@ ValueTable::ValueTable(
     }
 }
 
+//! Add a record to the end of the list.
+/*!
+\param record
+    The record.
+
+\return
+    The number of records.
+*/
 size_t ValueTable::addRecord(
     const Record& record)
 {
@@ -176,6 +204,11 @@ size_t ValueTable::addRecord(
     return m_records.size() - 1;
 }
 
+//! Add multiple records to the end of the list.
+/*!
+\param records
+    The records.
+*/
 void ValueTable::addRecords(
     const Records& records)
 {
@@ -194,6 +227,14 @@ void ValueTable::addRecords(
     m_records.insert(end(m_records), cbegin(records), cend(records));
 }
 
+//! Convert a record to a chunk of memory.
+/*!
+\param record
+    The record to convert.
+
+\return
+    A copy of the record as a chunk of memory.
+*/
 std::vector<uint8_t> ValueTable::convertRecordToRaw(
     const Record& record) const
 {
@@ -207,6 +248,14 @@ std::vector<uint8_t> ValueTable::convertRecordToRaw(
     return buffer;
 }
 
+//! Convert multiple records to a chunk of memory.
+/*!
+\param records
+    The record to convert.
+
+\return
+    A copy of the records as a chunk of memory.
+*/
 std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     const std::vector<Record>& records) const
 {
@@ -231,12 +280,28 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     return buffer;
 }
 
+//! Retrieve the record definition.
+/*!
+\return
+    The list of fields that define the record.
+*/
 const RecordDefinition& ValueTable::getDefinition() const & noexcept
 {
     return dynamic_cast<const CompoundLayerDescriptor&>(
         m_layer.getDescriptor()).getDefinition();
 }
 
+//! Retrieve the value of a specific field in a specific record.
+/*!
+\param recordIndex
+    The index of the record.
+\param name
+    The name of the field.
+
+\return
+    The value specified.
+    An exception is thrown if the record index or field name are invalid.
+*/
 const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     const std::string& name) const &
@@ -249,6 +314,17 @@ const CompoundDataType& ValueTable::getValue(
     return this->getValue(recordIndex, fieldIndex);
 }
 
+//! Retrieve the value of a specific field in a specific record.
+/*!
+\param recordIndex
+    The index of the record.
+\param fieldIndex
+    The index of the field.
+
+\return
+    The value specified.
+    An exception is thrown if the record index or field index are invalid.
+*/
 const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     size_t fieldIndex) const &
@@ -265,6 +341,14 @@ const CompoundDataType& ValueTable::getValue(
     return record[fieldIndex];
 }
 
+//! Retrieve the field index of the named field.
+/*!
+\param name
+    The name of the field.
+
+\return
+    The field index of the named field.
+*/
 size_t ValueTable::getFieldIndex(
     const std::string& name) const
 {
@@ -282,6 +366,14 @@ size_t ValueTable::getFieldIndex(
     throw FieldNotFound{};
 }
 
+//! Retrieve the field name of the indexed field.
+/*!
+\param index
+    The index of the field.
+
+\return
+    The field name of the indexed field.
+*/
 const char* ValueTable::getFieldName(
     size_t index) const &
 {
@@ -292,11 +384,25 @@ const char* ValueTable::getFieldName(
     return definition[index].name;
 }
 
+//! Retrieve all the records.
+/*!
+\return
+    All the records.
+*/
 const Records& ValueTable::getRecords() const & noexcept
 {
     return m_records;
 }
 
+//! Set a value in a specific field in a specific record.
+/*!
+\param recordIndex
+    The record index.
+\param name
+    The name of the field.
+\param value
+    The value to put into the field.
+*/
 void ValueTable::setValue(
     size_t recordIndex,
     const std::string& name,
@@ -310,6 +416,15 @@ void ValueTable::setValue(
     this->setValue(recordIndex, fieldIndex, value);
 }
 
+//! Set a value in a specific field in a specific record.
+/*!
+\param recordIndex
+    The record index.
+\param fieldIndex
+    The index of the field.
+\param value
+    The value to put into the field.
+*/
 void ValueTable::setValue(
     size_t recordIndex,
     size_t fieldIndex,
@@ -324,7 +439,15 @@ void ValueTable::setValue(
     this->writeRecord(recordIndex, record);
 }
 
-//! Compare the record to the definition.  Not valid if any type is unknown.
+//! Determine if the specified record matches the definition used by the value table.
+/*!
+\param record
+    The record.
+
+\return
+    \e true if the record matches the definition.
+    \e false otherwise
+*/
 bool ValueTable::validateRecord(
     const Record& record) const
 {
@@ -356,7 +479,7 @@ bool ValueTable::validateRecord(
     return true;
 }
 
-//! Write a record to the DataSet.
+//! Write a record to the HDF5 DataSet at the specified recordIndex.
 /*!
 \param recordIndex
     The index to write the record to.  This does not include the empty (NDV)
@@ -405,6 +528,11 @@ void ValueTable::writeRecord(
         fileDataSpace);
 }
 
+//! Write multiple records at the end of the list to the HDF5 DataSet.
+/*!
+\param records
+    The records.
+*/
 void ValueTable::writeRecords(
     const std::vector<Record>& records)
 {

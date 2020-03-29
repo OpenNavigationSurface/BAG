@@ -8,7 +8,7 @@
 
 namespace BAG {
 
-//! Describes the variable resolution refinements layer.
+//! Describe the variable resolution refinements layer.
 class BAG_API VRRefinementsDescriptor final : public LayerDescriptor
 {
 public:

@@ -11,6 +11,7 @@
 
 namespace BAG {
 
+//! Describe a simple layer.
 class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
 {
 public:
@@ -35,7 +36,7 @@ private:
     DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
 
-    //! The size of a single record in the HDF5 file.
+    //! The size of a single node in the HDF5 file.
     uint8_t m_elementSize = 0;
 };
 

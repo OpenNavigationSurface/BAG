@@ -15,6 +15,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! Interface for the variable resolution node layer.
 class BAG_API VRNode final : public Layer
 {
 public:
@@ -33,7 +34,7 @@ protected:
 
     VRNode(Dataset& dataset,
         VRNodeDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
 
     static std::unique_ptr<VRNode> create(Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);
@@ -54,7 +55,7 @@ private:
 
     void writeAttributesProxy() const override;
 
-    //! The HDF5 DataSet.
+    //! The HDF5 DataSet this layer wraps.
     std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;

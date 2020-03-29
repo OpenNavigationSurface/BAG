@@ -16,6 +16,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a layer.
 class BAG_API Layer
 {
 public:
@@ -58,7 +59,7 @@ private:
 
     virtual void writeAttributesProxy() const = 0;
 
-    //! The dataset this layer is from.
+    //! The HDF5 DataSet this layer is stored in.
     std::weak_ptr<Dataset> m_pBagDataset;
     //! The layer's descriptor (owned).
     std::shared_ptr<LayerDescriptor> m_pLayerDescriptor;

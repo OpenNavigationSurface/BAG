@@ -17,6 +17,7 @@
 
 namespace BAG {
 
+//! Describe a layer.
 class BAG_API LayerDescriptor : public std::enable_shared_from_this<LayerDescriptor>
 {
 public:
@@ -63,9 +64,9 @@ private:
     std::string m_internalPath;
     //! The name of the layer.
     std::string m_name;
-    //! The compression level of this dataset (0-9).
+    //! The compression level of this layer (0-9).
     int m_compressionLevel = 0;
-    //! The chunk size of this dataset (0x0, 10x10 or 100x100).
+    //! The chunk size of this layer.
     uint64_t m_chunkSize = 0;
     //! The minimum and maximum value of this dataset.
     std::tuple<float, float> m_minMax{};

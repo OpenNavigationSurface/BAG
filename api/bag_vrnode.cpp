@@ -12,6 +12,11 @@ namespace BAG {
 
 namespace {
 
+//! Create an HDF5 CompType for the variable resolution node.
+/*!
+\return
+    An HDF5 CompType for the variable resolution node.
+*/
 ::H5::CompType makeDataType()
 {
     const ::H5::CompType memDataType{sizeof(BagVRNodeItem)};
@@ -26,6 +31,16 @@ namespace {
     return memDataType;
 }
 
+//! Read an attribute from an HDF5 DataSet.
+/*!
+\param h5file
+    The HDF5 file.
+\param name
+    The name of the attribute.
+
+\return
+    The value in the specified attribute.
+*/
 template<typename T>
 T readAttribute(
     const ::H5::H5File& h5file,
@@ -42,15 +57,36 @@ T readAttribute(
 
 }  // namespace
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset that this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param pH5dataSet
+    The HDF5 DataSet this class wraps.
+*/
 VRNode::VRNode(
     Dataset& dataset,
     VRNodeDescriptor& descriptor,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet)
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet)
     : Layer(dataset, descriptor)
-    , m_pH5dataSet(std::move(h5dataSet))
+    , m_pH5dataSet(std::move(pH5dataSet))
 {
 }
 
+//! Create a variable resolution node.
+/*!
+\param dataset
+    The BAG Dataset that this layer belongs to.
+\param chunkSize
+    The chunk size in the HDF5 DataSet.
+\param compressionLevel
+    The compression level in the HDF5 DataSet.
+
+\return
+    The new variable resolution node.
+*/
 std::unique_ptr<VRNode> VRNode::create(
     Dataset& dataset,
     uint64_t chunkSize,
@@ -65,6 +101,16 @@ std::unique_ptr<VRNode> VRNode::create(
         *descriptor, std::move(h5dataSet)});
 }
 
+//! Open an existing variable resolution node.
+/*!
+\param dataset
+    The BAG Dataset that this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The specified variable resolution node.
+*/
 std::unique_ptr<VRNode> VRNode::open(
     Dataset& dataset,
     VRNodeDescriptor& descriptor)
@@ -105,6 +151,16 @@ std::unique_ptr<VRNode> VRNode::open(
 }
 
 
+//! Create the HDF5 DataSet.
+/*!
+\param dataset
+    The BAG Dataset that this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The new HDF5 DataSet.
+*/
 std::unique_ptr<::H5::DataSet, VRNode::DeleteH5dataSet>
 VRNode::createH5dataSet(
     const Dataset& dataset,
@@ -165,7 +221,8 @@ VRNode::createH5dataSet(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
-//! Ignore rows since the data is 1 dimensional.
+//! \copydoc Layer::read
+//! The rowStart and rowEnd are ignored since the data is 1 dimensional.
 std::unique_ptr<UInt8Array> VRNode::readProxy(
     uint32_t /*rowStart*/,
     uint32_t columnStart,
@@ -198,6 +255,41 @@ std::unique_ptr<UInt8Array> VRNode::readProxy(
     return buffer;
 }
 
+//! \copydoc Layer::writeAttributes
+void VRNode::writeAttributesProxy() const
+{
+    const auto* descriptor =
+        dynamic_cast<const VRNodeDescriptor*>(&this->getDescriptor());
+    if (!descriptor)
+        throw UnexpectedLayerDescriptorType{};
+
+    // Write the attributes from the layer descriptor.
+    // min/max hyp strength
+    const auto minMaxHypStrength = descriptor->getMinMaxHypStrength();
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::get<0>(minMaxHypStrength), VR_NODE_MIN_HYP_STRENGTH);
+
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::get<1>(minMaxHypStrength), VR_NODE_MAX_HYP_STRENGTH);
+
+    // min/max num hypotheses
+    const auto minMaxNumHypotheses = descriptor->getMinMaxNumHypotheses();
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::get<0>(minMaxNumHypotheses), VR_NODE_MIN_NUM_HYPOTHESES);
+
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::get<1>(minMaxNumHypotheses), VR_NODE_MAX_NUM_HYPOTHESES);
+
+    // min/max n samples
+    const auto minMaxNSamples = descriptor->getMinMaxNSamples();
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::get<0>(minMaxNSamples), VR_NODE_MIN_N_SAMPLES);
+
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
+        std::get<1>(minMaxNSamples), VR_NODE_MAX_N_SAMPLES);
+}
+
+//! \copydoc Layer::write
 //! Ignore rows since the data is 1 dimensional.
 void VRNode::writeProxy(
     uint32_t /*rowStart*/,
@@ -278,39 +370,6 @@ void VRNode::writeProxy(
     descriptor->setMinMaxHypStrength(minHypStr, maxHypStr);
     descriptor->setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
     descriptor->setMinMaxNSamples(minNSamples, maxNSamples);
-}
-
-void VRNode::writeAttributesProxy() const
-{
-    const auto* descriptor =
-        dynamic_cast<const VRNodeDescriptor*>(&this->getDescriptor());
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
-
-    // Write the attributes from the layer descriptor.
-    // min/max hyp strength
-    const auto minMaxHypStrength = descriptor->getMinMaxHypStrength();
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
-        std::get<0>(minMaxHypStrength), VR_NODE_MIN_HYP_STRENGTH);
-
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
-        std::get<1>(minMaxHypStrength), VR_NODE_MAX_HYP_STRENGTH);
-
-    // min/max num hypotheses
-    const auto minMaxNumHypotheses = descriptor->getMinMaxNumHypotheses();
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
-        std::get<0>(minMaxNumHypotheses), VR_NODE_MIN_NUM_HYPOTHESES);
-
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
-        std::get<1>(minMaxNumHypotheses), VR_NODE_MAX_NUM_HYPOTHESES);
-
-    // min/max n samples
-    const auto minMaxNSamples = descriptor->getMinMaxNSamples();
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
-        std::get<0>(minMaxNSamples), VR_NODE_MIN_N_SAMPLES);
-
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
-        std::get<1>(minMaxNSamples), VR_NODE_MAX_N_SAMPLES);
 }
 
 void VRNode::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept

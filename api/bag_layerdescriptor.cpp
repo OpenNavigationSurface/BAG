@@ -10,6 +10,21 @@
 
 namespace BAG {
 
+//! Constructor.
+/*!
+\parm id
+    The unique identifier of the layer.
+\parm internalPath
+    The HDF5 path of the layer.
+\parm name
+    The name of the layer.
+\parm type
+    The type of layer.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+*/
 LayerDescriptor::LayerDescriptor(
     uint32_t id,
     std::string internalPath,
@@ -27,6 +42,17 @@ LayerDescriptor::LayerDescriptor(
 {
 }
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\parm type
+    The type of layer.
+\parm internalPath
+    The HDF5 path of the layer.
+\parm name
+    The name of the layer.
+*/
 LayerDescriptor::LayerDescriptor(
     const Dataset& dataset,
     LayerType type,
@@ -51,51 +77,106 @@ LayerDescriptor::LayerDescriptor(
 }
 
 
+//! Retrieve the chunk size.
+/*!
+\return
+    The chunk size.
+*/
 uint64_t LayerDescriptor::getChunkSize() const noexcept
 {
     return m_chunkSize;
 }
 
+//! Retrieve the compression level.
+/*!
+\return
+    The compression level of the layer.
+*/
 int LayerDescriptor::getCompressionLevel() const noexcept
 {
     return m_compressionLevel;
 }
 
+//! Retrieve the data type.
+/*!
+\return
+    The data type the layer contains.
+*/
 DataType LayerDescriptor::getDataType() const noexcept
 {
     return this->getDataTypeProxy();
 }
 
+//! Retrieve the element size.
+/*!
+\return
+    The element size of the layer.
+*/
 uint8_t LayerDescriptor::getElementSize() const noexcept
 {
     return this->getElementSizeProxy();
 }
 
+//! Retrieve the unique id.
+/*!
+\return
+    The id of the layer.
+*/
 uint32_t LayerDescriptor::getId() const noexcept
 {
     return m_id;
 }
 
+//! Retrieve the HDF5 path.
+/*!
+\return
+    The HDF5 path of the layer.
+*/
 const std::string& LayerDescriptor::getInternalPath() const & noexcept
 {
     return m_internalPath;
 }
 
+//! Retrieve the type this layer contains.
+/*!
+\return
+    The type this layer contains.
+*/
 LayerType LayerDescriptor::getLayerType() const noexcept
 {
     return m_layerType;
 }
 
+//! Retrieve the minimum and maximum values.
+/*!
+\return
+    The minimum and maximum values this layer contains.
+*/
 std::tuple<float, float> LayerDescriptor::getMinMax() const noexcept
 {
     return m_minMax;
 }
 
+//! Retrieve the name.
+/*!
+\return
+    The name of the layer.
+*/
 const std::string& LayerDescriptor::getName() const & noexcept
 {
     return m_name;
 }
 
+//! Get the size of a buffer for reading a specified number rows and columns.
+/*!
+\param rows
+    The number of rows that will be allocated for.
+\param columns
+    The number of columns that will be allocated for.
+
+\return
+    A buffer that can hold rows x columns of values of this layer.
+*/
 size_t LayerDescriptor::getReadBufferSize(
     uint32_t rows,
     uint32_t columns) const noexcept
@@ -103,6 +184,16 @@ size_t LayerDescriptor::getReadBufferSize(
     return rows * columns * this->getElementSize();
 }
 
+//! Set the minimum and maximum values that are found in the layer.
+/*!
+\param min
+    The minimum value that is stored in this layer.
+\param max
+    The maximum value that is stored in this layer.
+
+\return
+    The descriptor.  Useful for chaining set calls.
+*/
 LayerDescriptor& LayerDescriptor::setMinMax(
     float min,
     float max) & noexcept
@@ -111,12 +202,28 @@ LayerDescriptor& LayerDescriptor::setMinMax(
     return *this;
 }
 
+//! Set the HDF5 path of the layer.
+/*!
+\param inPath
+    The new HDF5 path of the layer.
+
+\return
+    The descriptor.  Useful for chaining set calls.
+*/
 LayerDescriptor& LayerDescriptor::setInternalPath(std::string inPath) & noexcept
 {
     m_internalPath = std::move(inPath);
     return *this;
 }
 
+//! Set the name of the layer.
+/*!
+\param inName
+    The new name of the layer.
+
+\return
+    The descriptor.  Useful for chaining set calls.
+*/
 LayerDescriptor& LayerDescriptor::setName(std::string inName) & noexcept
 {
     m_name = std::move(inName);

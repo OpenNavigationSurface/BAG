@@ -17,6 +17,7 @@
 
 namespace BAG {
 
+//! Describe a compound layer.
 class BAG_API CompoundLayerDescriptor final : public LayerDescriptor
 {
 public:
@@ -51,7 +52,7 @@ private:
     DataType m_dataType = DT_UNKNOWN_DATA_TYPE;
     //! The size of a single index in the HDF5 file.
     uint8_t m_elementSize = 0;
-    //! The record definition.
+    //! The list of fields making up the record.
     RecordDefinition m_definition;
 };
 

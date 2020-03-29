@@ -15,6 +15,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a list of populated records in the compound layer.
 class BAG_API ValueTable final
 {
 public:

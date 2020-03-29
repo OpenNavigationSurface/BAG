@@ -11,9 +11,9 @@ namespace BAG {
 \param id
     The unique layer id.
 \param chunkSize
-    The chunk size to be used by the HDF5 DataSet.
+    The chunk size the HDF5 DataSet will use.
 \param compressionLevel
-    The compression level to be used by the HDF5 DataSet.
+    The compression level the HDF5 DataSet will use.
 */
 VRRefinementsDescriptor::VRRefinementsDescriptor(
     uint32_t id,
@@ -41,9 +41,9 @@ VRRefinementsDescriptor::VRRefinementsDescriptor(
 \param dataset
     The BAG Dataset this layer belongs to.
 \param chunkSize
-    The chunk size to be used by the HDF5 DataSet.
+    The chunk size the HDF5 DataSet will use.
 \param compressionLevel
-    The compression level to be used by the HDF5 DataSet.
+    The compression level the HDF5 DataSet will use.
 
 \return
     The new variable resolution refinements descriptor.
@@ -127,12 +127,12 @@ VRRefinementsDescriptor& VRRefinementsDescriptor::setMinMaxDepth(
     return *this;
 }
 
-//! Set the minimum and maximum depth.
+//! Set the minimum and maximum uncertainty.
 /*!
-\param minDepth
-    The new minimum depth.
-\param maxDepth
-    The new maximum depth.
+\param minUncertainty
+    The new minimum uncertainty.
+\param maxUncertainty
+    The new maximum uncertainty.
 
 \return
     The variable resolution refinements layer descriptor.

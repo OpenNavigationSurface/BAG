@@ -23,6 +23,15 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for an interleaved layer.
+/*!
+    This class is only here to support older (pre 2.0) BAGs that have an optional
+    layer of NODE or ELEVATION group type.
+    In 2.0, these "interleaved" layers are split up into layers of each type in
+    the group.
+    The NODE group is made of Hypothesis_Strength and Num_Hypotheses.
+    The ELEVATION group is made of Shoal_Elevation, Std_Dev and Num_Soundings.
+*/
 class BAG_API InterleavedLayer final : public Layer
 {
 public:

@@ -18,6 +18,7 @@
 *.xcodeproj
 build*/
 bin/
+docs/api/html/
 lib/
 installed/
 api/Debug

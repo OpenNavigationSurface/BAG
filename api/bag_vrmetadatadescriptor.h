@@ -8,6 +8,7 @@
 
 namespace BAG {
 
+//! Describe the variable resolution metadata.
 class BAG_API VRMetadataDescriptor final : public LayerDescriptor
 {
 public:

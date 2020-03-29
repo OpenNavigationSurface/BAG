@@ -18,6 +18,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! Describe a BAG.
 class BAG_API Descriptor final
 {
 public:
@@ -66,7 +67,7 @@ private:
     std::string m_version;
     //! True if the BAG is read only.
     bool m_isReadOnly = true;
-    //! Layer descriptors (owned by each Layer).
+    //! The layer descriptors (owned by each Layer).
     std::vector<std::weak_ptr<const LayerDescriptor>> m_layerDescriptors;
     //! The name of the horizontal reference system.
     std::string m_horizontalReferenceSystem;

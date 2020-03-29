@@ -10,6 +10,15 @@
 
 namespace BAG {
 
+//! Constructor
+/*
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param pH5dataSet
+    The HDF5 DataSet that stores this interleaved layer.
+*/
 InterleavedLayer::InterleavedLayer(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor,
@@ -19,6 +28,13 @@ InterleavedLayer::InterleavedLayer(
 {
 }
 
+//! Open an existing interleaved layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+*/
 std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
     Dataset& dataset,
     InterleavedLayerDescriptor& descriptor)
@@ -40,6 +56,7 @@ std::unique_ptr<InterleavedLayer> InterleavedLayer::open(
 }
 
 
+//! \copydoc Layer::read
 std::unique_ptr<UInt8Array> InterleavedLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -76,17 +93,19 @@ std::unique_ptr<UInt8Array> InterleavedLayer::readProxy(
     return buffer;
 }
 
+//! \copydoc Layer::writeAttributes
+void InterleavedLayer::writeAttributesProxy() const
+{
+    // Writing Interleaved layers not supported.
+}
+
+//! \copydoc Layer::write
 void InterleavedLayer::writeProxy(
     uint32_t /*rowStart*/,
     uint32_t /*columnStart*/,
     uint32_t /*rowEnd*/,
     uint32_t /*columnEnd*/,
     const uint8_t* /*buffer*/)
-{
-    // Writing Interleaved layers not supported.
-}
-
-void InterleavedLayer::writeAttributesProxy() const
 {
     // Writing Interleaved layers not supported.
 }

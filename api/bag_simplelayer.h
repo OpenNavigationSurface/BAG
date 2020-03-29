@@ -23,6 +23,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a simple layer.
 class BAG_API SimpleLayer final : public Layer
 {
 public:

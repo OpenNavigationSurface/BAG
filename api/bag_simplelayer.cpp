@@ -10,6 +10,15 @@
 
 namespace BAG {
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param pH5dataSet
+    The HDF5 DataSet that stores this layer.
+*/
 SimpleLayer::SimpleLayer(
     Dataset& dataset,
     SimpleLayerDescriptor& descriptor,
@@ -19,6 +28,20 @@ SimpleLayer::SimpleLayer(
 {
 }
 
+//! Create a new simple layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param type
+    The type of layer.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The new simple layer.
+*/
 std::unique_ptr<SimpleLayer> SimpleLayer::create(
     Dataset& dataset,
     LayerType type,
@@ -33,6 +56,16 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
         std::move(h5dataSet)});
 }
 
+//! Open an existing simple layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The specified simple layer.
+*/
 std::unique_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
     SimpleLayerDescriptor& descriptor)
@@ -53,6 +86,16 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
 }
 
 
+//! Create the HDF5 DataSet.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The new HDF5 DataSet.
+*/
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SimpleLayer::createH5dataSet(
     const Dataset& dataset,
@@ -118,6 +161,7 @@ SimpleLayer::createH5dataSet(
     return pH5dataSet;
 }
 
+//! \copydoc Layer::read
 std::unique_ptr<UInt8Array> SimpleLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -148,6 +192,7 @@ std::unique_ptr<UInt8Array> SimpleLayer::readProxy(
     return buffer;
 }
 
+//! \copydoc Layer::writeAttributes
 void SimpleLayer::writeAttributesProxy() const
 {
     const auto& descriptor = this->getDescriptor();
@@ -165,6 +210,7 @@ void SimpleLayer::writeAttributesProxy() const
     maxAtt.write(attInfo.h5type, &std::get<1>(minMax));
 }
 
+//! \copydoc Layer::write
 void SimpleLayer::writeProxy(
     uint32_t rowStart,
     uint32_t columnStart,

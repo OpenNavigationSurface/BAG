@@ -9,6 +9,12 @@
 #include <vector>
 
 
+namespace H5 {
+
+class DataSet;
+
+}  // namespace H5
+
 namespace BAG {
 
 #ifdef _MSC_VER
@@ -16,6 +22,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for the variable resolution tracking list.
 class BAG_API VRTrackingList final
 {
 public:
@@ -74,7 +81,7 @@ private:
         int compressionLevel);
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
-    //! The associated dataset.
+    //! The associated BAG Dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
     //! The items making up the tracking list.
     std::vector<value_type> m_items;
@@ -84,6 +91,11 @@ private:
     friend Dataset;
 };
 
+//! Add an item to the end of the tracking list.
+/*!
+\param args
+    One or more parameters to hand to the constructor of VRTrackingItem.
+*/
 template <typename... Args>
 void VRTrackingList::emplace_back(Args&&... args) &
 {

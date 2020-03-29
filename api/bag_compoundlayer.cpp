@@ -14,6 +14,15 @@ namespace BAG {
 
 namespace {
 
+//! Helper function to find the maximum value of the specified DataType.
+/*!
+\param dataType
+    The type of data.
+    Supported types are: DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64.
+
+\return
+    The maximum value the specified data type can hold.
+*/
 hsize_t getDataTypeMax(
     DataType dataType)
 {
@@ -34,6 +43,17 @@ hsize_t getDataTypeMax(
 
 }
 
+//! The constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param pH5indexDataSet
+    The HDF5 DataSet that will hold the index values.
+\param pH5recordDataSet
+    The HDF5 DataSet that will hold the records.
+*/
 CompoundLayer::CompoundLayer(
     Dataset& dataset,
     CompoundLayerDescriptor& descriptor,
@@ -45,6 +65,25 @@ CompoundLayer::CompoundLayer(
 {
 }
 
+//! Create a compound layer.
+/*!
+\param indexType
+    The type of index this layer will use.
+\param name
+    The name of this compound layer.
+    Must be a unique name among all compound layers in this BAG Dataset.
+\param dataset
+    The BAG Dataset this compound layer will belong to.
+\param definition
+    The list of fields describing a single record.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The new compound layer.
+*/
 std::unique_ptr<CompoundLayer> CompoundLayer::create(
     DataType indexType,
     const std::string& name,
@@ -70,6 +109,16 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
     return layer;
 }
 
+//! Open an existing compound layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The compound layer read from dataset.
+*/
 std::unique_ptr<CompoundLayer> CompoundLayer::open(
     Dataset& dataset,
     CompoundLayerDescriptor& descriptor)
@@ -93,6 +142,16 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
 }
 
 
+//! Create an HDF5 DataSet for the indices of a compound layer with details in from the descriptor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The HDF5 DataSet containing the indices of a new compound layer.
+*/
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 CompoundLayer::createH5indexDataSet(
     const Dataset& dataset,
@@ -164,6 +223,16 @@ CompoundLayer::createH5indexDataSet(
     return pH5dataSet;
 }
 
+//! Create an HDF5 DataSet for the records of a compound layer with details from the descriptor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The HDF5 DataSet.
+*/
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 CompoundLayer::createH5recordDataSet(
     const Dataset& dataset,
@@ -200,21 +269,37 @@ CompoundLayer::createH5recordDataSet(
     return pH5dataSet;
 }
 
+//! Retrieve the HDF5 DataSet containing the records.
+/*!
+\return
+    The HDF5 DataSet containing the records.
+*/
 const ::H5::DataSet& CompoundLayer::getRecordDataSet() const &
 {
     return *m_pH5recordDataSet;
 }
 
+//! Retrieve the value table.
+/*!
+\return
+    The value table.
+*/
 ValueTable& CompoundLayer::getValueTable() & noexcept
 {
     return *m_pValueTable;
 }
 
+//! Retrieve the value table.
+/*!
+\return
+    The value table.
+*/
 const ValueTable& CompoundLayer::getValueTable() const & noexcept
 {
     return *m_pValueTable;
 }
 
+//! \copydoc Layer::read
 std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -257,12 +342,18 @@ std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
     return buffer;
 }
 
+//! Set the value table.
+/*!
+\param table
+    The new value table.
+*/
 void CompoundLayer::setValueTable(
     std::unique_ptr<ValueTable> table) noexcept
 {
     m_pValueTable = std::move(table);
 }
 
+//! \copydoc Layer::write
 void CompoundLayer::writeProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -297,11 +388,11 @@ void CompoundLayer::writeProxy(
         h5memDataSpace, h5fileDataSpace);
 }
 
+//! \copydoc Layer::writeAttributes
 void CompoundLayer::writeAttributesProxy() const
 {
     // Nothing to be done.  Attributes are not modified.
 }
 
-
-}
+}  // namespace BAG
 

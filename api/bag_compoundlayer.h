@@ -25,6 +25,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a compound layer.
 class BAG_API CompoundLayer final : public Layer
 {
 public:
@@ -70,11 +71,11 @@ private:
 
     void writeAttributesProxy() const override;
 
-    //! The index DataSet in the HDF5 file.
+    //! The HDF5 DataSet containing the indices.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5indexDataSet;
-    //! The record DataSet in the HDF5 file.
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5recordDataSet;  //TODO move to ValueTable?
-    //! The value table.
+    //! The HDF5 DataSet containing the records.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5recordDataSet;
+    //! The records in memory.
     std::unique_ptr<ValueTable> m_pValueTable;
 
     friend Dataset;

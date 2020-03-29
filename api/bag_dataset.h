@@ -34,6 +34,15 @@ namespace BAG {
 #pragma warning(disable: 4275)  // non-DLL-interface class used as base class
 #endif
 
+//! The interface for the BAG.
+/*!
+    This is the BAG Dataset.  It is responsible for creating or reading a BAG.
+    It contains the layers and metadata.  It has a descriptor for general
+    details.
+
+    It is the only way layers can be created.  It is meant to be the interface
+    to the BAG, and answer questions about said BAG.
+*/
 class BAG_API Dataset final
 #ifndef SWIG
     : public std::enable_shared_from_this<Dataset>
@@ -120,9 +129,10 @@ private:
         void operator()(::H5::H5File* ptr) noexcept;
     };
 
-    //! The HDF5 file.
+    //! The HDF5 file that the BAG is stored in.
     std::unique_ptr<::H5::H5File, DeleteH5File> m_pH5file;
-    //! The layers.
+    //! The mandatory and optional layers found in the BAG, including ones
+    //! created after opening.
     std::vector<std::unique_ptr<Layer>> m_layers;
     //! The metadata.
     std::unique_ptr<Metadata> m_pMetadata;
@@ -130,7 +140,7 @@ private:
     std::unique_ptr<TrackingList> m_pTrackingList;
     //! The descriptor.
     Descriptor m_descriptor;
-    //! The VR tracking list.
+    //! The optional VR tracking list.
     std::unique_ptr<VRTrackingList> m_pVRTrackingList;
 
     friend class CompoundLayer;

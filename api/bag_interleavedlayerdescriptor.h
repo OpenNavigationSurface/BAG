@@ -14,6 +14,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! Describe an interleaved layer.
 class BAG_API InterleavedLayerDescriptor final : public LayerDescriptor
 {
 public:
@@ -45,7 +46,7 @@ private:
 
     //! The group type.
     GroupType m_groupType = UNKNOWN_GROUP_TYPE;
-    //! The size of a record in the HDF5 DataSet (depends on group type).
+    //! The size of a node in the HDF5 DataSet (depends on group type).
     uint8_t m_elementSize = 0;
 
 };
