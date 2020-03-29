@@ -46,8 +46,8 @@ private:
         createH5dataSet(const Dataset& dataset,
             const VRMetadataDescriptor& descriptor);
 
-    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
-        uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
+    UInt8Array readProxy(uint32_t rowStart, uint32_t columnStart,
+        uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
         uint32_t columnEnd, const uint8_t *buffer) override;

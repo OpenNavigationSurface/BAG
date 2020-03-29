@@ -19,9 +19,10 @@ public:
     {}
 
     UInt8Array(const UInt8Array&) = delete;
-    UInt8Array(UInt8Array&&) = delete;
+    UInt8Array(UInt8Array&&) = default;
+
     UInt8Array& operator=(const UInt8Array&) = delete;
-    UInt8Array& operator=(UInt8Array&&) = delete;
+    UInt8Array& operator=(UInt8Array&&) = default;
 
     uint8_t* get() &
     {
@@ -33,11 +34,6 @@ public:
         return m_array.get();
     }
 
-    uint8_t* release()
-    {
-        return m_array.release();
-    }
-
     uint8_t& operator[](size_t index) &
     {
         if (index >= m_len)
@@ -46,7 +42,20 @@ public:
         return *(m_array.get() + index);
     }
 
-    size_t size()
+    const uint8_t& operator[](size_t index) const &
+    {
+        if (index >= m_len)
+            throw std::out_of_range{"Invalid index."};
+
+        return *(m_array.get() + index);
+    }
+
+    uint8_t* release()
+    {
+        return m_array.release();
+    }
+
+    size_t size() const
     {
         return m_len;
     }

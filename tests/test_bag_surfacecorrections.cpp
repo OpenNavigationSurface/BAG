@@ -133,7 +133,8 @@ TEST_CASE("test surface corrections create and write irregular",
         kExpectedNumCorrectors, chunkSize, compressionLevel);
 
     UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
+    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(
+        corrections.getDescriptor()));
 
     constexpr BagVerticalDatumCorrections kExpectedItem0{1.2, 2.1, {3.4f, 4.5f}};
 
@@ -144,12 +145,15 @@ TEST_CASE("test surface corrections create and write irregular",
     constexpr uint32_t kRowEnd = 0;
     constexpr uint32_t kColumnEnd = 0;
 
-    REQUIRE_NOTHROW(corrections.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer));
+    REQUIRE_NOTHROW(corrections.write(kRowStart, kColumnStart, kRowEnd,
+        kColumnEnd, buffer));
 
     UNSCOPED_INFO("Read the record back.");
-    auto result = corrections.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+    const auto result = corrections.read(kRowStart, kColumnStart, kRowEnd,
+        kColumnEnd);
 
-    const auto* res = reinterpret_cast<const BagVerticalDatumCorrections*>(result->get());
+    const auto* res =
+        reinterpret_cast<const BagVerticalDatumCorrections*>(result.get());
     CHECK(res->x == kExpectedItem0.x);
     CHECK(res->y == kExpectedItem0.y);
     CHECK(res->z[0] == kExpectedItem0.z[0]);
@@ -176,7 +180,8 @@ TEST_CASE("test surface corrections create and write gridded",
     UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
     REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
 
-    constexpr BagVerticalDatumCorrectionsGridded kExpectedItem0{9.87f, 6.543f, 2.109876f};
+    constexpr BagVerticalDatumCorrectionsGridded kExpectedItem0{9.87f, 6.543f,
+        2.109876f};
 
     UNSCOPED_INFO("Write one record.");
     const uint8_t* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
@@ -185,12 +190,15 @@ TEST_CASE("test surface corrections create and write gridded",
     constexpr uint32_t kRowEnd = 0;
     constexpr uint32_t kColumnEnd = 0;
 
-    REQUIRE_NOTHROW(corrections.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer));
+    REQUIRE_NOTHROW(corrections.write(kRowStart, kColumnStart, kRowEnd,
+        kColumnEnd, buffer));
 
     UNSCOPED_INFO("Read the record back.");
-    auto result = corrections.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+    const auto result = corrections.read(kRowStart, kColumnStart, kRowEnd,
+        kColumnEnd);
 
-    const auto* res = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(result->get());
+    const auto* res =
+        reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(result.get());
     CHECK(res->z[0] == kExpectedItem0.z[0]);
     CHECK(res->z[1] == kExpectedItem0.z[1]);
     CHECK(res->z[2] == kExpectedItem0.z[2]);

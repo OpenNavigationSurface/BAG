@@ -26,12 +26,11 @@ public:
     SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
     SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
 
-    std::unique_ptr<UInt8Array> readCorrected(uint32_t rowStart,
-        uint32_t rowEnd, uint32_t columnStart, uint32_t columnEnd,
-        uint8_t corrector, const SimpleLayer& layer) const;
-    std::unique_ptr<UInt8Array> readCorrectedRow(uint32_t row,
+    UInt8Array readCorrected(uint32_t rowStart, uint32_t rowEnd,
         uint32_t columnStart, uint32_t columnEnd, uint8_t corrector,
         const SimpleLayer& layer) const;
+    UInt8Array readCorrectedRow(uint32_t row, uint32_t columnStart,
+        uint32_t columnEnd, uint8_t corrector, const SimpleLayer& layer) const;
 
 protected:
 
@@ -53,8 +52,8 @@ private:
 
     const ::H5::DataSet& getH5dataSet() const & noexcept;
 
-    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
-        uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
+    UInt8Array readProxy(uint32_t rowStart, uint32_t columnStart,
+        uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart,
         uint32_t rowEnd, uint32_t columnEnd, const uint8_t* buffer) override;

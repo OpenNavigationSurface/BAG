@@ -126,7 +126,7 @@ std::string Layer::getInternalPath(
     }
 }
 
-std::unique_ptr<UInt8Array> Layer::read(
+UInt8Array Layer::read(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,

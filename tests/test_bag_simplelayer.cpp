@@ -335,7 +335,7 @@ TEST_CASE("test simple layer get name", "[simplelayer][getDescriptor]")
     CHECK(std::string{descriptor.getName()} == BAG::kLayerTypeMapString.at(Elevation));
 }
 
-//  virtual std::unique_ptr<Uint8Array> read(uint32_t rowStart,
+//  virtual UInt8Array read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 TEST_CASE("test simple layer read", "[simplelayer][read]")
 {
@@ -355,13 +355,13 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
     constexpr int32_t rowEnd = 289;
     constexpr int32_t columnStart = 249;
     constexpr int32_t columnEnd = 251;
-    auto buffer = elevLayer.read(rowStart, columnStart, rowEnd, columnEnd); // 2x3
+    const auto buffer = elevLayer.read(rowStart, columnStart, rowEnd, columnEnd); // 2x3
 
     constexpr size_t kExpectedNumNodes = 6;
     constexpr int32_t rows = (rowEnd - rowStart) + 1;
     constexpr int32_t columns = (columnEnd - columnStart) + 1;
 
-    REQUIRE(buffer);
+    REQUIRE(buffer.size() > 0);
     REQUIRE((kExpectedNumNodes * sizeof(float)) ==
         (Layer::getElementSize(Layer::getDataType(kLayerType)) * rows * columns));
 
@@ -369,7 +369,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
         1'000'000.0f, -52.161003f, -52.172005f,
         1'000'000.0f, -52.177002f, -52.174004f};
 
-    const float* floats = reinterpret_cast<const float*>(buffer->get());
+    const float* floats = reinterpret_cast<const float*>(buffer.get());
     for (size_t i=0; i<kExpectedNumNodes; ++i)
         CHECK(kExpectedBuffer[i] == floats[i]);
 }
@@ -435,10 +435,10 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
         const auto& elevLayer = pDataset->getLayer(kLayerType);
 
         UNSCOPED_INFO("Read the new data in the Elevation layer.");
-        auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
-        REQUIRE(buffer);
+        const auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
+        REQUIRE(buffer.size() > 0);
 
-        const auto* floatBuffer = reinterpret_cast<const float*>(buffer->get());
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.get());
 
         std::array<float, kExpectedNumNodes> kExpectedBuffer;
         kExpectedBuffer.fill(kFloatValue);

@@ -12,7 +12,7 @@
 
 using BAG::Dataset;
 
-//  virtual std::unique_ptr<Uint8Array> read(uint32_t rowStart,
+//  virtual UInt8Array read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read]")  //TODO Hidden because micro151 is not in git.
 {
@@ -30,8 +30,8 @@ TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read]")  //TODO 
     REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
     const auto& layer = dataset->getLayer(kLayerType);
 
-    auto buffer = layer.read(1, 2, 2, 4); // 2x3
-    REQUIRE(buffer);
+    const auto buffer = layer.read(1, 2, 2, 4); // 2x3
+    REQUIRE(buffer.size() > 0);
 
     constexpr size_t kExpectedNumNodes = 6;
     const std::array<float, kExpectedNumNodes> kExpectedBuffer{

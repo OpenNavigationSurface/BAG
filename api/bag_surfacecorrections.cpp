@@ -113,10 +113,6 @@ SurfaceCorrections::createH5dataSet(
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
-    memset(zeroData->get(), 0, descriptor.getElementSize());
-    h5createPropList.setFillValue(h5memDataType, zeroData->get());
-
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
 
@@ -170,7 +166,7 @@ const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
     return *m_pH5dataSet;
 }
 
-std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
+UInt8Array SurfaceCorrections::readCorrected(
     uint32_t rowStart,
     uint32_t rowEnd,
     uint32_t columnStart,
@@ -196,8 +192,8 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
         || columnStart > columnEnd)
         throw InvalidReadSize{};
 
-    std::unique_ptr<UInt8Array> data = std::make_unique<UInt8Array>(
-        ((columnEnd - columnStart + 1) * (rowEnd - rowStart + 1)) * sizeof(float));
+    UInt8Array data{((columnEnd - columnStart + 1) * (rowEnd - rowStart + 1))
+        * sizeof(float)};
 
     for (uint32_t f=0, i=0; i<nrows; ++i)
     {
@@ -209,7 +205,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
 
             //! For each column in the transfer set
             for (uint32_t j=0; j<columnEnd-columnStart + 1; ++j)
-                (*data)[(columnEnd - columnStart + 1) * f + j] = (*sepData)[j];
+                data[(columnEnd - columnStart + 1) * f + j] = sepData[j];
 
             f++;
         }
@@ -218,7 +214,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
     return data;
 }
 
-std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
+UInt8Array SurfaceCorrections::readCorrectedRow(
     uint32_t row,
     uint32_t columnStart,
     uint32_t columnEnd,
@@ -241,14 +237,9 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
     --corrector;  // This is 0 based when used.
 
     auto originalRow = layer.read(row, row, columnStart, columnEnd);
-    auto* data = reinterpret_cast<float*>(originalRow->get());
+    auto* data = reinterpret_cast<float*>(originalRow.get());
 
-    // BagVerticalDatumCorrectionsGridded == bagVerticalCorrectorNode
-    // allocate one entire row (# cols), to avoid reallocating in loop below
-    //  (C++ fails at this, we return an allocated row each iteration
-    //  rework as a private/internal version?
-
-    //! Obtain cell resolution and SW origin (0,1,1,0).
+    // Obtain cell resolution and SW origin (0,1,1,0).
     double swCornerX = 0., swCornerY = 0.;
     std::tie(swCornerX, swCornerY) = descriptor->getOrigin();
 
@@ -269,10 +260,12 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
     auto dataset = weakDataset.lock();
 
     double swCornerXsimple = 0., swCornerYsimple = 0.;
-    std::tie(swCornerXsimple, swCornerYsimple) = dataset->getDescriptor().getOrigin();
+    std::tie(swCornerXsimple, swCornerYsimple) =
+        dataset->getDescriptor().getOrigin();
 
     double nodeSpacingXsimple = 0., nodeSpacingYsimple = 0.;
-    std::tie(nodeSpacingXsimple, nodeSpacingYsimple) = dataset->getDescriptor().getGridSpacing();
+    std::tie(nodeSpacingXsimple, nodeSpacingYsimple) =
+        dataset->getDescriptor().getGridSpacing();
 
     using std::floor;  using std::fabs;  using std::ceil;
 
@@ -366,19 +359,23 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
         double sum = 0.0;
         double leastDistSq = std::numeric_limits<double>::max();
 
-        //! Look through the SEPs and calculate the weighted average between them and this position.
+        // Look through the SEPs and calculate the weighted average between
+        // them and this position.
         for (auto q=rowRange[0]; !isZeroDistance && q <= rowRange[1]; ++q)
         {
-            //! The SEP should be accessed, up to entire row of all columns of Surface_Correction.
+            // The SEP should be accessed, up to entire row of all columns of
+            // Surface_Correction.
             const auto buffer = this->read(q, q, colRange[0], colRange[1]);
-            const auto* readbuf = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(buffer->get());
+            const auto* readbuf =
+                reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(
+                    buffer.get());
             const auto y1 = swCornerY + q * nodeSpacingY;
 
             for (auto u=colRange[0]; u<=colRange[1]; ++u)
             {
                 const auto* vertCorr = readbuf + (u - colRange[0]);
 
-                const auto z1 = vertCorr->z[corrector - 1];
+                const auto z1 = vertCorr->z[corrector];
                 const auto x1 = swCornerX + u * nodeSpacingX;
 
                 double distSq = 0.;
@@ -426,7 +423,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
     return originalRow;
 }
 
-std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
+UInt8Array SurfaceCorrections::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -449,13 +446,13 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
         dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<UInt8Array>(bufferSize);
+    UInt8Array buffer{bufferSize};
 
     const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    m_pH5dataSet->read(buffer->get(), h5memDataType, h5memSpace, h5fileDataSpace);
+    m_pH5dataSet->read(buffer.get(), h5memDataType, h5memSpace, h5fileDataSpace);
 
     return buffer;
 }

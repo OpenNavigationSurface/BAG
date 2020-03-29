@@ -454,10 +454,10 @@ TEST_CASE("test vr node write read", "[vrnode][write][read]")
         kColumnEnd, buffer));
 
     UNSCOPED_INFO("Read the record back.");
-    auto result = pVrNode->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
-    REQUIRE(result);
+    const auto result = pVrNode->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+    REQUIRE(result.size() > 0);
 
-    const auto* res = reinterpret_cast<const BagVRNodeItem*>(result->get());
+    const auto* res = reinterpret_cast<const BagVRNodeItem*>(result.get());
     UNSCOPED_INFO("Check the expected value of BagVRNodeItem::hyp_strength.");
     CHECK(res->hyp_strength == kExpectedItem0.hyp_strength);
     UNSCOPED_INFO("Check the expected value of BagVRNodeItem::num_hypotheses.");
