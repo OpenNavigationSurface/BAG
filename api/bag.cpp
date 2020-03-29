@@ -26,6 +26,7 @@
 
 #include <H5Cpp.h>
 #include <algorithm>
+#include <iterator>
 #include <numeric>
 #include <sstream>
 #include <string>
