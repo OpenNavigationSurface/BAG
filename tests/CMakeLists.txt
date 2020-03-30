@@ -77,8 +77,3 @@ include(Catch)
 
 catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "${CMAKE_SOURCE_DIR}/examples/sample-data")
 
-if(BUILD_PYTHON)
-    # Build Python bindings
-    add_subdirectory(swig_i)
-endif()
-
