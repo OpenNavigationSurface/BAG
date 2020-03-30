@@ -24,6 +24,11 @@ Metadata::Metadata() noexcept
     bagInitMetadata(*m_pMetaStruct);
 }
 
+Metadata Metadata::fromDataset(Dataset& dataset)
+{
+    return Metadata(dataset);
+}
+
 Metadata::Metadata(Dataset& dataset)
     : m_pBagDataset(dataset.shared_from_this())
     , m_pMetaStruct(std::make_unique<BagMetadata>())

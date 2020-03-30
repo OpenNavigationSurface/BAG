@@ -37,9 +37,8 @@ namespace BAG {
 constexpr static uint32_t kInvalidId = std::numeric_limits<uint32_t>::max();
 
 class BAG_API Dataset final
-#ifndef SWIG
     : public std::enable_shared_from_this<Dataset>
-#endif
+
 {
 public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,
@@ -52,6 +51,9 @@ public:
     Dataset(Dataset&&) = delete;
     Dataset& operator=(const Dataset&) = delete;
     Dataset& operator=(Dataset&&) = delete;
+    ~Dataset();
+
+    void releaseFile() noexcept;
 
     Layer& getLayer(uint32_t id) &;
     const Layer& getLayer(uint32_t id) const &;
