@@ -27,7 +27,6 @@
 #include <regex>
 #include <string>
 
-#define NDEBUG
 
 namespace BAG {
 
@@ -201,24 +200,6 @@ std::shared_ptr<Dataset> Dataset::create(
     return pDataset;
 }
 
-Dataset::~Dataset()
-{
-    printf(" DatasetDtor ");
-    this->m_pH5file->close();
-    this->m_pH5file.release();
-    //m_layers.clear();
-    //m_pMetadata.release();
-    //m_pTrackingList.release();
-    //m_descriptor;
-    //m_pVRTrackingList.release();
-}
-
-
-void Dataset::releaseFile() noexcept
-{
-    this->m_pH5file.release();
-}
-
 
 Layer& Dataset::addLayer(
     std::unique_ptr<Layer> newLayer) &
@@ -286,7 +267,6 @@ CompoundLayer& Dataset::createCompoundLayer(
         indexType, name, *this, definition, chunkSize, compressionLevel)));
 }
 
-
 void Dataset::createDataset(
     const std::string& fileName,
     Metadata&& metadata,
@@ -297,12 +277,8 @@ void Dataset::createDataset(
     ::H5::Exception::dontPrint();
 #endif
 
-    printf("Dataset::createDataset start");
-
     m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
         fileName.c_str(), H5F_ACC_EXCL}, DeleteH5File{});
-
-    printf("Dataset::createDataset file created");
 
     // Group: BAG_root
     {
@@ -337,9 +313,6 @@ void Dataset::createDataset(
     // Uncertainty
     this->addLayer(SimpleLayer::create(*this, Uncertainty, chunkSize,
         compressionLevel));
-
-    printf("Dataset::createDataset end");
-    //this->m_pH5file->close();
 }
 
 Layer& Dataset::createSimpleLayer(
@@ -618,14 +591,10 @@ void Dataset::readDataset(
     const std::string& fileName,
     OpenMode openMode)
 {
-    printf("Dataset::openDataset start");
-
     m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
         fileName.c_str(),
         (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
         DeleteH5File{});
-
-    printf("Dataset::openDataset opened file");
 
     m_pMetadata = std::make_unique<Metadata>(Metadata::fromDataset(*this));
 
@@ -777,14 +746,10 @@ void Dataset::readDataset(
             this->addLayer(VRNode::open(*this, *descriptor));
         }
     }
-
-    printf("Dataset::openDataset end");
-    //this->m_pH5file->close();
 }
 
 void Dataset::DeleteH5File::operator()(::H5::H5File* ptr) noexcept
 {
-    printf(" DeleteH5File ");
     delete ptr;
 }
 

@@ -51,9 +51,6 @@ public:
     Dataset(Dataset&&) = delete;
     Dataset& operator=(const Dataset&) = delete;
     Dataset& operator=(Dataset&&) = delete;
-    ~Dataset();
-
-    void releaseFile() noexcept;
 
     Layer& getLayer(uint32_t id) &;
     const Layer& getLayer(uint32_t id) const &;
