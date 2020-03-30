@@ -2,9 +2,9 @@
 #define BAG_METADATA_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_metadatatypes.h"
-#include "bag_deleteh5dataset.h"
 
 #include <memory>
 #include <string>

@@ -6,8 +6,7 @@
 #define BAG_DELETEH5DATASET_H
 
 
-namespace H5
-{
+namespace H5 {
 
 class DataSet;
 

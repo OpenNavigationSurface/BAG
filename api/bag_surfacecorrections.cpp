@@ -88,34 +88,27 @@ SurfaceCorrections::createH5dataSet(
     const Dataset& dataset,
     const SurfaceCorrectionsDescriptor& descriptor)
 {
-    // Use the dimensions from the descriptor.
     std::array<hsize_t, RANK> fileDims{0, 0};
     const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
     const ::H5::DataSpace h5fileDataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
 
-    // Use chunk size and compression level from the descriptor.
-    const auto chunkSize = descriptor.getChunkSize();
-	std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
-
-    auto compressionLevel = descriptor.getCompressionLevel();
-
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    if (compressionLevel <= kMaxCompressionLevel)
-    {
-        h5createPropList.setLayout(H5D_CHUNKED);
-        h5createPropList.setChunk(RANK, chunkDims.data());
+    h5createPropList.setLayout(H5D_CHUNKED);
+
+    // Get chunk size (min 100) and compression level from the descriptor.
+    const auto chunkSize = std::max(100ull, descriptor.getChunkSize());
+	std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
+    h5createPropList.setChunk(RANK, chunkDims.data());
+
+    auto compressionLevel = descriptor.getCompressionLevel();
+    if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
-    }
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
     const auto h5memDataType = getCompoundType(descriptor);
-
-    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
-    memset(zeroData->get(), 0, descriptor.getElementSize());
-    h5createPropList.setFillValue(h5memDataType, zeroData->get());
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();

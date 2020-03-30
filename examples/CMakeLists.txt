@@ -5,20 +5,14 @@ project(OpenNS_Examples LANGUAGES C CXX)
 # Define Sources
 #-----------------------------------------------------------------------------
 set(examples
-#    bag_create
-#    bag_vr_create
+    bag_create
     bag_read
-#    bag_vr_read
-
-#    bag_gencert
-#    bag_signcert
-#    bag_signfile
-#    bag_verifycert
-#    bag_verifyfile
+    bag_vr_create
+    bag_vr_read
 )
 
 foreach(example ${examples})
-    add_executable(${example} ${example}.cpp)
+    add_executable(${example} ${example}.cpp getopt.c getopt.h)
 
     target_compile_definitions(${example}
         PRIVATE

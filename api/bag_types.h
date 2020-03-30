@@ -17,6 +17,12 @@ using OpenMode = BAG_OPEN_MODE;
 using GroupType = BAG_GROUP_TYPE;
 
 using TrackingItem = BagTrackingItem;
+
+using VerticalDatumCorrections = BagVerticalDatumCorrections;
+
+using VRMetadataItem = BagVRMetadataItem;
+using VRNodeItem = BagVRNodeItem;
+using VRRefinementItem = BagVRRefinementItem;
 using VRTrackingItem = BagVRTrackingItem;
 
 const std::unordered_map<LayerType, const char*> kLayerTypeMapString {

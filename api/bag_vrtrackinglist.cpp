@@ -172,9 +172,13 @@ VRTrackingList::createH5dataSet(
         ::H5::PredType::NATIVE_UINT16);
 
     const ::H5::DSetCreatPropList h5createPropList{};
+
+    h5createPropList.setLayout(H5D_CHUNKED);
+
+    // Use chunk size and compression level from the descriptor.
     h5createPropList.setChunk(1, &kTrackingListChunkSize);
 
-    if (compressionLevel <= kMaxCompressionLevel)
+    if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
 
     const auto h5dataSet = h5file.createDataSet(VR_TRACKING_LIST_PATH,

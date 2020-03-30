@@ -47,7 +47,7 @@ DataType VRMetadataDescriptor::getDataTypeProxy() const noexcept
 
 uint8_t VRMetadataDescriptor::getElementSizeProxy() const noexcept
 {
-    return sizeof(BagVRMetadataItem);
+    return sizeof(VRMetadataItem);
 }
 
 std::tuple<uint32_t, uint32_t>

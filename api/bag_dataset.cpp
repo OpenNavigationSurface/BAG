@@ -367,7 +367,8 @@ SurfaceCorrections& Dataset::createSurfaceCorrections(
 
 void Dataset::createVR(
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    unsigned int compressionLevel,
+    bool createNode)
 {
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
@@ -383,14 +384,9 @@ void Dataset::createVR(
 
     this->addLayer(VRMetadata::create(*this, chunkSize, compressionLevel));
     this->addLayer(VRRefinement::create(*this, chunkSize, compressionLevel));
-}
 
-void Dataset::createVRNode(
-    uint64_t chunkSize,
-    unsigned int compressionLevel)
-{
-    //TODO Consider a try/catch to undo partial creation.
-    this->addLayer(VRNode::create(*this, chunkSize, compressionLevel));
+    if (createNode)
+        this->addLayer(VRNode::create(*this, chunkSize, compressionLevel));
 }
 
 std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(

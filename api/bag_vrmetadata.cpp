@@ -14,22 +14,22 @@ namespace {
 
 ::H5::CompType makeDataType()
 {
-    const ::H5::CompType memDataType{sizeof(BagVRMetadataItem)};
+    const ::H5::CompType memDataType{sizeof(VRMetadataItem)};
 
-    memDataType.insertMember("index", HOFFSET(BagVRMetadataItem, index),
+    memDataType.insertMember("index", HOFFSET(VRMetadataItem, index),
         ::H5::PredType::NATIVE_UINT32);
     memDataType.insertMember("dimensions_x",
-        HOFFSET(BagVRMetadataItem, dimensions_x), ::H5::PredType::NATIVE_UINT32);
+        HOFFSET(VRMetadataItem, dimensions_x), ::H5::PredType::NATIVE_UINT32);
     memDataType.insertMember("dimensions_y",
-        HOFFSET(BagVRMetadataItem, dimensions_y), ::H5::PredType::NATIVE_UINT32);
+        HOFFSET(VRMetadataItem, dimensions_y), ::H5::PredType::NATIVE_UINT32);
     memDataType.insertMember("resolution_x",
-        HOFFSET(BagVRMetadataItem, resolution_x), ::H5::PredType::NATIVE_FLOAT);
+        HOFFSET(VRMetadataItem, resolution_x), ::H5::PredType::NATIVE_FLOAT);
     memDataType.insertMember("resolution_y",
-        HOFFSET(BagVRMetadataItem, resolution_y), ::H5::PredType::NATIVE_FLOAT);
+        HOFFSET(VRMetadataItem, resolution_y), ::H5::PredType::NATIVE_FLOAT);
     memDataType.insertMember("sw_corner_x",
-        HOFFSET(BagVRMetadataItem, sw_corner_x), ::H5::PredType::NATIVE_FLOAT);
+        HOFFSET(VRMetadataItem, sw_corner_x), ::H5::PredType::NATIVE_FLOAT);
     memDataType.insertMember("sw_corner_y",
-        HOFFSET(BagVRMetadataItem, sw_corner_y), ::H5::PredType::NATIVE_FLOAT);
+        HOFFSET(VRMetadataItem, sw_corner_y), ::H5::PredType::NATIVE_FLOAT);
 
     return memDataType;
 }
@@ -118,29 +118,23 @@ VRMetadata::createH5dataSet(
     const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
     const ::H5::DataSpace h5fileDataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
 
-    // Use chunk size and compression level from the descriptor.
-    const auto chunkSize = descriptor.getChunkSize();
-	std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
-
-    const auto compressionLevel = descriptor.getCompressionLevel();
-
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    if (compressionLevel <= kMaxCompressionLevel)
-    {
-        h5createPropList.setLayout(H5D_CHUNKED);
-        h5createPropList.setChunk(RANK, chunkDims.data());
+    h5createPropList.setLayout(H5D_CHUNKED);
+
+    // Get chunk size (min 100) and compression level from the descriptor.
+    const auto chunkSize = std::max(100ull, descriptor.getChunkSize());
+	std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
+    h5createPropList.setChunk(RANK, chunkDims.data());
+
+    const auto compressionLevel = descriptor.getCompressionLevel();
+    if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
         h5createPropList.setDeflate(compressionLevel);
-    }
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
     const auto memDataType = makeDataType();
-
-    auto zeroData = std::make_unique<uint8_t[]>(descriptor.getElementSize());
-    memset(zeroData.get(), 0, descriptor.getElementSize());
-    h5createPropList.setFillValue(memDataType, zeroData.get());
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
@@ -277,7 +271,7 @@ void VRMetadata::writeProxy(
     std::tie(maxResX, maxResY) = descriptor.getMaxResolution();
 
     // Update the min/max from new data.
-    const auto* items = reinterpret_cast<const BagVRMetadataItem*>(buffer);
+    const auto* items = reinterpret_cast<const VRMetadataItem*>(buffer);
 
     auto* item = items;
     const auto end = items + rows * columns;

@@ -337,7 +337,7 @@ TEST_CASE("test vr refinement create open", "[vrrefinement][create][open]")
         REQUIRE(pDataset);
 
         UNSCOPED_INFO("Check that creating optional variable resolution layers does not throw.");
-        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
+        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
         auto* pVrRefinement = pDataset->getVRRefinement();
         UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
@@ -415,7 +415,7 @@ TEST_CASE("test vr refinement write read", "[vrrefinement][write][read]")
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check creating variable resolution layers does not throw.");
-    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
+    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
     UNSCOPED_INFO("Check the variable resolution refinement layer exists.");
     auto* pVrRefinement = pDataset->getVRRefinement();
@@ -426,7 +426,7 @@ TEST_CASE("test vr refinement write read", "[vrrefinement][write][read]")
         pVrRefinement->getDescriptor()));
 
     UNSCOPED_INFO("Write one record.");
-    constexpr BagVRRefinementItem kExpectedItem0{9.8f, 0.654f};
+    constexpr BAG::VRRefinementItem kExpectedItem0{9.8f, 0.654f};
 
     const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
 
@@ -442,10 +442,10 @@ TEST_CASE("test vr refinement write read", "[vrrefinement][write][read]")
     auto result = pVrRefinement->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
     REQUIRE(result);
 
-    const auto* res = reinterpret_cast<const BagVRRefinementItem*>(result->get());
-    UNSCOPED_INFO("Check the expected value of BagVRRefinementItem::depth.");
+    const auto* res = reinterpret_cast<const BAG::VRRefinementItem*>(result->get());
+    UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth.");
     CHECK(res->depth == kExpectedItem0.depth);
-    UNSCOPED_INFO("Check the expected value of BagVRRefinementItem::depth_uncrt.");
+    UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth_uncrt.");
     CHECK(res->depth_uncrt == kExpectedItem0.depth_uncrt);
 }
 
