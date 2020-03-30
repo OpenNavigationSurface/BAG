@@ -6,18 +6,24 @@
 
 %module bag_layer
 
+#pragma SWIG nowarn=475 // ignore warnings about "optimal attribute usage in the out typemap."
+
 %{
 #include "../bag_layer.h"
 %}
 
 #define final
+
 %import "../bag_config.h"
 %import "bag_types.i"
 %import "bag_uint8array.i"
 %import "bag_layerdescriptor.i"
+%include <std_string.i>
 
-%include "std_unique_ptr.i"
-wrap_unique_ptr(UInt8UniquePtr, BAG::UInt8Array);
+// define typemap so that returned UInt8Array objects are converted correctly 
+%typemap(out, optimal="1") BAG::UInt8Array %{
+    $result = SWIG_NewPointerObj(($1_ltype*)&$1, $&1_descriptor, 0);
+%}
 
 namespace BAG {
 
@@ -40,7 +46,7 @@ public:
     LayerDescriptor& getDescriptor() & noexcept;
     %ignore getDescriptor() const&;
 
-    std::unique_ptr<UInt8Array> read(uint32_t rowStart,
+    UInt8Array read(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 
     void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,

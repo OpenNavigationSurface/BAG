@@ -12,11 +12,6 @@
 
 #define final
 
-
-%include <std_shared_ptr.i>
-%shared_ptr(BAG::Dataset)
-
-%import "bag_compoundlayer.i"
 %include <stl.i>
 namespace std 
 {
@@ -26,18 +21,24 @@ namespace std
 }
 
 %import "../bag_config.h"
+%import "bag_compoundlayer.i"
 %import "bag_descriptor.i"
 %import "bag_metadata.i"
 %import "bag_surfacecorrections.i"
 %import "bag_trackinglist.i"
 %import "bag_types.i"
 
+%include <std_string.i>
+%include <stdint.i>
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::Dataset)
+%shared_ptr(BAG::open)
+%shared_ptr(BAG::openDataset)
+%shared_ptr(BAG::create)
+
 namespace BAG {
 
 class BAG_API Dataset final
-#ifndef SWIG
-    : public std::enable_shared_from_this<Dataset>
-#endif
 {
 public:
     %rename(openDataset) open(const std::string &, OpenMode);
@@ -96,7 +97,29 @@ public:
     Descriptor& getDescriptor() & noexcept;
     %ignore getDescriptor() const & noexcept;
 
+#if 0
+    //! Intentionally omit exposing of std::tuple methods (unsupported by SWIG), 
+    //! so they can be exposed with std::pair below.
     std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept;
     std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
+#endif
 };
+}
+
+
+%extend BAG::Dataset
+{
+    std::pair<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept
+    {
+        double x=0.0, y=0.0;
+        std::tie(x, y) = self->gridToGeo(row, column);
+        return std::pair<double, double>(x, y);
+    }
+
+    std::pair<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept
+    {
+        uint32_t row=0.0, column=0.0;
+        std::tie(row, column) = self->geoToGrid(x, y);
+        return std::pair<uint32_t, uint32_t>(row, column);
+    }
 }

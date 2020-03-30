@@ -12,10 +12,8 @@
 
 #define final
 
-// note: had to change nested union in .h file as described here: 
-// https://stackoverflow.com/questions/19191211/constructor-initialization-of-a-named-union-member
-
 %import "bag_types.i"
+%include <std_string.i>
 
 namespace BAG {
 
@@ -36,7 +34,7 @@ class CompoundDataType final {
         CompoundDataType& operator=(CompoundDataType&& rhs);
         %rename(assignFloat) operator=(float);
         CompoundDataType& operator=(float rhs);
-        %rename(assignInt) operator=(uint32_t);
+        %rename(assignUInt32) operator=(uint32_t);
         CompoundDataType& operator=(uint32_t rhs);
         %rename(assignBool) operator=(bool);
         CompoundDataType& operator=(bool rhs);
@@ -48,7 +46,7 @@ class CompoundDataType final {
         uint32_t asUInt32() const;
         bool asBool() const;
         %ignore asString() const&;
-        std::string& asString()&;
+        std::string asString();
         DataType getType() const noexcept;
 };
 
@@ -56,5 +54,11 @@ struct FieldDefinition;
 using RecordDefinition = std::vector<FieldDefinition>;
 using Record = std::vector<CompoundDataType>;
 using Records = std::vector<Record>;
+
+template <typename T> T BAG::get(const CompoundDataType& v);
+%template(getFloat) BAG::get<float>;
+%template(getUInt32) BAG::get<uint32_t>;
+%template(getBool) BAG::get<bool>;
+%template(getString) BAG::get<std::string>;
 }
 

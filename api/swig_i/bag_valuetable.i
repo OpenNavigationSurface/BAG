@@ -14,7 +14,7 @@
 
 namespace BAG
 {
-class CompoundLayer;
+    class CompoundLayer;
 }
 
 %import "../bag_config.h"

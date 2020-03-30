@@ -6,6 +6,8 @@
 
 %module bag_metadata
 
+#pragma SWIG nowarn=475 // ignore warnings about "optimal attribute usage in the out typemap."
+
 %{
 #include "../bag_metadata.h"
 %}
@@ -17,8 +19,16 @@ namespace H5
 class DataSet;
 }
 
-%import "../bag_config.h"
 %include <std_string.i>
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::Dataset)
+
+%import "../bag_config.h"
+
+// define typemap so that returned Metadata objects are converted correctly 
+%typemap(out, optimal="1") BAG::Metadata %{
+    $result = SWIG_NewPointerObj(($1_ltype*)&$1, $&1_descriptor, 0);
+%}
 
 namespace BAG
 {
@@ -28,8 +38,6 @@ namespace BAG
     {
     public:
         Metadata() noexcept;
-        //%ignore Metadata(Dataset&);
-        explicit Metadata(Dataset& dataset);
 
         //TODO Temp, make sure only move operations are used until development is done.
         Metadata(const Metadata& other) = delete;
@@ -37,6 +45,8 @@ namespace BAG
         Metadata& operator=(const Metadata&) = delete;
         Metadata& operator=(Metadata&&) = delete;
         ~Metadata() noexcept;
+        
+        Metadata fromDataset(Dataset& dataset);
 
         const BagMetadata& getStruct() const & noexcept;
 
@@ -58,11 +68,15 @@ namespace BAG
     };
 }
 
+%extend BAG::Metadata
+{
+    BAG::Metadata fromSharedDataset(std::shared_ptr<BAG::Dataset> pDataset)
+    {
+        return BAG::Metadata::fromDataset(*pDataset);
+    }
 
-//%extend BAG::Metadata
-//{
-//    BAG::Metadata BAG::Metadata::fromDataset(BAG::Dataset& dataset)
-//    {
-//        return BAG::Metadata(dataset);
-//    }
-//}
+    //BAG::Metadata BAG::Metadata::fromDataset(BAG::Dataset& dataset)
+    //{
+    //    return BAG::Metadata::fromDataset(dataset);
+    //}
+}

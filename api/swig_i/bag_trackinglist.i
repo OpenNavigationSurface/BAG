@@ -16,56 +16,57 @@ namespace H5
 }
 
 #define final
+
 %import "../bag_config.h"
 
 namespace BAG
 {
-class Dataset;
+    class Dataset;
 
-class BAG_API TrackingList final
-{
-public:
-    using value_type = TrackingItem;
-    using iterator = std::vector<value_type>::iterator;
-    using const_iterator = std::vector<value_type>::const_iterator;
-    using reference = value_type&;
-    using const_reference = const value_type&;
+    class BAG_API TrackingList final
+    {
+    public:
+        using value_type = TrackingItem;
+        using iterator = std::vector<value_type>::iterator;
+        using const_iterator = std::vector<value_type>::const_iterator;
+        using reference = value_type&;
+        using const_reference = const value_type&;
 
-    //TODO Temp, make sure only move operations are used until development is done.
-    TrackingList(const TrackingList&) = delete;
-    TrackingList(TrackingList&&) = delete;
-    TrackingList& operator=(const TrackingList&) = delete;
-    TrackingList& operator=(TrackingList&&) = delete;
+        //TODO Temp, make sure only move operations are used until development is done.
+        TrackingList(const TrackingList&) = delete;
+        TrackingList(TrackingList&&) = delete;
+        TrackingList& operator=(const TrackingList&) = delete;
+        TrackingList& operator=(TrackingList&&) = delete;
 
-    iterator begin() & noexcept;
-    %ignore begin() const &;
-    iterator end() & noexcept;
-    %ignore end() const &;
-    const_iterator cbegin() const & noexcept;
-    const_iterator cend() const & noexcept;
+        iterator begin() & noexcept;
+        %ignore begin() const &;
+        iterator end() & noexcept;
+        %ignore end() const &;
+        const_iterator cbegin() const & noexcept;
+        const_iterator cend() const & noexcept;
 
-    void clear() noexcept;
-    %ignore push_back(const value_type& value);
-    void push_back(value_type&& value);
-    template <typename... Args>
-    void emplace_back(Args&&... args) &;
-    reference front() &;
-    %ignore front() const &;
-    reference back() &;
-    %ignore back() const &;
-    void reserve(size_t newCapacity);
-    void resize(size_t count);
-    value_type* data() & noexcept;
-    %ignore data() const &;
+        void clear() noexcept;
+        %ignore push_back(const value_type& value);
+        void push_back(value_type&& value);
+        template <typename... Args>
+        void emplace_back(Args&&... args) &;
+        reference front() &;
+        %ignore front() const &;
+        reference back() &;
+        %ignore back() const &;
+        void reserve(size_t newCapacity);
+        void resize(size_t count);
+        value_type* data() & noexcept;
+        %ignore data() const &;
 
-    bool empty() const noexcept;
-    size_t size() const noexcept;
+        bool empty() const noexcept;
+        size_t size() const noexcept;
         
-    %rename(__getitem__) operator[];
-    %ignore operator[] const &;
+        %rename(__getitem__) operator[];
+        %ignore operator[] const &;
 
-    void write() const;
-};
+        void write() const;
+    };
 }
 
 %extend BAG::TrackingList

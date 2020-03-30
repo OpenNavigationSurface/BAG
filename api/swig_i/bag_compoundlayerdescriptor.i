@@ -11,9 +11,13 @@
 %}
 
 #define final
+
 %import "../bag_config.h"
 %import "bag_compoundlayer.i"
 %import "bag_layerdescriptor.i"
+%include <std_string.i>
+
+// TODO implement weak_ptr interface
 
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::CompoundLayerDescriptor)

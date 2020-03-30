@@ -6,14 +6,15 @@
 
 %module bag_surfacecorrectionsdescriptor
 
-%include <std_shared_ptr.i>
-%shared_ptr(BAG::SurfaceCorrectionsDescriptor)
-
 %{
 #include "../bag_surfacecorrectionsdescriptor.h"
 %}
 
 #define final
+
+%include <std_string.i>
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::SurfaceCorrectionsDescriptor)
 
 %import "bag_layerdescriptor.i"
 
@@ -37,10 +38,16 @@ public:
     SurfaceCorrectionsDescriptor& operator=(const SurfaceCorrectionsDescriptor&) = delete;
     SurfaceCorrectionsDescriptor& operator=(SurfaceCorrectionsDescriptor&&) = delete;
 
-    std::tuple<uint32_t, uint32_t> getDims() const noexcept;
     uint8_t getNumCorrectors() const noexcept;
+    
+#if 0
+    //! Intentionally omit exposing of std::tuple method (unsupported by SWIG), 
+    //! so it can be exposed with std::pair below.
+    std::tuple<uint32_t, uint32_t> getDims() const noexcept;
     std::tuple<double, double> getOrigin() const noexcept;
     std::tuple<double, double> getSpacing() const noexcept;
+#endif
+
     BAG_SURFACE_CORRECTION_TOPOGRAPHY getSurfaceType() const noexcept;
     const std::string& getVerticalDatums() const & noexcept;
 
@@ -53,4 +60,28 @@ public:
     SurfaceCorrectionsDescriptor& setSpacing(double xSpacing,
         double ySpacing) & noexcept;
 };
+}
+
+%extend BAG::SurfaceCorrectionsDescriptor
+{
+    const std::pair<uint32_t, uint32_t> getDims() const & noexcept
+    {
+        uint32_t row=0.0, column=0.0;
+        std::tie(row, column) = self->getDims();
+        return std::pair<uint32_t, uint32_t>(row, column);
+    }
+
+    const std::pair<double, double> getOrigin() const & noexcept
+    {
+        double x=0.0, y=0.0;
+        std::tie(x, y) = self->getOrigin();
+        return std::pair<double, double>(x, y);
+    }
+
+    const std::pair<double, double> getSpacing() const & noexcept
+    {
+        double x=0.0, y=0.0;
+        std::tie(x, y) = self->getSpacing();
+        return std::pair<double, double>(x, y);
+    }
 }

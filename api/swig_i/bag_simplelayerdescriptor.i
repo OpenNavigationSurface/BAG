@@ -10,10 +10,11 @@
 #include "../bag_simplelayerdescriptor.h"
 %}
 
+#define final
+
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::SimpleLayerDescriptor)
 
-#define final
 %import "bag_layerdescriptor.i"
 
 namespace BAG {
@@ -22,7 +23,7 @@ namespace BAG {
     {
     public:
         static std::shared_ptr<SimpleLayerDescriptor> create(const Dataset& dataset,
-        LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
+            LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
 
         %rename(openDataset) open(const Dataset&, LayerType);
         static std::shared_ptr<SimpleLayerDescriptor> open(
