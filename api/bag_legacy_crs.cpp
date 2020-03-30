@@ -6,6 +6,7 @@
 #include <algorithm>  // std::transform
 #include <cctype>  // std::tolower
 #include <cmath>  // M_PI
+#include <cstring>
 #include <exception>  // std::exception
 #include <fstream>  // std::ifstream
 #include <iomanip>

@@ -7,6 +7,7 @@
 #include <bag_simplelayerdescriptor.h>
 #include <bag_types.h>
 
+#include <algorithm>
 #include <catch2/catch.hpp>
 #include <string>
 

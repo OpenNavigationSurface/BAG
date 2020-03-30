@@ -1,7 +1,7 @@
 #define CATCH_CONFIG_RUNNER
 
 #include <catch2/catch.hpp>
-#include <cstdlib>  // putenv
+#include <cstdlib>  // putenv, setenv
 #include <H5Cpp.h>
 
 
@@ -31,7 +31,11 @@ int main(int argc, const char** argv)
         return EXIT_FAILURE;
     }
 
+#ifdef _MSC_VER
     putenv(std::string{"BAG_SAMPLES_PATH=" + samplesPath}.c_str());
+#else
+    ::setenv("BAG_SAMPLES_PATH", samplesPath.c_str(), 1 /*overwrite*/);
+#endif
 
     const int numFailed = session.run();
 

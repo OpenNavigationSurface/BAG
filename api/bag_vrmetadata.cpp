@@ -5,6 +5,7 @@
 #include "bag_vrmetadatadescriptor.h"
 
 #include <array>
+#include <cstring>  //member
 #include <H5Cpp.h>
 
 

@@ -133,10 +133,12 @@ public:
             return *this;
 
         if (type == DT_STRING)
+        {
             if (rhs.type == DT_STRING)
                 m_data.m_s = rhs.m_data.m_s;
             else
                 m_data.m_s.~basic_string<char>();
+        }
 
         switch (rhs.type)
         {
@@ -171,10 +173,12 @@ public:
     CompoundDataType& operator=(CompoundDataType&& rhs)
     {
         if (type == DT_STRING)
+        {
             if (rhs.type == DT_STRING)
                 m_data.m_s = std::move(rhs.m_data.m_s);
             else
                 m_data.m_s.~basic_string<char>();
+        }
 
         switch (rhs.type)
         {

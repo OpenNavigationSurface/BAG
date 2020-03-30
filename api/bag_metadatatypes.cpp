@@ -5,6 +5,7 @@
 //************************************************************************
 #include "bag_metadatatypes.h"
 
+#include <cstring>
 #include <H5Cpp.h>
 #include <string>
 

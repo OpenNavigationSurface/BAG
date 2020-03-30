@@ -130,7 +130,7 @@ uint32_t getNumericalVersion(
 
 //! A type alias to use SFINAE to check if a type is not a std::string.
 template <typename T>
-using IsNotString = std::enable_if_t<!std::is_same_v<T, std::string>>;
+using IsNotString = std::enable_if_t<!std::is_same<T, std::string>::value>;
 
 //! Helper to read a non-string attribute from an HDF5 DataSet.
 /*!

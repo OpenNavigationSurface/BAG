@@ -4,7 +4,7 @@
 #include "bag_config.h"
 #include "bag_c_types.h"
 
-#include <cstdint>
+#include <cstddef>
 
 
 namespace BAG {

@@ -496,7 +496,7 @@ void ValueTable::writeRecord(
         throw InvalidRecordsIndex{};
 
     // The record index must include the empty (NDV) record.
-    const size_t fileRecordIndex = recordIndex + 1;
+    const hsize_t fileRecordIndex = recordIndex + 1;
 
     // Prepare the memory details.
     const auto rawMemory = this->convertRecordToRaw(record);

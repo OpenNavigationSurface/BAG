@@ -8,6 +8,7 @@
 #include "bag_metadata_import.h"
 #include "bag_metadatatypes.h"
 
+#include <cstring>
 #include <iostream>
 #include <libxml/xmlschemas.h>
 #include <libxml/xpath.h>

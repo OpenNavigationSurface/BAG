@@ -5,6 +5,7 @@
 #include "bag_fordec.h"
 #include "bag_types.h"
 
+#include <limits>
 #include <memory>
 #include <string>
 #include <tuple>
