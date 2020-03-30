@@ -184,7 +184,7 @@ SurfaceCorrectionsDescriptor::getVerticalDatums() const & noexcept
     return m_verticalDatums;
 }
 
-SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setVerticalDatum(
+SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setVerticalDatums(
     std::string verticalDatums) & noexcept
 {
     m_verticalDatums = std::move(verticalDatums);

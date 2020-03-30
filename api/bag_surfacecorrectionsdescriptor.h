@@ -40,9 +40,9 @@ public:
     BAG_SURFACE_CORRECTION_TOPOGRAPHY getSurfaceType() const noexcept;
     const std::string& getVerticalDatums() const & noexcept;
 
-    SurfaceCorrectionsDescriptor& setDims(uint32_t numRws,
+    SurfaceCorrectionsDescriptor& setDims(uint32_t numRows,
         uint32_t numColumns) & noexcept;
-    SurfaceCorrectionsDescriptor& setVerticalDatum(
+    SurfaceCorrectionsDescriptor& setVerticalDatums(
         std::string verticalDatums) & noexcept;
     SurfaceCorrectionsDescriptor& setOrigin(double swX,
         double swY) & noexcept;

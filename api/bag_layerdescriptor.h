@@ -20,12 +20,13 @@ namespace BAG {
 class BAG_API LayerDescriptor : public std::enable_shared_from_this<LayerDescriptor>
 {
 public:
+    virtual ~LayerDescriptor() = default;
+
     //TODO Temp, make sure only move operations are used until development is done.
     LayerDescriptor(const LayerDescriptor&) = delete;
     LayerDescriptor(LayerDescriptor&&) = delete;
     LayerDescriptor& operator=(const LayerDescriptor&) = delete;
     LayerDescriptor& operator=(LayerDescriptor&&) = delete;
-    virtual ~LayerDescriptor() = default;
 
     uint64_t getChunkSize() const noexcept;
     unsigned int getCompressionLevel() const noexcept;

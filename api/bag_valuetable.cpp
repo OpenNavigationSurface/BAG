@@ -164,7 +164,7 @@ ValueTable::ValueTable(
     }
 }
 
-void ValueTable::addRecord(
+size_t ValueTable::addRecord(
     const Record& record)
 {
     if (!this->validateRecord(record))
@@ -173,6 +173,8 @@ void ValueTable::addRecord(
     this->writeRecord(m_records.size(), record);
 
     m_records.emplace_back(record);
+
+    return m_records.size() - 1;
 }
 
 void ValueTable::addRecords(

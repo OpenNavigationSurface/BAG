@@ -7,9 +7,10 @@ project(OpenNS_Examples LANGUAGES C CXX)
 set(examples
 #    bag_create
 #    bag_vr_create
-#    bag_gencert
     bag_read
 #    bag_vr_read
+
+#    bag_gencert
 #    bag_signcert
 #    bag_signfile
 #    bag_verifycert

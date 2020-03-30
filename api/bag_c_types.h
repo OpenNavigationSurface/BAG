@@ -8,6 +8,10 @@
 extern "C" {
 #endif
 
+#define BAG_NULL_ELEVATION      1000000
+#define BAG_NULL_GENERIC        1000000
+#define BAG_NULL_UNCERTAINTY    1000000
+
 typedef uint32_t BagError;
 
 enum BAG_LAYER_TYPE
@@ -145,9 +149,38 @@ struct BagVerticalDatumCorrectionsGridded
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
-#define BAG_NULL_ELEVATION      1000000
-#define BAG_NULL_GENERIC        1000000
-#define BAG_NULL_UNCERTAINTY    1000000
+struct BagVerticalCorrectorDef
+{
+    double nodeSpacingX; /* node spacing in x dimension in units defined by coord system */
+    double nodeSpacingY; /* node spacing in y dimension in units defined by coord system */
+    double swCornerX;    /* X coordinate of SW corner of vertical corrector surface in BAG_COORDINATES */
+    double swCornerY;    /* Y coordinate of SW corner of vertical corrector surface in BAG_COORDINATES */
+};
+
+#define BAG_NULL_ELEVATION 1000000
+
+//! A structure to hold the definition of a value.
+//! ***NOTE:  This must be POD per the C++11 definition.
+//! see:  https://stackoverflow.com/questions/4178175/what-are-aggregates-and-pods-and-how-why-are-they-special/7189821#7189821
+struct FieldDefinition
+{
+    //! The name of the definition.
+    const char* name;
+    //! The type of the definition; represents a DataType.
+    uint8_t type;
+};
+
+//! The C version of the BAG::CompoundDataType class
+struct BagCompoundDataType
+{
+    BAG_DATA_TYPE type;
+    union Data {
+        float f;
+        uint32_t ui32;
+        bool b;
+        char* c;
+    } data;
+};
 
 #ifdef __cplusplus
 }  // extern "C"

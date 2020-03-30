@@ -410,7 +410,7 @@ TEST_CASE("test surface corrections descriptor create empty gridded",
     // Set the values.
     UNSCOPED_INFO("Test setting the vertical datums does not throw.");
     const std::string kExpectedVerticalDatum("datum 1,datum 2,datum 3");
-    REQUIRE_NOTHROW(pDescriptor->setVerticalDatum(kExpectedVerticalDatum));
+    REQUIRE_NOTHROW(pDescriptor->setVerticalDatums(kExpectedVerticalDatum));
 
     UNSCOPED_INFO("Test setting the origin does not throw.");
     constexpr double kExpectedOriginX = 123.456;

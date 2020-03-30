@@ -307,20 +307,6 @@ T get(const CompoundDataType& v)
     return detail::GetFromCompoundDataType<T>::get(v);
 }
 
-// Terminology  -> record made of fields
-struct FieldDefinition final
-{
-    FieldDefinition() = default;
-    FieldDefinition(const char* inName, DataType inType)
-        : name(inName), type(static_cast<uint8_t>(inType))
-    {}
-
-    //! The name of the definition.
-    const char* name = nullptr;
-    //! The type of the definition; represents a DataType.
-    uint8_t type = DT_UNKNOWN_DATA_TYPE;
-};
-
 using RecordDefinition = std::vector<FieldDefinition>;
 using Record = std::vector<CompoundDataType>;
 using Records = std::vector<Record>;

@@ -29,12 +29,13 @@ public:
     Metadata() noexcept;
     explicit Metadata(Dataset& dataset);
 
+    ~Metadata() noexcept;
+
     //TODO Temp, make sure only move operations are used until development is done.
     Metadata(const Metadata& other) = delete;
     Metadata(Metadata&& other) = default;
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
-    ~Metadata() noexcept;
 
     const BagMetadata& getStruct() const & noexcept;
 
@@ -62,7 +63,7 @@ private:
 
     //! The dataset the metadata is part of.
     std::weak_ptr<const Dataset> m_pBagDataset;
-    //! The C structs behind this class.
+    //! The C struct behind this class.
     std::unique_ptr<BagMetadata> m_pMetaStruct;
     //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
