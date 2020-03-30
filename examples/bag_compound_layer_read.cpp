@@ -32,7 +32,7 @@ int main(
 {
     if (argc != 2)
     {
-        std::cerr << "Usage is: bag_read <inputBagFile>\n";
+        std::cerr << "Usage is: bag_compound_layer_read <inputBagFile>\n";
         return EXIT_FAILURE;
     }
 

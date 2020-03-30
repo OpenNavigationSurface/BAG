@@ -1837,7 +1837,8 @@ BagError bagCompoundLayerSetValueByIndex(
 
 // Variable Resolution
 BagError bagCreateVRLayers(
-    BagHandle* handle)
+    BagHandle* handle,
+    bool makeNode)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
@@ -1853,38 +1854,7 @@ BagError bagCreateVRLayers(
 
     try
     {
-        handle->dataset->createVR(chunkSize, compressionLevel);
-    }
-    catch(const BAG::ReadOnlyError& /*e*/)
-    {
-        return BAG_NO_ACCESS_PERMISSION;
-    }
-    catch(const BAG::LayerExists& /*e*/)
-    {
-        return BAG_COMPOUND_LAYER_EXISTS;
-    }
-
-    return BAG_SUCCESS;
-}
-
-BagError bagCreateVRNode(
-    BagHandle* handle)
-{
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
-
-    //TODO where to get chunkSize & compressionLevel from?  elevation layer?
-    const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
-    if (!elevationLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
-
-    const auto& descriptor = elevationLayer->getDescriptor();
-    const auto chunkSize = descriptor.getChunkSize();
-    const auto compressionLevel = descriptor.getCompressionLevel();
-
-    try
-    {
-        handle->dataset->createVRNode(chunkSize, compressionLevel);
+        handle->dataset->createVR(chunkSize, compressionLevel, makeNode);
     }
     catch(const BAG::ReadOnlyError& /*e*/)
     {

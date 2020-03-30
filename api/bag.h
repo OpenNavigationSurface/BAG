@@ -128,7 +128,7 @@ BAG_EXTERNAL BagError bagCompoundLayerSetValueByIndex(BagHandle* handle, const c
 
 
 /* Variable Resolution */
-BAG_EXTERNAL BagError bagCreateVRLayers(BagHandle* handle);
+BAG_EXTERNAL BagError bagCreateVRLayers(BagHandle* handle, bool makeNode);
 
 /* Variable Resolution Metadata */
 BAG_EXTERNAL BagError bagVRMetadataGetMinDimensions(BagHandle* handle, uint32_t* minX, uint32_t* minY);
@@ -141,7 +141,6 @@ BAG_EXTERNAL BagError bagVRMetadataSetMinResolution(BagHandle* handle, float min
 BAG_EXTERNAL BagError bagVRMetadataSetMaxResolution(BagHandle* handle, float maxX, float maxY);
 
 /* Variable Resolution Node */
-BAG_EXTERNAL BagError bagCreateVRNode(BagHandle* handle);
 BAG_EXTERNAL BagError bagVRNodeGetMinMaxHypStrength(BagHandle* handle, float* minHypStr, float* maxHypStr);
 BAG_EXTERNAL BagError bagVRNodeGetMinMaxNumHypotheses(BagHandle* handle, uint32_t* minNumHyp, uint32_t* maxNumHyp);
 BAG_EXTERNAL BagError bagVRNodeGetMinMaxNSamples(BagHandle* handle, uint32_t* minNSamples, uint32_t* maxNSamples);
