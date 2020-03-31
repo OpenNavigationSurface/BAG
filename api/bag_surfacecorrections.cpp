@@ -244,7 +244,7 @@ const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
 \return
     The corrected date from the simple layer using the specified corrector.
 */
-std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
+UInt8Array SurfaceCorrections::readCorrected(
     uint32_t rowStart,
     uint32_t rowEnd,
     uint32_t columnStart,
@@ -270,8 +270,8 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
         || columnStart > columnEnd)
         throw InvalidReadSize{};
 
-    std::unique_ptr<UInt8Array> data = std::make_unique<UInt8Array>(
-        ((columnEnd - columnStart + 1) * (rowEnd - rowStart + 1)) * sizeof(float));
+    UInt8Array data{(columnEnd - columnStart + 1) * (rowEnd - rowStart + 1)
+        * sizeof(float)};
 
     for (uint32_t f=0, i=0; i<nrows; ++i)
     {
@@ -283,7 +283,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
 
             //! For each column in the transfer set
             for (uint32_t j=0; j<columnEnd-columnStart + 1; ++j)
-                (*data)[(columnEnd - columnStart + 1) * f + j] = (*sepData)[j];
+                data[(columnEnd - columnStart + 1) * f + j] = sepData[j];
 
             f++;
         }
@@ -309,7 +309,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrected(
 \return
     The corrected date from the simple layer using the specified corrector.
 */
-std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
+UInt8Array SurfaceCorrections::readCorrectedRow(
     uint32_t row,
     uint32_t columnStart,
     uint32_t columnEnd,
@@ -332,7 +332,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
     --corrector;  // This is 0 based when used.
 
     auto originalRow = layer.read(row, row, columnStart, columnEnd);
-    auto* data = reinterpret_cast<float*>(originalRow->get());
+    auto* data = reinterpret_cast<float*>(originalRow.data());
 
     // Obtain cell resolution and SW origin (0,1,1,0).
     double swCornerX = 0., swCornerY = 0.;
@@ -457,7 +457,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
         {
             // The SEP should be accessed, up to entire row of all columns of Surface_Correction.
             const auto buffer = this->read(q, q, colRange[0], colRange[1]);
-            const auto* readbuf = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(buffer->get());
+            const auto* readbuf = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(buffer.data());
             const auto y1 = swCornerY + q * nodeSpacingY;
 
             for (auto u=colRange[0]; u<=colRange[1]; ++u)
@@ -513,7 +513,7 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readCorrectedRow(
 }
 
 //! \copydoc Layer::read
-std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
+UInt8Array SurfaceCorrections::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -536,13 +536,13 @@ std::unique_ptr<UInt8Array> SurfaceCorrections::readProxy(
         dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<UInt8Array>(bufferSize);
+    UInt8Array buffer{bufferSize};
 
     const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    m_pH5dataSet->read(buffer->get(), h5memDataType, h5memSpace, h5fileDataSpace);
+    m_pH5dataSet->read(buffer.data(), h5memDataType, h5memSpace, h5fileDataSpace);
 
     return buffer;
 }

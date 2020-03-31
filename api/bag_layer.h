@@ -36,7 +36,7 @@ public:
     LayerDescriptor& getDescriptor() & noexcept;
     const LayerDescriptor& getDescriptor() const & noexcept;
 
-    std::unique_ptr<UInt8Array> read(uint32_t rowStart,
+    UInt8Array read(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 
     void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
@@ -51,7 +51,7 @@ protected:
     std::weak_ptr<const Dataset> getDataset() const & noexcept;
 
 private:
-    virtual std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart,
+    virtual UInt8Array readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const = 0;
 
     virtual void writeProxy(uint32_t rowStart, uint32_t columnStart,

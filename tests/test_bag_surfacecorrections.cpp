@@ -147,8 +147,9 @@ TEST_CASE("test surface corrections create and write irregular",
 
     UNSCOPED_INFO("Read the record back.");
     auto result = corrections.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+    CHECK(result);
 
-    const auto* res = reinterpret_cast<const BAG::VerticalDatumCorrections*>(result->get());
+    const auto* res = reinterpret_cast<const BAG::VerticalDatumCorrections*>(result.data());
     CHECK(res->x == kExpectedItem0.x);
     CHECK(res->y == kExpectedItem0.y);
     CHECK(res->z[0] == kExpectedItem0.z[0]);
@@ -178,7 +179,7 @@ TEST_CASE("test surface corrections create and write gridded",
     constexpr BagVerticalDatumCorrectionsGridded kExpectedItem0{9.87f, 6.543f, 2.109876f};
 
     UNSCOPED_INFO("Write one record.");
-    const uint8_t* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
+    const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
     constexpr uint32_t kRowStart = 0;
     constexpr uint32_t kColumnStart = 0;
     constexpr uint32_t kRowEnd = 0;
@@ -188,8 +189,9 @@ TEST_CASE("test surface corrections create and write gridded",
 
     UNSCOPED_INFO("Read the record back.");
     auto result = corrections.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+    CHECK(result);
 
-    const auto* res = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(result->get());
+    const auto* res = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(result.data());
     CHECK(res->z[0] == kExpectedItem0.z[0]);
     CHECK(res->z[1] == kExpectedItem0.z[1]);
     CHECK(res->z[2] == kExpectedItem0.z[2]);

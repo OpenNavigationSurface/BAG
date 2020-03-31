@@ -63,7 +63,7 @@ private:
 
     void setValueTable(std::unique_ptr<ValueTable> table) noexcept;
 
-    std::unique_ptr<UInt8Array> readProxy(uint32_t rowStart, uint32_t columnStart,
+    UInt8Array readProxy(uint32_t rowStart, uint32_t columnStart,
         uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,

@@ -377,7 +377,7 @@ BagError bagRead(
     try
     {
         auto buffer = layer->read(start_row, start_col, end_row, end_col);
-        *data = buffer->release();
+        *data = buffer.release();
 
         // Get the position of the node.
         std::tie(*x, *y) = handle->dataset->gridToGeo(start_row, start_col);
@@ -902,7 +902,7 @@ BagError bagReadCorrectedDataset(
     auto correctedData = corrections->readCorrected(rowStart, rowEnd,
         columnStart, columnEnd, corrector, *layer);
 
-    *data = reinterpret_cast<float*>(correctedData->release());
+    *data = reinterpret_cast<float*>(correctedData.release());
 
     return BAG_SUCCESS;
 }
@@ -935,7 +935,7 @@ BagError bagReadCorrectedRegion(
     auto correctedData = corrections->readCorrected(rowStart, rowEnd,
         columnStart, columnEnd, corrector, *layer);
 
-    *data = reinterpret_cast<float*>(correctedData->release());
+    *data = reinterpret_cast<float*>(correctedData.release());
 
     return BAG_SUCCESS;
 }
@@ -970,7 +970,7 @@ BagError bagReadCorrectedRow(
     auto correctedData = corrections->readCorrectedRow(row, columnStart,
         columnEnd, corrector, *layer);
 
-    *data = reinterpret_cast<float*>(correctedData->release());
+    *data = reinterpret_cast<float*>(correctedData.release());
 
     return BAG_SUCCESS;
 }
@@ -1001,7 +1001,7 @@ BagError bagReadCorrectedNode(
     auto correctedData = corrections->readCorrectedRow(row, column,
         column, corrector, *layer);
 
-    *data = reinterpret_cast<float*>(correctedData->release());
+    *data = reinterpret_cast<float*>(correctedData.release());
 
     return BAG_SUCCESS;
 }
