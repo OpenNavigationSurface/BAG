@@ -149,14 +149,12 @@ ValueTable::ValueTable(
     hsize_t numRecords = 0;
     fileDataSpace.getSimpleExtentDims(&numRecords);
 
+    m_records.resize(numRecords);
+
     if (numRecords == 1)  // No user defined records.
         return;
 
-    // Do not include the empty (NDV) record.
-    --numRecords;
-    m_records.resize(numRecords);
-
-    constexpr hsize_t startIndex = 1;
+    constexpr hsize_t startIndex = 0;
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &startIndex);
 
     const auto& descriptor =
@@ -189,7 +187,7 @@ ValueTable::ValueTable(
     The record.
 
 \return
-    The number of records.
+    The index of the added record.
 */
 size_t ValueTable::addRecord(
     const Record& record)
@@ -295,6 +293,7 @@ const RecordDefinition& ValueTable::getDefinition() const & noexcept
 /*!
 \param recordIndex
     The index of the record.
+    Value must be greater than 0.
 \param name
     The name of the field.
 
@@ -306,7 +305,7 @@ const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     const std::string& name) const &
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
@@ -318,6 +317,7 @@ const CompoundDataType& ValueTable::getValue(
 /*!
 \param recordIndex
     The index of the record.
+    Must be greater than 0.
 \param fieldIndex
     The index of the field.
 
@@ -329,7 +329,7 @@ const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     size_t fieldIndex) const &
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const auto& definition = this->getDefinition();
@@ -388,6 +388,7 @@ const char* ValueTable::getFieldName(
 /*!
 \return
     All the records.
+    NOTE!  This includes the no data value record at index 0.
 */
 const Records& ValueTable::getRecords() const & noexcept
 {
@@ -398,6 +399,7 @@ const Records& ValueTable::getRecords() const & noexcept
 /*!
 \param recordIndex
     The record index.
+    Must be greater than 0.
 \param name
     The name of the field.
 \param value
@@ -408,7 +410,7 @@ void ValueTable::setValue(
     const std::string& name,
     const CompoundDataType& value)
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
@@ -420,6 +422,7 @@ void ValueTable::setValue(
 /*!
 \param recordIndex
     The record index.
+    Must be greater than 0.
 \param fieldIndex
     The index of the field.
 \param value
@@ -430,7 +433,7 @@ void ValueTable::setValue(
     size_t fieldIndex,
     const CompoundDataType& value)
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     auto& record = m_records[recordIndex];
@@ -482,9 +485,8 @@ bool ValueTable::validateRecord(
 //! Write a record to the HDF5 DataSet at the specified recordIndex.
 /*!
 \param recordIndex
-    The index to write the record to.  This does not include the empty (NDV)
-    record at index 0, so this value will need to be increased by 1 to allow for
-    that.
+    The index to write the record to.
+    Must be greater than 0.
 \param record
     The record to write.
 */
@@ -492,11 +494,10 @@ void ValueTable::writeRecord(
     size_t recordIndex,
     const Record& record)
 {
-    if (recordIndex > m_records.size())
+    if (recordIndex == 0 || recordIndex > m_records.size())
         throw InvalidRecordsIndex{};
 
-    // The record index must include the empty (NDV) record.
-    const hsize_t fileRecordIndex = recordIndex + 1;
+    const hsize_t fileRecordIndex = recordIndex;
 
     // Prepare the memory details.
     const auto rawMemory = this->convertRecordToRaw(record);
@@ -553,14 +554,14 @@ void ValueTable::writeRecords(
     // Prepare the file details.
     const auto& h5recordDataSet = m_layer.getRecordDataSet();
 
-    // Make room for the new records.  Account for the empty (NDV) record.
-    const hsize_t newNumRecords = m_records.size() + numRecords + 1;
+    // Make room for the new records.
+    const hsize_t newNumRecords = m_records.size() + numRecords;
     h5recordDataSet.extend(&newNumRecords);
 
     const auto fileDataSpace = h5recordDataSet.getSpace();
 
-    // specify the index to begin writing to.  account for the empty (NDV) record.
-    const hsize_t indexToModify = m_records.size() + 1;
+    // Specify the index to begin writing to.
+    const hsize_t indexToModify = m_records.size();
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &indexToModify);
 
     h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,

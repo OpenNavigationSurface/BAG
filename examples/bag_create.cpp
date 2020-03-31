@@ -262,10 +262,6 @@ int main(
         return EXIT_FAILURE;
     }
 
-    // Close out the BAG file (not necessary, just let it go out of scope).
-
-    dataset.reset();
-
     std::cout << "BAG created\n";
 
     return EXIT_SUCCESS;

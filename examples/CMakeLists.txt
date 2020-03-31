@@ -5,6 +5,7 @@ project(OpenNS_Examples LANGUAGES C CXX)
 # Define Sources
 #-----------------------------------------------------------------------------
 set(examples
+    bag_compound_layer
     bag_create
     bag_read
     bag_vr_create
@@ -30,7 +31,10 @@ foreach(example ${examples})
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
     )
 
-    target_link_libraries(${example} baglib)
+    target_link_libraries(${example}
+        PRIVATE
+        baglib
+    )
 
     set_target_properties(${example}
         PROPERTIES

@@ -102,7 +102,7 @@ int main(
     size_t itemNum = 0;
     for (const auto& item : trackingList)
     {
-        std::cout << "\tVR tracking list item #" << itemNum++ << '\n';
+        std::cout << "\tTracking list item #" << itemNum++ << '\n';
         std::cout << "\t\trow == " << item.row << '\n';
         std::cout << "\t\tcol == " << item.col << '\n';
         std::cout << "\t\tdepth == " << item.depth << '\n';
