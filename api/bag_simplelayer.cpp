@@ -4,6 +4,7 @@
 #include "bag_simplelayer.h"
 #include "bag_simplelayerdescriptor.h"
 
+#include <algorithm>
 #include <array>
 #include <H5Cpp.h>
 
@@ -118,9 +119,9 @@ SimpleLayer::createH5dataSet(
     constexpr float kFillValue = BAG_NULL_ELEVATION;
     h5createPropList.setFillValue(h5dataType, &kFillValue);
 
-    // Get chunk size (min 100) and compression level from the descriptor.
-    const auto chunkSize = descriptor.getChunkSize();
+    // Use chunk size and compression level from the descriptor.
     const auto compressionLevel = descriptor.getCompressionLevel();
+    const auto chunkSize = descriptor.getChunkSize();
     if (chunkSize > 0)
     {
         const std::array<hsize_t, kRank> chunkDims{chunkSize, chunkSize};

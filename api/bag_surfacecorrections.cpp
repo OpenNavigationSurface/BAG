@@ -7,6 +7,7 @@
 
 #include <array>
 #include <cmath>
+#include <cstring>  // memset
 #include <H5Cpp.h>
 
 

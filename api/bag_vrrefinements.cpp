@@ -5,6 +5,7 @@
 #include "bag_vrrefinementsdescriptor.h"
 
 #include <array>
+#include <cstring>  //memset
 #include <H5Cpp.h>
 
 
@@ -153,26 +154,25 @@ VRRefinements::createH5dataSet(
     constexpr hsize_t kMaxFileLength = H5S_UNLIMITED;
     const ::H5::DataSpace h5fileDataSpace{1, &fileLength, &kMaxFileLength};
 
-    // Use chunk size and compression level from the descriptor.
-    const auto chunkSize = descriptor.getChunkSize();
-    const auto compressionLevel = descriptor.getCompressionLevel();
-
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+    // Use chunk size and compression level from the descriptor.
+    const hsize_t chunkSize = descriptor.getChunkSize();
+    const auto compressionLevel = descriptor.getCompressionLevel();
+    if (chunkSize > 0)
     {
         h5createPropList.setChunk(1, &chunkSize);
-        h5createPropList.setDeflate(compressionLevel);
+
+        if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+            h5createPropList.setDeflate(compressionLevel);
     }
+    else if (compressionLevel > 0)
+        throw CompressionNeedsChunkingSet{};
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
     const auto memDataType = makeDataType();
-
-    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
-    memset(zeroData->get(), 0, descriptor.getElementSize());
-    h5createPropList.setFillValue(memDataType, zeroData.get());
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();

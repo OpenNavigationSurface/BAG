@@ -30,6 +30,7 @@
 #include <numeric>
 #include <sstream>
 #include <string>
+#include <string.h>
 
 #ifdef _MSC_VER
 #pragma warning(pop)

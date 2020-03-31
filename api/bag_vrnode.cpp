@@ -5,6 +5,7 @@
 #include "bag_vrnodedescriptor.h"
 
 #include <array>
+#include <cstring>  //memset
 #include <H5Cpp.h>
 
 
