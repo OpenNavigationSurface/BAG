@@ -1,8 +1,8 @@
 
 #include "bag_hdfhelper.h"
 #include "bag_private.h"
-#include "bag_vrrefinement.h"
-#include "bag_vrrefinementdescriptor.h"
+#include "bag_vrrefinements.h"
+#include "bag_vrrefinementsdescriptor.h"
 
 #include <array>
 #include <H5Cpp.h>
@@ -12,25 +12,37 @@ namespace BAG {
 
 namespace {
 
+//! Create an HDF5 CompType for the variable resolution refinements layer.
+/*!
+\return
+    The HDF5 CompType for the variable resolution refinements layer.
+*/
 ::H5::CompType makeDataType()
 {
-    const ::H5::CompType memDataType{sizeof(VRRefinementItem)};
+    const ::H5::CompType memDataType{sizeof(BagVRRefinementsItem)};
 
-    memDataType.insertMember("depth", HOFFSET(VRRefinementItem, depth),
+    memDataType.insertMember("depth", HOFFSET(BagVRRefinementsItem, depth),
         ::H5::PredType::NATIVE_FLOAT);
-    memDataType.insertMember("depth_uncrt", HOFFSET(VRRefinementItem, depth_uncrt),
+    memDataType.insertMember("depth_uncrt", HOFFSET(BagVRRefinementsItem, depth_uncrt),
         ::H5::PredType::NATIVE_FLOAT);
 
     return memDataType;
 }
 
+//! Read an attribute from an HDF5 DataSet.
+/*!
+\param h5file
+    The HDF5 file.
+\param name
+    The attribute name.
+*/
 template<typename T>
 T readAttribute(
     const ::H5::H5File& h5file,
-    const char* const attributeName)
+    const char* const name)
 {
     const auto h5DataSet = h5file.openDataSet(VR_REFINEMENT_PATH);
-    const auto attribute = h5DataSet.openAttribute(attributeName);
+    const auto attribute = h5DataSet.openAttribute(name);
 
     T value{};
     attribute.read(attribute.getDataType(), &value);
@@ -40,32 +52,63 @@ T readAttribute(
 
 }  // namespace
 
-VRRefinement::VRRefinement(
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param h5dataSet
+    The HDF5 DataSet that stores this layer.
+*/
+VRRefinements::VRRefinements(
     Dataset& dataset,
-    VRRefinementDescriptor& descriptor,
+    VRRefinementsDescriptor& descriptor,
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet)
     : Layer(dataset, descriptor)
     , m_pH5dataSet(std::move(h5dataSet))
 {
 }
 
-std::unique_ptr<VRRefinement> VRRefinement::create(
+//! Create a new variable resolution refinements layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The new variable resolution refinements layer.
+*/
+std::unique_ptr<VRRefinements> VRRefinements::create(
     Dataset& dataset,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
-    auto descriptor = VRRefinementDescriptor::create(dataset, chunkSize,
+    auto descriptor = VRRefinementsDescriptor::create(dataset, chunkSize,
         compressionLevel);
 
-    auto h5dataSet = VRRefinement::createH5dataSet(dataset, *descriptor);
+    auto h5dataSet = VRRefinements::createH5dataSet(dataset, *descriptor);
 
-    return std::unique_ptr<VRRefinement>(new VRRefinement{dataset,
+    return std::unique_ptr<VRRefinements>(new VRRefinements{dataset,
         *descriptor, std::move(h5dataSet)});
 }
 
-std::unique_ptr<VRRefinement> VRRefinement::open(
+//! Open an existing variable resolution refinements layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The existing variable resolution refinements layer.
+*/
+std::unique_ptr<VRRefinements> VRRefinements::open(
     Dataset& dataset,
-    VRRefinementDescriptor& descriptor)
+    VRRefinementsDescriptor& descriptor)
 {
     auto& h5file = dataset.getH5file();
 
@@ -86,36 +129,50 @@ std::unique_ptr<VRRefinement> VRRefinement::open(
         new ::H5::DataSet{h5file.openDataSet(VR_REFINEMENT_PATH)},
             DeleteH5dataSet{});
 
-    return std::unique_ptr<VRRefinement>(new VRRefinement{dataset,
+    return std::unique_ptr<VRRefinements>(new VRRefinements{dataset,
         descriptor, std::move(h5dataSet)});
 }
 
 
-std::unique_ptr<::H5::DataSet, VRRefinement::DeleteH5dataSet>
-VRRefinement::createH5dataSet(
+//! Create a new HDF5 DataSet for this variable resolution refinements layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    A new HDF5 DataSet.
+*/
+std::unique_ptr<::H5::DataSet, VRRefinements::DeleteH5dataSet>
+VRRefinements::createH5dataSet(
     const Dataset& dataset,
-    const VRRefinementDescriptor& descriptor)
+    const VRRefinementsDescriptor& descriptor)
 {
     constexpr hsize_t fileLength = 0;
     constexpr hsize_t kMaxFileLength = H5S_UNLIMITED;
     const ::H5::DataSpace h5fileDataSpace{1, &fileLength, &kMaxFileLength};
 
+    // Use chunk size and compression level from the descriptor.
+    const auto chunkSize = descriptor.getChunkSize();
+    const auto compressionLevel = descriptor.getCompressionLevel();
+
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    h5createPropList.setLayout(H5D_CHUNKED);
-
-    // Get chunk size (min 100) and compression level from the descriptor.
-    const auto chunkSize = std::max(100ull, descriptor.getChunkSize());
-    h5createPropList.setChunk(1, &chunkSize);
-
-    const auto compressionLevel = descriptor.getCompressionLevel();
     if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+    {
+        h5createPropList.setChunk(1, &chunkSize);
         h5createPropList.setDeflate(compressionLevel);
+    }
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
     const auto memDataType = makeDataType();
+
+    auto zeroData = std::make_unique<UInt8Array>(descriptor.getElementSize());
+    memset(zeroData->get(), 0, descriptor.getElementSize());
+    h5createPropList.setFillValue(memDataType, zeroData.get());
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
@@ -140,14 +197,15 @@ VRRefinement::createH5dataSet(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
+//! \copydoc Layer::read
 //! Ignore rows since the data is 1 dimensional.
-std::unique_ptr<UInt8Array> VRRefinement::readProxy(
+std::unique_ptr<UInt8Array> VRRefinements::readProxy(
     uint32_t /*rowStart*/,
     uint32_t columnStart,
     uint32_t /*rowEnd*/,
     uint32_t columnEnd) const
 {
-    if (!dynamic_cast<const VRRefinementDescriptor*>(&this->getDescriptor()))
+    if (!dynamic_cast<const VRRefinementsDescriptor*>(&this->getDescriptor()))
         throw UnexpectedLayerDescriptorType{};
 
     // Query the file for the specified rows and columns.
@@ -158,7 +216,7 @@ std::unique_ptr<UInt8Array> VRRefinement::readProxy(
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
 
     const auto& descriptor =
-        dynamic_cast<const VRRefinementDescriptor&>(this->getDescriptor());
+        dynamic_cast<const VRRefinementsDescriptor&>(this->getDescriptor());
 
     const auto bufferSize = descriptor.getReadBufferSize(1,
         static_cast<uint32_t>(columns));
@@ -173,15 +231,45 @@ std::unique_ptr<UInt8Array> VRRefinement::readProxy(
     return buffer;
 }
 
+//! \copydoc Layer::writeAttributes
+void VRRefinements::writeAttributesProxy() const
+{
+    if (!dynamic_cast<const VRRefinementsDescriptor*>(&this->getDescriptor()))
+        throw UnexpectedLayerDescriptorType{};
+
+    const auto& descriptor =
+        dynamic_cast<const VRRefinementsDescriptor&>(this->getDescriptor());
+
+    // Write the attributes from the layer descriptor.
+    // min/max depth
+    const auto minMaxDepth = descriptor.getMinMaxDepth();
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::get<0>(minMaxDepth), VR_REFINEMENT_MIN_DEPTH);
+
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::get<1>(minMaxDepth), VR_REFINEMENT_MAX_DEPTH);
+
+    // min/max uncertainty
+    const auto minMaxUncertainty = descriptor.getMinMaxUncertainty();
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::get<0>(minMaxUncertainty), VR_REFINEMENT_MIN_UNCERTAINTY);
+
+    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
+        std::get<1>(minMaxUncertainty), VR_REFINEMENT_MAX_UNCERTAINTY);
+}
+
+//! \copydoc Layer::write
 //! Ignore rows since the data is 1 dimensional.
-void VRRefinement::writeProxy(
+void VRRefinements::writeProxy(
     uint32_t /*rowStart*/,
     uint32_t columnStart,
     uint32_t /*rowEnd*/,
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    if (!dynamic_cast<VRRefinementDescriptor*>(&this->getDescriptor()))
+    auto* descriptor = dynamic_cast<VRRefinementsDescriptor*>(
+        &this->getDescriptor());
+    if (!descriptor)
         throw UnexpectedLayerDescriptorType{};
 
     const hsize_t columns = (columnEnd - columnStart) + 1;
@@ -221,18 +309,15 @@ void VRRefinement::writeProxy(
     m_pH5dataSet->write(buffer, memDataType, memDataSpace, fileDataSpace);
 
     // Update min/max attributes
-    auto& descriptor =
-        dynamic_cast<VRRefinementDescriptor&>(this->getDescriptor());
-
     // Get the current min/max from descriptor.
     float minDepth = 0.f, maxDepth = 0.f;
-    std::tie(minDepth, maxDepth) = descriptor.getMinMaxDepth();
+    std::tie(minDepth, maxDepth) = descriptor->getMinMaxDepth();
 
     float minUncert = 0.f, maxUncert = 0.f;
-    std::tie(minUncert, maxUncert) = descriptor.getMinMaxUncertainty();
+    std::tie(minUncert, maxUncert) = descriptor->getMinMaxUncertainty();
 
     // Update the min/max from new data.
-    const auto* items = reinterpret_cast<const VRRefinementItem*>(buffer);
+    const auto* items = reinterpret_cast<const BagVRRefinementsItem*>(buffer);
 
     auto* item = items;
     const auto end = items + columns;
@@ -246,37 +331,11 @@ void VRRefinement::writeProxy(
         maxUncert = item->depth_uncrt > maxUncert ? item->depth_uncrt : maxUncert;
     }
 
-    descriptor.setMinMaxDepth(minDepth, maxDepth);
-    descriptor.setMinMaxUncertainty(minUncert, maxUncert);
+    descriptor->setMinMaxDepth(minDepth, maxDepth);
+    descriptor->setMinMaxUncertainty(minUncert, maxUncert);
 }
 
-void VRRefinement::writeAttributesProxy() const
-{
-    if (!dynamic_cast<const VRRefinementDescriptor*>(&this->getDescriptor()))
-        throw UnexpectedLayerDescriptorType{};
-
-    const auto& descriptor =
-        dynamic_cast<const VRRefinementDescriptor&>(this->getDescriptor());
-
-    // Write the attributes from the layer descriptor.
-    // min/max depth
-    const auto minMaxDepth = descriptor.getMinMaxDepth();
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
-        std::get<0>(minMaxDepth), VR_REFINEMENT_MIN_DEPTH);
-
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
-        std::get<1>(minMaxDepth), VR_REFINEMENT_MAX_DEPTH);
-
-    // min/max uncertainty
-    const auto minMaxUncertainty = descriptor.getMinMaxUncertainty();
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
-        std::get<0>(minMaxUncertainty), VR_REFINEMENT_MIN_UNCERTAINTY);
-
-    writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
-        std::get<1>(minMaxUncertainty), VR_REFINEMENT_MAX_UNCERTAINTY);
-}
-
-void VRRefinement::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
+void VRRefinements::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
 {
     delete ptr;
 }

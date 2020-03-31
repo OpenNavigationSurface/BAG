@@ -15,8 +15,8 @@
 #include "bag_vrmetadatadescriptor.h"
 #include "bag_vrnode.h"
 #include "bag_vrnodedescriptor.h"
-#include "bag_vrrefinement.h"
-#include "bag_vrrefinementdescriptor.h"
+#include "bag_vrrefinements.h"
+#include "bag_vrrefinementsdescriptor.h"
 #include "bag_vrtrackinglist.h"
 
 #ifdef _MSC_VER
@@ -165,7 +165,7 @@ BagError bagCreateFromFile(
     //TODO Where do these values come from?
     // Thinking parameters to this function.
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pHandle = std::make_unique<BagHandle>();
 
@@ -196,7 +196,7 @@ BagError bagCreateFromBuffer(
     //TODO Where do these values come from?
     // Thinking parameters to this function.
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pHandle = std::make_unique<BagHandle>();
 
@@ -225,7 +225,7 @@ BagError bagCreateLayer(
     //TODO Where do these values come from?
     // Thinking parameters to this function.
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     try
     {
@@ -2330,12 +2330,12 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxDepth(
     if (!minDepth || !maxDepth)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* vrRefinement = handle->dataset->getVRRefinement();
+    auto* vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
     auto* descriptor =
-        dynamic_cast<BAG::VRRefinementDescriptor*>(&vrRefinement->getDescriptor());
+        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
     if (!descriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -2355,12 +2355,12 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxUncertainty(
     if (!minUncert || !maxUncert)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* vrRefinement = handle->dataset->getVRRefinement();
+    auto* vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
     auto* descriptor =
-        dynamic_cast<BAG::VRRefinementDescriptor*>(&vrRefinement->getDescriptor());
+        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
     if (!descriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -2377,12 +2377,12 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxDepth(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrRefinement = handle->dataset->getVRRefinement();
+    auto* vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
     auto* descriptor =
-        dynamic_cast<BAG::VRRefinementDescriptor*>(&vrRefinement->getDescriptor());
+        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
     if (!descriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -2416,12 +2416,12 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxUncertainty(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrRefinement = handle->dataset->getVRRefinement();
+    auto* vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
     auto* descriptor =
-        dynamic_cast<BAG::VRRefinementDescriptor*>(&vrRefinement->getDescriptor());
+        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
     if (!descriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 

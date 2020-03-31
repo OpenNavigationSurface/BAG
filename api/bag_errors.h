@@ -10,14 +10,14 @@
 #ifndef BAG_ERRORS_H
 #define BAG_ERRORS_H
 
-/*! Definitions for error conditions */
+//! Definitions for error conditions
 #define BAG_GENERAL_ERROR_BASE                    0
 #define BAG_CRYPTO_ERROR_BASE                   200
 #define BAG_METADATA_ERROR_BASE                 400
 #define BAG_HDFV_ERROR_BASE                     600
 #define BAG_NEW_METADATA_ERROR_BASE            1000
 
-/*! General error conditions, including success */
+//! General error conditions, including success
 enum BAG_ERRORS {
     BAG_SUCCESS                                =   0, /*!< Normal, successful completion */
     BAG_BAD_FILE_IO_OPERATION                  =   1, /*!< A basic file IO operation failed */

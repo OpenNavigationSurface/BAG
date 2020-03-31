@@ -1,6 +1,8 @@
 #ifndef BAG_FORDEC_H
 #define BAG_FORDEC_H
 
+//! Forward declarations of BAG C++ classes.
+
 namespace BAG
 {
 
@@ -23,11 +25,11 @@ class VRMetadata;
 class VRMetadataDescriptor;
 class VRNode;
 class VRNodeDescriptor;
-class VRRefinement;
-class VRRefinementDescriptor;
+class VRRefinements;
+class VRRefinementsDescriptor;
 class VRTrackingList;
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_FORDEC_H
+#endif  // BAG_FORDEC_H
 

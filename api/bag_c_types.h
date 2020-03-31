@@ -8,97 +8,100 @@
 extern "C" {
 #endif
 
-#define BAG_NULL_ELEVATION      1000000
-#define BAG_NULL_GENERIC        1000000
-#define BAG_NULL_UNCERTAINTY    1000000
-
+//! The bag error.
 typedef uint32_t BagError;
 
+//! The types of layers.
 enum BAG_LAYER_TYPE
 {
-    Elevation = 0,
-    Uncertainty = 1,
-    Hypothesis_Strength = 2,
-	Num_Hypotheses = 3,
-	Shoal_Elevation = 4,
-	Std_Dev	= 5,
-	Num_Soundings = 6,
-	Average_Elevation = 7,
-	Nominal_Elevation = 8,
-    Surface_Correction = 9,
-    Compound = 10,
-    VarRes_Metadata = 11,
-    VarRes_Refinement = 12,
-    VarRes_Node = 13,
+    Elevation = 0,  //!< The mandatory elevation layer.
+    Uncertainty = 1,  //!< The mandatory uncertainty layer.
+    Hypothesis_Strength = 2,  //!< The optional hypothesis strength layer.
+	Num_Hypotheses = 3,  //!< The optional number of hypothesis layer.
+	Shoal_Elevation = 4,  //!< The optional shoal elevation layer.
+	Std_Dev	= 5,  //!< The optional standard deviation layer.
+	Num_Soundings = 6,  //!< The optional number of soundings layer.
+	Average_Elevation = 7,  //!< The optional average elevation layer.
+	Nominal_Elevation = 8,  //!< The optional nominal elevation layer.
+    Surface_Correction = 9,  //!< The optional surface correction layer.
+    Compound = 10,  //!< The optional compound layer (there can be many; the name must be unique).
+    VarRes_Metadata = 11,  //!< The optional variable resolution metadata layer.
+    VarRes_Refinement = 12,  //!< The optional variable resolution refinement layer.
+    VarRes_Node = 13,  //!< The optional variable resolution node layer.
     UNKNOWN_LAYER_TYPE,
 };
 
-/* Definitions for file open access modes */
+//! Definitions for file open access modes
 enum BAG_OPEN_MODE
 {
-    BAG_OPEN_READONLY   = 1,
-    BAG_OPEN_READ_WRITE = 2,
+    BAG_OPEN_READONLY   = 1,  //!< Open the BAG read only.  It cannot be written to.
+    BAG_OPEN_READ_WRITE = 2,  //!< Open the BAG for reading and writing.
 };
 
+//! The types of data known to BAG.
 enum BAG_DATA_TYPE
 {
-    DT_FLOAT32 = 0,
-    DT_UINT32,
-    DT_UINT8,
-    DT_UINT16,
-    DT_UINT64,
-    DT_BOOLEAN,
-    DT_STRING,
-    DT_COMPOUND,
+    DT_FLOAT32 = 0,  //!< A 32 bit floating point value.
+    DT_UINT32,  //!< A 32 bit unsigned integer.
+    DT_UINT8,  //!< An 8 bit unsigned integer.
+    DT_UINT16,  //!< A 16 bit unsigned integer.
+    DT_UINT64,  //!< A 64 bit unsigned integer.
+    DT_BOOLEAN,  //!< A boolean value.
+    DT_STRING,  //!< A string value.
+    DT_COMPOUND,  //!< A compound type of one or more of the above.
     DT_UNKNOWN_DATA_TYPE,
 };
 
 //! The type of interleaved group.
 enum BAG_GROUP_TYPE
 {
-    NODE = 0,
-    ELEVATION,
-    UNKNOWN_GROUP_TYPE,
+    NODE = 0,  //!< The NODE group type.
+    ELEVATION,  //!< The ELEVATION group type.
+    UNKNOWN_GROUP_TYPE,  //!< Unknown group type.
 };
 
-/* tracking list structure */
+//! An item in the Tracking List.
 struct BagTrackingItem
 {
-    //! location of the node of the BAG that was modified
+    //! The row of the node of the BAG that was modified.
     uint32_t row;
+    //! The column of the node of the BAG that was modified.
     uint32_t col;
-    //! original depth before this change
+    //! The original depth before this change.
     float depth;
-    //! original uncertainty before this change
+    //! The original uncertainty before this change.
     float uncertainty;
-    //! reason code indicating why the modification was made
+    //! The reason code indicating why the modification was made.
     uint8_t track_code;
-    //! index number indicating the item in the metadata that describes the modifications
+    //! The index number indicating the item in the metadata that describes the modifications.
     uint16_t list_series;
 };
 
-/* VR tracking list structure */
+//! An item in the variable resolution tracking list.
 struct BagVRTrackingItem
 {
-    //! location of the node of the BAG that was modified
+    //! The row of the node of the BAG that was modified.
     uint32_t row;
+    //! The column of the node of the BAG that was modified.
     uint32_t col;
-    //! location within the refined grid that was modified
+    //! The row within the refined grid that was modified.
     uint32_t sub_row;
+    //! The column within the refined grid that was modified.
     uint32_t sub_col;
-    //! original depth before this change
+    //! The original depth before this change.
     float depth;
-    //! original uncertainty before this change
+    //! The original uncertainty before this change.
     float uncertainty;
-    //! reason code indicating why the modification was made
+    //! The reason code indicating why the modification was made.
     uint8_t track_code;
-    //! index number indicating the item in the metadata that describes the modifications
+    //! The index number indicating the item in the metadata that describes the modifications.
     uint16_t list_series;
 };
 
-//! The type found in the variable resolution metadata layer.
+//! An item in the variable resolution metadata layer.
 struct BagVRMetadataItem
 {
+    //! The index.
     uint32_t index;
     //! Number of nodes in easting
     uint32_t dimensions_x;
@@ -114,38 +117,50 @@ struct BagVRMetadataItem
     float sw_corner_y;
 };
 
-//! The type found in the variable resolution refinement layer.
-struct BagVRRefinementItem
+//! An item in the variable resolution refinements layer.
+struct BagVRRefinementsItem
 {
+    //! The depth.
     float depth;
+    //! The uncertainty.
     float depth_uncrt;
 };
 
-//! The type found in the variable resolution node layer.
+//! An item in the variable resolution node layer.
 struct BagVRNodeItem
 {
+    //! Hypotheses strength.
     float hyp_strength;
+    //! Number of hypotheses.
     uint32_t num_hypotheses;
+    //! Number of samples.
     uint32_t n_samples;
 };
 
+//! The surface topography.
 enum BAG_SURFACE_CORRECTION_TOPOGRAPHY {
-    BAG_SURFACE_UNKNOWN = 0,        /* Unknown */
-    BAG_SURFACE_GRID_EXTENTS,       /* Optional corrector dataset grid coordinates, spanning the required BAG surface extents */
-    BAG_SURFACE_IRREGULARLY_SPACED, /* Irregularly spaced corrector values in optional corrector dataset */
+    BAG_SURFACE_UNKNOWN = 0,        //!< Unknown
+    BAG_SURFACE_GRID_EXTENTS,       //!< Optional corrector dataset grid coordinates, spanning the required BAG surface extents
+    BAG_SURFACE_IRREGULARLY_SPACED, //!< Irregularly spaced corrector values in optional corrector dataset
 };
 
 #define BAG_SURFACE_CORRECTOR_LIMIT 10  // The maximum number of datum correctors per BagVerticalDatumCorrections
 
+//! An item in a surface corrections layer when the type is BAG_SURFACE_IRREGULARLY_SPACED.
 struct BagVerticalDatumCorrections
 {
+    //! The X correction.
     double x;
+    //! The Y correction.
     double y;
+    //! The correctors.
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
+//! An item in a surface corrections layer when the type is BAG_SURFACE_GRID_EXTENTS.
 struct BagVerticalDatumCorrectionsGridded
 {
+    //! The correctors.
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
@@ -181,6 +196,10 @@ struct BagCompoundDataType
         char* c;
     } data;
 };
+
+#define BAG_NULL_ELEVATION      1000000  // A "null" elevation value.
+#define BAG_NULL_GENERIC        1000000  // A "null" generic value.
+#define BAG_NULL_UNCERTAINTY    1000000  // A "null" uncertainty value.
 
 #ifdef __cplusplus
 }  // extern "C"

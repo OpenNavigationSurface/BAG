@@ -15,12 +15,13 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a list of populated records in the compound layer.
 class BAG_API ValueTable final
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     ValueTable(const ValueTable&) = delete;
     ValueTable(ValueTable&&) = delete;
+
     ValueTable& operator=(const ValueTable&) = delete;
     ValueTable& operator=(ValueTable&&) = delete;
 
@@ -49,7 +50,7 @@ private:
     std::vector<uint8_t> convertRecordsToRaw(
         const std::vector<Record>& records) const;
 
-    bool validateRecord(const Record& record) const noexcept;
+    bool validateRecord(const Record& record) const;
 
     void writeRecord(size_t recordIndex, const Record& record);
     void writeRecords(const std::vector<Record>& records);

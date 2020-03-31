@@ -391,7 +391,7 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
         const auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             chunkSize, compressionLevel);
         REQUIRE(pDataset);

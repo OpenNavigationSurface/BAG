@@ -6,45 +6,46 @@
 #include <memory>
 
 
-struct BagHandle {
+//! The "bucket" used by the C interface.
+struct BagHandle
+{
+    //! The BAG Dataset that holds all the BAG information.
     std::shared_ptr<BAG::Dataset> dataset;
 };
 
 namespace BAG
 {
 
-constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
-constexpr auto VARRES_TRACKING_LIST_BLOCK_SIZE = 1024;
+//! The maximum compression level supported by HDF5.
+constexpr int kMaxCompressionLevel = 9;
 
-constexpr unsigned int kMaxCompressionLevel = 9;
-
-/*! Path names for BAG entities */
+//! Path names for BAG entities
 #define ROOT_PATH                       "/BAG_root"
 #define METADATA_PATH                   ROOT_PATH "/metadata"
 #define ELEVATION_PATH                  ROOT_PATH "/elevation"
 #define UNCERTAINTY_PATH                ROOT_PATH "/uncertainty"
 #define TRACKING_LIST_PATH              ROOT_PATH "/tracking_list"
 
-/*! Path names for optional BAG entities */
+//! Path names for optional BAG entities
 #define NOMINAL_ELEVATION_PATH          ROOT_PATH "/nominal_elevation"
 #define VERT_DATUM_CORR_PATH            ROOT_PATH "/vertical_datum_corrections"
-#define HYPOTHESIS_STRENGTH_PATH        ROOT_PATH "/hypotheses_strength"  //TODO Discuss this.
+#define HYPOTHESIS_STRENGTH_PATH        ROOT_PATH "/hypotheses_strength"
 #define NUM_HYPOTHESES_PATH             ROOT_PATH "/num_hypotheses"
 #define AVERAGE_PATH			        ROOT_PATH "/average"
 #define NODE_GROUP_PATH			        ROOT_PATH "/node"
 #define ELEVATION_SOLUTION_GROUP_PATH   ROOT_PATH "/elevation_solution"
-#define SHOAL_ELEVATION_PATH            ROOT_PATH "/shoal_elevation"  //TODO Discuss this.
+#define SHOAL_ELEVATION_PATH            ROOT_PATH "/shoal_elevation"
 #define STANDARD_DEV_PATH	            ROOT_PATH "/standard_dev"
-#define NUM_SOUNDINGS_PATH              ROOT_PATH "/num_soundings"  //TODO Discuss this.
+#define NUM_SOUNDINGS_PATH              ROOT_PATH "/num_soundings"
 #define COMPOUND_PATH                   ROOT_PATH "/Georef_metadata/"
 
-/*! Path names for optional VR BAG entities */
+//! Path names for optional VR BAG entities
 #define VR_TRACKING_LIST_PATH           ROOT_PATH "/varres_tracking_list"
 #define VR_METADATA_PATH                ROOT_PATH "/varres_metadata"
 #define VR_REFINEMENT_PATH              ROOT_PATH "/varres_refinements"
 #define VR_NODE_PATH                    ROOT_PATH "/varres_nodes"
 
-/*! Names for BAG Attributes */
+//! Names for BAG Attributes
 #define BAG_VERSION_NAME                "Bag Version"                /*!< Name for version attribute, value set in bag.h */
 
 #define	MIN_ELEVATION_NAME              "Minimum Elevation Value"    /*!< Name for min elevation attribute, value stored in bagData */

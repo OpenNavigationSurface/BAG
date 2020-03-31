@@ -9,6 +9,7 @@
 
 #include <memory>
 
+
 namespace H5 {
 
 class DataSet;
@@ -22,17 +23,25 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for an interleaved layer.
+/*!
+    This class is only here to support older (pre 2.0) BAGs that have an optional
+    layer of NODE or ELEVATION group type.
+    In 2.0, these "interleaved" layers are split up into layers of each type in
+    the group.
+    The NODE group is made of Hypothesis_Strength and Num_Hypotheses.
+    The ELEVATION group is made of Shoal_Elevation, Std_Dev and Num_Soundings.
+*/
 class BAG_API InterleavedLayer final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     InterleavedLayer(const InterleavedLayer&) = delete;
     InterleavedLayer(InterleavedLayer&&) = delete;
+
     InterleavedLayer& operator=(const InterleavedLayer&) = delete;
     InterleavedLayer& operator=(InterleavedLayer&&) = delete;
 
 protected:
-
     InterleavedLayer(Dataset& dataset,
         InterleavedLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);

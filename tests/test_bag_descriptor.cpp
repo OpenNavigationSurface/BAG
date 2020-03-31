@@ -346,14 +346,16 @@ TEST_CASE("test descriptor constructors and destructor",
 
 //  std::vector<LayerType> getLayerTypes() const;
 TEST_CASE("test descriptor get layer types",
-    "[descriptor][getLayerTypes][addLayerDescriptor]")
+    "[descriptor][getLayerTypes]")
 {
-    Descriptor descriptor;
+	{
+		Descriptor descriptor;
 
-    UNSCOPED_INFO("Verify getting layer types when there are none does not throw.");
-    REQUIRE_NOTHROW(descriptor.getLayerTypes());
-    UNSCOPED_INFO("Verify there are no layer types by default.");
-    CHECK(descriptor.getLayerTypes().size() == 0);
+		UNSCOPED_INFO("Verify getting layer types when there are none does not throw.");
+		REQUIRE_NOTHROW(descriptor.getLayerTypes());
+		UNSCOPED_INFO("Verify there are no layer types by default.");
+		CHECK(descriptor.getLayerTypes().size() == 0);
+	}
 
     TestUtils::RandomFileGuard tmpBagFile;
 
@@ -361,19 +363,13 @@ TEST_CASE("test descriptor get layer types",
     metadata.loadFromBuffer(kXMLv2MetadataBuffer);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata), chunkSize,
         compressionLevel);
     REQUIRE(pDataset);
 
-    for (auto type : {Elevation, Uncertainty})
-    {
-        UNSCOPED_INFO("Verify adding a layer descriptor does not throw.");
-        REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(*pDataset, type, chunkSize,
-				compressionLevel)));
-    }
+	auto& descriptor = pDataset->getDescriptor();
 
     UNSCOPED_INFO("Verify getting layer types when there are some does not throw.");
     REQUIRE_NOTHROW(descriptor.getLayerTypes());
@@ -415,29 +411,21 @@ TEST_CASE("test descriptor is/set read only",
 
 //  const std::vector<LayerDescriptor>& getLayerDescriptors() const & noexcept;
 TEST_CASE("test descriptor get layer descriptors",
-    "[descriptor][addLayerDescriptor][getLayerDescriptors]")
+    "[descriptor][getLayerDescriptors]")
 {
-    Descriptor descriptor;
-
     TestUtils::RandomFileGuard tmpBagFile;
 
     Metadata metadata;
     metadata.loadFromBuffer(kXMLv2MetadataBuffer);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata), chunkSize,
         compressionLevel);
     REQUIRE(pDataset);
 
-    for (auto type : {Elevation, Uncertainty})
-    {
-        UNSCOPED_INFO("Verify adding a layer descriptor does not throw.");
-        REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(*pDataset, type, chunkSize,
-				compressionLevel)));
-    }
+	auto& descriptor = pDataset->getDescriptor();
 
     UNSCOPED_INFO("Verify getting layer descriptors when there are some does not throw.");
     REQUIRE_NOTHROW(descriptor.getLayerDescriptors());
@@ -446,14 +434,16 @@ TEST_CASE("test descriptor get layer descriptors",
     CHECK(layerDescriptors.size() == 2);
 }
 
-//  const LayerDescriptor& getLayerDescriptor(size_t id) const &;
+//  const LayerDescriptor& getLayerDescriptor(uint32_t id) const &;
 TEST_CASE("test descriptor get layer descriptor",
     "[descriptor][addLayerDescriptor][getLayerDescriptor]")
 {
-    Descriptor descriptor;
+	{
+		Descriptor descriptor;
 
-    UNSCOPED_INFO("Verify looking for a non-existing layer descriptor throws.");
-    REQUIRE_THROWS(descriptor.getLayerDescriptor(Elevation));
+		UNSCOPED_INFO("Verify looking for a non-existing layer descriptor throws.");
+		REQUIRE_THROWS(descriptor.getLayerDescriptor(42));
+	}
 
     TestUtils::RandomFileGuard tmpBagFile;
 
@@ -461,19 +451,13 @@ TEST_CASE("test descriptor get layer descriptor",
     metadata.loadFromBuffer(kXMLv2MetadataBuffer);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata), chunkSize,
         compressionLevel);
     REQUIRE(pDataset);
 
-    for (auto type : {Elevation, Uncertainty})
-    {
-        UNSCOPED_INFO("Verify adding Elevation and Uncertainty layer descriptors does not throw.");
-        REQUIRE_NOTHROW(descriptor.addLayerDescriptor(
-            *SimpleLayerDescriptor::create(*pDataset, type, chunkSize,
-				compressionLevel)));
-    }
+	auto& descriptor = pDataset->getDescriptor();
 
     UNSCOPED_INFO("Verify layer descriptor Elevation exists.");
     REQUIRE_NOTHROW(descriptor.getLayerDescriptor(Elevation));

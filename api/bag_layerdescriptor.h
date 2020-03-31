@@ -17,19 +17,20 @@
 
 namespace BAG {
 
+//! Describe a layer.
 class BAG_API LayerDescriptor : public std::enable_shared_from_this<LayerDescriptor>
 {
 public:
     virtual ~LayerDescriptor() = default;
 
-    //TODO Temp, make sure only move operations are used until development is done.
     LayerDescriptor(const LayerDescriptor&) = delete;
     LayerDescriptor(LayerDescriptor&&) = delete;
+
     LayerDescriptor& operator=(const LayerDescriptor&) = delete;
     LayerDescriptor& operator=(LayerDescriptor&&) = delete;
 
     uint64_t getChunkSize() const noexcept;
-    unsigned int getCompressionLevel() const noexcept;
+    int getCompressionLevel() const noexcept;
     DataType getDataType() const noexcept;
     uint8_t getElementSize() const noexcept;
     uint32_t getId() const noexcept;
@@ -43,7 +44,7 @@ public:
 
 protected:
     LayerDescriptor(uint32_t id, std::string internalPath, std::string name,
-        LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
+        LayerType type, uint64_t chunkSize, int compressionLevel);
     LayerDescriptor(const Dataset& dataset, LayerType type,
         std::string internalPath = {}, std::string name = {});
 
@@ -56,16 +57,16 @@ private:
     virtual uint8_t getElementSizeProxy() const noexcept = 0;
 
     //! The unique id.
-    uint32_t m_id = std::numeric_limits<uint32_t>::max();
+    uint32_t m_id = kInvalidLayerId;
     //! The layer type.
     LayerType m_layerType = UNKNOWN_LAYER_TYPE;
     //! The path of the DataSet in the HDF5 file.
     std::string m_internalPath;
     //! The name of the layer.
     std::string m_name;
-    //! The compression level of this dataset (0-9).
-    unsigned int m_compressionLevel = 0;
-    //! The chunk size of this dataset (0x0, 10x10 or 100x100).
+    //! The compression level of this layer (0-9).
+    int m_compressionLevel = 0;
+    //! The chunk size of this layer.
     uint64_t m_chunkSize = 0;
     //! The minimum and maximum value of this dataset.
     std::tuple<float, float> m_minMax{};

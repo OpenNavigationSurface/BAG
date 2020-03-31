@@ -326,15 +326,15 @@ TEST_CASE("test interleaved layer descriptor creation",
     metadata.loadFromBuffer(kMetadataXML);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         chunkSize, compressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating an interleaved layer descriptor does not throw.");
-    auto pDescriptor = InterleavedLayerDescriptor::create(Hypothesis_Strength,
-        NODE, chunkSize, compressionLevel, *pDataset);
+    auto pDescriptor = InterleavedLayerDescriptor::create(*pDataset,
+        Hypothesis_Strength, NODE);
     REQUIRE(pDescriptor);
 }
 
@@ -348,7 +348,7 @@ TEST_CASE("test interleaved layer descriptor get group type",
     metadata.loadFromBuffer(kMetadataXML);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         chunkSize, compressionLevel);
@@ -356,8 +356,8 @@ TEST_CASE("test interleaved layer descriptor get group type",
 
     {
         const BAG::GroupType kExpectedGroup = NODE;
-        auto pDescriptor = InterleavedLayerDescriptor::create(Hypothesis_Strength,
-            kExpectedGroup, chunkSize, compressionLevel, *pDataset);
+        auto pDescriptor = InterleavedLayerDescriptor::create(*pDataset,
+            Hypothesis_Strength, kExpectedGroup);
         REQUIRE(pDescriptor);
 
         UNSCOPED_INFO("Verify the get group type matches the constructor.");
@@ -365,8 +365,8 @@ TEST_CASE("test interleaved layer descriptor get group type",
     }
     {
         const BAG::GroupType kExpectedGroup = ELEVATION;
-        auto pDescriptor = InterleavedLayerDescriptor::create(Num_Soundings,
-            kExpectedGroup, chunkSize, compressionLevel, *pDataset);
+        auto pDescriptor = InterleavedLayerDescriptor::create(*pDataset,
+            Num_Soundings, kExpectedGroup);
         REQUIRE(pDescriptor);
 
         UNSCOPED_INFO("Verify the get group type matches the constructor.");
@@ -375,8 +375,8 @@ TEST_CASE("test interleaved layer descriptor get group type",
     {
         UNSCOPED_INFO("Verify the interleaved layer creation throws with an "
             "invalid group and layer combination.");
-        REQUIRE_THROWS(InterleavedLayerDescriptor::create(Hypothesis_Strength,
-            ELEVATION, chunkSize, compressionLevel, *pDataset));
+        REQUIRE_THROWS(InterleavedLayerDescriptor::create(*pDataset,
+            Hypothesis_Strength, ELEVATION));
     }
 }
 
@@ -390,7 +390,7 @@ TEST_CASE("test interleaved layer descriptor get/set element size",
     metadata.loadFromBuffer(kMetadataXML);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         chunkSize, compressionLevel);
@@ -399,8 +399,8 @@ TEST_CASE("test interleaved layer descriptor get/set element size",
     {
         const BAG::LayerType kExpectedLayerType = Num_Hypotheses;
         const BAG::GroupType kExpectedGroupType = NODE;
-        auto pDescriptor = InterleavedLayerDescriptor::create(kExpectedLayerType,
-            kExpectedGroupType, chunkSize, compressionLevel, *pDataset);
+        auto pDescriptor = InterleavedLayerDescriptor::create(*pDataset,
+            kExpectedLayerType, kExpectedGroupType);
         REQUIRE(pDescriptor);
 
         UNSCOPED_INFO("Verify getting element size does not throw.");
@@ -413,8 +413,8 @@ TEST_CASE("test interleaved layer descriptor get/set element size",
     {
         const BAG::LayerType kExpectedLayerType = Std_Dev;
         const BAG::GroupType kExpectedGroupType = ELEVATION;
-        auto pDescriptor = InterleavedLayerDescriptor::create(kExpectedLayerType,
-            kExpectedGroupType, chunkSize, compressionLevel, *pDataset);
+        auto pDescriptor = InterleavedLayerDescriptor::create(*pDataset,
+            kExpectedLayerType, kExpectedGroupType);
         REQUIRE(pDescriptor);
 
         UNSCOPED_INFO("Verify getting element size does not throw.");

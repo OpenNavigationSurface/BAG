@@ -23,6 +23,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a tracking list.
 class BAG_API TrackingList final
 {
 public:
@@ -32,9 +33,9 @@ public:
     using reference = value_type&;
     using const_reference = const value_type&;
 
-    //TODO Temp, make sure only move operations are used until development is done.
     TrackingList(const TrackingList&) = delete;
     TrackingList(TrackingList&&) = delete;
+
     TrackingList& operator=(const TrackingList&) = delete;
     TrackingList& operator=(TrackingList&&) = delete;
 
@@ -68,31 +69,33 @@ public:
 
 protected:
     explicit TrackingList(const Dataset& dataset);
-    TrackingList(const Dataset& dataset, unsigned int compressionLevel);
+    TrackingList(const Dataset& dataset, int compressionLevel);
 
 private:
 
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> createH5dataSet(
-        unsigned int compressionLevel);
+        int compressionLevel);
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
-    //! The associated dataset.
+    //! The associated BAG Dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
-    //! The items making up the tracking list.
+    //! The items in the tracking list.
     std::vector<value_type> m_items;
-    //! The length attribute in the tracking list DataSet.
-    uint32_t m_length = 0;
-    //! The HDF5 DataSet this class relates to.
+    //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };
 
+//! Add an item to the end of the tracking list.
+/*!
+\param args
+    One or more parameters to hand to the constructor of TrackingItem.
+*/
 template <typename... Args>
 void TrackingList::emplace_back(Args&&... args) &
 {
     m_items.emplace_back(std::forward<Args>(args)...);
-    ++m_length;
 }
 
 #ifdef _MSC_VER

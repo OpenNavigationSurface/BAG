@@ -338,7 +338,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t kChunkSize = 100;
-        constexpr unsigned int kCompressionLevel = 6;
+        constexpr int kCompressionLevel = 6;
         const auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             kChunkSize, kCompressionLevel);
 

@@ -10,10 +10,12 @@ namespace H5 {
 
 class DataSet;
 
-}  //namespace H5
+}  // namespace H5
 
 namespace BAG {
 
+//! Custom deleter for use with std::unique_ptr, to keep HDF5 dependencies out
+//! of header files.
 struct DeleteH5dataSet final
 {
     void operator()(::H5::DataSet* ptr) noexcept;

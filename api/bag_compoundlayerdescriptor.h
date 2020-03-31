@@ -17,19 +17,20 @@
 
 namespace BAG {
 
+//! Describe a compound layer.
 class BAG_API CompoundLayerDescriptor final : public LayerDescriptor
 {
 public:
-    static std::shared_ptr<CompoundLayerDescriptor> create(
+    static std::shared_ptr<CompoundLayerDescriptor> create(Dataset& dataset,
         const std::string& name, DataType indexType,
         RecordDefinition definition, uint64_t chunkSize,
-        unsigned int compressionLevel, Dataset& dataset);
-    static std::shared_ptr<CompoundLayerDescriptor> open(
-        const std::string& name, Dataset& dataset);
+        int compressionLevel);
+    static std::shared_ptr<CompoundLayerDescriptor> open(Dataset& dataset,
+        const std::string& name);
 
-    //TODO Temp, make sure only move operations are used until development is done.
     CompoundLayerDescriptor(const CompoundLayerDescriptor&) = delete;
     CompoundLayerDescriptor(CompoundLayerDescriptor&&) = delete;
+
     CompoundLayerDescriptor& operator=(const CompoundLayerDescriptor&) = delete;
     CompoundLayerDescriptor& operator=(CompoundLayerDescriptor&&) = delete;
 
@@ -37,9 +38,9 @@ public:
     const RecordDefinition& getDefinition() const & noexcept;
 
 protected:
-    CompoundLayerDescriptor(const std::string& name, DataType indexType,
-        RecordDefinition definition, uint64_t chunkSize,
-        unsigned int compressionLevel, Dataset& dataset);
+    CompoundLayerDescriptor(Dataset& dataset, const std::string& name,
+        DataType indexType, RecordDefinition definition, uint64_t chunkSize,
+        int compressionLevel);
 
 private:
     DataType getDataTypeProxy() const noexcept override;
@@ -51,7 +52,7 @@ private:
     DataType m_dataType = DT_UNKNOWN_DATA_TYPE;
     //! The size of a single index in the HDF5 file.
     uint8_t m_elementSize = 0;
-    //! The record definition.
+    //! The list of fields making up the record.
     RecordDefinition m_definition;
 };
 

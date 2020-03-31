@@ -6,37 +6,66 @@
 
 #include <cstdint>
 #include <string>
+#include <vector>
 
 
 namespace BAG {
 
+//! This class is a tagged union (aka variant).
+/*!
+    The supported types of this tagged union are:
+        DT_FLOAT32, DT_UINT32, DT_BOOLEAN, DT_STRING
+*/
 class CompoundDataType final {
 public:
-
+    //! The default constructor.
     CompoundDataType()
     {}
-
+    //! A constructor that takes a float and populates members appropriately.
+    /*!
+    \param value
+        A 32 bit floating point.
+    */
     explicit CompoundDataType(float value) noexcept
         : type(DT_FLOAT32)
         , m_data(value)
     {
     }
+    //! A constructor that takes an unsigned 32 bit integer and populates members appropriately.
+    /*!
+    \param value
+        A 32 bit unsigned integer.
+    */
     explicit CompoundDataType(uint32_t value) noexcept
         : type(DT_UINT32)
         , m_data(value)
     {
     }
+    //! A constructor that takes a boolean and populates members appropriately.
+    /*!
+    \param value
+        A boolean.
+    */
     explicit CompoundDataType(bool value) noexcept
         : type(DT_BOOLEAN)
         , m_data(value)
     {
     }
+    //! A constructor that takes a string and populates members appropriately.
+    /*!
+    \param value
+        A string.
+    */
     explicit CompoundDataType(std::string value) noexcept
         : type(DT_STRING)
         , m_data(std::move(value))
     {
     }
-
+    //! Copy constructor.
+    /*!
+    \param other
+        The object to be copied.
+    */
     CompoundDataType(const CompoundDataType& other)
         : type(other.type)
     {
@@ -58,7 +87,11 @@ public:
             throw InvalidType{};
         }
     }
-
+    //! Move constructor.
+    /*!
+    \param other
+        The object to be moved from.
+    */
     CompoundDataType(CompoundDataType&& other)
     {
         switch (type)
@@ -79,13 +112,21 @@ public:
             throw InvalidType{};
         }
     }
-
+    //! Destructor.
     ~CompoundDataType() noexcept
     {
         if (type == DT_STRING)
             m_data.m_s.~basic_string<char>();
     }
 
+    //! Copy assignment operator.
+    /*!
+        \param rhs
+            The object to be copied.
+
+        \return
+            The newly assigned to object.
+    */
     CompoundDataType& operator=(const CompoundDataType& rhs)
     {
         if (this == &rhs)
@@ -119,6 +160,14 @@ public:
 
         return *this;
     }
+    //! Move assignment operator.
+    /*!
+        \param rhs
+            The object to be moved from.
+
+        \return
+            The newly assigned to object.
+    */
     CompoundDataType& operator=(CompoundDataType&& rhs)
     {
         if (type == DT_STRING)
@@ -149,6 +198,14 @@ public:
 
         return *this;
     }
+    //! Floating point assignment operator.
+    /*!
+    \param rhs
+        The object to copy.
+
+    \return
+        The newly assigned to object.
+    */
     CompoundDataType& operator=(float rhs) noexcept
     {
         if (type == DT_STRING)
@@ -159,6 +216,14 @@ public:
 
         return *this;
     }
+    //! 32 bit unsigned integer assignment operator.
+    /*!
+    \param rhs
+        The object to copy.
+
+    \return
+        The newly assigned to object.
+    */
     CompoundDataType& operator=(uint32_t rhs) noexcept
     {
         if (type == DT_STRING)
@@ -169,6 +234,14 @@ public:
 
         return *this;
     }
+    //! Boolean assignment operator.
+    /*!
+    \param rhs
+        The object to copy.
+
+    \return
+        The newly assigned to object.
+    */
     CompoundDataType& operator=(bool rhs) noexcept
     {
         if (type == DT_STRING)
@@ -179,6 +252,14 @@ public:
 
         return *this;
     }
+    //! String assignment operator.
+    /*!
+    \param rhs
+        The object to copy.
+
+    \return
+        The newly assigned to object.
+    */
     CompoundDataType& operator=(std::string rhs) noexcept
     {
         if (type == DT_STRING)
@@ -192,6 +273,13 @@ public:
         return *this;
     }
 
+    //! Is equal operator.
+    /*!
+    \param rhs
+        The object to compare with.
+    \return
+        \e true if \e rhs is equal; \e false otherwise
+    */
     bool operator==(const CompoundDataType& rhs) const noexcept
     {
         if (this->type != rhs.type)
@@ -212,6 +300,13 @@ public:
         }
     }
 
+    //! Retrieve the value as a float point.
+    /*!
+        Retrieve the value as a floating point.  Throw an exception if it is not
+        a floating point.
+    \return
+        The value as a floating point.
+    */
     float asFloat() const
     {
         if (type != DT_FLOAT32)
@@ -219,6 +314,13 @@ public:
 
         return m_data.m_f;
     }
+    //! Retrieve the value as a 32 bit unsigned integer.
+    /*!
+        Retrieve the value as a 32 bit unsigned integer.  Throw an exception if
+        it is not a 32 bit unsigned integer.
+    \return
+        The value as a 32 bit unsigned integer.
+    */
     uint32_t asUInt32() const
     {
         if (type != DT_UINT32)
@@ -226,6 +328,13 @@ public:
 
         return m_data.m_ui32;
     }
+    //! Retrieve the value as a boolean.
+    /*!
+        Retrieve the value as a boolean.  Throw an exception if it is not a
+        boolean.
+    \return
+        The value as a boolean.
+    */
     bool asBool() const
     {
         if (type != DT_BOOLEAN)
@@ -233,6 +342,13 @@ public:
 
         return m_data.m_b;
     }
+    //! Retrieve the value as a constant string.
+    /*!
+        Retrieve the value as a string.  Throw an exception if it is not a
+        string.
+    \return
+        The value as a string.
+    */
     const std::string& asString() const &
     {
         if (type != DT_STRING)
@@ -240,6 +356,13 @@ public:
 
         return m_data.m_s;
     }
+    //! Retrieve the value as a mutable string.
+    /*!
+        Retrieve the value as a string.  Throw an exception if it is not a
+        string.
+    \return
+        The value as a string.
+    */
     std::string& asString() &
     {
         if (type != DT_STRING)
@@ -248,14 +371,20 @@ public:
         return m_data.m_s;
     }
 
+    //! Retrieve the type of value being stored.
+    /*!
+    \return
+        The type of the value being stored.
+    */
     DataType getType() const noexcept
     {
         return type;
     }
 
 private:
+    //! The type of the tagged union.
     DataType type = DT_UNKNOWN_DATA_TYPE;
-
+    //! The union that holds the different values.
     union Data {
         Data(): m_b(false) {}
         Data(float f): m_f(f) {}
@@ -301,6 +430,13 @@ struct GetFromCompoundDataType<std::string> {
 
 
 //! A generic way to get the value in a CompoundDataType.
+/*!
+\param v
+    The CompoundDataType to return the value of.
+
+\return
+    The template parameter type specified.
+*/
 template <typename T>
 T get(const CompoundDataType& v)
 {
@@ -314,3 +450,4 @@ using Records = std::vector<Record>;
 }  // namespace BAG
 
 #endif  // BAG_COMPOUNDDATATYPES_H
+

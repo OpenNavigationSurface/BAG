@@ -342,7 +342,7 @@ TEST_CASE("test dataset reading", "[dataset][open][getLayerTypes][createLayer]")
             CHECK(numLayerTypes == kNumExpectedLayers);
 
             constexpr uint64_t chunkSize = 100;
-            constexpr unsigned int compressionLevel = 6;
+            constexpr int compressionLevel = 6;
 
             /*auto& layer = */ dataset->createSimpleLayer(Average_Elevation,
                 chunkSize, compressionLevel);
@@ -371,7 +371,7 @@ TEST_CASE("test dataset creation", "[dataset][create][getLayerTypes][open]")
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
 
         const auto dataset = Dataset::create(tmpFileName, std::move(metadata),
             chunkSize, compressionLevel);
@@ -419,7 +419,7 @@ TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
         CHECK(dataset->getLayerTypes().size() == kNumExpectedLayers);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
 
         /*auto& layer = */ dataset->createSimpleLayer(Average_Elevation, chunkSize,
             compressionLevel);

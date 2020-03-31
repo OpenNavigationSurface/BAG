@@ -10,6 +10,8 @@
 #include <string>
 
 
+//! Forward declarations of HDF5 classes used, to avoid exposing dependencies
+//! to users of this library.
 namespace H5 {
 
 class AtomType;
@@ -19,7 +21,7 @@ class DataSet;
 class H5File;
 class PredType;
 
-}  // namespace H%
+}  // namespace H5
 
 
 namespace BAG {
@@ -34,30 +36,26 @@ namespace BAG {
 uint64_t getChunkSize(const ::H5::H5File& h5file,
     const std::string& path);
 
-unsigned int getCompressionLevel(const ::H5::H5File& h5file,
+int getCompressionLevel(const ::H5::H5File& h5file,
     const std::string& path);
 
-size_t getH5compSize(const RecordDefinition& definition);
+size_t getRecordSize(const RecordDefinition& definition);
 
 const ::H5::AtomType& getH5fileType(DataType type);
 
 const ::H5::AtomType& getH5memoryType(DataType type);
 
-//! Create attribute on a DataSet.
 ::H5::Attribute createAttribute(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, const char* path);
 
-// Create attributes on a DataSet.
 void createAttributes(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, const std::vector<const char*>& paths);
 
-// Write attributes to a DataSet.
 template <typename T>
 void writeAttributes(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, T value,
     const std::vector<const char*>& paths);
 
-// Write an attribute to a DataSet.
 template <typename T>
 void writeAttribute(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, T value, const char* path);

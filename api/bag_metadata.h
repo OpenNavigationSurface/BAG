@@ -23,6 +23,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for the metadata.
 class BAG_API Metadata final
 {
 public:
@@ -31,9 +32,9 @@ public:
 
     ~Metadata() noexcept;
 
-    //TODO Temp, make sure only move operations are used until development is done.
     Metadata(const Metadata& other) = delete;
     Metadata(Metadata&& other) = default;
+
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
 
@@ -61,7 +62,7 @@ private:
 
     void write() const;
 
-    //! The dataset the metadata is part of.
+    //! The BAG Dataset the metadata is part of.
     std::weak_ptr<const Dataset> m_pBagDataset;
     //! The C struct behind this class.
     std::unique_ptr<BagMetadata> m_pMetaStruct;

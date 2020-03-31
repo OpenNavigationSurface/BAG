@@ -17,7 +17,7 @@
 #include <bag_simplelayerdescriptor.h>
 #include <bag_vrmetadata.h>
 #include <bag_vrnode.h>
-#include <bag_vrrefinement.h>
+#include <bag_vrrefinements.h>
 
 #include <cmath>
 #include <cstdio>
@@ -133,7 +133,7 @@ void generateVRData(
     float maxZ,
     float minU,
     float maxU,
-    std::vector<BAG::VRRefinementItem>& data)
+    std::vector<BAG::VRRefinementsItem>& data)
 {
     if (data.size() < (rows*rows))
         return;
@@ -228,11 +228,11 @@ bool augmentVRBAG(
     constexpr float kMinUncert = 0.0f;
     constexpr float kMaxUncert = 10.0f;
 
-    auto* vrRefinementLayer = dataset.getVRRefinement();
-    if (!vrRefinementLayer)
+    auto* vrRefinementsLayer = dataset.getVRRefinements();
+    if (!vrRefinementsLayer)
         return false;
 
-    std::vector<BAG::VRRefinementItem> vrRefinements(21*21);
+    std::vector<BAG::VRRefinementsItem> vrRefinements(21*21);
     std::vector<BAG::VRNodeItem> vrNodes(21*21);
 
     auto* vrNodeLayer = dataset.getVRNode();
@@ -269,7 +269,7 @@ bool augmentVRBAG(
                 kMinUncert, kMaxUncert, vrRefinements);
 
             auto* buffer = reinterpret_cast<uint8_t*>(vrRefinements.data());
-            vrRefinementLayer->write(0, numCells, 0,
+            vrRefinementsLayer->write(0, numCells, 0,
                 numCells + totalRefs - 1, buffer);
 
             // Auxiliary information.
