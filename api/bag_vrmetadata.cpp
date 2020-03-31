@@ -172,7 +172,7 @@ VRMetadata::createH5dataSet(
     const VRMetadataDescriptor& descriptor)
 {
     std::array<hsize_t, kRank> fileDims{0, 0};
-    const std::array<uint64_t, kRank> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
+    const std::array<hsize_t, kRank> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
     const ::H5::DataSpace h5fileDataSpace{kRank, fileDims.data(), kMaxFileDims.data()};
 
     // Create the creation property list.
