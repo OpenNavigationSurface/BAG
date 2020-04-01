@@ -299,7 +299,7 @@ int main(
 
         // With the indices, look at some values using the value table.
         // Room for 4 indices and initialize them with 0.
-        auto* buffer = reinterpret_cast<uint16_t*>(buff->get());
+        auto* buffer = reinterpret_cast<uint16_t*>(buff.data());
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1);
 
         const auto& records = valueTable.getRecords();

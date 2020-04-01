@@ -304,7 +304,7 @@ const ValueTable& CompoundLayer::getValueTable() const & noexcept
 }
 
 //! \copydoc Layer::read
-std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
+UInt8Array CompoundLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -335,12 +335,12 @@ std::unique_ptr<UInt8Array> CompoundLayer::readProxy(
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
         columns);
-    auto buffer = std::make_unique<UInt8Array>(bufferSize);
+    UInt8Array buffer{bufferSize};
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
-    m_pH5indexDataSet->read(buffer->get(), H5Dget_type(m_pH5indexDataSet->getId()),
+    m_pH5indexDataSet->read(buffer.data(), H5Dget_type(m_pH5indexDataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;

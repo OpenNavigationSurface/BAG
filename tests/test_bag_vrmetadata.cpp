@@ -449,9 +449,9 @@ TEST_CASE("test vr metadata write read", "[vrmetadata][write][read]")
 
     UNSCOPED_INFO("Read the record back.");
     auto result = pVrMetadata->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
-    REQUIRE(result);
+    CHECK(result);
 
-    const auto* res = reinterpret_cast<const BAG::VRMetadataItem*>(result->get());
+    const auto* res = reinterpret_cast<const BAG::VRMetadataItem*>(result.data());
     UNSCOPED_INFO("Check the expected value of VRMetadataItem::index.");
     CHECK(res->index == kExpectedItem0.index);
     UNSCOPED_INFO("Check the expected value of VRMetadataItem::dimensions_x.");

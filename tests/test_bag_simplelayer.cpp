@@ -369,7 +369,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
         1'000'000.0f, -52.161003f, -52.172005f,
         1'000'000.0f, -52.177002f, -52.174004f};
 
-    const float* floats = reinterpret_cast<const float*>(buffer->get());
+    const float* floats = reinterpret_cast<const float*>(buffer.data());
     for (size_t i=0; i<kExpectedNumNodes; ++i)
         CHECK(kExpectedBuffer[i] == floats[i]);
 }
@@ -438,7 +438,7 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
         auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
         REQUIRE(buffer);
 
-        const auto* floatBuffer = reinterpret_cast<const float*>(buffer->get());
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.data());
 
         std::array<float, kExpectedNumNodes> kExpectedBuffer;
         kExpectedBuffer.fill(kFloatValue);

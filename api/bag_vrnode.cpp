@@ -224,7 +224,7 @@ VRNode::createH5dataSet(
 
 //! \copydoc Layer::read
 //! The rowStart and rowEnd are ignored since the data is 1 dimensional.
-std::unique_ptr<UInt8Array> VRNode::readProxy(
+UInt8Array VRNode::readProxy(
     uint32_t /*rowStart*/,
     uint32_t columnStart,
     uint32_t /*rowEnd*/,
@@ -245,13 +245,13 @@ std::unique_ptr<UInt8Array> VRNode::readProxy(
 
     const auto bufferSize = descriptor.getReadBufferSize(1,
         static_cast<uint32_t>(columns));
-    auto buffer = std::make_unique<UInt8Array>(bufferSize);
+    UInt8Array buffer{bufferSize};
 
     const ::H5::DataSpace memDataSpace{1, &columns, &columns};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer->get(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
 
     return buffer;
 }

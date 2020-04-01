@@ -163,7 +163,7 @@ SimpleLayer::createH5dataSet(
 }
 
 //! \copydoc Layer::read
-std::unique_ptr<UInt8Array> SimpleLayer::readProxy(
+UInt8Array SimpleLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -182,12 +182,12 @@ std::unique_ptr<UInt8Array> SimpleLayer::readProxy(
     // Initialize the output buffer.
     const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
         columns);
-    auto buffer = std::make_unique<UInt8Array>(bufferSize);
+    UInt8Array buffer{bufferSize};
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
-    m_pH5dataSet->read(buffer->get(), H5Dget_type(m_pH5dataSet->getId()),
+    m_pH5dataSet->read(buffer.data(), H5Dget_type(m_pH5dataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;

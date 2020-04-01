@@ -440,10 +440,10 @@ TEST_CASE("test vr refinements write read", "[vrrefinements][write][read]")
 
     UNSCOPED_INFO("Read the record back.");
     auto result = pVrRefinements->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
-    REQUIRE(result);
+    CHECK(result);
 
-    const auto* res = reinterpret_cast<const BagVRRefinementsItem*>(result->get());
-    UNSCOPED_INFO("Check the expected value of BagVRRefinementItem::depth.");
+    const auto* res = reinterpret_cast<const BAG::VRRefinementsItem*>(result.data());
+    UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth.");
     CHECK(res->depth == kExpectedItem0.depth);
     UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth_uncrt.");
     CHECK(res->depth_uncrt == kExpectedItem0.depth_uncrt);

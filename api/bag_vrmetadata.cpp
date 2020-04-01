@@ -232,7 +232,7 @@ VRMetadata::createH5dataSet(
 }
 
 //! \copydoc Layer::read
-std::unique_ptr<UInt8Array> VRMetadata::readProxy(
+UInt8Array VRMetadata::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -253,13 +253,13 @@ std::unique_ptr<UInt8Array> VRMetadata::readProxy(
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     const auto bufferSize = descriptor->getReadBufferSize(rows, columns);
-    auto buffer = std::make_unique<UInt8Array>(bufferSize);
+    UInt8Array buffer{bufferSize};
 
     const ::H5::DataSpace memDataSpace{kRank, count.data(), count.data()};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer->get(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
 
     return buffer;
 }

@@ -194,7 +194,7 @@ std::string Layer::getInternalPath(
 \return
     The section of data specified by the rows and columns.
 */
-std::unique_ptr<UInt8Array> Layer::read(
+UInt8Array Layer::read(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
