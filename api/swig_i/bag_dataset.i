@@ -11,13 +11,12 @@
 %}
 
 #define final
-
+%import "bag_types.i"
 %include <stl.i>
 namespace std 
 {
     %template(CompoundLayerVector) vector<BAG::CompoundLayer*>;
     %template(LayerVector) vector<BAG::Layer*>;
-    %template(LayerTypeVector) vector<BAG::LayerType>;
 }
 
 %import "../bag_config.h"
@@ -28,13 +27,11 @@ namespace std
 %import "bag_trackinglist.i"
 %import "bag_types.i"
 
+%include <pyabc.i>
 %include <std_string.i>
 %include <stdint.i>
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::Dataset)
-%shared_ptr(BAG::open)
-%shared_ptr(BAG::openDataset)
-%shared_ptr(BAG::create)
 
 namespace BAG {
 

@@ -16,6 +16,7 @@
 %shared_ptr(BAG::InterleavedLayerDescriptor)
 
 %import "bag_layerdescriptor.i"
+%import "bag_types.i"
 
 namespace BAG {
     class BAG_API InterleavedLayerDescriptor final : public LayerDescriptor

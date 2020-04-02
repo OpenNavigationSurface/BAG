@@ -14,6 +14,7 @@
 
 %import "../bag_config.h"
 %import "bag_layer.i"
+%import "bag_types.i"
 
 namespace BAG {
     class BAG_API SimpleLayer final : public Layer

@@ -12,12 +12,16 @@
 %module bagpy
 
 //! Common templates used by multiple interfaces
-%include <std_pair.i>
 %include <stdint.i>
-%template(DoublePair) std::pair<double, double>;
-%template(FloatPair) std::pair<float, float>;
-%template(UInt32Pair) std::pair<uint32_t, uint32_t>;
-%template(Cover) std::pair<std::pair<double, double>, std::pair<double, double> >;
+%include <std_pair.i>
+%include <stl.i>
+namespace std 
+{
+    %template(DoublePair) pair<double, double>;
+    %template(FloatPair) pair<float, float>;
+    %template(UInt32Pair) pair<uint32_t, uint32_t>;
+    %template(Cover) pair<pair<double, double>, pair<double, double> >;
+}
 
 %include "bag_c_types.i"
 %include "bag_uint8array.i"
@@ -42,27 +46,4 @@
 %include "bag_compoundlayer.i"
 %include "bag_compoundlayerdescriptor.i"
 %include "bag_dataset.i"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 

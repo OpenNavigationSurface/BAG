@@ -17,6 +17,7 @@
 %shared_ptr(BAG::SurfaceCorrectionsDescriptor)
 
 %import "bag_layerdescriptor.i"
+%import "bag_types.i"
 
 namespace BAG {
 

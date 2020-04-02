@@ -22,11 +22,12 @@
 %include <stl.i>
 namespace std 
 {
-    %template(SharedLayerVector) vector<std::shared_ptr<BAG::LayerDescriptor>>;
-    %template(LayerTypeVector) vector<BAG::LayerType>;
+    %template(SharedLayerDescVector) vector<shared_ptr<BAG::LayerDescriptor>>;
 }
 
+
 %import "bag_layerdescriptor.i"
+%import "bag_types.i"
 
 namespace BAG {
 

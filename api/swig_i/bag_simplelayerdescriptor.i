@@ -16,6 +16,7 @@
 %shared_ptr(BAG::SimpleLayerDescriptor)
 
 %import "bag_layerdescriptor.i"
+%import "bag_types.i"
 
 namespace BAG {
 
