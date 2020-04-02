@@ -19,7 +19,7 @@ using GroupType = BAG_GROUP_TYPE;
 using TrackingItem = BagTrackingItem;
 using VRTrackingItem = BagVRTrackingItem;
 
-const std::unordered_map<LayerType, const char*> kLayerTypeMapString {
+const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {Elevation, "Elevation"},
     {Uncertainty, "Uncertainty"},
     {Hypothesis_Strength, "Hypothesis_Strength"},
