@@ -246,8 +246,8 @@ const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
 */
 UInt8Array SurfaceCorrections::readCorrected(
     uint32_t rowStart,
-    uint32_t rowEnd,
     uint32_t columnStart,
+    uint32_t rowEnd,
     uint32_t columnEnd,
     uint8_t corrector,
     const SimpleLayer& layer) const

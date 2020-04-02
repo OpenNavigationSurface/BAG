@@ -5,6 +5,7 @@
 #include "bag_errors.h"
 #include "bag_layer.h"
 #include "bag_metadata.h"
+#include "bag_metadata_import.h"
 #include "bag_private.h"
 #include "bag_simplelayer.h"
 #include "bag_surfacecorrections.h"
@@ -37,29 +38,20 @@
 #endif
 
 
-// how to use a function from C
-#if 0
-    BagHandle* bagHandle = NULL;
-    BagError err = bagFileOpen(&bagHandle, ...);
-#endif
-
-// how to populate the out_handle
-#if 0
-void foo(caris_raster** out_raster, ...)
-    CS_THROW_ASSERT(out_raster);
-    *out_raster = nullptr;
-    //..
-    caris_raster * raster = new caris_raster();
-    //..
-    *out_raster = raster;
-#endif
-
 namespace {
 
+//! Convert a BAG::CompoundDataType (C++) into a BagCompoundDataType (C).
+/*!
+\param field
+    The BAG::CompoundDataType.
+
+\return
+    The BagCompoundDataType created from \e field.
+*/
 BagCompoundDataType getValue(
     const BAG::CompoundDataType& field)
 {
-    BagCompoundDataType result;
+    BagCompoundDataType result{};
 
     result.type = field.getType();
 
@@ -77,8 +69,9 @@ BagCompoundDataType getValue(
     case DT_STRING:  // Copy the string as it will go out of scope.
     {
         const char* const value = field.asString().c_str();
-        result.data.c = new char[strlen(value) + 1];
-        memcpy(result.data.c, value, strlen(value) + 1);
+        const auto fieldLen = strlen(value) + 1;
+        result.data.c = new char[fieldLen];
+        memcpy(result.data.c, value, fieldLen);
         break;
     }
     default:
@@ -89,6 +82,14 @@ BagCompoundDataType getValue(
     return result;
 }
 
+//! Convert a BagCompoundDataType (C) into a BAG::CompoundDataType (C++).
+/*!
+\param field
+    The BagCompoundDataType.
+
+\return
+    The BAG::CompoundDataType created from \e field.
+*/
 BAG::CompoundDataType getValue(
     const BagCompoundDataType& field)
 {
@@ -110,8 +111,24 @@ BAG::CompoundDataType getValue(
     }
 }
 
-}
+}  // namespace
 
+//! Open the specified BAG.
+/*!
+\param handle
+    A handle to the new BAG.
+    Cannot be NULL.
+\param accessMode
+    How to access the BAG.
+    Read only or reading and writing.
+\param fileName
+    The BAG file name.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagFileOpen(
     BagHandle** handle,
     BAG_OPEN_MODE accessMode,
@@ -123,15 +140,32 @@ BagError bagFileOpen(
     if (!fileName)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto pHandle = std::make_unique<BagHandle>();
+    try
+    {
+        auto pHandle = std::make_unique<BagHandle>();
 
-    pHandle->dataset = BAG::Dataset::open(std::string{fileName}, accessMode);
+        pHandle->dataset = BAG::Dataset::open(std::string{fileName}, accessMode);
 
-    *handle = pHandle.release();
+        *handle = pHandle.release();
+    }
+    catch(const std::exception& /*e*/)
+    {
+        return BAG_BAD_FILE_IO_OPERATION;
+    }
 
     return BAG_SUCCESS;
 }
 
+//! Close the specified BAG.
+/*!
+\param handle
+    The BAG handle.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagFileClose(
     BagHandle* handle)
 {
@@ -140,7 +174,7 @@ BagError bagFileClose(
 
 #ifndef NDEBUG
     if (handle->dataset.use_count() > 1)
-        return 9900; // More than one reference to the dataset still.
+        return BAG_MORE_BAG_INSTANCES_PRESENT;
 #endif
 
     handle->dataset.reset();
@@ -149,73 +183,126 @@ BagError bagFileClose(
     return BAG_SUCCESS;
 }
 
+//! Create a BAG from the specified metadata XML file.
+/*!
+\param handle
+    A handle to the new BAG.
+    Cannot be NULL.
+\param fileName
+    The BAG file name.
+    Cannot be NULL.
+\param metadataFile
+    The metadata file name.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagCreateFromFile(
     BagHandle** handle,
     const char* fileName,
-    const char* metaDataFile)
+    const char* metadataFile)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!fileName || !metaDataFile)
+    if (!fileName || !metadataFile)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    BAG::Metadata metadata;
-    metadata.loadFromFile(std::string{metaDataFile});
+    try
+    {
+        BAG::Metadata metadata;
+        metadata.loadFromFile(std::string{metadataFile});
 
-    //TODO Where do these values come from?
-    // Thinking parameters to this function.
-    constexpr uint64_t chunkSize = 100;
-    constexpr int compressionLevel = 6;
+        //TODO Where do these values come from?
+        // Thinking parameters to this function.
+        constexpr uint64_t chunkSize = 100;
+        constexpr int compressionLevel = 6;
 
-    auto pHandle = std::make_unique<BagHandle>();
+        auto pHandle = std::make_unique<BagHandle>();
 
-    pHandle->dataset = BAG::Dataset::create(std::string{fileName},
-        std::move(metadata), chunkSize, compressionLevel);
+        pHandle->dataset = BAG::Dataset::create(std::string{fileName},
+            std::move(metadata), chunkSize, compressionLevel);
 
-    *handle = pHandle.release();
+        *handle = pHandle.release();
+    }
+    catch(const std::exception /*e*/)
+    {
+        return BAG_BAD_FILE_IO_OPERATION;
+    }
 
     return BAG_SUCCESS;
 }
 
+//! Create a BAG from the specified metadata XML buffer.
+/*!
+\param handle
+    A handle to the new BAG.
+    Cannot be NULL.
+\param fileName
+    The BAG file name.
+    Cannot be NULL.
+\param metadataBuffer
+    The metadata information in a buffer.
+    Cannot be NULL.
+\param metadataBufferSize
+    The length of \e metadataBuffer.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagCreateFromBuffer(
     BagHandle** handle,
     const char* fileName,
-    uint8_t* metaDataBuffer,
-    uint32_t metaDataBufferSize)
+    uint8_t* metadataBuffer,
+    uint32_t metadataBufferSize)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!fileName || !metaDataBuffer)
+    if (!fileName || !metadataBuffer)
         return BAG_INVALID_FUNCTION_ARGUMENT;
-
-    BAG::Metadata metadata;
-    metadata.loadFromBuffer(
-        std::string{reinterpret_cast<char*>(metaDataBuffer), metaDataBufferSize});
-
-    //TODO Where do these values come from?
-    // Thinking parameters to this function.
-    constexpr uint64_t chunkSize = 100;
-    constexpr int compressionLevel = 6;
-
-    auto pHandle = std::make_unique<BagHandle>();
 
     try
     {
+        BAG::Metadata metadata;
+        metadata.loadFromBuffer(
+            std::string{reinterpret_cast<char*>(metadataBuffer), metadataBufferSize});
+
+        //TODO Where do these values come from?
+        // Thinking parameters to this function.
+        constexpr uint64_t chunkSize = 100;
+        constexpr int compressionLevel = 6;
+
+        auto pHandle = std::make_unique<BagHandle>();
+
         pHandle->dataset = BAG::Dataset::create(std::string{fileName},
             std::move(metadata), chunkSize, compressionLevel);
+
+        *handle =  pHandle.release();
     }
     catch(const std::exception& /*e*/)
     {
         return BAG_HDF_CREATE_DATASET_FAILURE;
     }
 
-    *handle =  pHandle.release();
-
     return BAG_SUCCESS;
 }
 
+//! Create a simple layer in the BAG.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param type
+    The type of simple layer to create.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagCreateLayer(
     BagHandle* handle,
     BAG_LAYER_TYPE type)
@@ -240,6 +327,24 @@ BagError bagCreateLayer(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the BAG grid dimensions.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param rows
+    The number of rows in the BAG.
+    Cannot be NULL.
+\param cols
+    The number of columns in the BAG.
+    Cannot be NULL.
+\param metadataBufferSize
+    The length of \e metadataBuffer.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetGridDimensions(
     BagHandle* handle,
     uint32_t* rows,
@@ -256,26 +361,65 @@ BagError bagGetGridDimensions(
     return BAG_SUCCESS;
 }
 
-BagError bagGetResolution(
+//! Retrieve the BAG spacing.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param rows
+    The number of rows in the BAG.
+    Cannot be NULL.
+\param cols
+    The number of columns in the BAG.
+    Cannot be NULL.
+\param metadataBufferSize
+    The length of \e metadataBuffer.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
+BagError bagGetSpacing(
     BagHandle* handle,
-    double* rowResolution,
-    double* columnResolution)
+    double* rowSpacing,
+    double* columnSpacing)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!rowResolution || !columnResolution)
+    if (!rowSpacing || !columnSpacing)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto& metadata = handle->dataset->getMetadata();
-    metadata;
 
-    *rowResolution = metadata.rowResolution();
-    *columnResolution = metadata.columnResolution();
+    *rowSpacing = metadata.rowResolution();
+    *columnSpacing = metadata.columnResolution();
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the BAG geographic cover.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param llx
+    The lower left X geographic value.
+    Cannot be NULL.
+\param lly
+    The lower left Y geographic value.
+    Cannot be NULL.
+\param urx
+    The upper right X geographic value.
+    Cannot be NULL.
+\param ury
+    The upper right Y geographic value.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetGeoCover(
     BagHandle* handle,
     double* llx,
@@ -299,6 +443,61 @@ BagError bagGetGeoCover(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the minimum and maximum value of a simple layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param type
+    The simple layer type.
+\param minValue
+    The minimum value.
+    Cannot be NULL.
+\param maxValue
+    The maximum value.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
+BagError bagGetMinMaxSimple(
+    BagHandle* handle,
+    BAG_LAYER_TYPE type,
+    float* minValue,
+    float* maxValue)
+{
+    if (!handle)
+        return BAG_INVALID_BAG_HANDLE;
+
+    if (!minValue || !maxValue)
+        return BAG_INVALID_FUNCTION_ARGUMENT;
+
+    const auto* layer = handle->dataset->getSimpleLayer(type);
+    if (!layer)
+        return 9997;  // layer type not found
+
+    std::tie(*minValue, *maxValue) = layer->getDescriptor().getMinMax();
+
+    return BAG_SUCCESS;
+}
+
+//! Set the minimum and maximum value on a simple layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param type
+    The simple layer type.
+\param minValue
+    The new minimum value.
+\param maxValue
+    The new maximum value.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSetMinMaxSimple(
     BagHandle* handle,
     BAG_LAYER_TYPE type,
@@ -313,13 +512,26 @@ BagError bagSetMinMaxSimple(
 
     auto* layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
-        return 9997;  // layer type not found
+        return BAG_SIMPLE_LAYER_MISSING;
 
     layer->getDescriptor().setMinMax(minValue, maxValue);
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the number of layers in the BAG.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param numLayers
+    The number of layers.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetNumLayers(
     BagHandle* handle,
     uint32_t* numLayers)
@@ -335,23 +547,87 @@ BagError bagGetNumLayers(
     return BAG_SUCCESS;
 }
 
+//! Determine if the specified layer and optional case-insensitive name exists.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param type
+    The layer type.
+\param layerName
+    The case-insensitive name of the layer.
+    Optional unless checking for a compound layer.
+\param bagError
+    BAG_SUCCESS if successful.
+    The error code, otherwise.
+    Cannot be NULL.
+
+\return
+    \e true if the BAG contains the specified layer
+    \e false otherwise
+*/
 bool bagContainsLayer(
     BagHandle* handle,
     BAG_LAYER_TYPE type,
-    const char* layerName)
+    const char* layerName,
+    BagError* bagError)
 {
     if (!handle)
+    {
+        *bagError = BAG_INVALID_BAG_HANDLE;
         return false;
+    }
+
+    if (type == Compound && (!layerName || layerName[0] == '\0'))
+    {
+        *bagError = BAG_COMPOUND_LAYER_NAME_MISSING;
+        return false;
+    }
+
+    *bagError = BAG_SUCCESS;
 
     return handle->dataset->getLayer(type, layerName) != nullptr;
 }
 
+//! Read a specific area of a BAG.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param rowStart
+    The starting row.
+\param colStart
+    The starting column.
+\param rowEnd
+    The end row (inclusive).
+\param colEnd
+    The end column (inclusive).
+\param type
+    The layer type.
+\param layerName
+    The case-insensitive name of the layer.
+    Optional unless checking for a compound layer.
+\param data
+    The buffer the BAG is read into.
+    data must be at least large enough to hold the specified number of rows and columns.
+    Cannot be NULL.
+\param x
+    The geographical position of the \e rowStart.
+    Cannot be NULL.
+\param y
+    The geographical position of the \e colStart.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagRead(
     BagHandle* handle,
-    uint32_t start_row,
-    uint32_t start_col,
-    uint32_t end_row,
-    uint32_t end_col,
+    uint32_t rowStart,
+    uint32_t colStart,
+    uint32_t rowEnd,
+    uint32_t colEnd,
     BAG_LAYER_TYPE type,
     const char* layerName,
     uint8_t** data,
@@ -367,7 +643,7 @@ BagError bagRead(
     if (!x || !y)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    if (type == Compound && !layerName)
+    if (type == Compound && (!layerName || layerName[0] == '\0'))
         return BAG_COMPOUND_LAYER_NAME_MISSING;
 
     const auto* layer = handle->dataset->getLayer(type, layerName);
@@ -376,11 +652,11 @@ BagError bagRead(
 
     try
     {
-        auto buffer = layer->read(start_row, start_col, end_row, end_col);
+        auto buffer = layer->read(rowStart, colStart, rowEnd, colEnd);
         *data = buffer.release();
 
         // Get the position of the node.
-        std::tie(*x, *y) = handle->dataset->gridToGeo(start_row, start_col);
+        std::tie(*x, *y) = handle->dataset->gridToGeo(rowStart, colStart);
     }
     catch(const std::exception& /*e*/)
     {
@@ -390,12 +666,39 @@ BagError bagRead(
     return BAG_SUCCESS;
 }
 
+//! Write to a specific area of a BAG.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param rowStart
+    The starting row.
+\param colStart
+    The starting column.
+\param rowEnd
+    The end row (inclusive).
+\param colEnd
+    The end column (inclusive).
+\param type
+    The layer type.
+\param layerName
+    The case-insensitive name of the layer.
+    Optional unless checking for a compound layer.
+\param data
+    The buffer to write to the BAG.
+    data must be at least large enough to hold the specified number of rows and columns.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagWrite(
     BagHandle* handle,
-    uint32_t start_row,
-    uint32_t start_col,
-    uint32_t end_row,
-    uint32_t end_col,
+    uint32_t rowStart,
+    uint32_t colStart,
+    uint32_t rowEnd,
+    uint32_t colEnd,
     BAG_LAYER_TYPE type,
     const char* layerName,
     const uint8_t* data)
@@ -406,7 +709,7 @@ BagError bagWrite(
     if (!data)
         return BAG_SUCCESS;  // nothing to write
 
-    if (type == Compound && !layerName)
+    if (type == Compound && (!layerName || layerName[0] == '\0'))
         return BAG_COMPOUND_LAYER_NAME_MISSING;
 
     auto* layer = handle->dataset->getLayer(type, layerName);
@@ -415,7 +718,7 @@ BagError bagWrite(
 
     try
     {
-        layer->write(start_row, start_col, end_row, end_col, data);
+        layer->write(rowStart, colStart, rowEnd, colEnd, data);
     }
     catch(const std::exception& /*e*/)
     {
@@ -532,9 +835,9 @@ BagError bagGetErrorString(
     case BAG_METADTA_BUFFER_EXCEEDED:
         strncpy(str, "Metadata supplied buffer is too large to be stored in the internal array", MAX_STR-1);
         break;
-	case BAG_METADTA_DPTHCORR_MISSING:
-		strncpy(str, "The 'depthCorrectionType' information is missing from the XML structure", MAX_STR-1);
-		break;
+    case BAG_METADTA_DPTHCORR_MISSING:
+        strncpy(str, "The 'depthCorrectionType' information is missing from the XML structure", MAX_STR-1);
+        break;
     case BAG_METADTA_RESOLUTION_MISSING:
         strncpy(str, "Metadata resolution information is missing from the XML structure", MAX_STR-1);
         break;
@@ -550,17 +853,17 @@ BagError bagGetErrorString(
     case BAG_METADTA_INVALID_VREF:
         strncpy(str, "Metadata vertical reference system is invalid", MAX_STR-1);
         break;
-	case BAG_METADTA_SCHEMA_SETUP_FAILED:
-		strncpy(str, "Failed to setup the xml schema", MAX_STR-1);
+    case BAG_METADTA_SCHEMA_SETUP_FAILED:
+        strncpy(str, "Failed to setup the xml schema", MAX_STR-1);
         break;
-	case BAG_METADTA_SCHEMA_VALIDATION_SETUP_FAILED:
-		strncpy(str, "Failed to setup the xml schema validation", MAX_STR-1);
+    case BAG_METADTA_SCHEMA_VALIDATION_SETUP_FAILED:
+        strncpy(str, "Failed to setup the xml schema validation", MAX_STR-1);
         break;
-	case BAG_METADTA_EMPTY_DOCUMENT:
-		strncpy(str, "The metadata document is emtpy", MAX_STR-1);
+    case BAG_METADTA_EMPTY_DOCUMENT:
+        strncpy(str, "The metadata document is emtpy", MAX_STR-1);
         break;
-	case BAG_METADTA_MISSING_MANDATORY_ITEM:
-		strncpy(str, "The metadata is missing a mandatory item", MAX_STR-1);
+    case BAG_METADTA_MISSING_MANDATORY_ITEM:
+        strncpy(str, "The metadata is missing a mandatory item", MAX_STR-1);
         break;
     case BAG_METADTA_NOT_INITIALIZED:
         strncpy(str, "The metadata has not been initialized correctly", MAX_STR-1);
@@ -678,6 +981,26 @@ BagError bagGetErrorString(
     return BAG_SUCCESS;
 }
 
+//! Determine the geographic position of a specified grid row and column.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param row
+    The grid row.
+\param col
+    The grid column.
+\param x
+    The geographical position of \e row.
+    Cannot be NULL.
+\param y
+    The geographical position of \e col.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagComputePostion(
     BagHandle* handle,
     uint32_t row,
@@ -696,6 +1019,26 @@ BagError bagComputePostion(
     return BAG_SUCCESS;
 }
 
+//! Determine the grid position from the specified geographic position.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param x
+    The X geographical position.
+\param y
+    The Y geographical position.
+\param row
+    The grid row.
+    Cannot be NULL.
+\param col
+    The grid column.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagComputeIndex(
     BagHandle* handle,
     double x,
@@ -714,12 +1057,31 @@ BagError bagComputeIndex(
     return BAG_SUCCESS;
 }
 
+//! Allocate a buffer that will hold the specified number of rows and columns of the specified layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param numRows
+    The number of rows.
+\param numCols
+    The number of columns.
+\param type
+    The layer type.
+\param layerName
+    The case-insensitive name of the layer.
+    Optional unless checking for a compound layer.
+\param bagError
+    The error (if any) generated from this function.
+
+\return
+    The allocated buffer of the appropriate size.
+    NULL if an error occurs.
+*/
 uint8_t* bagAllocateBuffer(
     BagHandle* handle,
-    uint32_t start_row,
-    uint32_t start_col,
-    uint32_t end_row,
-    uint32_t end_col,
+    uint32_t numRows,
+    uint32_t numCols,
     BAG_LAYER_TYPE type,
     const char* layerName,
     BagError* bagError)
@@ -730,51 +1092,75 @@ uint8_t* bagAllocateBuffer(
     if (!bagError)
         return {};
 
-    if (type == Compound && !layerName)
+    if (type == Compound && (!layerName || layerName[0] == '\0'))
     {
-        *bagError = BAG_INVALID_FUNCTION_ARGUMENT;
+        *bagError = BAG_COMPOUND_LAYER_NAME_MISSING;
         return {};
     }
 
     const auto* layer = handle->dataset->getLayer(type, layerName);
     if (!layer)
     {
-        *bagError = BAG_HDF_DATASET_OPEN_FAILURE;
+        *bagError = BAG_LAYER_MISSING;
         return {};
     }
 
     const int8_t elementSize = layer->getDescriptor().getElementSize();
-
-    const auto numRows = (end_row - start_row) + 1;
-    const auto numCols = (end_col - start_col) + 1;
 
     *bagError = BAG_SUCCESS;
 
     return new uint8_t[numRows * numCols * elementSize];
 }
 
+//! Allocate a buffer of the specified size.
+/*!
+\param numBytes
+    The number of bytes to allocate.
+
+\return
+    A buffer of the specified size.
+*/
 uint8_t* bagAllocate(uint32_t numBytes)
 {
     return new uint8_t[numBytes];
 }
 
-BagError bagFree(uint8_t* buffer)
+//! Free a buffer allocated by bagAllocate() or bagAllocateBuffer().
+/*!
+\param buffer
+    The buffer to free.
+*/
+void bagFree(uint8_t* buffer)
 {
     delete[] buffer;
-
-    return BAG_SUCCESS;
 }
 
 // Surface Corrections
+//! Retrieve the specified vertical datum from the surface corrections.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param corrector
+    The corrector to use.
+    Valid values are 1-10.
+\param datum
+    The retrieved vertical datum.
+    The memory must be pre-allocated, and at least 256 bytes.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadCorrectorVerticalDatum(
     BagHandle* handle,
-    uint32_t type,  // corrector type to read; related to that 10 limit; valid values are 1-10
+    uint8_t corrector,
     uint8_t* datum)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (type < 1 || type > BAG_SURFACE_CORRECTOR_LIMIT)
+    if (corrector < 1 || corrector > BAG_SURFACE_CORRECTOR_LIMIT)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     if (!datum)
@@ -782,7 +1168,7 @@ BagError bagReadCorrectorVerticalDatum(
 
     const auto* layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SURFACE_CORRECTIONS_MISSING;
 
     const auto& descriptor =
         dynamic_cast<const BAG::SurfaceCorrectionsDescriptor&>(
@@ -791,14 +1177,14 @@ BagError bagReadCorrectorVerticalDatum(
 
     if (!allVerticalDatums.empty())
     {
-        // Iterate over the datums, looking for the one specified by type-1.
+        // Iterate over the datums, looking for the one specified by corrector-1.
         std::istringstream iss{allVerticalDatums};
         std::string item;
         size_t index = 1;
 
         while (index <= BAG_SURFACE_CORRECTOR_LIMIT && std::getline(iss, item, ','))
         {
-            if (index == type)
+            if (index == corrector)
             {
                 strcpy(reinterpret_cast<char*>(datum), item.c_str());
                 return BAG_SUCCESS;
@@ -813,15 +1199,31 @@ BagError bagReadCorrectorVerticalDatum(
     return BAG_SUCCESS;
 }
 
+//! Write the specified vertical datum to the surface corrections in the BAG.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param corrector
+    The corrector to use.
+    Valid values are 1-10.
+\param inDatum
+    The vertical datum.
+    Must be NULL terminated.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagWriteCorrectorVerticalDatum(
     BagHandle* handle,
-    uint32_t type,
+    uint8_t corrector,
     const uint8_t* inDatum)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (type < 1 || type > BAG_SURFACE_CORRECTOR_LIMIT)
+    if (corrector < 1 || corrector > BAG_SURFACE_CORRECTOR_LIMIT)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     if (!inDatum)
@@ -829,7 +1231,7 @@ BagError bagWriteCorrectorVerticalDatum(
 
     auto* layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SURFACE_CORRECTIONS_MISSING;
 
     auto& descriptor = dynamic_cast<BAG::SurfaceCorrectionsDescriptor&>(
         layer->getDescriptor());
@@ -837,16 +1239,20 @@ BagError bagWriteCorrectorVerticalDatum(
     // Set/replace the specified datum.
     std::vector<std::string> datums;
     datums.reserve(BAG_SURFACE_CORRECTOR_LIMIT);
+
     std::istringstream iss{descriptor.getVerticalDatums()};
 
     while (iss)
     {
         std::string datum;
         std::getline(iss, datum, ',');
+        if (!iss)
+            break;
+
         datums.emplace_back(std::move(datum));
     }
 
-    datums[type-1] = reinterpret_cast<const char*>(inDatum);
+    datums[corrector-1] = reinterpret_cast<const char*>(inDatum);
 
     std::string joinedDatums = std::accumulate(cbegin(datums), cend(datums),
         std::string{}, [](std::string& dest, const std::string& datum)
@@ -869,7 +1275,25 @@ BagError bagWriteCorrectorVerticalDatum(
     return BAG_SUCCESS;
 }
 
-BagError bagReadCorrectedDataset(
+//! Read a corrected simple layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param corrector
+    The corrector to use.
+    Valid values are 1-10.
+\param type
+    The simple layer type.
+\param data
+    The buffer to place the corrected layer data into.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
+BagError bagReadCorrectedLayer(
     BagHandle* handle,
     uint8_t corrector,
     BAG_LAYER_TYPE type,
@@ -885,10 +1309,9 @@ BagError bagReadCorrectedDataset(
     if (!corrections)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    const auto* layer = dynamic_cast<BAG::SimpleLayer*>(
-        handle->dataset->getSimpleLayer(type));
+    const auto* layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SIMPLE_LAYER_MISSING;
 
     constexpr uint32_t rowStart = 0;
     constexpr uint32_t columnStart = 0;
@@ -899,20 +1322,46 @@ BagError bagReadCorrectedDataset(
     uint32_t columnEnd = 0;
     std::tie(rowEnd, columnEnd) = descriptor.getDims();
 
-    auto correctedData = corrections->readCorrected(rowStart, rowEnd,
-        columnStart, columnEnd, corrector, *layer);
+    auto correctedData = corrections->readCorrected(rowStart, rowEnd - 1,
+        columnStart, columnEnd - 1, corrector, *layer);
 
     *data = reinterpret_cast<float*>(correctedData.release());
 
     return BAG_SUCCESS;
 }
 
+//! Read a corrected region from a simple layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param rowStart
+    The starting row.
+\param colStart
+    The starting column.
+\param rowEnd
+    The end row (inclusive).
+\param colEnd
+    The end column (inclusive).
+\param corrector
+    The corrector to use.
+    Valid values are 1-10.
+\param type
+    The simple layer type.
+\param data
+    The buffer to place the corrected layer into.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadCorrectedRegion(
     BagHandle* handle,
     uint32_t rowStart,
+    uint32_t colStart,
     uint32_t rowEnd,
-    uint32_t columnStart,
-    uint32_t columnEnd,
+    uint32_t colEnd,
     uint8_t corrector,
     BAG_LAYER_TYPE type,
     float** data)
@@ -932,14 +1381,34 @@ BagError bagReadCorrectedRegion(
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto correctedData = corrections->readCorrected(rowStart, rowEnd,
-        columnStart, columnEnd, corrector, *layer);
+    auto correctedData = corrections->readCorrected(rowStart, colStart, rowEnd,
+        colEnd, corrector, *layer);
 
     *data = reinterpret_cast<float*>(correctedData.release());
 
     return BAG_SUCCESS;
 }
 
+//! Read a corrected row from a simple layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param row
+    The row.
+\param corrector
+    The corrector to use.
+    Valid values are 1-10.
+\param type
+    The simple layer type.
+\param data
+    The buffer to place the corrected layer's row into.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadCorrectedRow(
     BagHandle* handle,
     uint32_t row,
@@ -975,6 +1444,28 @@ BagError bagReadCorrectedRow(
     return BAG_SUCCESS;
 }
 
+//! Read a corrected node from a simple layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param row
+    The row.
+\param column
+    The column.
+\param corrector
+    The corrector to use.
+    Valid values are 1-10.
+\param type
+    The simple layer type.
+\param data
+    The buffer to place the corrected layer's row into.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadCorrectedNode(
     BagHandle* handle,
     uint32_t row,
@@ -996,7 +1487,7 @@ BagError bagReadCorrectedNode(
     const auto* layer = dynamic_cast<BAG::SimpleLayer*>(
         handle->dataset->getSimpleLayer(type));
     if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SIMPLE_LAYER_MISSING;
 
     auto correctedData = corrections->readCorrectedRow(row, column,
         column, corrector, *layer);
@@ -1006,31 +1497,60 @@ BagError bagReadCorrectedNode(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the number of correctors.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param numCorrectors
+    The number of correctors.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetNumSurfaceCorrectors(
     BagHandle* handle,
-    uint32_t* num)
+    uint8_t* numCorrectors)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!num)
+    if (!numCorrectors)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto& descriptor = dynamic_cast<const BAG::SurfaceCorrectionsDescriptor&>(
-        layer->getDescriptor());
+    const auto* descriptor =
+        dynamic_cast<const BAG::SurfaceCorrectionsDescriptor*>(
+            &layer->getDescriptor());
+    if (!descriptor)
+        return BAG_WRONG_DESCRIPTOR_FOUND;
 
-    *num = descriptor.getNumCorrectors();
+    *numCorrectors = descriptor->getNumCorrectors();
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the surface correction topography.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param topography
+    The surface correction topography
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetSurfaceCorrectionTopography(
     BagHandle* handle,
-    uint8_t* type)
+    BAG_SURFACE_CORRECTION_TOPOGRAPHY* type)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
@@ -1040,20 +1560,38 @@ BagError bagGetSurfaceCorrectionTopography(
 
     const auto* layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    auto& descriptor = dynamic_cast<const BAG::SurfaceCorrectionsDescriptor&>(
-        layer->getDescriptor());
+    const auto* descriptor =
+        dynamic_cast<const BAG::SurfaceCorrectionsDescriptor*>(
+            &layer->getDescriptor());
+    if (!descriptor)
+        return BAG_WRONG_DESCRIPTOR_FOUND;
 
-    *type = static_cast<uint8_t>(descriptor.getSurfaceType());
+    *type = descriptor->getSurfaceType();
 
     return BAG_SUCCESS;
 }
 
-BagError bagCreateCorrectorDataset(
+//! Retrieve the surface correction topography.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param numCorrectors
+    The number of correctors the surface corrections layer will have.
+\param topography
+    The surface correction topography
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
+BagError bagCreateCorrectorLayer(
     BagHandle* handle,
-    uint32_t numCorrectors,
-    uint8_t type)
+    uint8_t numCorrectors,
+    BAG_SURFACE_CORRECTION_TOPOGRAPHY topography)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
@@ -1061,19 +1599,31 @@ BagError bagCreateCorrectorDataset(
     //TODO where to get chunkSize & compressionLevel from?  elevation layer?
     const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SIMPLE_LAYER_MISSING;
 
     const auto& descriptor = elevationLayer->getDescriptor();
     const auto chunkSize = descriptor.getChunkSize();
     const auto compressionLevel = descriptor.getCompressionLevel();
 
-    handle->dataset->createSurfaceCorrections(
-        static_cast<BAG_SURFACE_CORRECTION_TOPOGRAPHY>(type),
-        static_cast<uint8_t>(numCorrectors), chunkSize, compressionLevel);
+    handle->dataset->createSurfaceCorrections(topography, numCorrectors,
+        chunkSize, compressionLevel);
 
     return BAG_SUCCESS;
 }
 
+//! Write the attributes to the surface corrections layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param def
+    The new attribute values.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagWriteCorrectorDefinition(
     BagHandle* handle,
     BagVerticalCorrectorDef* def)
@@ -1086,12 +1636,12 @@ BagError bagWriteCorrectorDefinition(
 
     auto* corrections = handle->dataset->getSurfaceCorrections();
     if (!corrections)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SURFACE_CORRECTIONS_MISSING;
 
     auto* descriptor = dynamic_cast<BAG::SurfaceCorrectionsDescriptor*>(
         &corrections->getDescriptor());
     if (!descriptor)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_WRONG_DESCRIPTOR_FOUND;
 
     descriptor->setOrigin(def->swCornerX, def->swCornerY)
         .setSpacing(def->nodeSpacingX, def->nodeSpacingY);
@@ -1108,6 +1658,19 @@ BagError bagWriteCorrectorDefinition(
     return BAG_SUCCESS;
 }
 
+//! Write the attributes to the surface corrections layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param def
+    The new attribute values.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadCorrectorDefinition(
     BagHandle* handle,
     BagVerticalCorrectorDef* def)
@@ -1134,32 +1697,65 @@ BagError bagReadCorrectorDefinition(
 }
 
 // Tracking List
+//! Retrieve the tracking list length.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param length
+    The number of items in the tracking list.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagTrackingListLength(
     BagHandle* handle,
-    uint32_t* len)
-{
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
-
-    if (!len)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
-
-    *len = static_cast<uint32_t>(handle->dataset->getTrackingList().size());
-
-    return BAG_SUCCESS;
-}
-
-BagError bagReadTrackingListNode(
-    BagHandle* handle,
-    uint32_t row,
-    uint32_t col,
-    BagTrackingItem** items,
     uint32_t* length)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!items || !length)
+    if (!length)
+        return BAG_INVALID_FUNCTION_ARGUMENT;
+
+    *length = static_cast<uint32_t>(handle->dataset->getTrackingList().size());
+
+    return BAG_SUCCESS;
+}
+
+//! Read items from a tracking list.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param row
+    The row.
+\param col
+    The column.
+\param items
+    The items read.
+    Cannot be NULL.
+\param numItems
+    The number of items read.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
+BagError bagReadTrackingListNode(
+    BagHandle* handle,
+    uint32_t row,
+    uint32_t col,
+    BagTrackingItem** items,
+    uint32_t* numItems)
+{
+    if (!handle)
+        return BAG_INVALID_BAG_HANDLE;
+
+    if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto& trackingList = handle->dataset->getTrackingList();
@@ -1173,24 +1769,42 @@ BagError bagReadTrackingListNode(
             return item.row == row && item.col == col;
         });
 
-    *length = static_cast<uint32_t>(results.size());
+    *numItems = static_cast<uint32_t>(results.size());
 
-    *items = new BAG::TrackingItem[*length];
-    memcpy(*items, results.data(), *length);
+    *items = new BAG::TrackingItem[*numItems];
+    memcpy(*items, results.data(), *numItems);
 
     return BAG_SUCCESS;
 }
 
+//! Read the items with matching track code from the entire tracking list.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param code
+    The tracking code to match.
+\param items
+    The items read.
+    Cannot be NULL.
+\param numItems
+    The number of items read.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadTrackingListCode(
     BagHandle* handle,
     uint8_t code,
     BagTrackingItem** items,
-    uint32_t* length)
+    uint32_t* numItems)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!items || !length)
+    if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto& trackingList = handle->dataset->getTrackingList();
@@ -1204,24 +1818,42 @@ BagError bagReadTrackingListCode(
             return item.track_code == code;
         });
 
-    *length = static_cast<uint32_t>(results.size());
+    *numItems = static_cast<uint32_t>(results.size());
 
-    *items = new BAG::TrackingItem[*length];
-    memcpy(*items, results.data(), *length);
+    *items = new BAG::TrackingItem[*numItems];
+    memcpy(*items, results.data(), *numItems);
 
     return BAG_SUCCESS;
 }
 
+//! Read the items with matching list series from the entire tracking list.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param series
+    The list series to match.
+\param items
+    The items read.
+    Cannot be NULL.
+\param numItems
+    The number of items read.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadTrackingListSeries(
     BagHandle* handle,
     uint16_t series,
     BagTrackingItem** items,
-    uint32_t* length)
+    uint32_t* numItems)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!items || !length)
+    if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto& trackingList = handle->dataset->getTrackingList();
@@ -1235,14 +1867,27 @@ BagError bagReadTrackingListSeries(
             return item.list_series == series;
         });
 
-    *length = static_cast<uint32_t>(results.size());
+    *numItems = static_cast<uint32_t>(results.size());
 
-    *items = new BAG::TrackingItem[*length];
-    memcpy(*items, results.data(), *length);
+    *items = new BAG::TrackingItem[*numItems];
+    memcpy(*items, results.data(), *numItems);
 
     return BAG_SUCCESS;
 }
 
+//! Add an item to the end of the tracking list.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param item
+    The tracking list item.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagWriteTrackingListItem(
     BagHandle* handle,
     BagTrackingItem* item)
@@ -1269,6 +1914,16 @@ BagError bagWriteTrackingListItem(
     return BAG_SUCCESS;
 }
 
+//! Sort the tracking list descending by node.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSortTrackingListByNode(BagHandle* handle)
 {
     if (!handle)
@@ -1295,6 +1950,16 @@ BagError bagSortTrackingListByNode(BagHandle* handle)
     return BAG_SUCCESS;
 }
 
+//! Sort the tracking list descending by series list.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSortTrackingListBySeries(BagHandle* handle)
 {
     if (!handle)
@@ -1321,6 +1986,16 @@ BagError bagSortTrackingListBySeries(BagHandle* handle)
     return BAG_SUCCESS;
 }
 
+//! Sort the tracking list descending by track code.
+/*
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSortTrackingListByCode(BagHandle* handle)
 {
     if (!handle)
@@ -1348,6 +2023,15 @@ BagError bagSortTrackingListByCode(BagHandle* handle)
 }
 
 // Metadata
+//! Retrieve the metadata.
+/*!
+\param handle
+    A handle to the BAG.
+
+\return
+    The metadata.
+    NULL if the handle is NULL.
+*/
 const BagMetadata* bagGetMetaData(BagHandle* handle)
 {
     if (!handle)
@@ -1356,62 +2040,71 @@ const BagMetadata* bagGetMetaData(BagHandle* handle)
     return &handle->dataset->getMetadata().getStruct();
 }
 
-BagError bagGetMinMaxSimple(
-    BagHandle* handle,
-    BAG_LAYER_TYPE type,
-    float* minValue,
-    float* maxValue)
-{
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
-
-    if (!minValue || !maxValue)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
-
-    const auto* layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return 9997;  // layer type not found
-
-    std::tie(*minValue, *maxValue) = layer->getDescriptor().getMinMax();
-
-    return BAG_SUCCESS;
-}
-
+//! Set the home folder.  This will override the BAG_HOME environment variable.
+/*!
+\param metadataFolder
+    The new metadata folder.
+    Does not verify if it exists.
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSetHomeFolder(const char* metadataFolder)
 {
     if (!metadataFolder)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    bagSetHomeFolder(metadataFolder);
+    BAG::bagSetHomeFolder(metadataFolder);
 
     return BAG_SUCCESS;
 }
 
-// New Metadata (CompoundLayer)
+// CompoundLayer
+//! Create a compound layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param indexType
+    The type of index the compound layer will use to index the record.
+    Valid types are: DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64
+\param layerName
+    The case-insensitive name of the simple layer this compound layer contains metadata about.
+    Cannot be NULL.
+\param definition
+    The list of fields making up the record definition.
+    Cannot be NULL.
+\param numFields
+    The number of fields in the definition.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagCreateCompoundLayer(
     BagHandle* handle,
     BAG_DATA_TYPE indexType,
     const char* layerName,
     const FieldDefinition* definition,
-    uint32_t numDefinitions)
+    uint32_t numFields)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!layerName || !definition || numDefinitions < 1)
+    if (!layerName || !definition || numFields < 1)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     //TODO where to get chunkSize & compressionLevel from?  elevation layer?
     const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SIMPLE_LAYER_MISSING;
 
     const auto& descriptor = elevationLayer->getDescriptor();
     const auto chunkSize = descriptor.getChunkSize();
     const auto compressionLevel = descriptor.getCompressionLevel();
 
     // Convert the FieldDefinition* into a RecordDefinition.
-    const BAG::RecordDefinition recordDef(definition, definition + numDefinitions);
+    const BAG::RecordDefinition recordDef(definition, definition + numFields);
 
     try
     {
@@ -1426,29 +2119,47 @@ BagError bagCreateCompoundLayer(
     return BAG_SUCCESS;
 }
 
+//! Get the compound layer record definition.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer this compound layer contains metadata about.
+    Cannot be NULL.
+\param definition
+    The list of fields making up the record definition.
+    Cannot be NULL.
+\param numFields
+    The number of fields in the definition.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetCompoundLayerDefinition(
     BagHandle* handle,
     const char* layerName,
     FieldDefinition** definition,
-    uint32_t* numDefinitions)
+    uint32_t* numFields)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!definition || !numDefinitions)
+    if (!definition || !numFields)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     const auto& recordDef = compoundLayer->getValueTable().getDefinition();
 
     // Convert the RecordDefinition into a FieldDefinition*.
-    *numDefinitions = static_cast<uint32_t>(recordDef.size());
+    *numFields = static_cast<uint32_t>(recordDef.size());
 
     auto* pDef = *definition;
-    pDef = new FieldDefinition[*numDefinitions];  // caller is responsible to clean this up.
+    pDef = new FieldDefinition[*numFields];  //TODO Write a free for this.
 
     uint32_t index = 0;
     for (const auto& def : recordDef)
@@ -1457,6 +2168,29 @@ BagError bagGetCompoundLayerDefinition(
     return BAG_SUCCESS;
 }
 
+//! Get the compound layer records.
+/*!
+    Read all the records from the compound layer.
+    Note that the first record is the no data value record.
+
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param records
+    The records read from the compound layer.
+    Cannot be NULL.
+\param numRecords
+    The number of records.
+\param numFields
+    The number of fields in a record.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetCompoundLayerRecords(
     BagHandle* handle,
     const char* layerName,
@@ -1472,13 +2206,14 @@ BagError bagGetCompoundLayerRecords(
 
     const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     const auto& recs = compoundLayer->getValueTable().getRecords();
-    if (recs.empty())
+    if (recs.size() == 1)  // No user defined records; just the single no data value record.
     {
         *numRecords = 0;
-        *numFields = static_cast<uint32_t>(compoundLayer->getValueTable().getDefinition().size());
+        *numFields = static_cast<uint32_t>(
+            compoundLayer->getValueTable().getDefinition().size());
 
         *records = nullptr;
 
@@ -1514,6 +2249,29 @@ BagError bagGetCompoundLayerRecords(
     return BAG_SUCCESS;
 }
 
+//! Get a specific value from the compound layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param recordIndex
+    The record index to be read from the compound layer.
+    Valid values are 1 to number of records - 1.
+    Index 0 contains the no data value so is not queried.
+\param fieldName
+    The name of the field.
+    Cannot be NULL.
+\param value
+    The value read.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetCompoundLayerValueByName(
     BagHandle* handle,
     const char* layerName,
@@ -1529,7 +2287,7 @@ BagError bagGetCompoundLayerValueByName(
 
     const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     try
     {
@@ -1540,20 +2298,42 @@ BagError bagGetCompoundLayerValueByName(
     }
     catch(const BAG::RecordNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_FIELD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
-        return BAG_NEWMETADATA_NO_VALUE_FOUND;
+        return BAG_COMPOUND_LAYER_NO_VALUE_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
+//! Get a specific value from the compound layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param recordIndex
+    The record index to be read from the compound layer.
+    Valid values are 1 to number of records - 1.
+    Index 0 contains the no data value so is not queried.
+\param fieldIndex
+    The name of the field.
+\param value
+    The value read.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetCompoundLayerValueByIndex(
     BagHandle* handle,
     const char* layerName,
@@ -1569,7 +2349,7 @@ BagError bagGetCompoundLayerValueByIndex(
 
     const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     try
     {
@@ -1580,20 +2360,39 @@ BagError bagGetCompoundLayerValueByIndex(
     }
     catch(const BAG::RecordNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_FIELD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
-        return BAG_NEWMETADATA_NO_VALUE_FOUND;
+        return BAG_COMPOUND_LAYER_NO_VALUE_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the field index of a field name from a specified compound layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param fieldName
+    The name of the field.
+    Cannot be NULL.
+\param fieldIndex
+    The index of the field.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetCompoundLayerFieldIndex(
     BagHandle* handle,
     const char* layerName,
@@ -1608,7 +2407,7 @@ BagError bagGetCompoundLayerFieldIndex(
 
     const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     try
     {
@@ -1617,12 +2416,30 @@ BagError bagGetCompoundLayerFieldIndex(
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_FIELD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the field name of a field index from a specified compound layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param fieldIndex
+    The index of the field.
+\param fieldName
+    The name of the field.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagGetCompoundLayerFieldName(
     BagHandle* handle,
     const char* layerName,
@@ -1632,12 +2449,12 @@ BagError bagGetCompoundLayerFieldName(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!layerName)
+    if (!layerName || !fieldName)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     try
     {
@@ -1645,28 +2462,49 @@ BagError bagGetCompoundLayerFieldName(
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_FIELD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
+//! Add a record to the end of the specified compound layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param record
+    The record to add.
+    Cannot be NULL.
+\param numFields
+    The number of fields in the record.
+\param recordIndex
+    The index of new record.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagAddCompoundLayerRecord(
     BagHandle* handle,
     const char* layerName,
     const BagCompoundDataType* record,
     uint32_t numFields,
-    uint32_t* fieldIndex)
+    uint32_t* recordIndex)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!layerName || !record || !fieldIndex)
+    if (!layerName || !record || !recordIndex)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::Record.
     BAG::Record rec(numFields);
@@ -1677,16 +2515,16 @@ BagError bagAddCompoundLayerRecord(
 
     try
     {
-        *fieldIndex = static_cast<uint32_t>(
+        *recordIndex = static_cast<uint32_t>(
             compoundLayer->getValueTable().addRecord(rec));
     }
     catch(const BAG::InvalidRecord& /*e*/)
     {
-        return BAG_NEWMETADATA_INVALID_RECORD_DEFINITION;
+        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidRecordsIndex&)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -1696,6 +2534,26 @@ BagError bagAddCompoundLayerRecord(
     return BAG_SUCCESS;
 }
 
+//! Add records to the end of the specified compound layer.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param record
+    The record to add.
+    Cannot be NULL.
+\param numRecords
+    The number of records.
+\param numFields
+    The number of fields in each record.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagAddCompoundLayerRecords(
     BagHandle* handle,
     const char* layerName,
@@ -1711,7 +2569,7 @@ BagError bagAddCompoundLayerRecords(
 
     auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     // Convert BagCompoundDataType* into a BAG::Records.
     BAG::Records recs(numRecords);
@@ -1734,11 +2592,11 @@ BagError bagAddCompoundLayerRecords(
     }
     catch(const BAG::InvalidRecord& /*e*/)
     {
-        return BAG_NEWMETADATA_INVALID_RECORD_DEFINITION;
+        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidRecordsIndex&)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -1748,6 +2606,27 @@ BagError bagAddCompoundLayerRecords(
     return BAG_SUCCESS;
 }
 
+//! Set the value of a field in a record.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param recordIndex
+    The record to update.
+\param fieldName
+    The name of the field.
+    Cannot be NULL.
+\param value
+    The value to write.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagCompoundLayerSetValueByName(
     BagHandle* handle,
     const char* layerName,
@@ -1763,7 +2642,7 @@ BagError bagCompoundLayerSetValueByName(
 
     auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
     const auto val = getValue(*value);
@@ -1774,15 +2653,15 @@ BagError bagCompoundLayerSetValueByName(
     }
     catch(const BAG::RecordNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::InvalidRecord& /*e*/)
     {
-        return BAG_NEWMETADATA_INVALID_RECORD_DEFINITION;
+        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidRecordsIndex&)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -1792,6 +2671,26 @@ BagError bagCompoundLayerSetValueByName(
     return BAG_SUCCESS;
 }
 
+//! Set the value of a field in a record.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param layerName
+    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    Cannot be NULL.
+\param recordIndex
+    The record to update.
+\param fieldIndex
+    The index of the field.
+\param value
+    The value to write.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagCompoundLayerSetValueByIndex(
     BagHandle* handle,
     const char* layerName,
@@ -1807,7 +2706,7 @@ BagError bagCompoundLayerSetValueByIndex(
 
     auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_COMPOUND_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
     const auto val = getValue(*value);
@@ -1818,15 +2717,15 @@ BagError bagCompoundLayerSetValueByIndex(
     }
     catch(const BAG::RecordNotFound& /*e*/)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::InvalidRecord& /*e*/)
     {
-        return BAG_NEWMETADATA_INVALID_RECORD_DEFINITION;
+        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidRecordsIndex&)
     {
-        return BAG_NEWMETADATA_RECORD_NOT_FOUND;
+        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -1837,6 +2736,19 @@ BagError bagCompoundLayerSetValueByIndex(
 }
 
 // Variable Resolution
+//! Create the optional variable resolution layers.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param makeNode
+    If \e true, create the optional variable resolution node group layer.
+    If e false, do not
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagCreateVRLayers(
     BagHandle* handle,
     bool makeNode)
@@ -1847,7 +2759,7 @@ BagError bagCreateVRLayers(
     //TODO where to get chunkSize & compressionLevel from?  elevation layer?
     const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+        return BAG_SIMPLE_LAYER_MISSING;
 
     const auto& descriptor = elevationLayer->getDescriptor();
     const auto chunkSize = descriptor.getChunkSize();
@@ -1869,7 +2781,23 @@ BagError bagCreateVRLayers(
     return BAG_SUCCESS;
 }
 
-// Variable Resolution Metadata
+// Variable resolution Metadata
+//! Retrieve the minimum X and Y dimensions from the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minX
+    The minimum X dimension.
+    Cannot be NULL.
+\param minY
+    The minimum Y dimension.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataGetMinDimensions(
     BagHandle* handle,
     uint32_t* minX,
@@ -1895,6 +2823,22 @@ BagError bagVRMetadataGetMinDimensions(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the maximum X and Y dimensions from the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param maxX
+    The maximum X dimension.
+    Cannot be NULL.
+\param maxY
+    The maximum Y dimension.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataGetMaxDimensions(
     BagHandle* handle,
     uint32_t* maxX,
@@ -1920,6 +2864,22 @@ BagError bagVRMetadataGetMaxDimensions(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the minimum X and Y resolution from the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minX
+    The minimum X resolution.
+    Cannot be NULL.
+\param minY
+    The minimum Y resolution.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataGetMinResolution(
     BagHandle* handle,
     float* minX,
@@ -1945,6 +2905,22 @@ BagError bagVRMetadataGetMinResolution(
     return BAG_SUCCESS;
 };
 
+//! Retrieve the maximum X and Y resolution from the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param maxX
+    The maximum X resolution.
+    Cannot be NULL.
+\param maxY
+    The maximum Y resolution.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataGetMaxResolution(
     BagHandle* handle,
     float* maxX,
@@ -1970,6 +2946,20 @@ BagError bagVRMetadataGetMaxResolution(
     return BAG_SUCCESS;
 }
 
+//! Set the minimum X and Y dimensions for the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minX
+    The minimum X dimension.
+\param minY
+    The minimum Y dimension.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataSetMinDimensions(
     BagHandle* handle,
     uint32_t minX,
@@ -2009,6 +2999,20 @@ BagError bagVRMetadataSetMinDimensions(
     return BAG_SUCCESS;
 }
 
+//! Set the maximum X and Y dimensions for the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param maxX
+    The maximum X dimension.
+\param maxY
+    The maximum Y dimension.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataSetMaxDimensions(
     BagHandle* handle,
     uint32_t maxX,
@@ -2048,6 +3052,20 @@ BagError bagVRMetadataSetMaxDimensions(
     return BAG_SUCCESS;
 }
 
+//! Set the minimum X and Y resolution for the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minX
+    The minimum X dimension.
+\param minY
+    The minimum Y dimension.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataSetMinResolution(
     BagHandle* handle,
     float minX,
@@ -2087,6 +3105,20 @@ BagError bagVRMetadataSetMinResolution(
     return BAG_SUCCESS;
 }
 
+//! Set the maximum X and Y resolution for the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param maxX
+    The maximum X dimension.
+\param maxY
+    The maximum Y dimension.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRMetadataSetMaxResolution(
     BagHandle* handle,
     float maxX,
@@ -2127,6 +3159,22 @@ BagError bagVRMetadataSetMaxResolution(
 }
 
 // Variable Resolution Node
+//! Retrieve the minimum and maximum hypotheses strength from the variable resolution node group.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minHypStr
+    The minimum hypotheses strength.
+    Cannot be NULL.
+\param maxY
+    The maximum hypotheses strength.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRNodeGetMinMaxHypStrength(
     BagHandle* handle,
     float* minHypStr,
@@ -2152,6 +3200,22 @@ BagError bagVRNodeGetMinMaxHypStrength(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the minimum and maximum number of hypotheses from the variable resolution node group.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minNumHyp
+    The minimum number of hypotheses.
+    Cannot be NULL.
+\param maxNumHyp
+    The maximum number of hypotheses.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRNodeGetMinMaxNumHypotheses(
     BagHandle* handle,
     uint32_t* minNumHyp,
@@ -2177,6 +3241,22 @@ BagError bagVRNodeGetMinMaxNumHypotheses(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the minimum and maximum number of samples from the variable resolution node group.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minNSamples
+    The minimum number of samples.
+    Cannot be NULL.
+\param maxNSamples
+    The maximum number of samples.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRNodeGetMinMaxNSamples(
     BagHandle* handle,
     uint32_t* minNSamples,
@@ -2202,6 +3282,20 @@ BagError bagVRNodeGetMinMaxNSamples(
     return BAG_SUCCESS;
 }
 
+//! Set the minimum and maximum hypotheses strength on the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minHypStr
+    The minimum hypotheses strength.
+\param maxHypStr
+    The maximum hypotheses strength.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRNodeSetMinMaxHypStrength(
     BagHandle* handle,
     float minHypStr,
@@ -2241,6 +3335,20 @@ BagError bagVRNodeSetMinMaxHypStrength(
     return BAG_SUCCESS;
 }
 
+//! Set the minimum and maximum number of hypotheses on the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minNumHyp
+    The minimum number of hypotheses.
+\param maxNumHyp
+    The maximum number of hypotheses.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRNodeSetMinMaxNumHypotheses(
     BagHandle* handle,
     uint32_t minNumHyp,
@@ -2280,6 +3388,20 @@ BagError bagVRNodeSetMinMaxNumHypotheses(
     return BAG_SUCCESS;
 }
 
+//! Set the minimum and maximum number of samples on the variable resolution metadata.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minNSamples
+    The minimum number of samples.
+\param maxNSamples
+    The maximum number of samples.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRNodeSetMinMaxNSamples(
     BagHandle* handle,
     uint32_t minNSamples,
@@ -2319,7 +3441,23 @@ BagError bagVRNodeSetMinMaxNSamples(
     return BAG_SUCCESS;
 }
 
-// Variable Resolution Refinement
+// Variable resolution Refinements
+//! Retrieve the minimum and maximum depth from the variable resolution refinements.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minDepth
+    The maximum depth.
+    Cannot be NULL.
+\param maxDepth
+    The maximum depth.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BAG_EXTERNAL BagError bagVRRefinementGetMinMaxDepth(
     BagHandle* handle,
     float* minDepth,
@@ -2345,6 +3483,22 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxDepth(
     return BAG_SUCCESS;
 }
 
+//! Retrieve the minimum and maximum uncertainty from the variable resolution refinements.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minUncert
+    The maximum uncertainty.
+    Cannot be NULL.
+\param maxUncert
+    The maximum uncertainty.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BAG_EXTERNAL BagError bagVRRefinementGetMinMaxUncertainty(
     BagHandle* handle,
     float* minUncert,
@@ -2370,6 +3524,20 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxUncertainty(
     return BAG_SUCCESS;
 }
 
+//! Set the minimum and maximum depths for the variable resolution refinements.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minDepth
+    The minimum depth.
+\param maxDepth
+    The minimum depth.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BAG_EXTERNAL BagError bagVRRefinementSetMinMaxDepth(
     BagHandle* handle,
     float minDepth,
@@ -2409,6 +3577,20 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxDepth(
     return BAG_SUCCESS;
 }
 
+//! Set the minimum and maximum uncertainty for the variable resolution refinements.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param minUncert
+    The minimum uncertainty.
+\param maxUncert
+    The minimum uncertainty.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BAG_EXTERNAL BagError bagVRRefinementSetMinMaxUncertainty(
     BagHandle* handle,
     float minUncert,
@@ -2449,36 +3631,69 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxUncertainty(
 }
 
 // Variable Resolution Tracking List
+//! Retrieve the number of items in the variable resolution tracking list.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param numItems
+    The number of items.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagVRTrackingListLength(
     BagHandle* handle,
-    uint32_t* len)
+    uint32_t* numItems)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!len)
+    if (!numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    *len = static_cast<uint32_t>(vrTrackingList->size());
+    *numItems = static_cast<uint32_t>(vrTrackingList->size());
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the items from the variable resolution tracking list matching row and column.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param row
+    The row.
+\param col
+    The column.
+\param items
+    The items to retrieve.
+    Cannot be NULL.
+\param numItems
+    The number of items that were retrieved.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadVRTrackingListNode(
     BagHandle* handle,
     uint32_t row,
     uint32_t col,
     BagVRTrackingItem** items,
-    uint32_t* length)
+    uint32_t* numItems)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!items || !length)
+    if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* vrTrackingList = handle->dataset->getVRTrackingList();
@@ -2494,25 +3709,45 @@ BagError bagReadVRTrackingListNode(
             return item.row == row && item.col == col;
         });
 
-    *length = static_cast<uint32_t>(results.size());
+    *numItems = static_cast<uint32_t>(results.size());
 
-    *items = new BAG::VRTrackingItem[*length];
-    memcpy(*items, results.data(), *length);
+    *items = new BAG::VRTrackingItem[*numItems];
+    memcpy(*items, results.data(), *numItems);
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the items from the variable resolution tracking list matching the sub row and column.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param row
+    The sub row.
+\param col
+    The sub column.
+\param items
+    The items to retrieve.
+    Cannot be NULL.
+\param numItems
+    The number of items that were retrieved.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadVRTrackingListSubNode(
     BagHandle* handle,
     uint32_t row,
     uint32_t col,
     BagVRTrackingItem** items,
-    uint32_t* length)
+    uint32_t* numItems)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!items || !length)
+    if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* vrTrackingList = handle->dataset->getVRTrackingList();
@@ -2528,24 +3763,42 @@ BagError bagReadVRTrackingListSubNode(
             return item.sub_row == row && item.sub_col == col;
         });
 
-    *length = static_cast<uint32_t>(results.size());
+    *numItems = static_cast<uint32_t>(results.size());
 
-    *items = new BAG::VRTrackingItem[*length];
-    memcpy(*items, results.data(), *length);
+    *items = new BAG::VRTrackingItem[*numItems];
+    memcpy(*items, results.data(), *numItems);
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the items from the variable resolution tracking list matching track code.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param code
+    The track code.
+\param items
+    The items to retrieve.
+    Cannot be NULL.
+\param numItems
+    The number of items that were retrieved.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadVRTrackingListCode(
     BagHandle* handle,
     uint8_t code,
     BagVRTrackingItem** items,
-    uint32_t* length)
+    uint32_t* numItems)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!items || !length)
+    if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* vrTrackingList = handle->dataset->getVRTrackingList();
@@ -2561,24 +3814,42 @@ BagError bagReadVRTrackingListCode(
             return item.track_code == code;
         });
 
-    *length = static_cast<uint32_t>(results.size());
+    *numItems = static_cast<uint32_t>(results.size());
 
-    *items = new BAG::VRTrackingItem[*length];
-    memcpy(*items, results.data(), *length);
+    *items = new BAG::VRTrackingItem[*numItems];
+    memcpy(*items, results.data(), *numItems);
 
     return BAG_SUCCESS;
 }
 
+//! Retrieve the items from the variable resolution tracking list matching list series.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param series
+    The list series.
+\param items
+    The items to retrieve.
+    Cannot be NULL.
+\param numItems
+    The number of items that were retrieved.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagReadVRTrackingListSeries(
     BagHandle* handle,
     uint16_t series,
     BagVRTrackingItem** items,
-    uint32_t* length)
+    uint32_t* numItems)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    if (!items || !length)
+    if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto* vrTrackingList = handle->dataset->getVRTrackingList();
@@ -2594,14 +3865,27 @@ BagError bagReadVRTrackingListSeries(
             return item.list_series == series;
         });
 
-    *length = static_cast<uint32_t>(results.size());
+    *numItems = static_cast<uint32_t>(results.size());
 
-    *items = new BAG::VRTrackingItem[*length];
-    memcpy(*items, results.data(), *length);
+    *items = new BAG::VRTrackingItem[*numItems];
+    memcpy(*items, results.data(), *numItems);
 
     return BAG_SUCCESS;
 }
 
+//! Write an item to the end of the variable resolution tracking list.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param item
+    The item.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagWriteVRTrackingListItem(
     BagHandle* handle,
     BagVRTrackingItem* item)
@@ -2638,6 +3922,16 @@ BagError bagWriteVRTrackingListItem(
     return BAG_SUCCESS;
 }
 
+//! Sort the variable resolution tracking list by row and column, descending.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSortVRTrackingListByNode(
     BagHandle* handle)
 {
@@ -2675,6 +3969,16 @@ BagError bagSortVRTrackingListByNode(
     return BAG_SUCCESS;
 }
 
+//! Sort the variable resolution tracking list by sub row and column, descending.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSortVRTrackingListBySubNode(
     BagHandle* handle)
 {
@@ -2712,6 +4016,16 @@ BagError bagSortVRTrackingListBySubNode(
     return BAG_SUCCESS;
 }
 
+//! Sort the variable resolution tracking list by list series, descending.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSortVRTrackingListBySeries(
     BagHandle* handle)
 {
@@ -2749,6 +4063,16 @@ BagError bagSortVRTrackingListBySeries(
     return BAG_SUCCESS;
 }
 
+//! Sort the variable resolution tracking list by track code, descending.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+*/
 BagError bagSortVRTrackingListByCode(
     BagHandle* handle)
 {

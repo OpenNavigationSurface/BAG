@@ -27,12 +27,11 @@ public:
     SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
     SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
 
-    UInt8Array readCorrected(uint32_t rowStart,
-        uint32_t rowEnd, uint32_t columnStart, uint32_t columnEnd,
-        uint8_t corrector, const SimpleLayer& layer) const;
-    UInt8Array readCorrectedRow(uint32_t row,
-        uint32_t columnStart, uint32_t columnEnd, uint8_t corrector,
+    UInt8Array readCorrected(uint32_t rowStart, uint32_t columnStart,
+        uint32_t rowEnd, uint32_t columnEnd, uint8_t corrector,
         const SimpleLayer& layer) const;
+    UInt8Array readCorrectedRow(uint32_t row, uint32_t columnStart,
+        uint32_t columnEnd, uint8_t corrector, const SimpleLayer& layer) const;
 
 protected:
     SurfaceCorrections(Dataset& dataset,
