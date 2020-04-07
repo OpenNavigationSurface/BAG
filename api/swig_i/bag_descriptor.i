@@ -67,14 +67,13 @@ namespace BAG {
         const std::tuple<double, double>& getGridSpacing() const & noexcept;
 #endif
 
-        %ignore addLayerDescriptor(const LayerDescriptor& inDescriptor) &;
-        void setVerticalReferenceSystem(
+        Descriptor& setVerticalReferenceSystem(
             const std::string& verticalReferenceSystem) & noexcept;
-        void setDims(uint32_t rows, uint32_t columns) & noexcept;
-        void setProjectedCover(double llX, double llY, double urX,
+        Descriptor& setDims(uint32_t rows, uint32_t columns) & noexcept;
+        Descriptor& setProjectedCover(double llX, double llY, double urX,
             double urY) & noexcept;
-        void setOrigin(double llX, double llY) & noexcept;
-        void setGridSpacing(double xSpacing, double ySpacing) & noexcept;
+        Descriptor& setOrigin(double llX, double llY) & noexcept;
+        Descriptor& setGridSpacing(double xSpacing, double ySpacing) & noexcept;
         Descriptor& setReadOnly(bool readOnly) & noexcept;
         Descriptor& setVersion(std::string inVersion) & noexcept;
     };
@@ -83,14 +82,14 @@ namespace BAG {
 
 %extend BAG::Descriptor
 {
-    const std::pair<uint32_t, uint32_t> getDims() const & noexcept
+    std::pair<uint32_t, uint32_t> getDims() const & noexcept
     {
         uint32_t row=0.0, column=0.0;
         std::tie(row, column) = self->getDims();
         return std::pair<uint32_t, uint32_t>(row, column);
     }
 
-    const std::pair<std::pair<double, double>, std::pair<double, double> > 
+    std::pair<std::pair<double, double>, std::pair<double, double> > 
         getProjectedCover() const & noexcept
     {
         double llX = 0.0, llY = 0.0, urX = 0.0, urY = 0.0;
@@ -100,14 +99,14 @@ namespace BAG {
         return std::pair<std::pair<double, double>,std::pair<double, double>>(ll, ur);
     }
 
-    const std::pair<double, double> getOrigin() const & noexcept
+    std::pair<double, double> getOrigin() const & noexcept
     {
         double x=0.0, y=0.0;
         std::tie(x, y) = self->getOrigin();
         return std::pair<double, double>(x, y);
     }
 
-    const std::pair<double, double> getGridSpacing() const & noexcept
+    std::pair<double, double> getGridSpacing() const & noexcept
     {
         double x=0.0, y=0.0;
         std::tie(x, y) = self->getGridSpacing();

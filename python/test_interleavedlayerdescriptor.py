@@ -20,8 +20,8 @@ def testCreate():
     dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
     assert(dataset)
 
-    descriptor = InterleavedLayerDescriptor.create(Hypothesis_Strength,
-        NODE, chunkSize, compressionLevel, dataset)
+    descriptor = InterleavedLayerDescriptor.create(dataset, Hypothesis_Strength,
+        NODE)
     assert(descriptor)
 
     del dataset #ensure dataset is deleted before tmpFile
@@ -36,20 +36,19 @@ def testGetGroupType():
     assert(dataset)
 
     kExpectedGroup = NODE
-    descriptor = InterleavedLayerDescriptor.create(Hypothesis_Strength,
-        kExpectedGroup, chunkSize, compressionLevel, dataset)
+    descriptor = InterleavedLayerDescriptor.create(dataset, Hypothesis_Strength,
+        kExpectedGroup)
     assert(descriptor)
     assert(descriptor.getGroupType() == kExpectedGroup)
 
     kExpectedGroup = ELEVATION
-    descriptor = InterleavedLayerDescriptor.create(Num_Soundings,
-        kExpectedGroup, chunkSize, compressionLevel, dataset)
+    descriptor = InterleavedLayerDescriptor.create(dataset, Num_Soundings,
+        kExpectedGroup)
     assert(descriptor)
     assert(descriptor.getGroupType() == kExpectedGroup)
 
     #TODO add assert that the interleaved layer creation throws with an invalid group and layer combination.
-    #InterleavedLayerDescriptor.create(Hypothesis_Strength,
-    #   ELEVATION, chunkSize, compressionLevel, dataset)
+    #InterleavedLayerDescriptor.create(dataset, Hypothesis_Strength, ELEVATION)
 
     del dataset #ensure dataset is deleted before tmpFile
 
@@ -64,16 +63,16 @@ def testElementSize():
 
     kExpectedLayerType = Num_Hypotheses
     kExpectedGroupType = NODE
-    descriptor = InterleavedLayerDescriptor.create(kExpectedLayerType,
-        kExpectedGroupType, chunkSize, compressionLevel, dataset)
+    descriptor = InterleavedLayerDescriptor.create(dataset, kExpectedLayerType,
+        kExpectedGroupType)
     assert(descriptor)
     assert(descriptor.getElementSize() ==
         Layer.getElementSize(Layer.getDataType(kExpectedLayerType)))
 
     kExpectedLayerType = Std_Dev
     kExpectedGroupType = ELEVATION
-    descriptor = InterleavedLayerDescriptor.create(kExpectedLayerType,
-        kExpectedGroupType, chunkSize, compressionLevel, dataset)
+    descriptor = InterleavedLayerDescriptor.create(dataset, kExpectedLayerType,
+        kExpectedGroupType)
     assert(descriptor)
     assert(descriptor.getElementSize() ==
         Layer.getElementSize(Layer.getDataType(kExpectedLayerType)))
