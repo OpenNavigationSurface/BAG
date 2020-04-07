@@ -17,6 +17,7 @@ namespace BAG
     class CompoundLayer;
 }
 
+%include <std_string.i>
 %import "../bag_config.h"
 %import "bag_compounddatatype.i"
 %include "../bag_valuetable.h"

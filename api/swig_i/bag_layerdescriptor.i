@@ -54,7 +54,7 @@ namespace BAG {
 
 %extend BAG::LayerDescriptor
 {
-    std::tuple<float, float> BAG::LayerDescriptor::getMinMax() const noexcept
+    std::pair<float, float> BAG::LayerDescriptor::getMinMax() const noexcept
     {
         float min=0.0, max=0.0;
         std::tie(min, max) = self->getMinMax();

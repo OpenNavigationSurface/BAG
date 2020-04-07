@@ -21,3 +21,11 @@ namespace std
 }
 
 %include "../bag_types.h"
+
+%inline
+%{
+    const std::string getLayerTypeAsString(BAG::LayerType lt)
+    {
+        return BAG::kLayerTypeMapString.at(lt);
+    }
+%}
