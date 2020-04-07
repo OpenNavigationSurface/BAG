@@ -34,9 +34,6 @@ target_include_directories(bagPy
 
 swig_link_libraries(bagPy
     baglib
-    ${HDF5_hdf5_LIBRARY}
-    ${HDF5_hdf5_cpp_LIBRARY}
-    LibXml2::LibXml2
     Python3::Python
 )
 

@@ -23,11 +23,9 @@ lib/
 installed/
 api/Debug
 api/Release
-api/swig_wrapper/
 examples/Debug
 examples/Release
-python/
-tests/swig_wrapper/
+swig_wrapper/
 
 # Visual Studio session files.
 /.vs

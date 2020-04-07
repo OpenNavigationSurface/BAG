@@ -45,5 +45,7 @@ namespace std
 %include "bag_surfacecorrections.i"
 %include "bag_compoundlayer.i"
 %include "bag_compoundlayerdescriptor.i"
+%include "bag_vrmetadata.i"
+%include "bag_vrmetadatadescriptor.i"
 %include "bag_dataset.i"
 

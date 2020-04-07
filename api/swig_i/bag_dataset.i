@@ -11,6 +11,7 @@
 %}
 
 #define final
+
 %import "bag_types.i"
 %include <stl.i>
 namespace std 
@@ -26,11 +27,13 @@ namespace std
 %import "bag_surfacecorrections.i"
 %import "bag_trackinglist.i"
 %import "bag_types.i"
+%import "bag_vrmetadata.i"
 
 %include <pyabc.i>
 %include <std_string.i>
-%include <stdint.i>
 %include <std_shared_ptr.i>
+%include <stdint.i>
+
 %shared_ptr(BAG::Dataset)
 
 namespace BAG {
@@ -42,7 +45,7 @@ public:
     static std::shared_ptr<Dataset> open(const std::string & fileName,
         OpenMode openMode);
     static std::shared_ptr<Dataset> create(const std::string& fileName,
-        Metadata&& metadata, uint64_t chunkSize, unsigned int compressionLevel);
+        Metadata&& metadata, uint64_t chunkSize, int compressionLevel);
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
@@ -56,19 +59,15 @@ public:
     std::vector<LayerType> getLayerTypes() const;
 
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
-        unsigned int compressionLevel) &;
+        int compressionLevel) &;
     CompoundLayer& createCompoundLayer(DataType indexType,
         const std::string& name, const RecordDefinition& definition,
-        uint64_t chunkSize, unsigned int compressionLevel) &;
+        uint64_t chunkSize, int compressionLevel) &;
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
-        uint64_t chunkSize, unsigned int compressionLevel) &;
+        uint64_t chunkSize, int compressionLevel) &;
 
-    // TODO: renable after adding swig interfaces for VR classes
-    /*
-    void createVR(uint64_t chunkSize, unsigned int compressionLevel);
-    void createVRNode(uint64_t chunkSize, unsigned int compressionLevel);
-    */
+    void createVR(uint64_t chunkSize, int compressionLevel, bool makeNode);
 
     TrackingList& getTrackingList() & noexcept;
     %ignore getTrackingList() const& noexcept;
@@ -79,17 +78,17 @@ public:
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     %ignore getSurfaceCorrections() const & noexcept;
 
-    // TODO: renable after adding swig interfaces for VR classes
-    /*
     VRMetadata* getVRMetadata() & noexcept;
     %ignore getVRMetadata() const & noexcept;
+
+#if 0  //TODO Enable rest as implemented.
     VRNode* getVRNode() & noexcept;
     %ignore getVRNode() const & noexcept;
     VRRefinement* getVRRefinement() & noexcept;
     %ignore getVRRefinement() const & noexcept;
     VRTrackingList* getVRTrackingList() & noexcept;
     %ignore getVRTrackingList() const & noexcept;
-    */
+#endif
 
     Descriptor& getDescriptor() & noexcept;
     %ignore getDescriptor() const & noexcept;
