@@ -1,75 +1,43 @@
 language: cpp
-sudo: required
 
-cache:
-  apt: true
-    
-matrix:
-  fast_finish: true
-    
-  include:
-  - os: linux
-    dist: xenial
-    compiler: gcc
-    env: PYTHON_VERSION=3.6
-  - os: linux
-    dist: xenial
-    compiler: gcc
-    env: PYTHON_VERSION=3.7
-  - os: osx
-    compiler: clang
-    env: PYTHON_VERSION=3.6
-    
-  allow_failures:
-  - os: linux
-    dist: xenial
-    compiler: gcc
-    env: PYTHON_VERSION=3.7
-  - os: osx
-    compiler: clang
-    env: PYTHON_VERSION=3.6
+git:
+  submodules: false
+
+os: linux
+dist:
+  #- xenial
+  - bionic
+compiler:
+  - clang
+  - gcc
+env:
+  - PYTHON_VERSION=3.6
+  - PYTHON_VERSION=3.7
 
 install:
-
-  # Download miniconda
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      curl https://repo.continuum.io/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -o miniconda.sh;
-    else
-      sudo apt-get update;
-      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
-    fi
-
-  # Install miniconda
+  # Download miniconda.
+  - sudo apt-get update
+  - wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+  # Install miniconda.
   - bash miniconda.sh -b -p $HOME/miniconda
-  - export PATH="$HOME/miniconda/bin:$PATH"
+  #- export PATH="$HOME/miniconda/bin:$PATH"
+  - source "$HOME/miniconda/etc/profile.d/conda.sh"
   - hash -r
   - conda config --set always_yes yes --set changeps1 no
   - conda config --add channels conda-forge
   - conda update -q conda
-  # Useful for debugging any issues with conda
+  # Useful for debugging any issues with conda.
   - conda info -a
-  # Create conda test environment
+  # Create conda test environment.
   - conda create -q -n test-environment python=$PYTHON_VERSION
-  - source activate test-environment
-  - conda install cmake hdf5 libxml2
+  - conda activate test-environment
+  # Install dependencies.
+  - conda install cmake ninja hdf5 libxml2 swig catch2
   - conda list --show-channel-urls
-  
+
 script:
-  - pwd
-  - cd extlibs
-  - tar -xzf beecrypt-4.2.1.tar.gz
-  - mv beecrypt-4.2.1 beecrypt
-  - cd beecrypt
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      ./configure CFLAGS='-arch x86_64' --without-java --without-python --without-cplusplus --disable-static;
-    else
-      ./configure --without-java --without-python --without-cplusplus --disable-static;
-    fi  
-  - sudo make install
-  - cd ..
-  - cd ..
-  - mkdir -p build
-  - cd build
-  - cmake ..
-  - make
-   
+  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/install -B build -S .
+  - cmake --build build
+  - cmake --install build
+  #- ctest -build-config Release --progress --verbose
+  - build/tests/bag_tests --samples-path examples/sample-data

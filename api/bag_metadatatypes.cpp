@@ -5,15 +5,24 @@
 //************************************************************************
 #include "bag_metadatatypes.h"
 
+#include <cstring>
 #include <H5Cpp.h>
 #include <string>
 
 
 namespace {
 
+//! Make a copy of the input string.
+/*!
+\param source
+    The source string to copy.
+
+\return
+    A copy of the input string.
+*/
 char* copyString(const char* source)
 {
-    if (!source || strlen(source) == 0)
+    if (!source || source[0] == '\0')
         return nullptr;
 
     char* result = new char[strlen(source) + 1];

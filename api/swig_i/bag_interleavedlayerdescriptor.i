@@ -23,16 +23,16 @@ namespace BAG {
     {
     public:
         static std::shared_ptr<InterleavedLayerDescriptor> create(
-            LayerType layerType, GroupType groupType, uint64_t chunkSize,
-            unsigned int compressionLevel, const Dataset& dataset);
+            const Dataset& dataset, LayerType layerType, GroupType groupType);
 
-        %rename(openDataset) open(LayerType, GroupType, const Dataset&);
+        %rename(openDataset) open(const Dataset& dataset, LayerType layerType,
+            GroupType groupType);
         static std::shared_ptr<InterleavedLayerDescriptor> open(
-            LayerType layerType, GroupType groupType, const Dataset& dataset);
+            const Dataset& dataset, LayerType layerType, GroupType groupType);
 
-        //TODO Temp, make sure only move operations are used until development is done.
         InterleavedLayerDescriptor(const InterleavedLayerDescriptor&) = delete;
         InterleavedLayerDescriptor(InterleavedLayerDescriptor&&) = delete;
+
         InterleavedLayerDescriptor& operator=(const InterleavedLayerDescriptor&) = delete;
         InterleavedLayerDescriptor& operator=(InterleavedLayerDescriptor&&) = delete;
 

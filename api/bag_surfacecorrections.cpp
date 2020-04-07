@@ -7,16 +7,27 @@
 
 #include <array>
 #include <cmath>
+#include <cstring>  // memset
 #include <H5Cpp.h>
 
 
 namespace BAG {
 
-constexpr uint8_t kMaxDatumsLength = 255;
+//! The maximum length of the list of datums.
+constexpr uint16_t kMaxDatumsLength = 256;
+//! The radius to use while searching for nearest neighbours.
 constexpr int32_t kSearchRadius = 3;
 
 namespace {
 
+//! Get the HDF5 CompType specified by the surface corrections descriptor.
+/*!
+\param descriptor
+    The surface corrections descriptor.
+
+\return
+    The HDF5 CompType as specified by the descriptor.
+*/
 ::H5::CompType getCompoundType(
     const SurfaceCorrectionsDescriptor& descriptor)
 {
@@ -34,8 +45,8 @@ namespace {
         offset += sizeof(double);
     }
 
-    const std::array<hsize_t, RANK> zDims{1, descriptor.getNumCorrectors()};
-    ::H5::ArrayType h5zDataType{::H5::PredType::NATIVE_FLOAT, RANK, zDims.data()};
+    const std::array<hsize_t, kRank> zDims{1, descriptor.getNumCorrectors()};
+    ::H5::ArrayType h5zDataType{::H5::PredType::NATIVE_FLOAT, kRank, zDims.data()};
 
     h5memDataType.insertMember("z", offset, h5zDataType);
 
@@ -44,6 +55,15 @@ namespace {
 
 }  // namespace
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param pH5dataSet
+    The HDF5 DataSet that stores this interleaved layer.
+*/
 SurfaceCorrections::SurfaceCorrections(
     Dataset& dataset,
     SurfaceCorrectionsDescriptor& descriptor,
@@ -53,15 +73,32 @@ SurfaceCorrections::SurfaceCorrections(
 {
 }
 
+//! Create a surface corrections layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param type
+    The type of surface correction topography.
+\param numCorrectors
+    The number of correctors provided.
+    Valid range is 1-10.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The new surface corrections layer.
+*/
 std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
     Dataset& dataset,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
-    auto descriptor = SurfaceCorrectionsDescriptor::create(type,
-        numCorrectors, chunkSize, compressionLevel, dataset);
+    auto descriptor = SurfaceCorrectionsDescriptor::create(dataset, type,
+        numCorrectors, chunkSize, compressionLevel);
 
     auto h5dataSet = SurfaceCorrections::createH5dataSet(dataset, *descriptor);
 
@@ -69,6 +106,16 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
         *descriptor, std::move(h5dataSet)});
 }
 
+//! Open an existing surface corrections layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The new surface corrections layer.
+*/
 std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
     Dataset& dataset,
     SurfaceCorrectionsDescriptor& descriptor)
@@ -83,31 +130,42 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
 }
 
 
+//! Create the HDF5 DataSet.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The new HDF5 DataSet.
+*/
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SurfaceCorrections::createH5dataSet(
     const Dataset& dataset,
     const SurfaceCorrectionsDescriptor& descriptor)
 {
-    // Use the dimensions from the descriptor.
-    std::array<hsize_t, RANK> fileDims{0, 0};
-    const std::array<uint64_t, RANK> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
-    const ::H5::DataSpace h5fileDataSpace{RANK, fileDims.data(), kMaxFileDims.data()};
+    std::array<hsize_t, kRank> fileDims{0, 0};
+    const std::array<hsize_t, kRank> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
+    const ::H5::DataSpace h5fileDataSpace{kRank, fileDims.data(), kMaxFileDims.data()};
 
     // Use chunk size and compression level from the descriptor.
-    const auto chunkSize = descriptor.getChunkSize();
-	std::array<hsize_t, RANK> chunkDims{chunkSize, chunkSize};
-
-    auto compressionLevel = descriptor.getCompressionLevel();
+    const auto compressionLevel = descriptor.getCompressionLevel();
 
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
 
-    if (compressionLevel <= kMaxCompressionLevel)
+    const auto chunkSize = descriptor.getChunkSize();
+    if (chunkSize > 0)
     {
-        h5createPropList.setLayout(H5D_CHUNKED);
-        h5createPropList.setChunk(RANK, chunkDims.data());
-        h5createPropList.setDeflate(compressionLevel);
+    	const std::array<hsize_t, kRank> chunkDims{chunkSize, chunkSize};
+        h5createPropList.setChunk(kRank, chunkDims.data());
+
+        if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+            h5createPropList.setDeflate(compressionLevel);
     }
+    else if (compressionLevel > 0)
+        throw CompressionNeedsChunkingSet{};
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 
@@ -161,15 +219,35 @@ SurfaceCorrections::createH5dataSet(
         new ::H5::DataSet{h5dataSet}, DeleteH5dataSet{});
 }
 
+//! Retrieve the HDF5 DataSet.
 const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
 {
     return *m_pH5dataSet;
 }
 
+//! Read a corrected region from a simple layer using the specified corrector.
+/*!
+\param rowStart
+    The starting row.
+\param columnStart
+    The starting column.
+\param rowEnd
+    The ending row (inclusive).
+\param columnEnd
+    The ending column (inclusive).
+\param corrector
+    The corrector to use when applying a correction.
+    Valid values are 1-10.
+\param layer
+    The simple layer to correct.
+
+\return
+    The corrected date from the simple layer using the specified corrector.
+*/
 UInt8Array SurfaceCorrections::readCorrected(
     uint32_t rowStart,
-    uint32_t rowEnd,
     uint32_t columnStart,
+    uint32_t rowEnd,
     uint32_t columnEnd,
     uint8_t corrector,
     const SimpleLayer& layer) const
@@ -192,7 +270,7 @@ UInt8Array SurfaceCorrections::readCorrected(
         || columnStart > columnEnd)
         throw InvalidReadSize{};
 
-    UInt8Array data{((columnEnd - columnStart + 1) * (rowEnd - rowStart + 1))
+    UInt8Array data{(columnEnd - columnStart + 1) * (rowEnd - rowStart + 1)
         * sizeof(float)};
 
     for (uint32_t f=0, i=0; i<nrows; ++i)
@@ -214,11 +292,28 @@ UInt8Array SurfaceCorrections::readCorrected(
     return data;
 }
 
+//! Read a corrected row from a simple layer using the specified corrector.
+/*!
+\param row
+    The row.
+\param columnStart
+    The starting column.
+\param columnEnd
+    The ending column (inclusive).
+\param corrector
+    The corrector to use when applying a correction.
+    Valid values are 1-10.
+\param layer
+    The simple layer to correct.
+
+\return
+    The corrected date from the simple layer using the specified corrector.
+*/
 UInt8Array SurfaceCorrections::readCorrectedRow(
     uint32_t row,
     uint32_t columnStart,
     uint32_t columnEnd,
-    uint8_t corrector,  // aka type
+    uint8_t corrector,
     const SimpleLayer& layer) const
 {
     const auto* descriptor =
@@ -237,7 +332,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     --corrector;  // This is 0 based when used.
 
     auto originalRow = layer.read(row, row, columnStart, columnEnd);
-    auto* data = reinterpret_cast<float*>(originalRow.get());
+    auto* data = reinterpret_cast<float*>(originalRow.data());
 
     // Obtain cell resolution and SW origin (0,1,1,0).
     double swCornerX = 0., swCornerY = 0.;
@@ -352,23 +447,19 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
                 ++rowRange[1];
         }
 
-        //fprintf(stderr, "INDX: %d Row: %d RC:  %d  / %d\n", rowIndex, row,  rowRange[0], rowRange[1]);
+        //std::cerr << "INDX: " << rowIndex << " Row: " << row << " RC:  " << rowRange[0] << "  / "<< rowRange[1] << '\n';
 
         bool isZeroDistance = false;
         double sum_sep = 0.0;
         double sum = 0.0;
         double leastDistSq = std::numeric_limits<double>::max();
 
-        // Look through the SEPs and calculate the weighted average between
-        // them and this position.
+        // Look through the SEPs and calculate the weighted average between them and this position.
         for (auto q=rowRange[0]; !isZeroDistance && q <= rowRange[1]; ++q)
         {
-            // The SEP should be accessed, up to entire row of all columns of
-            // Surface_Correction.
+            // The SEP should be accessed, up to entire row of all columns of Surface_Correction.
             const auto buffer = this->read(q, q, colRange[0], colRange[1]);
-            const auto* readbuf =
-                reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(
-                    buffer.get());
+            const auto* readbuf = reinterpret_cast<const BagVerticalDatumCorrectionsGridded*>(buffer.data());
             const auto y1 = swCornerY + q * nodeSpacingY;
 
             for (auto u=colRange[0]; u<=colRange[1]; ++u)
@@ -389,7 +480,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
                     break;
                 }
 
-                //! Calculate distance weight between nodeX/nodeY and y1/x1
+                // Calculate distance weight between nodeX/nodeY and y1/x1
                 distSq = std::pow(fabs(static_cast<double>(nodeX - x1)), 2.0) +
                     std::pow(resratio * fabs(static_cast<double>(nodeY - y1)), 2.0);
 
@@ -401,17 +492,17 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
                     lastP[1] = q;
                 }
 
-                //! Inverse distance calculation
+                // Inverse distance calculation
                 sum_sep += z1 / distSq;
                 sum += 1.0 / distSq;
             }
         }
 
-//      fprintf(stderr, "sum sum %f / %f =  %f : %f\n", sum_sep, sum, sum_sep / sum, data[rowIndex]);
+        //std::cerr << "sum sum " << sum_sep << " / " << sum << " =  " << sum_sep / sum << " : " << data[rowIndex] << '\n';
 
         if (!isZeroDistance)
         {
-            //! is not a constant SEP with one point?
+            // is not a constant SEP with one point?
             if (sum_sep != 0.0 && sum != 0.0)
                 data[rowIndex] += static_cast<float>(sum_sep / sum);
             else
@@ -423,6 +514,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     return originalRow;
 }
 
+//! \copydoc Layer::read
 UInt8Array SurfaceCorrections::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -434,8 +526,8 @@ UInt8Array SurfaceCorrections::readProxy(
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
-    const std::array<hsize_t, RANK> count{rows, columns};
-    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
@@ -448,77 +540,16 @@ UInt8Array SurfaceCorrections::readProxy(
     const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
     UInt8Array buffer{bufferSize};
 
-    const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
+    const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
     const auto h5memDataType = getCompoundType(descriptor);
 
-    m_pH5dataSet->read(buffer.get(), h5memDataType, h5memSpace, h5fileDataSpace);
+    m_pH5dataSet->read(buffer.data(), h5memDataType, h5memSpace, h5fileDataSpace);
 
     return buffer;
 }
 
-void SurfaceCorrections::writeProxy(
-    uint32_t rowStart,
-    uint32_t columnStart,
-    uint32_t rowEnd,
-    uint32_t columnEnd,
-    const uint8_t* buffer)
-{
-    auto* descriptor =
-        dynamic_cast<SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
-
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
-
-    const auto rows = (rowEnd - rowStart) + 1;
-    const auto columns = (columnEnd - columnStart) + 1;
-    const std::array<hsize_t, RANK> count{rows, columns};
-    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
-    const ::H5::DataSpace h5memDataSpace{RANK, count.data(), count.data()};
-
-    ::H5::DataSpace h5fileDataSpace = m_pH5dataSet->getSpace();
-
-    // Expand the file data space if needed.
-    std::array<hsize_t, RANK> fileDims{};
-    std::array<hsize_t, RANK> maxFileDims{};
-    h5fileDataSpace.getSimpleExtentDims(fileDims.data(), maxFileDims.data());
-
-    if ((fileDims[0] < (rowEnd + 1)) ||
-        (fileDims[1] < (columnEnd + 1)))
-    {
-        const std::array<hsize_t, RANK> newDims{
-            std::max<hsize_t>(fileDims[0], rowEnd + 1),
-            std::max<hsize_t>(fileDims[1], columnEnd + 1)};
-
-        m_pH5dataSet->extend(newDims.data());
-
-        h5fileDataSpace = m_pH5dataSet->getSpace();
-
-        // Update the dataset's dimensions.
-        if (this->getDataset().expired())
-            throw DatasetNotFound{};
-
-        auto pDataset = this->getDataset().lock();
-        pDataset->getDescriptor().setDims(static_cast<uint32_t>(newDims[0]),
-            static_cast<uint32_t>(newDims[1]));
-    }
-
-    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
-
-    const auto h5memDataType = getCompoundType(*descriptor);
-
-    m_pH5dataSet->write(buffer, h5memDataType, h5memDataSpace, h5fileDataSpace);
-
-    // Update descriptor.
-    const auto h5Space = m_pH5dataSet->getSpace();
-
-    std::array<hsize_t, RANK> dims{};
-    h5Space.getSimpleExtentDims(dims.data());
-
-    descriptor->setDims(static_cast<uint32_t>(dims[0]),
-        static_cast<uint32_t>(dims[1]));
-}
-
+//! \copydoc Layer::writeAttributes
 void SurfaceCorrections::writeAttributesProxy() const
 {
     const auto* descriptor =
@@ -563,6 +594,69 @@ void SurfaceCorrections::writeAttributesProxy() const
         att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSY);
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(spacing));
     }
+}
+
+//! \copydoc Layer::write
+void SurfaceCorrections::writeProxy(
+    uint32_t rowStart,
+    uint32_t columnStart,
+    uint32_t rowEnd,
+    uint32_t columnEnd,
+    const uint8_t* buffer)
+{
+    auto* descriptor =
+        dynamic_cast<SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
+
+    if (!descriptor)
+        throw UnexpectedLayerDescriptorType{};
+
+    const auto rows = (rowEnd - rowStart) + 1;
+    const auto columns = (columnEnd - columnStart) + 1;
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
+    const ::H5::DataSpace h5memDataSpace{kRank, count.data(), count.data()};
+
+    ::H5::DataSpace h5fileDataSpace = m_pH5dataSet->getSpace();
+
+    // Expand the file data space if needed.
+    std::array<hsize_t, kRank> fileDims{};
+    std::array<hsize_t, kRank> maxFileDims{};
+    h5fileDataSpace.getSimpleExtentDims(fileDims.data(), maxFileDims.data());
+
+    if ((fileDims[0] < (rowEnd + 1)) ||
+        (fileDims[1] < (columnEnd + 1)))
+    {
+        const std::array<hsize_t, kRank> newDims{
+            std::max<hsize_t>(fileDims[0], rowEnd + 1),
+            std::max<hsize_t>(fileDims[1], columnEnd + 1)};
+
+        m_pH5dataSet->extend(newDims.data());
+
+        h5fileDataSpace = m_pH5dataSet->getSpace();
+
+        // Update the dataset's dimensions.
+        if (this->getDataset().expired())
+            throw DatasetNotFound{};
+
+        auto pDataset = this->getDataset().lock();
+        pDataset->getDescriptor().setDims(static_cast<uint32_t>(newDims[0]),
+            static_cast<uint32_t>(newDims[1]));
+    }
+
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
+
+    const auto h5memDataType = getCompoundType(*descriptor);
+
+    m_pH5dataSet->write(buffer, h5memDataType, h5memDataSpace, h5fileDataSpace);
+
+    // Update descriptor.
+    const auto h5Space = m_pH5dataSet->getSpace();
+
+    std::array<hsize_t, kRank> dims{};
+    h5Space.getSimpleExtentDims(dims.data());
+
+    descriptor->setDims(static_cast<uint32_t>(dims[0]),
+        static_cast<uint32_t>(dims[1]));
 }
 
 }   //namespace BAG

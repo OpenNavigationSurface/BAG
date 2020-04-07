@@ -2,9 +2,6 @@
 # The debug build will have a 'd' postfix
 set(CMAKE_DEBUG_POSTFIX "d")
 
-#needed when CMakeSettings.json is not available
-#list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../../third_party/build;${CMAKE_SOURCE_DIR}/../../third_party/build/lib" )
-
 set(BAG_SOURCE_FILES
     bag.cpp
     bag_attributeinfo.cpp
@@ -33,8 +30,8 @@ set(BAG_SOURCE_FILES
     bag_vrmetadatadescriptor.cpp
     bag_vrnode.cpp
     bag_vrnodedescriptor.cpp
-    bag_vrrefinement.cpp
-    bag_vrrefinementdescriptor.cpp
+    bag_vrrefinements.cpp
+    bag_vrrefinementsdescriptor.cpp
     bag_vrtrackinglist.cpp
 )
 source_group("Source Files" FILES ${BAG_SOURCE_FILES})
@@ -76,8 +73,8 @@ set(BAG_HEADER_FILES
     bag_vrmetadatadescriptor.h
     bag_vrnode.h
     bag_vrnodedescriptor.h
-    bag_vrrefinement.h
-    bag_vrrefinementdescriptor.h
+    bag_vrrefinements.h
+    bag_vrrefinementsdescriptor.h
     bag_vrtrackinglist.h
     bag_types.h
     bag_uint8array.h
@@ -133,12 +130,26 @@ target_include_directories(baglib
         ${HDF5_INCLUDE_DIRS}
 )
 
-target_link_libraries(baglib
-    PRIVATE
-        ${HDF5_hdf5_LIBRARY}
-        ${HDF5_hdf5_cpp_LIBRARY}
-        LibXml2::LibXml2
-)
+# Windows is combining debug and release libraries unless we do this.
+# Initial attempt was:
+#   $<IF:$<CXX_COMPILER_ID:MSVC>,"${HDF5_hdf5_LIBRARY} ${HDF5_hdf5_cpp_LIBRARY}","${HDF5_LIBRARIES}">
+# But it will not parse correctly.
+if(MSVC)
+    target_link_libraries(baglib
+        PUBLIC
+            ${HDF5_hdf5_LIBRARY}
+            ${HDF5_hdf5_cpp_LIBRARY}
+        PRIVATE
+            LibXml2::LibXml2
+    )
+else()
+    target_link_libraries(baglib
+        PUBLIC
+            ${HDF5_LIBRARIES}
+        PRIVATE
+            LibXml2::LibXml2
+    )
+endif()
 
 if(BUILD_PYTHON)
     # Build Python bindings

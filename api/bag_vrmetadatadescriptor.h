@@ -8,32 +8,33 @@
 
 namespace BAG {
 
+//! Describe the variable resolution metadata.
 class BAG_API VRMetadataDescriptor final : public LayerDescriptor
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     VRMetadataDescriptor(const VRMetadataDescriptor&) = delete;
     VRMetadataDescriptor(VRMetadataDescriptor&&) = delete;
+
     VRMetadataDescriptor& operator=(const VRMetadataDescriptor&) = delete;
     VRMetadataDescriptor& operator=(VRMetadataDescriptor&&) = delete;
 
     std::tuple<uint32_t, uint32_t> getMaxDimensions() const noexcept;
-    std::tuple<uint32_t, uint32_t> getMinDimensions() const noexcept;
     std::tuple<float, float> getMaxResolution() const noexcept;
+    std::tuple<uint32_t, uint32_t> getMinDimensions() const noexcept;
     std::tuple<float, float> getMinResolution() const noexcept;
 
-    void setMaxDimensions(uint32_t maxDimX, uint32_t maxDimY) noexcept;
-    void setMinDimensions(uint32_t minDimX, uint32_t minDimY) noexcept;
-    void setMaxResolution(float maxResX, float maxResY) noexcept;
-    void setMinResolution(float minResX, float minResY) noexcept;
+    VRMetadataDescriptor& setMaxDimensions(uint32_t maxDimX, uint32_t maxDimY) & noexcept;
+    VRMetadataDescriptor& setMaxResolution(float maxResX, float maxResY) & noexcept;
+    VRMetadataDescriptor& setMinDimensions(uint32_t minDimX, uint32_t minDimY) & noexcept;
+    VRMetadataDescriptor& setMinResolution(float minResX, float minResY) & noexcept;
 
 protected:
     VRMetadataDescriptor(uint32_t id, uint64_t chunkSize,
-        unsigned int compressionLevel);
+        int compressionLevel);
     explicit VRMetadataDescriptor(const Dataset& dataset);
 
     static std::shared_ptr<VRMetadataDescriptor> create(const Dataset& dataset,
-        uint64_t chunkSize, unsigned int compressionLevel);
+        uint64_t chunkSize, int compressionLevel);
 
     static std::shared_ptr<VRMetadataDescriptor> open(const Dataset& dataset);
 

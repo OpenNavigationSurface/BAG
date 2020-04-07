@@ -9,7 +9,19 @@
 
 namespace BAG {
 
-//! Create an HDF5 compound type based on the layer and group types.
+//! Create an HDF5 CompType based on the layer and group types.
+/*!
+\param layerType
+    The type of layer.
+    The supported types are NODE and ELEVATION.
+\param groupType
+    The group type of the layer.
+    For NODE, the supported types are: Hypothesis_Strength, Num_Hypotheses.
+    For ELEVATION, the supported types are: Shoal_Elevation, Std_Dev, Num_Soundings.
+
+\return
+    The compound type of the specified layer and group type.
+*/
 ::H5::CompType createH5compType(
     LayerType layerType,
     GroupType groupType)
@@ -68,11 +80,18 @@ namespace BAG {
     return h5type;
 }
 
-//! Create an HDF5 file Compound Type based upon the Record Definition.
+//! Create an HDF5 CompType used for file I/O based upon the Record Definition.
+/*!
+\param definition
+    The list of fields making up the record.
+
+\return
+    The HDF5 CompType to be used when reading and writing to an HDF file.
+*/
 ::H5::CompType createH5fileCompType(
     const RecordDefinition& definition)
 {
-    ::H5::CompType h5type{getH5compSize(definition)};
+    ::H5::CompType h5type{getRecordSize(definition)};
     size_t fieldOffset = 0;
 
     for (const auto& field : definition)
@@ -86,11 +105,18 @@ namespace BAG {
     return h5type;
 }
 
-//! Create an HDF5 memory Compound Type based upon the Record Definition.
+//! Create an HDF5 CompType to be used in memory based upon the Record Definition.
+/*!
+\param definition
+    The list of fields making up the record.
+
+\return
+    The HDF5 CompType to be used when reading and writing from memory.
+*/
 ::H5::CompType createH5memoryCompType(
     const RecordDefinition& definition)
 {
-    ::H5::CompType h5type{getH5compSize(definition)};
+    ::H5::CompType h5type{getRecordSize(definition)};
     size_t fieldOffset = 0;
 
     for (const auto& field : definition)
@@ -104,7 +130,17 @@ namespace BAG {
     return h5type;
 }
 
-//! Get the chunk size from a HDF file.
+//! Get the chunk size from an HDF5 file.
+/*!
+\param h5file
+    The HDF5 file.
+\param path
+    The path to the HDF5 DataSet.
+
+\return
+    The chunk size of the specified HDF5 DataSet in the HDF5 file.
+    0 if the HDF5 DataSet does not use chunking.
+*/
 uint64_t getChunkSize(
     const ::H5::H5File& h5file,
     const std::string& path)
@@ -115,18 +151,28 @@ uint64_t getChunkSize(
 
     if (h5pList.getLayout() == H5D_CHUNKED)
     {
-        std::array<hsize_t, RANK> maxDims{};
+        std::array<hsize_t, kRank> maxDims{};
 
-        const int rankChunk = h5pList.getChunk(RANK, maxDims.data());
-        if (rankChunk == RANK)
+        const int rankChunk = h5pList.getChunk(kRank, maxDims.data());
+        if (rankChunk == kRank)
             return {maxDims[0]};  // Using {} to prevent narrowing.
     }
 
     return 0;
 }
 
-//! Get the compression level from a HDF file.
-unsigned int getCompressionLevel(
+//! Get the compression level from an HDF5 file.
+/*!
+\param h5file
+    The HDF5 file.
+\param path
+    The path to the HDF5 DataSet.
+
+\return
+    The compression level of the specified HDF5 DataSet in the HDF5 file.
+    0 if the HDF5 DataSet is not compressed.
+*/
+int getCompressionLevel(
     const ::H5::H5File& h5file,
     const std::string& path)
 {
@@ -146,13 +192,21 @@ unsigned int getCompressionLevel(
         const auto filter = h5pList.getFilter(i, flags, cdNelmts,
             cdValues.data(), nameLen, name.data(), filterConfig);
         if (filter == H5Z_FILTER_DEFLATE && cdNelmts >= 1)
-            return cdValues.front();
+            return static_cast<int>(cdValues.front());
     }
 
     return 0;
 }
 
-size_t getH5compSize(
+//! Get the size of a record in memory.
+/*!
+\param definition
+    The list of fields in the record.
+
+\return
+    The record size in memory, ignoring alignment.
+*/
+size_t getRecordSize(
     const RecordDefinition& definition)
 {
     return std::accumulate(cbegin(definition), cend(definition), 0ULL,
@@ -161,7 +215,14 @@ size_t getH5compSize(
         });
 }
 
-//! Determine the HDF5 file DataType from the specified DataType.
+//! Determine the HDF5 file DataType from the specified data type.
+/*!
+\param type
+    The data type to be matched.
+
+\return
+    The matching HDF5 type used in file reading and writing.
+*/
 const ::H5::AtomType& getH5fileType(
     DataType type)
 {
@@ -191,6 +252,13 @@ const ::H5::AtomType& getH5fileType(
 }
 
 //! Determine the HDF5 memory DataType from the specified DataType.
+/*!
+\param type
+    The data type to be matched.
+
+\return
+    The matching HDF5 type used in memory.
+*/
 const ::H5::AtomType& getH5memoryType(
     DataType type)
 {
@@ -219,6 +287,19 @@ const ::H5::AtomType& getH5memoryType(
     }
 }
 
+//! Create an attribute on an HDF5 DataSet.
+/*!
+\param h5dataSet
+    The HDF5 DataSet to create the attribute on.
+\param attributeType
+    The HDF5 type of the attribute.
+\param path
+    The HDF5 path of the attribute.
+    The path cannot be nullptr.
+
+\return
+    The new HDF5 attribute.
+*/
 ::H5::Attribute createAttribute(
     const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType,
@@ -227,6 +308,17 @@ const ::H5::AtomType& getH5memoryType(
     return h5dataSet.createAttribute(path, attributeType, {});
 }
 
+//! Create attributes on an HDF5 DataSet.
+/*!
+\param h5dataSet
+    The HDF5 DataSet to create the attributes on.
+\param attributeType
+    The HDF5 type of the attributes.
+\param paths
+    The HDF5 paths of the attributes.
+    If no paths are provided, no attributes are written.
+    If a path is nullptr, that attribute is not written.
+*/
 void createAttributes(
     const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType,
@@ -240,6 +332,18 @@ void createAttributes(
             createAttribute(h5dataSet, attributeType, path);
 }
 
+//! Write an attribute to the specified HDF5 DataSet.
+/*!
+\param h5dataSet
+    The HDF5 DataSet to create the attribute on.
+\param attributeType
+    The HDF5 type of the attribute.
+\param valiue
+    The value of the attribute.
+\param path
+    The HDF5 path of the attribute.
+    The path cannot be nullptr.
+*/
 template <typename T>
 void writeAttribute(
     const ::H5::DataSet& h5dataSet,
@@ -251,6 +355,17 @@ void writeAttribute(
     att.write(attributeType, &value);
 }
 
+//! Write attributes to an HDF5 DataSet.
+/*!
+\param h5dataSet
+    The HDF5 DataSet to create the attributes on.
+\param attributeType
+    The HDF5 type of the attributes.
+\param paths
+    The HDF5 paths of the attributes.
+    If no paths are provided, no attributes are written.
+    If a path is nullptr, that attribute is not written.
+*/
 template <typename T>
 void writeAttributes(
     const ::H5::DataSet& h5dataSet,
@@ -258,6 +373,9 @@ void writeAttributes(
     T value,
     const std::vector<const char*>& paths)
 {
+    if (paths.empty())
+        return;
+
     for (const auto& path : paths)
         if (path)
             writeAttribute(h5dataSet, attributeType, value, path);
@@ -265,16 +383,67 @@ void writeAttributes(
 
 
 // Explicit template instantiations.
+
+//! Write a float point value to an attribute.
+/*
+\param h5dataSet
+    The HDF5 DataSet to create the attributes on.
+\param attributeType
+    The HDF5 type of the attribute.
+\param value
+    The value to write to the attribute.
+\param path
+    The HDF5 path to the attribute in the HDF5 DataSet.
+    Cannot be nullptr.
+*/
 template void writeAttribute<float>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, float value, const char* path);
 
+//! Write an unsigned 32 bit integer value to an attribute.
+/*
+\param h5dataSet
+    The HDF5 DataSet to create the attributes on.
+\param attributeType
+    The HDF5 type of the attribute.
+\param value
+    The value to write to the attribute.
+\param path
+    The HDF5 path to the attribute in the HDF5 DataSet.
+    Cannot be nullptr.
+*/
 template void writeAttribute<uint32_t>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, uint32_t value, const char* path);
 
+//! Write a floating point value to multiple attributes.
+/*
+\param h5dataSet
+    The HDF5 DataSet to create the attributes on.
+\param attributeType
+    The HDF5 type of the attribute.
+\param value
+    The value to write to the attribute.
+\param paths
+    The HDF5 path to the attributes in the HDF5 DataSet.
+    If no paths provided, no attributes are written.
+    If any path is nullptr, that attribute is not written.
+*/
 template void writeAttributes<float>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, float value,
     const std::vector<const char*>& paths);
 
+//! Write an unsigned 32 bit integer value to multiple attributes.
+/*
+\param h5dataSet
+    The HDF5 DataSet to create the attributes on.
+\param attributeType
+    The HDF5 type of the attribute.
+\param value
+    The value to write to the attribute.
+\param paths
+    The HDF5 path to the attributes in the HDF5 DataSet.
+    If no paths provided, no attributes are written.
+    If any path is nullptr, that attribute is not written.
+*/
 template void writeAttributes<uint32_t>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, uint32_t value,
     const std::vector<const char*>& paths);

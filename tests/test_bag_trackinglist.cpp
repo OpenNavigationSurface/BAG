@@ -321,7 +321,7 @@ TEST_CASE("test tracking list constructor (open)", "[trackinglist][constructor][
 
     {
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
         BAG::Metadata metadata;
         metadata.loadFromBuffer(kMetadataXML);
         const auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
@@ -368,7 +368,7 @@ TEST_CASE("test tracking list construction (create)", "[trackinglist][constructo
     const TestUtils::RandomFileGuard tmpFileName;
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
     const auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{},
         chunkSize, compressionLevel);
 

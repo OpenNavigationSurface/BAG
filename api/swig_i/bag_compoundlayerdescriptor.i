@@ -27,17 +27,17 @@ namespace BAG {
 class BAG_API CompoundLayerDescriptor final : public LayerDescriptor
 {
 public:
-    static std::shared_ptr<CompoundLayerDescriptor> create(
+    static std::shared_ptr<CompoundLayerDescriptor> create(Dataset& dataset,
         const std::string& name, DataType indexType,
         RecordDefinition definition, uint64_t chunkSize,
-        unsigned int compressionLevel, Dataset& dataset);
-    %rename(openDataset) open(const std::string&, Dataset&);
-    static std::shared_ptr<CompoundLayerDescriptor> open(
-        const std::string& name, Dataset& dataset);
+        int compressionLevel);
+    %rename(openDataset) open(Dataset& dataset, const std::string& name);
+    static std::shared_ptr<CompoundLayerDescriptor> open(Dataset& dataset,
+        const std::string& name);
 
-    //TODO Temp, make sure only move operations are used until development is done.
     CompoundLayerDescriptor(const CompoundLayerDescriptor&) = delete;
     CompoundLayerDescriptor(CompoundLayerDescriptor&&) = delete;
+
     CompoundLayerDescriptor& operator=(const CompoundLayerDescriptor&) = delete;
     CompoundLayerDescriptor& operator=(CompoundLayerDescriptor&&) = delete;
 

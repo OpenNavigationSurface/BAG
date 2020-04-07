@@ -23,17 +23,24 @@ namespace BAG
 
         UInt8Array(const UInt8Array&) = delete;
         UInt8Array(UInt8Array&&) = default;
-        UInt8Array& operator=(const UInt8Array&) = delete;
-        UInt8Array& operator=(UInt8Array&&) = default;
 
-        uint8_t* get() &;
-        %ignore get() const &;
-        uint8_t* release();
-        %rename(__getitem__) operator[];
-        size_t size();
+        UInt8Array& operator=(const UInt8Array&) = delete;
+        %ignore operator=(UInt8Array&&);
+
+        %rename(__getitem__) operator[](size_t index) &;
+        uint8_t& operator[](size_t index) &;
+        %ignore operator[](size_t index) const &;
+
+        explicit operator bool() const noexcept;
+
+        uint8_t* data() const & noexcept;
+        %ignore data() const &;
+        uint8_t* release() noexcept;
+        size_t size() const noexcept;
     };
 }
 
+#if 0
 %extend BAG::UInt8Array
 {
     uint8_t& __getitem__(size_t index)
@@ -41,3 +48,4 @@ namespace BAG
         return (*($self))[index];
     }
 }
+#endif

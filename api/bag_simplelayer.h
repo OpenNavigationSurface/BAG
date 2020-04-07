@@ -2,12 +2,13 @@
 #define BAG_SIMPLELAYER_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_types.h"
-#include "bag_deleteh5dataset.h"
 
 #include <memory>
+
 
 namespace H5 {
 
@@ -22,22 +23,22 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a simple layer.
 class BAG_API SimpleLayer final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     SimpleLayer(const SimpleLayer&) = delete;
     SimpleLayer(SimpleLayer&&) = delete;
+
     SimpleLayer& operator=(const SimpleLayer&) = delete;
     SimpleLayer& operator=(SimpleLayer&&) = delete;
 
 protected:
-
     SimpleLayer(Dataset& dataset, SimpleLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
     static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
-        LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
+        LayerType type, uint64_t chunkSize, int compressionLevel);
 
     static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
         SimpleLayerDescriptor& descriptor);
@@ -47,8 +48,8 @@ private:
         createH5dataSet(const Dataset& inDataSet,
             const SimpleLayerDescriptor& descriptor);
 
-    UInt8Array readProxy(uint32_t rowStart, uint32_t columnStart,
-        uint32_t rowEnd, uint32_t columnEnd) const override;
+    UInt8Array readProxy(uint32_t rowStart,
+        uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
 
     void writeProxy(uint32_t rowStart, uint32_t columnStart,
         uint32_t rowEnd, uint32_t columnEnd, const uint8_t* buffer) override;

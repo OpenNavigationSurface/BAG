@@ -16,6 +16,16 @@ namespace BAG {
 #pragma warning(disable: 4275)
 #endif
 
+// General
+//! Compression was requested, but no chunking was specified.
+struct BAG_API CompressionNeedsChunkingSet final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "If compression is desired, a chunk positive chunk size must be set.";
+    }
+};
+
 // Attribute related.
 //! Attribute type not supported (yet)  //TODO temp exception
 struct BAG_API UnsupportedAttributeType final : virtual std::exception
@@ -25,6 +35,7 @@ struct BAG_API UnsupportedAttributeType final : virtual std::exception
         return "The H5 type of this attribute is not float.  Not supported (yet).";
     }
 };
+
 
 // CompoundDataType related.
 //! Layer not found.
@@ -54,6 +65,16 @@ struct BAG_API InvalidIndexType final : virtual std::exception
     }
 };
 
+//! A name is required to find a unique compound layer.
+struct BAG_API NameRequired final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "A name is required to find a unique compound layer.";
+    }
+};
+
+
 // Dataset related.
 //! Layer not found.
 struct BAG_API DatasetNotFound final : virtual std::exception
@@ -72,6 +93,7 @@ struct BAG_API InvalidLayerId final : virtual std::exception
         return "Invalid layer id specified.";
     }
 };
+
 
 // Group related.
 //! Attempt to use an unknown layer type.
@@ -158,7 +180,7 @@ struct BAG_API UnsupportedLayerType final : virtual std::exception
 };
 
 //! Attempt to use an incorrect layer type.
-struct BAG_API UnknownSimpleLayerType final : virtual std::exception
+struct BAG_API UnsupportedSimpleLayerType final : virtual std::exception
 {
     const char* what() const noexcept override
     {
@@ -187,6 +209,32 @@ struct BAG_API UnexpectedLayerDescriptorType final : virtual std::exception
         return "An unexpected layer descriptor type was encountered.";
     }
 };
+
+//! The layer descriptor is no longer valid.
+struct BAG_API InvalidLayerDescriptor final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The specified layer descriptor is no longer valid.";
+    }
+};
+
+
+//! Legacy CRS related.
+//! Ran into a problem (internal).
+struct CoordSysError : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Conversion Error";
+    };
+};
+
+//! Can not convert the datum.
+struct InvalidDatumError final : virtual CoordSysError {};
+
+//! Can not convert the ellipsoid.
+struct InvalidEllipsoidError final : virtual CoordSysError {};
 
 
 // Metadata related.
@@ -217,6 +265,7 @@ struct BAG_API ErrorLoadingMetadata final : virtual std::exception
 
     BagError m_error = BAG_SUCCESS;
 };
+
 
 // SimpleLayer related.
 //! Cannot convert DataType to an HDF5 DataType.
@@ -278,6 +327,7 @@ struct BAG_API UnsupportedSurfaceType final : virtual std::exception
     }
 };
 
+
 // Value Table related.
 //! The specified field does not exist.
 struct BAG_API FieldNotFound final : virtual std::exception
@@ -328,6 +378,7 @@ struct BAG_API RecordNotFound final : virtual std::exception
 };
 
 // VRRefinement related.
+//! VR Refinements are the wrong dimensions.
 struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
 {
     const char* what() const noexcept override

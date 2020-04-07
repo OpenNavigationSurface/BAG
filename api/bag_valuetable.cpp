@@ -15,7 +15,16 @@ namespace BAG {
 
 namespace {
 
-//! Convert a raw chunk of memory and a definition into a Record.
+//! Convert a chunk of memory and a definition into a Record.
+/*!
+\param buffer
+    A chunk of memory representing a Record for a compound layer.
+\param definition
+    The definition of the Record for a compound layer.
+
+\return
+    A compound layer record using the buffer and definition.
+*/
 Record convertMemoryToRecord(
     const uint8_t* const buffer,
     const RecordDefinition& definition)
@@ -72,7 +81,13 @@ Record convertMemoryToRecord(
     return record;
 }
 
-//! Convert a Record into a raw chunk of memory.
+//! Convert a Record into a chunk of memory.
+/*!
+\param record
+    The record to convert into a chunk of memory.
+\param buffer
+    The memory to store the record in.
+*/
 void convertRecordToMemory(
     const Record& record,
     uint8_t* buffer)
@@ -114,6 +129,11 @@ void convertRecordToMemory(
 
 }  // namespace
 
+//! Constructor.
+/*!
+\param layer
+    The layer the value table holds records for.
+*/
 ValueTable::ValueTable(
     const CompoundLayer& layer)
     : m_layer(layer)
@@ -129,21 +149,19 @@ ValueTable::ValueTable(
     hsize_t numRecords = 0;
     fileDataSpace.getSimpleExtentDims(&numRecords);
 
+    m_records.resize(numRecords);
+
     if (numRecords == 1)  // No user defined records.
         return;
 
-    // Do not include the empty (NDV) record.
-    --numRecords;
-    m_records.resize(numRecords);
-
-    constexpr hsize_t startIndex = 1;
+    constexpr hsize_t startIndex = 0;
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &startIndex);
 
     const auto& descriptor =
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
     const auto& definition = descriptor.getDefinition();
 
-    const size_t recordSize = getH5compSize(definition);
+    const size_t recordSize = getRecordSize(definition);
     std::vector<uint8_t> buffer(recordSize * numRecords, 0);
 
     const auto memDataType = createH5memoryCompType(definition);
@@ -152,7 +170,6 @@ ValueTable::ValueTable(
 
     h5recordDataSet.read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
 
-    //TODO copy this into bag.cpp; convert when receiving void* from C.
     // Convert the raw memory into Records.
     size_t rawIndex = 0;
 
@@ -164,7 +181,15 @@ ValueTable::ValueTable(
     }
 }
 
-void ValueTable::addRecord(
+//! Add a record to the end of the list.
+/*!
+\param record
+    The record.
+
+\return
+    The index of the added record.
+*/
+size_t ValueTable::addRecord(
     const Record& record)
 {
     if (!this->validateRecord(record))
@@ -173,11 +198,21 @@ void ValueTable::addRecord(
     this->writeRecord(m_records.size(), record);
 
     m_records.emplace_back(record);
+
+    return m_records.size() - 1;
 }
 
+//! Add multiple records to the end of the list.
+/*!
+\param records
+    The records.
+*/
 void ValueTable::addRecords(
     const Records& records)
 {
+    if (records.empty())
+        return;
+
     const bool allValid = std::all_of(cbegin(records), cend(records),
         [this](const auto& record) {
             return this->validateRecord(record);
@@ -190,27 +225,46 @@ void ValueTable::addRecords(
     m_records.insert(end(m_records), cbegin(records), cend(records));
 }
 
+//! Convert a record to a chunk of memory.
+/*!
+\param record
+    The record to convert.
+
+\return
+    A copy of the record as a chunk of memory.
+*/
 std::vector<uint8_t> ValueTable::convertRecordToRaw(
     const Record& record) const
 {
     const auto& descriptor =
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
 
-    std::vector<uint8_t> buffer(getH5compSize(descriptor.getDefinition()), 0);
+    std::vector<uint8_t> buffer(getRecordSize(descriptor.getDefinition()), 0);
 
     convertRecordToMemory(record, buffer.data());
 
     return buffer;
 }
 
+//! Convert multiple records to a chunk of memory.
+/*!
+\param records
+    The record to convert.
+
+\return
+    A copy of the records as a chunk of memory.
+*/
 std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     const std::vector<Record>& records) const
 {
+    if (records.empty())
+        return {};
+
     const auto& descriptor =
         dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
 
-    const auto h5RecordSize = getH5compSize(descriptor.getDefinition());
-    std::vector<uint8_t> buffer(h5RecordSize * records.size(), 0);
+    const auto recordSize = getRecordSize(descriptor.getDefinition());
+    std::vector<uint8_t> buffer(recordSize * records.size(), 0);
 
     // Write values into memory.
     size_t offset = 0;
@@ -218,23 +272,40 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     for (const auto& record : records)
     {
         convertRecordToMemory(record, buffer.data() + offset);
-        offset += h5RecordSize;
+        offset += recordSize;
     }
 
     return buffer;
 }
 
+//! Retrieve the record definition.
+/*!
+\return
+    The list of fields that define the record.
+*/
 const RecordDefinition& ValueTable::getDefinition() const & noexcept
 {
     return dynamic_cast<const CompoundLayerDescriptor&>(
         m_layer.getDescriptor()).getDefinition();
 }
 
+//! Retrieve the value of a specific field in a specific record.
+/*!
+\param recordIndex
+    The index of the record.
+    Value must be greater than 0.
+\param name
+    The name of the field.
+
+\return
+    The value specified.
+    An exception is thrown if the record index or field name are invalid.
+*/
 const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     const std::string& name) const &
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
@@ -242,11 +313,23 @@ const CompoundDataType& ValueTable::getValue(
     return this->getValue(recordIndex, fieldIndex);
 }
 
+//! Retrieve the value of a specific field in a specific record.
+/*!
+\param recordIndex
+    The index of the record.
+    Must be greater than 0.
+\param fieldIndex
+    The index of the field.
+
+\return
+    The value specified.
+    An exception is thrown if the record index or field index are invalid.
+*/
 const CompoundDataType& ValueTable::getValue(
     size_t recordIndex,
     size_t fieldIndex) const &
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const auto& definition = this->getDefinition();
@@ -258,6 +341,14 @@ const CompoundDataType& ValueTable::getValue(
     return record[fieldIndex];
 }
 
+//! Retrieve the field index of the named field.
+/*!
+\param name
+    The name of the field.
+
+\return
+    The field index of the named field.
+*/
 size_t ValueTable::getFieldIndex(
     const std::string& name) const
 {
@@ -275,6 +366,14 @@ size_t ValueTable::getFieldIndex(
     throw FieldNotFound{};
 }
 
+//! Retrieve the field name of the indexed field.
+/*!
+\param index
+    The index of the field.
+
+\return
+    The field name of the indexed field.
+*/
 const char* ValueTable::getFieldName(
     size_t index) const &
 {
@@ -285,17 +384,33 @@ const char* ValueTable::getFieldName(
     return definition[index].name;
 }
 
+//! Retrieve all the records.
+/*!
+\return
+    All the records.
+    NOTE!  This includes the no data value record at index 0.
+*/
 const Records& ValueTable::getRecords() const & noexcept
 {
     return m_records;
 }
 
+//! Set a value in a specific field in a specific record.
+/*!
+\param recordIndex
+    The record index.
+    Must be greater than 0.
+\param name
+    The name of the field.
+\param value
+    The value to put into the field.
+*/
 void ValueTable::setValue(
     size_t recordIndex,
     const std::string& name,
     const CompoundDataType& value)
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
@@ -303,12 +418,22 @@ void ValueTable::setValue(
     this->setValue(recordIndex, fieldIndex, value);
 }
 
+//! Set a value in a specific field in a specific record.
+/*!
+\param recordIndex
+    The record index.
+    Must be greater than 0.
+\param fieldIndex
+    The index of the field.
+\param value
+    The value to put into the field.
+*/
 void ValueTable::setValue(
     size_t recordIndex,
     size_t fieldIndex,
     const CompoundDataType& value)
 {
-    if (recordIndex >= m_records.size())
+    if (recordIndex == 0 || recordIndex >= m_records.size())
         throw RecordNotFound{};
 
     auto& record = m_records[recordIndex];
@@ -317,14 +442,24 @@ void ValueTable::setValue(
     this->writeRecord(recordIndex, record);
 }
 
-//! Compare the record to the definition.  Not valid if any type is unknown.
-bool ValueTable::validateRecord(
-    const Record& record) const noexcept
-{
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
+//! Determine if the specified record matches the definition used by the value table.
+/*!
+\param record
+    The record.
 
-    const auto& definition = descriptor.getDefinition();
+\return
+    \e true if the record matches the definition.
+    \e false otherwise
+*/
+bool ValueTable::validateRecord(
+    const Record& record) const
+{
+    const auto* descriptor =
+        dynamic_cast<const CompoundLayerDescriptor*>(&m_layer.getDescriptor());
+    if (!descriptor)
+        throw InvalidDescriptor{};
+
+    const auto& definition = descriptor->getDefinition();
 
     if (record.size() != definition.size())
         return false;
@@ -334,11 +469,12 @@ bool ValueTable::validateRecord(
     for (const auto& field : record)
     {
         const auto defType = static_cast<DataType>(definition[defIndex++].type);
-        const auto fieldType = field.getType();
 
-        if (defType == DT_UNKNOWN_DATA_TYPE || field.getType() == DT_UNKNOWN_DATA_TYPE)
+        if (defType == DT_UNKNOWN_DATA_TYPE
+            || field.getType() == DT_UNKNOWN_DATA_TYPE)
             return false;
 
+        const auto fieldType = field.getType();
         if (fieldType != defType)
             return false;
     }
@@ -346,12 +482,11 @@ bool ValueTable::validateRecord(
     return true;
 }
 
-//! Write a record to the DataSet.
+//! Write a record to the HDF5 DataSet at the specified recordIndex.
 /*!
 \param recordIndex
-    The index to write the record to.  This does not include the empty (NDV)
-    record at index 0, so this value will need to be increased by 1 to allow for
-    that.
+    The index to write the record to.
+    Must be greater than 0.
 \param record
     The record to write.
 */
@@ -359,11 +494,10 @@ void ValueTable::writeRecord(
     size_t recordIndex,
     const Record& record)
 {
-    if (recordIndex > m_records.size())
+    if (recordIndex == 0 || recordIndex > m_records.size())
         throw InvalidRecordsIndex{};
 
-    // The record index must include the empty (NDV) record.
-    const size_t fileRecordIndex = recordIndex + 1;
+    const hsize_t fileRecordIndex = recordIndex;
 
     // Prepare the memory details.
     const auto rawMemory = this->convertRecordToRaw(record);
@@ -395,6 +529,11 @@ void ValueTable::writeRecord(
         fileDataSpace);
 }
 
+//! Write multiple records at the end of the list to the HDF5 DataSet.
+/*!
+\param records
+    The records.
+*/
 void ValueTable::writeRecords(
     const std::vector<Record>& records)
 {
@@ -415,14 +554,14 @@ void ValueTable::writeRecords(
     // Prepare the file details.
     const auto& h5recordDataSet = m_layer.getRecordDataSet();
 
-    // Make room for the new records.  Account for the empty (NDV) record.
-    const hsize_t newNumRecords = m_records.size() + numRecords + 1;
+    // Make room for the new records.
+    const hsize_t newNumRecords = m_records.size() + numRecords;
     h5recordDataSet.extend(&newNumRecords);
 
     const auto fileDataSpace = h5recordDataSet.getSpace();
 
-    // specify the index to begin writing to.  account for the empty (NDV) record.
-    const hsize_t indexToModify = m_records.size() + 1;
+    // Specify the index to begin writing to.
+    const hsize_t indexToModify = m_records.size();
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &indexToModify);
 
     h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,

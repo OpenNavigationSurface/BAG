@@ -16,6 +16,7 @@ class PredType;
 
 namespace BAG {
 
+//! This structure contains simple layer attribute information.
 struct AttributeInfo
 {
     AttributeInfo(const char* inMinName, const char* inMaxName,
@@ -26,12 +27,17 @@ struct AttributeInfo
         , h5type(inH5type)
     {}
 
+    //! The minimum value attribute name.
     const char* minName = nullptr;
+    //! The maximum value attribute name.
     const char* maxName = nullptr;
+    //! The HDF5 path to the attribute.
     const char* path = nullptr;
+    //! The HDF5 type the attribute is.
     const ::H5::PredType& h5type;
 };
 
+//! Retrieve the simple layer attribute information.
 AttributeInfo getAttributeInfo(LayerType layerType);
 
 }  // namespace BAG

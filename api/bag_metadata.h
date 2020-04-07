@@ -2,9 +2,9 @@
 #define BAG_METADATA_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_metadatatypes.h"
-#include "bag_deleteh5dataset.h"
 
 #include <memory>
 #include <string>
@@ -23,17 +23,20 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for the metadata.
 class BAG_API Metadata final
 {
 public:
     Metadata() noexcept;
 
-    //TODO Temp, make sure only move operations are used until development is done.
+    ~Metadata() noexcept;
+
     Metadata(const Metadata& other) = delete;
     Metadata(Metadata&& other) = default;
+
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
-    ~Metadata() noexcept;
+
     static Metadata fromDataset(Dataset& dataset);
 
     const BagMetadata& getStruct() const & noexcept;
@@ -60,9 +63,9 @@ private:
 
     void write() const;
 
-    //! The dataset the metadata is part of.
+    //! The BAG Dataset the metadata is part of.
     std::weak_ptr<const Dataset> m_pBagDataset;
-    //! The C structs behind this class.
+    //! The C struct behind this class.
     std::unique_ptr<BagMetadata> m_pMetaStruct;
     //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;

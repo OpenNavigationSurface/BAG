@@ -7,17 +7,23 @@
 
 namespace BAG {
 
+//! The constructor.
+/*!
+\param id
+    The unique layer id.
+\param layerType
+    The type of layer to be read.
+\param groupType
+    The type of group to be read.
+    NODE or ELEVATION.
+*/
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     uint32_t id,
     LayerType layerType,
-    GroupType groupType,
-    uint64_t chunkSize,
-    unsigned int compressionLevel)
+    GroupType groupType)
     : LayerDescriptor(id, Layer::getInternalPath(layerType),
-        kLayerTypeMapString.at(layerType), layerType, chunkSize,
-        compressionLevel)
+        kLayerTypeMapString.at(layerType), layerType, 0, 0)
     , m_groupType(groupType)
-    , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
     this->setInternalPath(groupType == NODE ?
@@ -26,10 +32,20 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
     InterleavedLayerDescriptor::validateTypes(layerType, groupType);
 }
 
+//! The constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param layerType
+    The type of layer to be read.
+\param groupType
+    The type of group to be read.
+    NODE or ELEVATION.
+*/
 InterleavedLayerDescriptor::InterleavedLayerDescriptor(
+    const Dataset& dataset,
     LayerType layerType,
-    GroupType groupType,
-    const Dataset& dataset)
+    GroupType groupType)
     : LayerDescriptor(dataset, layerType,
         groupType == NODE
             ? NODE_GROUP_PATH
@@ -37,50 +53,91 @@ InterleavedLayerDescriptor::InterleavedLayerDescriptor(
                 ? ELEVATION_SOLUTION_GROUP_PATH
                 : "")
     , m_groupType(groupType)
-    , m_dataType(Layer::getDataType(layerType))
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
     InterleavedLayerDescriptor::validateTypes(layerType, groupType);
 }
 
+//! Create an interleaved layer descriptor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param layerType
+    The type of layer to be read.
+\param groupType
+    The type of group to be read.
+    NODE or ELEVATION.
+
+\return
+    The newly created interleaved layer descriptor.
+*/
 std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::create(
+    const Dataset& dataset,
     LayerType layerType,
-    GroupType groupType,
-    uint64_t chunkSize,
-    unsigned int compressionLevel,
-    const Dataset& dataset)
+    GroupType groupType)
 {
     return std::shared_ptr<InterleavedLayerDescriptor>(
         new InterleavedLayerDescriptor{dataset.getNextId(), layerType,
-            groupType, chunkSize, compressionLevel});
+            groupType});
 }
 
+//! Open an interleaved layer descriptor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param layerType
+    The type of layer to be read.
+\param groupType
+    The type of group to be read.
+    NODE or ELEVATION.
+
+\return
+    The newly opened interleaved layer descriptor.
+*/
 std::shared_ptr<InterleavedLayerDescriptor> InterleavedLayerDescriptor::open(
+    const Dataset& dataset,
     LayerType layerType,
-    GroupType groupType,
-    const Dataset& dataset)
+    GroupType groupType)
 {
     return std::shared_ptr<InterleavedLayerDescriptor>(
-        new InterleavedLayerDescriptor{layerType, groupType, dataset});
+        new InterleavedLayerDescriptor{dataset, layerType, groupType});
 }
 
 
+//! \copydoc LayerDescriptor::getDataType
 DataType InterleavedLayerDescriptor::getDataTypeProxy() const noexcept
 {
-    return m_dataType;
+    return Layer::getDataType(this->getLayerType());
 }
 
+//! \copydoc LayerDescriptor::getElementSize
 uint8_t InterleavedLayerDescriptor::getElementSizeProxy() const noexcept
 {
     return m_elementSize;
 }
 
+//! Return the group type of this layer.
+/*!
+\return
+    The group type of this layer.
+*/
 GroupType InterleavedLayerDescriptor::getGroupType() const noexcept
 {
     return m_groupType;
 }
 
 //! Verify the proper group and layer combination is given.
+/*!
+    Validate the specified layer type is allowed for the group type.  If the
+    layer type is not valid for the specified group, an exception of type
+    UnsupportedInterleavedLayer is thrown.
+
+\param layerType
+    The type of layer to be read.
+\param groupType
+    The type of group to be read.
+    NODE or ELEVATION.
+*/
 void InterleavedLayerDescriptor::validateTypes(
     LayerType layerType,
     GroupType groupType)

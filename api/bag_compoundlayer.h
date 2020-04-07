@@ -3,11 +3,11 @@
 
 #include "bag_compounddatatype.h"
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 #include "bag_types.h"
 #include "bag_valuetable.h"
-#include "bag_deleteh5dataset.h"
 
 #include <memory>
 #include <string>
@@ -25,12 +25,13 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a compound layer.
 class BAG_API CompoundLayer final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     CompoundLayer(const CompoundLayer&) = delete;
     CompoundLayer(CompoundLayer&&) = delete;
+
     CompoundLayer& operator=(const CompoundLayer&) = delete;
     CompoundLayer& operator=(CompoundLayer&&) = delete;
 
@@ -38,7 +39,6 @@ public:
     const ValueTable& getValueTable() const & noexcept;
 
 protected:
-
     CompoundLayer(Dataset& dataset, CompoundLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5indexDataSet,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5recordDataSet);
@@ -46,7 +46,7 @@ protected:
     static std::unique_ptr<CompoundLayer> create(DataType indexType,
         const std::string& name, Dataset& dataset,
         const RecordDefinition& definition, uint64_t chunkSize,
-        unsigned int compressionLevel);
+        int compressionLevel);
     static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
         CompoundLayerDescriptor& descriptor);
 
@@ -71,11 +71,11 @@ private:
 
     void writeAttributesProxy() const override;
 
-    //! The index DataSet in the HDF5 file.
+    //! The HDF5 DataSet containing the indices.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5indexDataSet;
-    //! The record DataSet in the HDF5 file.
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5recordDataSet;  //TODO move to ValueTable?
-    //! The value table.
+    //! The HDF5 DataSet containing the records.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5recordDataSet;
+    //! The records in memory.
     std::unique_ptr<ValueTable> m_pValueTable;
 
     friend Dataset;
@@ -86,7 +86,7 @@ private:
 #pragma warning(pop)
 #endif
 
-}   //namespace BAG
+}  // namespace BAG
 
-#endif  //BAG_COMPOUNDLAYER
+#endif  // BAG_COMPOUNDLAYER
 

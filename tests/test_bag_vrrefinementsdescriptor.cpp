@@ -2,15 +2,15 @@
 #include "test_utils.h"
 #include <bag_dataset.h>
 #include <bag_metadata.h>
-#include <bag_vrrefinement.h>
-#include <bag_vrrefinementdescriptor.h>
+#include <bag_vrrefinements.h>
+#include <bag_vrrefinementsdescriptor.h>
 
 #include <catch2/catch.hpp>
-#include <string>
 
 
 using BAG::Dataset;
-using BAG::VRRefinementDescriptor;
+using BAG::Metadata;
+using BAG::VRRefinementsDescriptor;
 
 namespace {
 
@@ -313,139 +313,83 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 
 }  // namespace
 
-//  LayerDescriptor& getDescriptor() & noexcept;
-//  const LayerDescriptor& getDescriptor() const & noexcept;
-//  void writeAttributes() const;
-TEST_CASE("test vr refinement create open", "[vrrefinement][create][open]")
+//  std::tuple<float , float> getMinMaxDepth() const noexcept;
+//  void setMinMaxDepth(float minDepth, float  maxDepth) noexcept;
+TEST_CASE("test vr refinement descriptor min/max depth",
+    "[vrrefinementdescriptor][getMinMaxDepth][setMinMaxDepth]")
 {
     TestUtils::RandomFileGuard tmpBagFile;
 
-    constexpr float kExpectedMinDepth = 10.1f;
-    constexpr float kExpectedMaxDepth = 20.2f;
-    constexpr float kExpectedMinUncertainty = 111.1f;
-    constexpr float kExpectedMaxUncertainty = 222.2f;
+    Metadata metadata;
+    metadata.loadFromBuffer(kMetadataXML);
 
-    {  // test create
-        BAG::Metadata metadata;
-        metadata.loadFromBuffer(kMetadataXML);
-
-        constexpr uint64_t kChunkSize = 100;
-        constexpr unsigned int kCompressionLevel = 6;
-
-        auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
-            kChunkSize, kCompressionLevel);
-        REQUIRE(pDataset);
-
-        UNSCOPED_INFO("Check that creating optional variable resolution layers does not throw.");
-        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
-
-        auto* pVrRefinement = pDataset->getVRRefinement();
-        UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
-        REQUIRE(pVrRefinement);
-
-        auto& descriptor = pVrRefinement->getDescriptor();
-
-        UNSCOPED_INFO("Check that writing attributes does not throw.");
-        REQUIRE_NOTHROW(pVrRefinement->writeAttributes());
-
-        auto* pVrRefinementDescriptor =
-            dynamic_cast<VRRefinementDescriptor*>(&descriptor);
-
-        // Set some attributes to save.
-        pVrRefinementDescriptor->setMinMaxDepth(kExpectedMinDepth,
-            kExpectedMaxDepth);
-        pVrRefinementDescriptor->setMinMaxUncertainty(kExpectedMinUncertainty,
-            kExpectedMaxUncertainty);
-
-        // Read the attributes back.
-        const auto minMaxDepth = pVrRefinementDescriptor->getMinMaxDepth();
-        CHECK(std::tuple<float, float>(kExpectedMinDepth, kExpectedMaxDepth) ==
-            minMaxDepth);
-
-        const auto minMaxUncertainty =
-            pVrRefinementDescriptor->getMinMaxUncertainty();
-        CHECK(std::tuple<float, float>(kExpectedMinUncertainty, kExpectedMaxUncertainty) ==
-            minMaxUncertainty);
-
-        // Write attributes to file.
-        UNSCOPED_INFO("Check that writing attributes does not throw.");
-        REQUIRE_NOTHROW(pVrRefinement->writeAttributes());
-    }
-
-    {  // test open
-        auto pDataset = Dataset::open(tmpBagFile, BAG_OPEN_READONLY);
-
-        const auto* pVrRefinement = pDataset->getVRRefinement();
-        UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
-        REQUIRE(pVrRefinement);
-
-        const auto& descriptor = pVrRefinement->getDescriptor();
-        const auto* pVrRefinementDescriptor =
-            dynamic_cast<const VRRefinementDescriptor*>(&descriptor);
-
-        // Read the attributes back.
-        const auto minMaxDepth = pVrRefinementDescriptor->getMinMaxDepth();
-        CHECK(std::tuple<float, float>(kExpectedMinDepth, kExpectedMaxDepth) ==
-            minMaxDepth);
-
-        const auto minMaxUncertainty =
-            pVrRefinementDescriptor->getMinMaxUncertainty();
-        CHECK(std::tuple<float, float>(kExpectedMinUncertainty, kExpectedMaxUncertainty) ==
-            minMaxUncertainty);
-    }
-}
-
-//  void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
-//      uint32_t columnEnd, const uint8_t* buffer);
-//  std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
-//      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
-TEST_CASE("test vr refinement write read", "[vrrefinement][write][read]")
-{
-    const TestUtils::RandomFileGuard tmpBagFile;
-
-    UNSCOPED_INFO("Check dataset was created successfully.");
     constexpr uint64_t kChunkSize = 100;
     constexpr unsigned int kCompressionLevel = 6;
 
-    BAG::Metadata metadata;
-    metadata.loadFromBuffer(kMetadataXML);
-
-    auto pDataset = Dataset::create(tmpBagFile, std::move(metadata), kChunkSize,
-        kCompressionLevel);
+    auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
+        kChunkSize, kCompressionLevel);
     REQUIRE(pDataset);
 
-    UNSCOPED_INFO("Check creating variable resolution layers does not throw.");
-    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
+    pDataset->createVR(kChunkSize, kCompressionLevel, false);
+    auto* pVrRefinements = pDataset->getVRRefinements();
+    REQUIRE(pVrRefinements);
 
-    UNSCOPED_INFO("Check the variable resolution refinement layer exists.");
-    auto* pVrRefinement = pDataset->getVRRefinement();
-    REQUIRE(pVrRefinement);
+    auto& descriptor = pVrRefinements->getDescriptor();
+    REQUIRE_NOTHROW(dynamic_cast<VRRefinementsDescriptor&>(descriptor));
 
-    UNSCOPED_INFO("Check VRRefinementDescriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const VRRefinementDescriptor&>(
-        pVrRefinement->getDescriptor()));
+    auto* pVrRefinementDescriptor =
+        dynamic_cast<VRRefinementsDescriptor*>(&descriptor);
 
-    UNSCOPED_INFO("Write one record.");
-    constexpr BagVRRefinementItem kExpectedItem0{9.8f, 0.654f};
+    // Set some expected minimum depth values and verify they are set.
+    UNSCOPED_INFO("Verify setting the min/max depth does not throw.");
+    constexpr float kExpectedMinDepth = 1.1f;
+    constexpr float kExpectedMaxDepth = 2.2f;
+    CHECK_NOTHROW(pVrRefinementDescriptor->setMinMaxDepth(kExpectedMinDepth,
+        kExpectedMaxDepth));
 
-    const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
-
-    constexpr uint32_t kRowStart = 0;  // unused
-    constexpr uint32_t kColumnStart = 0;
-    constexpr uint32_t kRowEnd = 0;  // unused
-    constexpr uint32_t kColumnEnd = 0;
-
-    REQUIRE_NOTHROW(pVrRefinement->write(kRowStart, kColumnStart, kRowEnd,
-        kColumnEnd, buffer));
-
-    UNSCOPED_INFO("Read the record back.");
-    const auto result = pVrRefinement->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
-    REQUIRE(result.size() > 0);
-
-    const auto* res = reinterpret_cast<const BagVRRefinementItem*>(result.get());
-    UNSCOPED_INFO("Check the expected value of BagVRRefinementItem::depth.");
-    CHECK(res->depth == kExpectedItem0.depth);
-    UNSCOPED_INFO("Check the expected value of BagVRRefinementItem::depth_uncrt.");
-    CHECK(res->depth_uncrt == kExpectedItem0.depth_uncrt);
+    UNSCOPED_INFO("Verify the min/max depth is expected.");
+    const auto minMaxDepth = pVrRefinementDescriptor->getMinMaxDepth();
+    CHECK(minMaxDepth == std::tuple<float, float>(kExpectedMinDepth,
+        kExpectedMaxDepth));
 }
 
+//  std::tuple<float , float> getMinMaxUncertainty() const noexcept;
+//  void setMinMaxUncertainty(float minDepth, float  maxDepth) noexcept;
+TEST_CASE("test vr refinement descriptor min/max uncertainty",
+    "[vrrefinementdescriptor][getMinMaxUncertainty][setMinMaxUncertainty]")
+{
+    TestUtils::RandomFileGuard tmpBagFile;
+
+    Metadata metadata;
+    metadata.loadFromBuffer(kMetadataXML);
+
+    constexpr uint64_t kChunkSize = 100;
+    constexpr unsigned int kCompressionLevel = 6;
+
+    auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
+        kChunkSize, kCompressionLevel);
+    REQUIRE(pDataset);
+
+    pDataset->createVR(kChunkSize, kCompressionLevel, false);
+    auto* pVrRefinements = pDataset->getVRRefinements();
+    REQUIRE(pVrRefinements);
+
+    auto& descriptor = pVrRefinements->getDescriptor();
+    REQUIRE_NOTHROW(dynamic_cast<VRRefinementsDescriptor&>(descriptor));
+
+    auto* pVrRefinementDescriptor =
+        dynamic_cast<VRRefinementsDescriptor*>(&descriptor);
+
+    // Set some expected min/max uncertainty values and verify they are set.
+    UNSCOPED_INFO("Verify setting the min/max uncertainty does not throw.");
+    constexpr float kExpectedMinUncertainty = 101.01f;
+    constexpr float kExpectedMaxUncertainty = 202.02f;
+    CHECK_NOTHROW(pVrRefinementDescriptor->setMinMaxUncertainty(
+        kExpectedMinUncertainty, kExpectedMaxUncertainty));
+
+    UNSCOPED_INFO("Verify the min/max uncertainty is expected.");
+    const auto minMaxUncertainty =
+        pVrRefinementDescriptor->getMinMaxUncertainty();
+    CHECK(minMaxUncertainty == std::tuple<float, float>(kExpectedMinUncertainty,
+        kExpectedMaxUncertainty));
+}

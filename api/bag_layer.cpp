@@ -8,6 +8,13 @@
 
 namespace BAG {
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+*/
 Layer::Layer(
     Dataset& dataset,
     LayerDescriptor& descriptor)
@@ -16,16 +23,31 @@ Layer::Layer(
 {
 }
 
+//! Retrieve the BAG Dataset this layer belongs to.
+/*!
+\return
+    The BAG Dataset this layer belongs to.
+*/
 std::weak_ptr<Dataset> Layer::getDataset() & noexcept
 {
     return m_pBagDataset;
 }
 
+//! Retrieve the BAG Dataset this layer belongs to.
+/*!
+\return
+    The BAG Dataset this layer belongs to.
+*/
 std::weak_ptr<const Dataset> Layer::getDataset() const & noexcept
 {
     return m_pBagDataset;
 }
 
+//! Determine the type of data stored in the specified layer type.
+/*!
+\return
+    The type of data stored in the specified layer type.
+*/
 DataType Layer::getDataType(LayerType layerType) noexcept
 {
     switch (layerType)
@@ -49,16 +71,34 @@ DataType Layer::getDataType(LayerType layerType) noexcept
     }
 }
 
+//! Retrieve the layer's descriptor.
+/*!
+\return
+    The layer's descriptor.
+*/
 LayerDescriptor& Layer::getDescriptor() & noexcept
 {
     return *m_pLayerDescriptor;
 }
 
+//! Retrieve the layer's descriptor.
+/*!
+\return
+    The layer's descriptor.
+*/
 const LayerDescriptor& Layer::getDescriptor() const & noexcept
 {
     return *m_pLayerDescriptor;
 }
 
+//! Retrieve the size of the specified data type.
+/*!
+\param
+    The type of data.
+
+\return
+    The size of the specified data type.
+*/
 uint8_t Layer::getElementSize(DataType type)
 {
     switch (type)
@@ -84,6 +124,17 @@ uint8_t Layer::getElementSize(DataType type)
     }
 }
 
+//! Retrieve the HDF5 path of the specified layer.
+/*!
+\param layerType
+    The type of layer.
+\param groupType
+    The type of group.
+    NODE or ELEVATION.
+
+\return
+    The HDF5 path to the specified layer and group types.
+*/
 std::string Layer::getInternalPath(
     LayerType layerType,
     GroupType groupType)
@@ -126,6 +177,23 @@ std::string Layer::getInternalPath(
     }
 }
 
+//! Read a section of data from this layer.
+/*!
+    Read data from this layer starting at rowStart, columnStart, and continue
+    until rowEnd, columnEnd (inclusive).
+
+\param rowStart
+    The starting row.
+\param columnStart
+    The starting column.
+\param rowEnd
+    The ending row (inclusive).
+\param columnEnd
+    The ending column (inclusive).
+
+\return
+    The section of data specified by the rows and columns.
+*/
 UInt8Array Layer::read(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -133,7 +201,7 @@ UInt8Array Layer::read(
     uint32_t columnEnd) const
 {
     if (rowStart > rowEnd || columnStart > columnEnd)
-        InvalidReadSize{};
+        throw InvalidReadSize{};
 
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};
@@ -148,6 +216,25 @@ UInt8Array Layer::read(
     return this->readProxy(rowStart, columnStart, rowEnd, columnEnd);
 }
 
+//! Write a section of data to this layer.
+/*!
+    Write data to this layer starting at rowStart, columnStart, and continue
+    until rowEnd, columnEnd (inclusive).
+
+    After writing the data, write the attributes.
+
+\param rowStart
+    The starting row.
+\param columnStart
+    The starting column.
+\param rowEnd
+    The ending row (inclusive).
+\param columnEnd
+    The ending column (inclusive).
+\param buffer
+    The data to be written.
+    It must contain at least (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1) elements!
+*/
 void Layer::write(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -168,6 +255,7 @@ void Layer::write(
     this->writeAttributesProxy();
 }
 
+//! Write the attributes this layer contains to disk.
 void Layer::writeAttributes() const
 {
     if (m_pBagDataset.expired())

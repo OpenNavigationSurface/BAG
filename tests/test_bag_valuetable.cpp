@@ -8,6 +8,7 @@
 #include <bag_valuetable.h>
 
 #include <catch2/catch.hpp>
+#include <cstring>  //strcmp
 #include <string>
 
 
@@ -315,8 +316,6 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 
 }  // namespace
 
-namespace BAG {
-
 bool operator==(
     const FieldDefinition& lhs,
     const FieldDefinition& rhs)
@@ -329,8 +328,6 @@ bool operator==(
 
     return strcmp(lhs.name, rhs.name) == 0;
 }
-
-}  // namespace BAG
 
 //  const Records& getRecords() const & noexcept;
 //  const RecordDefinition& getDefinition() const & noexcept;
@@ -345,7 +342,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     metadata.loadFromBuffer(kMetadataXML);
 
     constexpr uint64_t chunkSize = 100;
-    constexpr unsigned int compressionLevel = 6;
+    constexpr int compressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
         chunkSize, compressionLevel);
@@ -361,8 +358,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     const char kFieldName2[]{"bool value"};
     const char kFieldName3[]{"string value"};
 
-    BAG::RecordDefinition kExpectredDefinition;
-    kExpectredDefinition.resize(4);
+    BAG::RecordDefinition kExpectredDefinition(4);
     kExpectredDefinition[0].name = kFieldName0;
     kExpectredDefinition[0].type = DT_FLOAT32;
     kExpectredDefinition[1].name = kFieldName1;
@@ -385,8 +381,8 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     CHECK(definition[2] == kExpectredDefinition[2]);
     CHECK(definition[3] == kExpectredDefinition[3]);
 
-    UNSCOPED_INFO("Check dataset has no records.");
-    CHECK(valueTable.getRecords().empty());
+    UNSCOPED_INFO("Check dataset has no user defined records.");
+    CHECK(valueTable.getRecords().size() == 1);
 
     UNSCOPED_INFO("Check getting the field index returns the expected result.");
     CHECK(valueTable.getFieldIndex(kFieldName0) == 0);
@@ -409,7 +405,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
 {
     const TestUtils::RandomFileGuard tmpFileName;
     const std::string kExpectedLayerName = "uncertainty";
-    constexpr size_t kExpectedNumRecords = 1;
+    constexpr size_t kExpectedNumRecords = 2;
 
     BAG::Record kExpectedNewRecord0 {
         BAG::CompoundDataType{std::string{"Bob"}},
@@ -427,7 +423,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
 
         auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             chunkSize, compressionLevel);
@@ -436,8 +432,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         // Make a new Value Table.
         constexpr BAG::DataType indexType = DT_UINT16;
 
-        BAG::RecordDefinition definition;
-        definition.resize(7);
+        BAG::RecordDefinition definition(7);
         definition[0].name = "first name";
         definition[0].type = DT_STRING;
         definition[1].name = "last name";
@@ -458,20 +453,20 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
 
         auto& valueTable = pLayer.getValueTable();
 
-        UNSCOPED_INFO("Check that no records are in the value table.");
-        CHECK(valueTable.getRecords().empty());
+        UNSCOPED_INFO("Check that there are no user defined records are in the value table (just the no data value record).");
+        CHECK(valueTable.getRecords().size() == 1);
 
         UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
         REQUIRE_NOTHROW(valueTable.addRecord(kExpectedNewRecord0));
 
-        UNSCOPED_INFO("Check there are two records in the value table.");
+        UNSCOPED_INFO("Check there is one user defined record in the value table.");
         CHECK(valueTable.getRecords().size() == kExpectedNumRecords);
 
         UNSCOPED_INFO("Check adding an invalid record to the value table throws.");
         BAG::Record kJunkRecord;
         REQUIRE_THROWS(valueTable.addRecord(kJunkRecord));
 
-        UNSCOPED_INFO("Check there is still one record in the value table.");
+        UNSCOPED_INFO("Check there is still one user defined record in the value table.");
         CHECK(valueTable.getRecords().size() == kExpectedNumRecords);
     }
 
@@ -487,7 +482,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 0;
+        constexpr size_t kRecordIndex = 1;
         size_t fieldIndex = 0;
 
         const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
@@ -544,7 +539,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 0;
+        constexpr size_t kRecordIndex = 1;
         size_t fieldIndex = 0;
 
         // Read values back from memory.
@@ -603,7 +598,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 0;
+        constexpr size_t kRecordIndex = 1;
         size_t fieldIndex = 0;
 
         const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
@@ -660,7 +655,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         {CompoundDataType{false}, CompoundDataType{std::string{"string 4"}}, CompoundDataType{false}},
     };
 
-    const size_t kExpectedNumRecords = kExpectedRecords.size();
+    const size_t kExpectedNumRecords = kExpectedRecords.size() + 1;
 
     // Write a record.
     {
@@ -668,7 +663,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
 
         auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             chunkSize, compressionLevel);
@@ -691,8 +686,8 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
 
         auto& valueTable = pLayer.getValueTable();
 
-        UNSCOPED_INFO("Check there are no records in the value table.");
-        CHECK(valueTable.getRecords().empty());
+        UNSCOPED_INFO("Check there are no user defined records in the value table.");
+        CHECK(valueTable.getRecords().size() == 1);
 
         UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
         REQUIRE_NOTHROW(valueTable.addRecords(kExpectedRecords));
@@ -710,17 +705,17 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         REQUIRE(layer);
 
         const auto& valueTable = layer->getValueTable();
-        const auto& records = valueTable.getRecords();
+        const auto& records = valueTable.getRecords();  // Contains the no data value record.
         CHECK(records.size() == kExpectedNumRecords);
 
         // Read a record and make sure the values are expected.
-        constexpr size_t kRecordIndex = 1;  // Get the second record value.
+        constexpr size_t kRecordIndex = 2;  // Get the second record value.
 
         {
             constexpr size_t fieldIndex = 1;  // Second field (string).
 
             const auto& value = valueTable.getValue(kRecordIndex, fieldIndex);
-            CHECK(value == kExpectedRecords[kRecordIndex][fieldIndex]);
+            CHECK(value == kExpectedRecords[kRecordIndex - 1][fieldIndex]);
             CHECK(value == records[kRecordIndex][fieldIndex]);
         }
 
@@ -732,7 +727,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
             CHECK(fieldIndex == kExpectedFieldIndex);
 
             const auto& value = valueTable.getValue(kRecordIndex, fieldName);
-            CHECK(value == kExpectedRecords[kRecordIndex][fieldIndex]);
+            CHECK(value == kExpectedRecords[kRecordIndex - 1][fieldIndex]);
             CHECK(value == records[kRecordIndex][fieldIndex]);
         }
     }

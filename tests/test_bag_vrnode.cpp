@@ -339,8 +339,7 @@ TEST_CASE("test vr node create open", "[vrnode][create][open]")
         REQUIRE(pDataset);
 
         UNSCOPED_INFO("Check that creating optional variable resolution node does not throw.");
-        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
-        REQUIRE_NOTHROW(pDataset->createVRNode(kChunkSize, kCompressionLevel));
+        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, true));
 
         auto* pVrNode = pDataset->getVRNode();
         UNSCOPED_INFO("Check that the optional variable resolution node layer exists.");
@@ -429,8 +428,7 @@ TEST_CASE("test vr node write read", "[vrnode][write][read]")
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check creating variable resolution node layer does not throw.");
-    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel));
-    REQUIRE_NOTHROW(pDataset->createVRNode(kChunkSize, kCompressionLevel));
+    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, true));
 
     UNSCOPED_INFO("Check the optional variable resolution node layer exists.");
     auto* pVrNode = pDataset->getVRNode();
@@ -454,10 +452,10 @@ TEST_CASE("test vr node write read", "[vrnode][write][read]")
         kColumnEnd, buffer));
 
     UNSCOPED_INFO("Read the record back.");
-    const auto result = pVrNode->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
-    REQUIRE(result.size() > 0);
+    auto result = pVrNode->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+    CHECK(result);
 
-    const auto* res = reinterpret_cast<const BagVRNodeItem*>(result.get());
+    const auto* res = reinterpret_cast<const BagVRNodeItem*>(result.data());
     UNSCOPED_INFO("Check the expected value of BagVRNodeItem::hyp_strength.");
     CHECK(res->hyp_strength == kExpectedItem0.hyp_strength);
     UNSCOPED_INFO("Check the expected value of BagVRNodeItem::num_hypotheses.");

@@ -8,6 +8,21 @@
 
 namespace BAG {
 
+//! Retrieve the attribute information about the specified layer type.
+/*!
+    This function retrieves the attribute information about the specified Simple
+    Layer.  If the specified layer is not supported, an UnknownSimpleLayerType
+    exception is thrown.
+
+\param layerType
+    The type of simple layer.
+    Supported types: Elevation, Uncertainty, Hypothesis_Strength, Num_Hypotheses,
+        Shoal_Elevation, Std_Dev, Num_Soundings, Average_Elevation, and
+        Nominal_Elevation.
+
+\return
+    The attribute information about the specified simple layer.
+*/
 AttributeInfo getAttributeInfo(LayerType layerType)
 {
     switch (layerType)
@@ -39,10 +54,8 @@ AttributeInfo getAttributeInfo(LayerType layerType)
     case Nominal_Elevation:
         return AttributeInfo(MIN_NOMINAL_ELEVATION, MAX_NOMINAL_ELEVATION,
             NOMINAL_ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT);
-    case Surface_Correction:  //[[fallthrough]];
-    case Compound:  //[[fallthrough]];
     default:
-        throw UnknownSimpleLayerType{};
+        throw UnsupportedSimpleLayerType{};
     }
 }
 

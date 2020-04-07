@@ -31,14 +31,14 @@ TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read]")  //TODO 
     const auto& layer = dataset->getLayer(kLayerType);
 
     const auto buffer = layer.read(1, 2, 2, 4); // 2x3
-    REQUIRE(buffer.size() > 0);
+    REQUIRE(buffer);
 
     constexpr size_t kExpectedNumNodes = 6;
     const std::array<float, kExpectedNumNodes> kExpectedBuffer{
         -32.40f, -32.38f, -32.38f,
         -32.33f, -31.89f, -31.98f};
 
-    const float* floats = reinterpret_cast<const float*>(buffer.get());
+    const float* floats = reinterpret_cast<const float*>(buffer.data());
 
     for (size_t i=0; i<kExpectedNumNodes; ++i)
         CHECK(kExpectedBuffer[i] == Approx(floats[i]));

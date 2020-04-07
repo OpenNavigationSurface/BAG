@@ -1,5 +1,5 @@
-#ifndef BAG_VRREFINEMENT_H
-#define BAG_VRREFINEMENT_H
+#ifndef BAG_VRREFINEMENTS_H
+#define BAG_VRREFINEMENTS_H
 
 #include "bag_config.h"
 #include "bag_fordec.h"
@@ -15,14 +15,15 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
-class BAG_API VRRefinement final : public Layer
+//! The interface for the variable resolution refinements layer.
+class BAG_API VRRefinements final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
-    VRRefinement(const VRRefinement&) = delete;
-    VRRefinement(VRRefinement&&) = delete;
-    VRRefinement& operator=(const VRRefinement&) = delete;
-    VRRefinement& operator=(VRRefinement&&) = delete;
+    VRRefinements(const VRRefinements&) = delete;
+    VRRefinements(VRRefinements&&) = delete;
+
+    VRRefinements& operator=(const VRRefinements&) = delete;
+    VRRefinements& operator=(VRRefinements&&) = delete;
 
 protected:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
@@ -31,20 +32,20 @@ protected:
         void operator()(::H5::DataSet* ptr) noexcept;
     };
 
-    VRRefinement(Dataset& dataset,
-        VRRefinementDescriptor& descriptor,
+    VRRefinements(Dataset& dataset,
+        VRRefinementsDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
 
-    static std::unique_ptr<VRRefinement> create(Dataset& dataset,
-        uint64_t chunkSize, unsigned int compressionLevel);
+    static std::unique_ptr<VRRefinements> create(Dataset& dataset,
+        uint64_t chunkSize, int compressionLevel);
 
-    static std::unique_ptr<VRRefinement> open(Dataset& dataset,
-        VRRefinementDescriptor& descriptor);
+    static std::unique_ptr<VRRefinements> open(Dataset& dataset,
+        VRRefinementsDescriptor& descriptor);
 
 private:
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
         createH5dataSet(const Dataset& dataset,
-            const VRRefinementDescriptor& descriptor);
+            const VRRefinementsDescriptor& descriptor);
 
     UInt8Array readProxy(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const override;
@@ -54,7 +55,7 @@ private:
 
     void writeAttributesProxy() const override;
 
-    //! The HDF5 DataSet.
+    //! The HDF5 DataSet this layer wraps.
     std::unique_ptr<H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
@@ -66,5 +67,5 @@ private:
 
 }  // namespace BAG
 
-#endif  // BAG_VRREFINEMENT_H
+#endif  // BAG_VRREFINEMENTS_H
 

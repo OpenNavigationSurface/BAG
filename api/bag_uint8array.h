@@ -21,17 +21,18 @@ public:
     UInt8Array(const UInt8Array&) = delete;
     UInt8Array(UInt8Array&&) = default;
 
+    ~UInt8Array() = default;
+
     UInt8Array& operator=(const UInt8Array&) = delete;
-    UInt8Array& operator=(UInt8Array&&) = default;
-
-    uint8_t* get() &
+    UInt8Array& operator=(UInt8Array&& rhs) noexcept
     {
-        return m_array.get();
-    }
+        if (this == &rhs)
+            return *this;
 
-    const uint8_t* get() const &
-    {
-        return m_array.get();
+        this->m_array = std::move(rhs.m_array);
+        this->m_len = rhs.m_len;
+
+        return *this;
     }
 
     uint8_t& operator[](size_t index) &
@@ -50,12 +51,27 @@ public:
         return *(m_array.get() + index);
     }
 
-    uint8_t* release()
+    explicit operator bool() const noexcept
+    {
+        return static_cast<bool>(m_array);
+    }
+
+    uint8_t* data() & noexcept
+    {
+        return m_array.get();
+    }
+
+    const uint8_t* data() const & noexcept
+    {
+        return m_array.get();
+    }
+
+    uint8_t* release() noexcept
     {
         return m_array.release();
     }
 
-    size_t size() const
+    size_t size() const noexcept
     {
         return m_len;
     }

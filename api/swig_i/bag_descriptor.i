@@ -67,7 +67,7 @@ namespace BAG {
         const std::tuple<double, double>& getGridSpacing() const & noexcept;
 #endif
 
-        Descriptor& addLayerDescriptor(const LayerDescriptor& inDescriptor) &;
+        %ignore addLayerDescriptor(const LayerDescriptor& inDescriptor) &;
         void setVerticalReferenceSystem(
             const std::string& verticalReferenceSystem) & noexcept;
         void setDims(uint32_t rows, uint32_t columns) & noexcept;

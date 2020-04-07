@@ -15,8 +15,10 @@
 namespace BAG
 {
 
+//! The HDF5 chunk size of the metadata.
 constexpr hsize_t kMetadataChunkSize = 1024;
 
+//! The default constructor.
 Metadata::Metadata() noexcept
     : m_pMetaStruct(std::make_unique<BagMetadata>())
 {
@@ -24,11 +26,23 @@ Metadata::Metadata() noexcept
     bagInitMetadata(*m_pMetaStruct);
 }
 
+//! Make metadata from a BAG Dataset.
+/*!
+    Read the metadta from the specified BAG Dataset.
+
+\param dataset
+    The BAG Dataset.
+*/
 Metadata Metadata::fromDataset(Dataset& dataset)
 {
     return Metadata(dataset);
 }
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset the metadata belongs to.
+*/
 Metadata::Metadata(Dataset& dataset)
     : m_pBagDataset(dataset.shared_from_this())
     , m_pMetaStruct(std::make_unique<BagMetadata>())
@@ -54,36 +68,52 @@ Metadata::Metadata(Dataset& dataset)
     this->loadFromBuffer(buffer);
 }
 
+//! Destructor.
 Metadata::~Metadata() noexcept
 {
     if (m_pMetaStruct)
     {
-        // Prevent any exceptions from escaping.
-        try {
+        try
+        {
             bagFreeMetadata(*m_pMetaStruct);
         }
-        catch(...)
+        catch(...)  // Prevent any exceptions from escaping.
         {}
     }
 }
 
 
+//! Retrieve the column resolution.
+/*!
+\return
+    The column resolution.
+*/
 double Metadata::columnResolution() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->columnResolution;
 }
 
+//! Retrieve the number of columns.
+/*!
+\return
+    The number of columns.
+*/
 uint32_t Metadata::columns() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->numberOfColumns;
 }
 
+//! Create an HDF5 DataSet to store the metadata.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+*/
 void Metadata::createH5dataSet(
-    const Dataset& inDataset)
+    const Dataset& dataset)
 {
-    m_pBagDataset = inDataset.shared_from_this();
+    m_pBagDataset = dataset.shared_from_this();
 
-    const auto& h5file = inDataset.getH5file();
+    const auto& h5file = dataset.getH5file();
 
     const auto buffer = exportMetadataToXML(this->getStruct());
     const hsize_t xmlLength{buffer.size()};
@@ -101,16 +131,32 @@ void Metadata::createH5dataSet(
     m_pH5dataSet->extend(&xmlLength);
 }
 
+//! Retrieve the C structure this class wraps.
+/*!
+\return
+    The C structure this class wraps.
+*/
 const BagMetadata& Metadata::getStruct() const & noexcept
 {
     return *m_pMetaStruct;
 }
 
+//! Retrieve the length of the XML in this metadata.
+/*!
+\return
+    The length of the XML in this metadata.
+*/
 size_t Metadata::getXMLlength() const noexcept
 {
     return m_xmlLength;
 }
 
+//! Retrieve a copy of the horizontal reference system as WKT.
+/*!
+\return
+    A copy of the horizontal reference system as WKT.
+    The string is empty if it is not WKT.
+*/
 std::string Metadata::horizontalReferenceSystemAsWKT() const
 {
     const auto* type = m_pMetaStruct->horizontalReferenceSystem->type;
@@ -120,16 +166,34 @@ std::string Metadata::horizontalReferenceSystemAsWKT() const
     return m_pMetaStruct->horizontalReferenceSystem->definition;
 }
 
+//! Retrieve the lower left corner's X value.
+/*!
+\return
+    The lower left corner's X value.
+*/
 double Metadata::llCornerX() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->llCornerX;
 }
 
+//! Retrieve the lower left corner's Y value.
+/*!
+\return
+    The lower left corner's Y value.
+*/
 double Metadata::llCornerY() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->llCornerY;
 }
 
+//! Populate the metadata from the XML in the specified file.
+/*!
+    Read the XML from the specified file.  An ErrorLoadingMetadata exception is
+    thrown if an error occurs.
+
+\param fileName
+    The XML file to read into this class.
+*/
 void Metadata::loadFromFile(const std::string& fileName)
 {
     const BagError err = bagImportMetadataFromXmlFile(fileName.c_str(),
@@ -142,6 +206,14 @@ void Metadata::loadFromFile(const std::string& fileName)
     m_xmlLength = ifs.tellg();
 }
 
+//! Populate the metadata from the XML in the specified buffer.
+/*!
+    Read the XML from the specified buffer.  An ErrorLoadingMetadata exception
+    is thrown if an error occurs.
+
+\param xmlBuffer
+    The XML buffer..
+*/
 void Metadata::loadFromBuffer(const std::string& xmlBuffer)
 {
     const BagError err = bagImportMetadataFromXmlBuffer(xmlBuffer.c_str(),
@@ -152,26 +224,52 @@ void Metadata::loadFromBuffer(const std::string& xmlBuffer)
     m_xmlLength = xmlBuffer.size();
 }
 
+//! Retrieve the row resolution.
+/*!
+\return
+    The row resolution.
+*/
 double Metadata::rowResolution() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->rowResolution;
 }
 
+//! Retrieve the number of rows.
+/*!
+\return
+    The number of rows.
+*/
 uint32_t Metadata::rows() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->numberOfRows;
 }
 
+//! Retrieve the upper right corner's X value.
+/*!
+\return
+    The upper right corner's X value.
+*/
 double Metadata::urCornerX() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->urCornerX;
 }
 
+//! Retrieve the upper right corner's Y value.
+/*!
+\return
+    The upper right corner's Y value.
+*/
 double Metadata::urCornerY() const noexcept
 {
     return m_pMetaStruct->spatialRepresentationInfo->urCornerY;
 }
 
+//! Retrieve a copy of the vertical reference system as WKT.
+/*!
+\return
+    A copy of the vertical reference system as WKT.
+    The string is empty if it is not WKT.
+*/
 std::string Metadata::verticalReferenceSystemAsWKT() const
 {
     const auto* type = m_pMetaStruct->verticalReferenceSystem->type;
@@ -181,6 +279,7 @@ std::string Metadata::verticalReferenceSystemAsWKT() const
     return m_pMetaStruct->verticalReferenceSystem->definition;
 }
 
+//! Write the metadata to the HDF5 file.
 void Metadata::write() const
 {
     const auto buffer = exportMetadataToXML(this->getStruct());

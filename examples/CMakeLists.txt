@@ -5,19 +5,15 @@ project(OpenNS_Examples LANGUAGES C CXX)
 # Define Sources
 #-----------------------------------------------------------------------------
 set(examples
-#    bag_create
-#    bag_vr_create
-#    bag_gencert
+    bag_compound_layer
+    bag_create
     bag_read
-#    bag_vr_read
-#    bag_signcert
-#    bag_signfile
-#    bag_verifycert
-#    bag_verifyfile
+    bag_vr_create
+    bag_vr_read
 )
 
 foreach(example ${examples})
-    add_executable(${example} ${example}.cpp)
+    add_executable(${example} ${example}.cpp getopt.c getopt.h)
 
     target_compile_definitions(${example}
         PRIVATE
@@ -35,7 +31,10 @@ foreach(example ${examples})
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
     )
 
-    target_link_libraries(${example} baglib)
+    target_link_libraries(${example}
+        PRIVATE
+        baglib
+    )
 
     set_target_properties(${example}
         PROPERTIES

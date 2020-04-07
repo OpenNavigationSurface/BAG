@@ -9,6 +9,12 @@
 #include <vector>
 
 
+namespace H5 {
+
+class DataSet;
+
+}  // namespace H5
+
 namespace BAG {
 
 #ifdef _MSC_VER
@@ -16,6 +22,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for the variable resolution tracking list.
 class BAG_API VRTrackingList final
 {
 public:
@@ -25,9 +32,9 @@ public:
     using reference = value_type&;
     using const_reference = const value_type&;
 
-    //TODO Temp, make sure only move operations are used until development is done.
     VRTrackingList(const VRTrackingList&) = delete;
     VRTrackingList(VRTrackingList&&) = delete;
+
     VRTrackingList& operator=(const VRTrackingList&) = delete;
     VRTrackingList& operator=(VRTrackingList&&) = delete;
 
@@ -61,7 +68,7 @@ public:
 
 protected:
     explicit VRTrackingList(const Dataset& dataset);
-    VRTrackingList(const Dataset& dataset, unsigned int compressionLevel);
+    VRTrackingList(const Dataset& dataset, int compressionLevel);
 
 private:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
@@ -71,26 +78,28 @@ private:
     };
 
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> createH5dataSet(
-        unsigned int compressionLevel);
+        int compressionLevel);
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
-    //! The associated dataset.
+    //! The associated BAG Dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
     //! The items making up the tracking list.
     std::vector<value_type> m_items;
-    //! The length attribute in the tracking list DataSet.
-    uint32_t m_length = 0;
     //! The HDF5 DataSet this class relates to.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };
 
+//! Add an item to the end of the tracking list.
+/*!
+\param args
+    One or more parameters to hand to the constructor of VRTrackingItem.
+*/
 template <typename... Args>
 void VRTrackingList::emplace_back(Args&&... args) &
 {
     m_items.emplace_back(std::forward<Args>(args)...);
-    ++m_length;
 }
 
 #ifdef _MSC_VER

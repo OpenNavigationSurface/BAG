@@ -27,7 +27,7 @@ class CompoundDataType final {
         CompoundDataType(const CompoundDataType& other);
         %ignore CompoundDataType(CompoundDataType&& other);
         ~CompoundDataType() noexcept;
-        
+
         %rename(assignConst) operator=(const CompoundDataType&);
         CompoundDataType& operator=(const CompoundDataType& rhs);
         %rename(assign) operator=(CompoundDataType&&);
@@ -45,12 +45,12 @@ class CompoundDataType final {
         float asFloat() const;
         uint32_t asUInt32() const;
         bool asBool() const;
-        %ignore asString() const&;
+        %ignore asString() const&;  //TODO Why is this ignored?
         std::string asString();
         DataType getType() const noexcept;
 };
 
-struct FieldDefinition;
+struct ::FieldDefinition;
 using RecordDefinition = std::vector<FieldDefinition>;
 using Record = std::vector<CompoundDataType>;
 using Records = std::vector<Record>;

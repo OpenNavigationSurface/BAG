@@ -338,7 +338,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t kChunkSize = 100;
-        constexpr unsigned int kCompressionLevel = 6;
+        constexpr int kCompressionLevel = 6;
         const auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             kChunkSize, kCompressionLevel);
 
@@ -350,7 +350,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
             UNSCOPED_INFO("Check no VR tracking list exists.");
             REQUIRE(trackingList == nullptr);
 
-            pDataset->createVR(kChunkSize, kCompressionLevel);
+            pDataset->createVR(kChunkSize, kCompressionLevel, false);
             trackingList = pDataset->getVRTrackingList();
             UNSCOPED_INFO("Check VR tracking list was created successfully.");
             REQUIRE(trackingList);

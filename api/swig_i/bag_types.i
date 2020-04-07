@@ -13,7 +13,8 @@
 %include <stl.i>
 %include <std_string.i>
 %include <std_unordered_map.i>
-namespace std 
+
+namespace std
 {
     %template(LayerTypeVector) vector<BAG::LayerType>;
     %template(LayerTypeMap) unordered_map<BAG::LayerType, std::string>;

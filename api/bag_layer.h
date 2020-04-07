@@ -16,16 +16,17 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
+//! The interface for a layer.
 class BAG_API Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
+    virtual ~Layer() = default;
+
     Layer(const Layer&) = delete;
     Layer(Layer&&) = delete;
+
     Layer& operator=(const Layer&) = delete;
     Layer& operator=(Layer&&) = delete;
-
-    virtual ~Layer() = default;
 
     static DataType getDataType(LayerType layerType) noexcept;
     static uint8_t getElementSize(DataType type);
@@ -35,8 +36,8 @@ public:
     LayerDescriptor& getDescriptor() & noexcept;
     const LayerDescriptor& getDescriptor() const & noexcept;
 
-    UInt8Array read(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
-        uint32_t columnEnd) const;
+    UInt8Array read(uint32_t rowStart,
+        uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 
     void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
         uint32_t columnEnd, const uint8_t* buffer);
@@ -58,7 +59,7 @@ private:
 
     virtual void writeAttributesProxy() const = 0;
 
-    //! The dataset this layer is from.
+    //! The HDF5 DataSet this layer is stored in.
     std::weak_ptr<Dataset> m_pBagDataset;
     //! The layer's descriptor (owned).
     std::shared_ptr<LayerDescriptor> m_pLayerDescriptor;

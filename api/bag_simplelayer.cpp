@@ -4,26 +4,50 @@
 #include "bag_simplelayer.h"
 #include "bag_simplelayerdescriptor.h"
 
+#include <algorithm>
 #include <array>
 #include <H5Cpp.h>
 
 
 namespace BAG {
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+\param pH5dataSet
+    The HDF5 DataSet that stores this layer.
+*/
 SimpleLayer::SimpleLayer(
     Dataset& dataset,
     SimpleLayerDescriptor& descriptor,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet)
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet)
     : Layer(dataset, descriptor)
-    , m_pH5dataSet(std::move(h5dataSet))
+    , m_pH5dataSet(std::move(pH5dataSet))
 {
 }
 
+//! Create a new simple layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param type
+    The type of layer.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+
+\return
+    The new simple layer.
+*/
 std::unique_ptr<SimpleLayer> SimpleLayer::create(
     Dataset& dataset,
     LayerType type,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     auto descriptor = SimpleLayerDescriptor::create(dataset, type, chunkSize,
         compressionLevel);
@@ -33,6 +57,16 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
         std::move(h5dataSet)});
 }
 
+//! Open an existing simple layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The specified simple layer.
+*/
 std::unique_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
     SimpleLayerDescriptor& descriptor)
@@ -53,17 +87,26 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
 }
 
 
+//! Create the HDF5 DataSet.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The new HDF5 DataSet.
+*/
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 SimpleLayer::createH5dataSet(
     const Dataset& dataset,
     const SimpleLayerDescriptor& descriptor)
 {
-    // Use the dimensions from the descriptor.
     uint32_t dim0 = 0, dim1 = 0;
     std::tie(dim0, dim1) = dataset.getDescriptor().getDims();
-    const std::array<hsize_t, RANK> fileDims{dim0, dim1};
+    const std::array<hsize_t, kRank> fileDims{dim0, dim1};
 
-    ::H5::DataSpace h5dataSpace{RANK, fileDims.data(), fileDims.data()};
+    ::H5::DataSpace h5dataSpace{kRank, fileDims.data(), fileDims.data()};
 
     ::H5::FloatType h5dataType;
     h5dataType.copy(::H5::PredType::NATIVE_FLOAT);
@@ -78,15 +121,17 @@ SimpleLayer::createH5dataSet(
 
     // Use chunk size and compression level from the descriptor.
     const auto compressionLevel = descriptor.getCompressionLevel();
-    if (compressionLevel <= kMaxCompressionLevel)
+    const auto chunkSize = descriptor.getChunkSize();
+    if (chunkSize > 0)
     {
-        h5createPropList.setLayout(H5D_CHUNKED);
+        const std::array<hsize_t, kRank> chunkDims{chunkSize, chunkSize};
+        h5createPropList.setChunk(kRank, chunkDims.data());
 
-        const std::array<uint64_t, 2> chunkSize{descriptor.getChunkSize(),
-            descriptor.getChunkSize()};
-        h5createPropList.setChunk(RANK, chunkSize.data());
-        h5createPropList.setDeflate(compressionLevel);
+        if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+            h5createPropList.setDeflate(compressionLevel);
     }
+    else if (compressionLevel > 0)
+        throw CompressionNeedsChunkingSet{};
 
     // Create the DataSet using the above.
     const auto& h5file = dataset.getH5file();
@@ -117,6 +162,7 @@ SimpleLayer::createH5dataSet(
     return pH5dataSet;
 }
 
+//! \copydoc Layer::read
 UInt8Array SimpleLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -128,8 +174,8 @@ UInt8Array SimpleLayer::readProxy(
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
-    const std::array<hsize_t, RANK> count{rows, columns};
-    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
@@ -139,14 +185,15 @@ UInt8Array SimpleLayer::readProxy(
     UInt8Array buffer{bufferSize};
 
     // Prepare the memory space.
-    const ::H5::DataSpace h5memSpace{RANK, count.data(), count.data()};
+    const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
-    m_pH5dataSet->read(buffer.get(), H5Dget_type(m_pH5dataSet->getId()),
+    m_pH5dataSet->read(buffer.data(), H5Dget_type(m_pH5dataSet->getId()),
         h5memSpace, h5fileDataSpace);
 
     return buffer;
 }
 
+//! \copydoc Layer::writeAttributes
 void SimpleLayer::writeAttributesProxy() const
 {
     const auto& descriptor = this->getDescriptor();
@@ -164,6 +211,7 @@ void SimpleLayer::writeAttributesProxy() const
     maxAtt.write(attInfo.h5type, &std::get<1>(minMax));
 }
 
+//! \copydoc Layer::write
 void SimpleLayer::writeProxy(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -174,7 +222,7 @@ void SimpleLayer::writeProxy(
     auto h5fileDataSpace = m_pH5dataSet->getSpace();
 
     // Make sure the area being written to does not exceed the file dimensions.
-    std::array<hsize_t, RANK> fileDims{};
+    std::array<hsize_t, kRank> fileDims{};
     h5fileDataSpace.getSimpleExtentDims(fileDims.data());
 
     if ((rowEnd >= fileDims[0]) || (columnEnd >= fileDims[1]))
@@ -182,13 +230,13 @@ void SimpleLayer::writeProxy(
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
-    const std::array<hsize_t, RANK> count{rows, columns};
-    const std::array<hsize_t, RANK> offset{rowStart, columnStart};
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Prepare the memory space.
-    const ::H5::DataSpace h5memDataSpace{RANK, count.data(), count.data()};
+    const ::H5::DataSpace h5memDataSpace{kRank, count.data(), count.data()};
 
     m_pH5dataSet->write(buffer, H5Dget_type(m_pH5dataSet->getId()),
         h5memDataSpace, h5fileDataSpace);

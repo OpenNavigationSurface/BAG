@@ -316,7 +316,7 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 
 //    static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
 //        BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrections,
-//        uint64_t chunkSize, unsigned int compressionLevel);
+//        uint64_t chunkSize, int compressionLevel);
 TEST_CASE("test surface corrections descriptor creation using type, num correctors, etc",
     "[surfacecorrectionsdescriptor][create]")
 {
@@ -326,7 +326,7 @@ TEST_CASE("test surface corrections descriptor creation using type, num correcto
     metadata.loadFromBuffer(kMetadataXML);
 
     constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
+    constexpr int kExpectedCompressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
@@ -336,9 +336,9 @@ TEST_CASE("test surface corrections descriptor creation using type, num correcto
     constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
     constexpr uint8_t kExpectedNumCorrectors = 5;
 
-    const auto pDescriptor = SurfaceCorrectionsDescriptor::create(
+    const auto pDescriptor = SurfaceCorrectionsDescriptor::create(*pDataset,
         kExpectedSurfaceType, kExpectedNumCorrectors, kExpectedChunkSize,
-        kExpectedCompressionLevel, *pDataset);
+        kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Check the surface type is read properly.");
@@ -392,7 +392,7 @@ TEST_CASE("test surface corrections descriptor create empty gridded",
     metadata.loadFromBuffer(kMetadataXML);
 
     constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
+    constexpr int kExpectedCompressionLevel = 6;
 
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
@@ -402,15 +402,15 @@ TEST_CASE("test surface corrections descriptor create empty gridded",
     constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
     constexpr uint8_t kExpectedNumCorrectors = 5;
 
-    const auto pDescriptor = SurfaceCorrectionsDescriptor::create(
+    const auto pDescriptor = SurfaceCorrectionsDescriptor::create(*pDataset,
         kExpectedSurfaceType, kExpectedNumCorrectors, kExpectedChunkSize,
-        kExpectedCompressionLevel, *pDataset);
+        kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     // Set the values.
     UNSCOPED_INFO("Test setting the vertical datums does not throw.");
     const std::string kExpectedVerticalDatum("datum 1,datum 2,datum 3");
-    REQUIRE_NOTHROW(pDescriptor->setVerticalDatum(kExpectedVerticalDatum));
+    REQUIRE_NOTHROW(pDescriptor->setVerticalDatums(kExpectedVerticalDatum));
 
     UNSCOPED_INFO("Test setting the origin does not throw.");
     constexpr double kExpectedOriginX = 123.456;

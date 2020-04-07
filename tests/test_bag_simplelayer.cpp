@@ -361,7 +361,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
     constexpr int32_t rows = (rowEnd - rowStart) + 1;
     constexpr int32_t columns = (columnEnd - columnStart) + 1;
 
-    REQUIRE(buffer.size() > 0);
+    REQUIRE(buffer);
     REQUIRE((kExpectedNumNodes * sizeof(float)) ==
         (Layer::getElementSize(Layer::getDataType(kLayerType)) * rows * columns));
 
@@ -369,7 +369,7 @@ TEST_CASE("test simple layer read", "[simplelayer][read]")
         1'000'000.0f, -52.161003f, -52.172005f,
         1'000'000.0f, -52.177002f, -52.174004f};
 
-    const float* floats = reinterpret_cast<const float*>(buffer.get());
+    const float* floats = reinterpret_cast<const float*>(buffer.data());
     for (size_t i=0; i<kExpectedNumNodes; ++i)
         CHECK(kExpectedBuffer[i] == floats[i]);
 }
@@ -391,7 +391,7 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
         metadata.loadFromBuffer(kMetadataXML);
 
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 6;
+        constexpr int compressionLevel = 6;
         const auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
             chunkSize, compressionLevel);
         REQUIRE(pDataset);
@@ -436,9 +436,9 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
 
         UNSCOPED_INFO("Read the new data in the Elevation layer.");
         const auto buffer = elevLayer.read(1, 2, 3, 5); // 3x4
-        REQUIRE(buffer.size() > 0);
+        REQUIRE(buffer);
 
-        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.get());
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.data());
 
         std::array<float, kExpectedNumNodes> kExpectedBuffer;
         kExpectedBuffer.fill(kFloatValue);

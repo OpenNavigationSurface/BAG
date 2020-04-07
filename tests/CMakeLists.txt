@@ -26,8 +26,8 @@ set(TEST_SOURCE_FILES
     test_bag_vrmetadatadescriptor.cpp
     test_bag_vrnode.cpp
     test_bag_vrnodedescriptor.cpp
-    test_bag_vrrefinement.cpp
-    test_bag_vrrefinementdescriptor.cpp
+    test_bag_vrrefinements.cpp
+    test_bag_vrrefinementsdescriptor.cpp
     test_bag_vrtrackinglist.cpp
 )
 
@@ -67,8 +67,6 @@ find_package(Catch2 REQUIRED)
 target_link_libraries(bag_tests
     PRIVATE
         baglib
-        ${HDF5_hdf5_LIBRARY}
-        ${HDF5_hdf5_cpp_LIBRARY}
         Catch2::Catch2
 )
 
