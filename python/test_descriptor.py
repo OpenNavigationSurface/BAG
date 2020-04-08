@@ -45,10 +45,8 @@ def testGetLayerTypes():
     assert(descriptor)
 
     layerTypes = descriptor.getLayerTypes()
-    assert(len(layerTypes) == 2)
-    #TODO Not sure how to work this -- layerTypes is a container of BAG_LAYER_TYPE*, which cannot compare to Elevation/Uncertainty
-    #assert(Elevation in layerTypes)
-    #assert(Uncertainty in layerTypes)
+    assert(Elevation in layerTypes)
+    assert(Uncertainty in layerTypes)
 
     del dataset #ensure dataset is deleted before tmpFile
 
