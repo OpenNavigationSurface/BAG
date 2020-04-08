@@ -19,6 +19,10 @@
 %shared_ptr(BAG::Descriptor)
 %shared_ptr(BAG::LayerDescriptor)
 
+
+//*****
+// TODO change to weak_ptr
+//*****
 %include <stl.i>
 namespace std 
 {
@@ -37,9 +41,8 @@ namespace BAG {
     {
     public:
         Descriptor() = default;
-        Descriptor(const Metadata& metadata);
+        explicit Descriptor(const Metadata& metadata);
 
-        //TODO Temp, make sure only move operations are used until development is done.
         Descriptor(const Descriptor&) = delete;
         Descriptor(Descriptor&&) = delete;
         Descriptor& operator=(const Descriptor&) = delete;
@@ -48,13 +51,14 @@ namespace BAG {
         std::vector<LayerType> getLayerTypes() const;
         bool isReadOnly() const noexcept;
         std::vector<uint32_t> getLayerIds() const noexcept;
-        const std::vector<std::shared_ptr<const LayerDescriptor>>&
+        const std::vector<std::weak_ptr<const LayerDescriptor>>&
             getLayerDescriptors() const & noexcept;
         const LayerDescriptor& getLayerDescriptor(LayerType id) const &;
+        const LayerDescriptor* getLayerDescriptor(LayerType type,
+            const std::string& name) const &;
         const std::string& getVersion() const & noexcept;
         const std::string& getHorizontalReferenceSystem() const & noexcept;
-        void setHorizontalReferenceSystem(
-            const std::string& horizontalReferenceSystem) & noexcept;
+        
         const std::string& getVerticalReferenceSystem() const & noexcept;
 
 #if 0
@@ -74,6 +78,8 @@ namespace BAG {
             double urY) & noexcept;
         Descriptor& setOrigin(double llX, double llY) & noexcept;
         Descriptor& setGridSpacing(double xSpacing, double ySpacing) & noexcept;
+        Descriptor& setHorizontalReferenceSystem(
+            const std::string& horizontalReferenceSystem) & noexcept;
         Descriptor& setReadOnly(bool readOnly) & noexcept;
         Descriptor& setVersion(std::string inVersion) & noexcept;
     };

@@ -24,7 +24,7 @@ def testConstructorFloat():
     assert(math.isclose(floatVal, kExpectedValue, rel_tol=1e-7))
 
     floatVal = getFloat(cdt)
-    #(floatVal)
+    #print(floatVal)
     assert(math.isclose(floatVal, kExpectedValue, rel_tol=1e-7))
 
 def testConstructorUInt32():

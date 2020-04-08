@@ -32,7 +32,6 @@ namespace BAG
         using reference = value_type&;
         using const_reference = const value_type&;
 
-        //TODO Temp, make sure only move operations are used until development is done.
         TrackingList(const TrackingList&) = delete;
         TrackingList(TrackingList&&) = delete;
         TrackingList& operator=(const TrackingList&) = delete;

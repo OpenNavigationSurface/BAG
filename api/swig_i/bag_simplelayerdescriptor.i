@@ -24,17 +24,15 @@ namespace BAG {
     {
     public:
         static std::shared_ptr<SimpleLayerDescriptor> create(const Dataset& dataset,
-            LayerType type, uint64_t chunkSize, unsigned int compressionLevel);
+            LayerType type, uint64_t chunkSize, int compressionLevel);
 
         %rename(openDataset) open(const Dataset&, LayerType);
         static std::shared_ptr<SimpleLayerDescriptor> open(
             const Dataset& dataset, LayerType type);
 
-        //TODO Temp, make sure only move operations are used until development is done.
         SimpleLayerDescriptor(const SimpleLayerDescriptor&) = delete;
         SimpleLayerDescriptor(SimpleLayerDescriptor&&) = delete;
         SimpleLayerDescriptor& operator=(const SimpleLayerDescriptor&) = delete;
         SimpleLayerDescriptor& operator=(SimpleLayerDescriptor&&) = delete;
-
     };
 }

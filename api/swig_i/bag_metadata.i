@@ -38,13 +38,12 @@ namespace BAG
     {
     public:
         Metadata() noexcept;
+        ~Metadata() noexcept;
 
-        //TODO Temp, make sure only move operations are used until development is done.
         Metadata(const Metadata& other) = delete;
         Metadata(Metadata&& other) = default;
         Metadata& operator=(const Metadata&) = delete;
         Metadata& operator=(Metadata&&) = delete;
-        ~Metadata() noexcept;
         
         Metadata fromDataset(Dataset& dataset);
 

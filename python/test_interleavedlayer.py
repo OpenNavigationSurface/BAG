@@ -28,7 +28,7 @@ def testGetLayerAndRead():
 
     #TODO is a conversion need for buffer to float, as in c++?
     for i in range(0,kExpectedNumNodes):
-        assert(kExpectedBuffer[i] == buffer[i])
+        assert(kExpectedBuffer[i] == buffer[i])  #buffer.data()?
 
 # run the unit test methods
 #testGetLayerAndRead() #TODO: disabled because micro151 is not in git.

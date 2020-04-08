@@ -23,6 +23,7 @@ namespace BAG
 
         UInt8Array(const UInt8Array&) = delete;
         UInt8Array(UInt8Array&&) = default;
+        ~UInt8Array() = default;
 
         UInt8Array& operator=(const UInt8Array&) = delete;
         %ignore operator=(UInt8Array&&);

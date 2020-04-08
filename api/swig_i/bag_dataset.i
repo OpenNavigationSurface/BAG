@@ -54,6 +54,8 @@ public:
 
     Layer& getLayer(uint32_t id)&;
     %ignore getLayer(uint32_t id) const&;
+    Layer* getLayer(LayerType type, const std::string& name) &;
+    %ignore getLayer(LayerType type, const std::string& name) const &;
     std::vector<Layer*> getLayers() const&;
 
     std::vector<LayerType> getLayerTypes() const;
@@ -69,14 +71,16 @@ public:
 
     void createVR(uint64_t chunkSize, int compressionLevel, bool makeNode);
 
+    const Metadata& getMetadata() const & noexcept;
     TrackingList& getTrackingList() & noexcept;
     %ignore getTrackingList() const& noexcept;
-    const Metadata& getMetadata() const & noexcept;
     CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
     %ignore getCompoundLayer(const std::string& name) const & noexcept;
     std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     %ignore getSurfaceCorrections() const & noexcept;
+    SimpleLayer* getSimpleLayer(LayerType type) & noexcept;
+    %ignore getSimpleLayer(LayerType type) const & noexcept;
 
     VRMetadata* getVRMetadata() & noexcept;
     %ignore getVRMetadata() const & noexcept;

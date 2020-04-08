@@ -45,6 +45,10 @@ def testGetLayerTypes():
     assert(descriptor)
 
     layerTypes = descriptor.getLayerTypes()
+    assert(len(layerTypes) == 2)
+    #print(getLayerTypeAsString(layerTypes[0]))
+    #print(getLayerTypeAsString(layerTypes[1]))
+    
     assert(Elevation in layerTypes)
     assert(Uncertainty in layerTypes)
 
@@ -59,18 +63,18 @@ def testReadOnly():
     assert(not descriptor.isReadOnly())
 
 def testGetLayerDescriptors():
-    descriptor = Descriptor()
-    assert(descriptor)
-
     metadata = Metadata()
     metadata.loadFromBuffer(bagMetadataSamples.kXMLv2MetadataBuffer)
     assert(metadata)
 
     tmpFile = testUtils.RandomFileGuard("name")
-    print(tmpFile.getName())
+    #print(tmpFile.getName())
 
     dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
     assert(dataset)
+
+    descriptor = dataset.getDescriptor()
+    assert(descriptor)
 
     layerDescriptors = descriptor.getLayerDescriptors()
 
@@ -93,7 +97,11 @@ def testGetLayerDescriptor():
     print(tmpFile.getName())
 
     dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+    assert(dataset)
 
+    descriptor = dataset.getDescriptor()
+    assert(descriptor)
+    
     assert(descriptor.getLayerDescriptor(Elevation))
     assert(descriptor.getLayerDescriptor(Uncertainty))
 

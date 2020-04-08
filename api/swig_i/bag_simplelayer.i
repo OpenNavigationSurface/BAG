@@ -20,7 +20,6 @@ namespace BAG {
     class BAG_API SimpleLayer final : public Layer
     {
     public:
-        //TODO Temp, make sure only move operations are used until development is done.
         SimpleLayer(const SimpleLayer&) = delete;
         SimpleLayer(SimpleLayer&&) = delete;
         SimpleLayer& operator=(const SimpleLayer&) = delete;

@@ -26,8 +26,7 @@ class BAG_API SurfaceCorrectionsDescriptor final : public LayerDescriptor
 public:
     static std::shared_ptr<SurfaceCorrectionsDescriptor> create(
         const Dataset& dataset, BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
-        uint8_t numCorrections, uint64_t chunkSize,
-        unsigned int compressionLevel);
+        uint8_t numCorrections, uint64_t chunkSize, int compressionLevel);
 
     %rename(openDataset) open(const Dataset&);
     static std::shared_ptr<SurfaceCorrectionsDescriptor> open(
@@ -52,7 +51,7 @@ public:
     BAG_SURFACE_CORRECTION_TOPOGRAPHY getSurfaceType() const noexcept;
     const std::string& getVerticalDatums() const & noexcept;
 
-    SurfaceCorrectionsDescriptor& setDims(uint32_t numRws,
+    SurfaceCorrectionsDescriptor& setDims(uint32_t numRows,
         uint32_t numColumns) & noexcept;
     SurfaceCorrectionsDescriptor& setOrigin(double swX, double swY) & noexcept;
     SurfaceCorrectionsDescriptor& setSpacing(double xSpacing,
@@ -64,21 +63,21 @@ public:
 
 %extend BAG::SurfaceCorrectionsDescriptor
 {
-    const std::pair<uint32_t, uint32_t> getDims() const & noexcept
+    std::pair<uint32_t, uint32_t> getDims() const & noexcept
     {
         uint32_t row=0.0, column=0.0;
         std::tie(row, column) = self->getDims();
         return std::pair<uint32_t, uint32_t>(row, column);
     }
 
-    const std::pair<double, double> getOrigin() const & noexcept
+    std::pair<double, double> getOrigin() const & noexcept
     {
         double x=0.0, y=0.0;
         std::tie(x, y) = self->getOrigin();
         return std::pair<double, double>(x, y);
     }
 
-    const std::pair<double, double> getSpacing() const & noexcept
+    std::pair<double, double> getSpacing() const & noexcept
     {
         double x=0.0, y=0.0;
         std::tie(x, y) = self->getSpacing();

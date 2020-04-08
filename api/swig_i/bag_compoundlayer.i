@@ -20,7 +20,6 @@ namespace BAG {
 class BAG_API CompoundLayer final : public Layer
 {
 public:
-    //TODO Temp, make sure only move operations are used until development is done.
     CompoundLayer(const CompoundLayer&) = delete;
     CompoundLayer(CompoundLayer&&) = delete;
     CompoundLayer& operator=(const CompoundLayer&) = delete;

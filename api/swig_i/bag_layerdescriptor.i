@@ -24,15 +24,14 @@ namespace BAG {
     class BAG_API LayerDescriptor 
     {
     public:
-        //TODO Temp, make sure only move operations are used until development is done.
+        virtual ~LayerDescriptor() = default;
         LayerDescriptor(const LayerDescriptor&) = delete;
         LayerDescriptor(LayerDescriptor&&) = delete;
         LayerDescriptor& operator=(const LayerDescriptor&) = delete;
         LayerDescriptor& operator=(LayerDescriptor&&) = delete;
-        virtual ~LayerDescriptor() = default;
 
         uint64_t getChunkSize() const noexcept;
-        unsigned int getCompressionLevel() const noexcept;
+        int getCompressionLevel() const noexcept;
         DataType getDataType() const noexcept;
         uint8_t getElementSize() const noexcept;
         uint32_t getId() const noexcept;

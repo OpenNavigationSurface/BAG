@@ -45,12 +45,12 @@ class CompoundDataType final {
         float asFloat() const;
         uint32_t asUInt32() const;
         bool asBool() const;
-        %ignore asString() const&;  //TODO Why is this ignored?
+        %ignore asString() const&;
         std::string asString();
         DataType getType() const noexcept;
 };
 
-struct ::FieldDefinition;
+struct ::FieldDefinition; //TODO now defined in c_types, not needed here?
 using RecordDefinition = std::vector<FieldDefinition>;
 using Record = std::vector<CompoundDataType>;
 using Records = std::vector<Record>;
