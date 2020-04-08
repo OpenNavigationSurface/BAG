@@ -11,9 +11,12 @@
 %}
 
 #define final
+#define BAG_API
 
-%import "../bag_config.h"
+%include <stdint.i>
+
 %import "bag_layer.i"
+
 
 namespace BAG {
 

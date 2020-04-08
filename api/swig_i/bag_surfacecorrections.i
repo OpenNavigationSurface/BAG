@@ -12,14 +12,13 @@
 
 #define final
 
-%import "../bag_config.h"
 %import "bag_layer.i"
 %import "bag_types.i"
 %import "bag_uint8array.i"
 
 namespace BAG {
 
-    class BAG_API SurfaceCorrections final : public Layer
+    class SurfaceCorrections final : public Layer
     {
     public:
         SurfaceCorrections(const SurfaceCorrections&) = delete;

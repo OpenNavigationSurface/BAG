@@ -23,8 +23,6 @@ class DataSet;
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::Dataset)
 
-%import "../bag_config.h"
-
 // define typemap so that returned Metadata objects are converted correctly 
 %typemap(out, optimal="1") BAG::Metadata %{
     $result = SWIG_NewPointerObj(($1_ltype*)&$1, $&1_descriptor, 0);
@@ -34,7 +32,7 @@ namespace BAG
 {
     class Dataset;
 
-    class BAG_API Metadata final
+    class Metadata final
     {
     public:
         Metadata() noexcept;

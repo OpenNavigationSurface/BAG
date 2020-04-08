@@ -20,7 +20,7 @@
 
 namespace BAG {
 
-    class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
+    class SimpleLayerDescriptor final : public LayerDescriptor
     {
     public:
         static std::shared_ptr<SimpleLayerDescriptor> create(const Dataset& dataset,

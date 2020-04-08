@@ -17,13 +17,11 @@ namespace H5
 
 #define final
 
-%import "../bag_config.h"
-
 namespace BAG
 {
     class Dataset;
 
-    class BAG_API TrackingList final
+    class TrackingList final
     {
     public:
         using value_type = TrackingItem;

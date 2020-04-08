@@ -20,7 +20,6 @@ namespace std
     %template(LayerVector) vector<BAG::Layer*>;
 }
 
-%import "../bag_config.h"
 %import "bag_compoundlayer.i"
 %import "bag_descriptor.i"
 %import "bag_metadata.i"
@@ -38,7 +37,7 @@ namespace std
 
 namespace BAG {
 
-class BAG_API Dataset final
+class Dataset final
 {
 public:
     %rename(openDataset) open(const std::string &, OpenMode);

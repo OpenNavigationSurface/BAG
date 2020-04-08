@@ -11,6 +11,7 @@
 %}
 
 #define final
+#define BAG_API
 
 namespace BAG
 {
@@ -18,7 +19,6 @@ namespace BAG
 }
 
 %include <std_string.i>
-%import "../bag_config.h"
 %import "bag_compounddatatype.i"
 %include "../bag_valuetable.h"
 

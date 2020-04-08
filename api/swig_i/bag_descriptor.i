@@ -37,7 +37,7 @@ namespace BAG {
 
     class Metadata;
 
-    class BAG_API Descriptor final
+    class Descriptor final
     {
     public:
         Descriptor() = default;

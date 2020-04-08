@@ -13,7 +13,6 @@
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::LayerDescriptor)
 
-%import "../bag_config.h"
 %import "bag_types.i"
 %include <std_string.i>
 
@@ -21,7 +20,7 @@ namespace BAG {
 
     class Dataset;
 
-    class BAG_API LayerDescriptor 
+    class LayerDescriptor 
     {
     public:
         virtual ~LayerDescriptor() = default;

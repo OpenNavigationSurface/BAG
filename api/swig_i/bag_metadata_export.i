@@ -10,6 +10,7 @@
 #include "../bag_metadata_export.h"
 %}
 
-%import "../bag_config.h"
+#define BAG_API
+
 %include "../bag_metadata_export.h"
 

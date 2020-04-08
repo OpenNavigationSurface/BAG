@@ -12,12 +12,11 @@
 
 #define final
 
-%import "../bag_config.h"
 %import "bag_layer.i"
 %import "bag_valuetable.i"
 
 namespace BAG {
-class BAG_API CompoundLayer final : public Layer
+class CompoundLayer final : public Layer
 {
 public:
     CompoundLayer(const CompoundLayer&) = delete;

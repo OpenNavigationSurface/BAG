@@ -14,7 +14,6 @@
 
 #define final
 
-%import "../bag_config.h"
 %import "bag_types.i"
 %import "bag_uint8array.i"
 %import "bag_layerdescriptor.i"
@@ -27,7 +26,7 @@
 
 namespace BAG {
 
-class BAG_API Layer
+class Layer
 {
 public:
     virtual ~Layer() = default;

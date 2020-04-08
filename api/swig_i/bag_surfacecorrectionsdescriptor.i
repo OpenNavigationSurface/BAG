@@ -21,7 +21,7 @@
 
 namespace BAG {
 
-class BAG_API SurfaceCorrectionsDescriptor final : public LayerDescriptor
+class SurfaceCorrectionsDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<SurfaceCorrectionsDescriptor> create(

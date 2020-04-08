@@ -12,7 +12,6 @@
 
 #define final
 
-%import "../bag_config.h"
 %import "bag_compoundlayer.i"
 %import "bag_layerdescriptor.i"
 %include <std_string.i>
@@ -24,7 +23,7 @@
 
 namespace BAG {
 
-class BAG_API CompoundLayerDescriptor final : public LayerDescriptor
+class CompoundLayerDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<CompoundLayerDescriptor> create(Dataset& dataset,
