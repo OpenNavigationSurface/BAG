@@ -345,13 +345,11 @@ TEST_CASE("test vr node create open", "[vrnode][create][open]")
         UNSCOPED_INFO("Check that the optional variable resolution node layer exists.");
         REQUIRE(pVrNode);
 
-        auto& descriptor = pVrNode->getDescriptor();
-
         UNSCOPED_INFO("Check that writing attributes does not throw.");
         REQUIRE_NOTHROW(pVrNode->writeAttributes());
 
-        auto* pVrNodeDescriptor =
-            dynamic_cast<VRNodeDescriptor*>(&descriptor);
+        auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
+            pVrNode->getDescriptor());
 
         // Set some attributes to save.
         pVrNodeDescriptor->setMinMaxHypStrength(kExpectedMinHypStrength,
@@ -387,9 +385,9 @@ TEST_CASE("test vr node create open", "[vrnode][create][open]")
         UNSCOPED_INFO("Check that the optional variable resolution node layer exists.");
         REQUIRE(pVrNode);
 
-        const auto& descriptor = pVrNode->getDescriptor();
-        const auto* pVrNodeDescriptor =
-            dynamic_cast<const VRNodeDescriptor*>(&descriptor);
+        auto pVrNodeDescriptor =
+            std::dynamic_pointer_cast<const VRNodeDescriptor>(
+                pVrNode->getDescriptor());
 
         // Read the attributes back.
         const auto minMaxHypStrength = pVrNodeDescriptor->getMinMaxHypStrength();
@@ -435,8 +433,9 @@ TEST_CASE("test vr node write read", "[vrnode][write][read]")
     REQUIRE(pVrNode);
 
     UNSCOPED_INFO("Check VRNodeDescriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const VRNodeDescriptor&>(
-        pVrNode->getDescriptor()));
+    auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
+        pVrNode->getDescriptor());
+    REQUIRE(pVrNodeDescriptor);
 
     UNSCOPED_INFO("Write one record.");
     constexpr BagVRNodeItem kExpectedItem0{123.456f, 42, 1701};

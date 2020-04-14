@@ -63,9 +63,10 @@ UInt8Array InterleavedLayer::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
-    const auto* descriptor =
-        dynamic_cast<const InterleavedLayerDescriptor*>(&this->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const InterleavedLayerDescriptor>(
+            this->getDescriptor());
+    if (!pDescriptor)
         throw InvalidDescriptor{};
 
     const auto rows = (rowEnd - rowStart) + 1;
@@ -78,15 +79,15 @@ UInt8Array InterleavedLayer::readProxy(
     h5fileSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Initialize the output buffer.
-    const auto bufferSize = descriptor->getReadBufferSize(rows, columns);
+    const auto bufferSize = pDescriptor->getReadBufferSize(rows, columns);
     UInt8Array buffer{bufferSize};
 
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
     // Set up the type.
-    const auto h5dataType = createH5compType(descriptor->getLayerType(),
-        descriptor->getGroupType());
+    const auto h5dataType = createH5compType(pDescriptor->getLayerType(),
+        pDescriptor->getGroupType());
 
     m_pH5dataSet->read(buffer.data(), h5dataType, h5memSpace, h5fileSpace);
 

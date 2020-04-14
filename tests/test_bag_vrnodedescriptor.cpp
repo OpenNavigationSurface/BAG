@@ -334,11 +334,9 @@ TEST_CASE("test vr node descriptor min/max hyp strength",
     auto* pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
-    auto& descriptor = pVrNode->getDescriptor();
-    REQUIRE_NOTHROW(dynamic_cast<VRNodeDescriptor&>(descriptor));
-
-    auto* pVrNodeDescriptor =
-        dynamic_cast<VRNodeDescriptor*>(&descriptor);
+    auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
+        pVrNode->getDescriptor());
+    REQUIRE(pVrNodeDescriptor);
 
     // Set some expected minimum hyp strength values and verify they are set.
     UNSCOPED_INFO("Verify setting the min/max hyp strength does not throw.");
@@ -374,11 +372,9 @@ TEST_CASE("test vr node descriptor min/max num hypotheses",
     auto* pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
-    auto& descriptor = pVrNode->getDescriptor();
-    REQUIRE_NOTHROW(dynamic_cast<VRNodeDescriptor&>(descriptor));
-
-    auto* pVrNodeDescriptor =
-        dynamic_cast<VRNodeDescriptor*>(&descriptor);
+    auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
+        pVrNode->getDescriptor());
+    REQUIRE(pVrNodeDescriptor);
 
     // Set some expected min/max num hypotheses values and verify they are set.
     UNSCOPED_INFO("Verify setting the min/max num hypotheses does not throw.");
@@ -415,11 +411,9 @@ TEST_CASE("test vr node descriptor min/max n samples",
     auto* pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
-    auto& descriptor = pVrNode->getDescriptor();
-    REQUIRE_NOTHROW(dynamic_cast<VRNodeDescriptor&>(descriptor));
-
-    auto* pVrNodeDescriptor =
-        dynamic_cast<VRNodeDescriptor*>(&descriptor);
+    auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
+        pVrNode->getDescriptor());
+    REQUIRE(pVrNodeDescriptor);
 
     // Set some expected min/max n samples values and verify they are set.
     UNSCOPED_INFO("Verify setting the min/max n samples does not throw.");

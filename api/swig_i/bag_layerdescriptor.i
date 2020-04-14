@@ -10,47 +10,47 @@
 #include "../bag_layerdescriptor.h"
 %}
 
+%import "bag_types.i"
+
 %include <std_shared_ptr.i>
+%include <std_string.i>
+
 %shared_ptr(BAG::LayerDescriptor)
 
-%import "bag_types.i"
-%include <std_string.i>
 
 namespace BAG {
 
-    class Dataset;
+class LayerDescriptor
+{
+public:
+    LayerDescriptor(const LayerDescriptor&) = delete;
+    LayerDescriptor(LayerDescriptor&&) = delete;
+    virtual ~LayerDescriptor() = default;
 
-    class LayerDescriptor 
-    {
-    public:
-        virtual ~LayerDescriptor() = default;
-        LayerDescriptor(const LayerDescriptor&) = delete;
-        LayerDescriptor(LayerDescriptor&&) = delete;
-        LayerDescriptor& operator=(const LayerDescriptor&) = delete;
-        LayerDescriptor& operator=(LayerDescriptor&&) = delete;
+    LayerDescriptor& operator=(const LayerDescriptor&) = delete;
+    LayerDescriptor& operator=(LayerDescriptor&&) = delete;
 
-        uint64_t getChunkSize() const noexcept;
-        int getCompressionLevel() const noexcept;
-        DataType getDataType() const noexcept;
-        uint8_t getElementSize() const noexcept;
-        uint32_t getId() const noexcept;
-        const std::string& getInternalPath() const & noexcept;
-        LayerType getLayerType() const noexcept;
+    uint64_t getChunkSize() const noexcept;
+    int getCompressionLevel() const noexcept;
+    DataType getDataType() const noexcept;
+    uint8_t getElementSize() const noexcept;
+    uint32_t getId() const noexcept;
+    const std::string& getInternalPath() const & noexcept;
+    LayerType getLayerType() const noexcept;
 
-    #if 0
-        //! Intentionally omit exposing of std::tuple method (unsupported by SWIG), 
-        //! so it can be exposed with std::pair below.
-        std::tuple<float, float> getMinMax() const noexcept;
-    #endif
+#if 0
+    //! Intentionally omit exposing of std::tuple method (unsupported by SWIG),
+    //! so it can be exposed with std::pair below.
+    std::tuple<float, float> getMinMax() const noexcept;
+#endif
 
-        const std::string& getName() const & noexcept;
+    const std::string& getName() const & noexcept;
 
-        LayerDescriptor& setName(std::string inName) & noexcept;
-        LayerDescriptor& setMinMax(float min, float max) & noexcept;
-    };
-}
+    LayerDescriptor& setName(std::string inName) & noexcept;
+    LayerDescriptor& setMinMax(float min, float max) & noexcept;
+};
 
-%extend BAG::LayerDescriptor
+%extend LayerDescriptor
 {
     std::pair<float, float> BAG::LayerDescriptor::getMinMax() const noexcept
     {
@@ -59,3 +59,6 @@ namespace BAG {
         return std::pair<float, float>(min, max);
     }
 }
+
+}  // namespace BAG
+

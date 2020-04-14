@@ -201,21 +201,12 @@ struct BAG_API UnsupportedInterleavedLayer final : virtual std::exception
 
 
 // LayerDescriptor related.
-//! Attempt to make an unsupported interleaved layer.
-struct BAG_API UnexpectedLayerDescriptorType final : virtual std::exception
-{
-    const char* what() const noexcept override
-    {
-        return "An unexpected layer descriptor type was encountered.";
-    }
-};
-
-//! The layer descriptor is no longer valid.
+//! The layer descriptor is not valid.
 struct BAG_API InvalidLayerDescriptor final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "The specified layer descriptor is no longer valid.";
+        return "The specified layer descriptor is not valid.";
     }
 };
 

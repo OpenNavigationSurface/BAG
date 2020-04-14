@@ -10,16 +10,18 @@
 #include "../bag_compoundlayerdescriptor.h"
 %}
 
-#define final
-
-%import "bag_compoundlayer.i"
+%import "bag_dataset.i"
+%import "bag_compounddatatype.i"
 %import "bag_layerdescriptor.i"
+
 %include <std_string.i>
+%include <std_shared_ptr.i>
 
 // TODO implement weak_ptr interface
 
-%include <std_shared_ptr.i>
 %shared_ptr(BAG::CompoundLayerDescriptor)
+//%template(WeakDataset) std::weak_ptr<Dataset>;
+
 
 namespace BAG {
 
@@ -43,6 +45,7 @@ public:
     std::weak_ptr<Dataset> getDataset() const &;
     const RecordDefinition& getDefinition() const & noexcept;
 };
-}
+
+}  // namespace BAG
 
 

@@ -11,7 +11,7 @@ include(${SWIG_USE_FILE})
 
 INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
 
-set(CMAKE_SWIG_FLAGS "-Wall" "-v") #turn on all warnings and verbose output
+set(CMAKE_SWIG_FLAGS "-Wall" "-Wextra" "-v" "-builtin") #turn on all warnings and verbose output
 #set(CMAKE_SWIG_FLAGS "-debug-symtabs") #write out symbol tables when building
 
 SET_SOURCE_FILES_PROPERTIES("bagpy.i" PROPERTIES
@@ -26,11 +26,7 @@ swig_add_library(bagPy TYPE SHARED LANGUAGE python
     SOURCES "bagpy.i"
     )
 
-target_include_directories(bagPy
-    PUBLIC 
-        ${HDF5_INCLUDE_DIRS}
-        ${PYTHON_INCLUDE_DIRS}
-)
+#TODO add dependencies on all the .i files
 
 swig_link_libraries(bagPy
     baglib

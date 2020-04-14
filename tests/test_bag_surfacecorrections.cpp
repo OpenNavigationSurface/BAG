@@ -32,16 +32,17 @@ TEST_CASE("test surface corrections read irregular",
     REQUIRE_NOTHROW(pCorrections->getDescriptor());
 
     UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor()));
-    const auto& descriptor =
-        static_cast<const SurfaceCorrectionsDescriptor&>(pCorrections->getDescriptor());
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            pCorrections->getDescriptor());
+    CHECK(pDescriptor);
 
     UNSCOPED_INFO("Check that the surface type being corrected is gridded.");
-    CHECK(descriptor.getSurfaceType() == BAG_SURFACE_IRREGULARLY_SPACED);
+    CHECK(pDescriptor->getSurfaceType() == BAG_SURFACE_IRREGULARLY_SPACED);
 
     UNSCOPED_INFO("Check that the expected number of correctors were loaded.");
     constexpr size_t kExpectedNumCorrectors= 2;
-    CHECK(descriptor.getNumCorrectors() == kExpectedNumCorrectors);
+    CHECK(pDescriptor->getNumCorrectors() == kExpectedNumCorrectors);
 }
 
 TEST_CASE("test surface corrections create empty irregular",
@@ -62,21 +63,22 @@ TEST_CASE("test surface corrections create empty irregular",
         kExpectedSurfaceType, kExpectedNumCorrectors, chunkSize,
         compressionLevel);
 
-    UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
-
-    const auto& descriptor = static_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor());
+    UNSCOPED_INFO("Check surface corrections descriptor is the default pDescriptor->");
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            corrections.getDescriptor());
+    CHECK(pDescriptor);
 
     UNSCOPED_INFO("Check surface corrections num correctors.");
-    CHECK(descriptor.getNumCorrectors() == kExpectedNumCorrectors);
+    CHECK(pDescriptor->getNumCorrectors() == kExpectedNumCorrectors);
     UNSCOPED_INFO("Check surface corrections surface type.");
-    CHECK(descriptor.getSurfaceType() == kExpectedSurfaceType);
+    CHECK(pDescriptor->getSurfaceType() == kExpectedSurfaceType);
     UNSCOPED_INFO("Check surface corrections default datums.");
-    CHECK(descriptor.getVerticalDatums() == "");
+    CHECK(pDescriptor->getVerticalDatums() == "");
     UNSCOPED_INFO("Check surface corrections default southwest X, Y.");
-    CHECK(descriptor.getOrigin() == std::make_tuple(0., 0.));
+    CHECK(pDescriptor->getOrigin() == std::make_tuple(0., 0.));
     UNSCOPED_INFO("Check surface corrections default X and Y spacing.");
-    CHECK(descriptor.getSpacing() == std::make_tuple(0., 0.));
+    CHECK(pDescriptor->getSpacing() == std::make_tuple(0., 0.));
 }
 
 TEST_CASE("test surface corrections create empty gridded",
@@ -97,21 +99,22 @@ TEST_CASE("test surface corrections create empty gridded",
         kExpectedSurfaceType, kExpectedNumCorrectors, chunkSize,
         compressionLevel);
 
-    UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
-
-    const auto& descriptor = static_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor());
+    UNSCOPED_INFO("Check surface corrections descriptor is the default pDescriptor->");
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            corrections.getDescriptor());
+    CHECK(pDescriptor);
 
     UNSCOPED_INFO("Check surface corrections num correctors.");
-    CHECK(descriptor.getNumCorrectors() == kExpectedNumCorrectors);
+    CHECK(pDescriptor->getNumCorrectors() == kExpectedNumCorrectors);
     UNSCOPED_INFO("Check surface corrections surface type.");
-    CHECK(descriptor.getSurfaceType() == kExpectedSurfaceType);
+    CHECK(pDescriptor->getSurfaceType() == kExpectedSurfaceType);
     UNSCOPED_INFO("Check surface corrections default datums.");
-    CHECK(descriptor.getVerticalDatums() == "");
+    CHECK(pDescriptor->getVerticalDatums() == "");
     UNSCOPED_INFO("Check surface corrections default southwest X, Y.");
-    CHECK(descriptor.getOrigin() == std::make_tuple(0., 0.));
+    CHECK(pDescriptor->getOrigin() == std::make_tuple(0., 0.));
     UNSCOPED_INFO("Check surface corrections default X and Y spacing.");
-    CHECK(descriptor.getSpacing() == std::make_tuple(0., 0.));
+    CHECK(pDescriptor->getSpacing() == std::make_tuple(0., 0.));
 }
 
 TEST_CASE("test surface corrections create and write irregular",
@@ -131,9 +134,11 @@ TEST_CASE("test surface corrections create and write irregular",
     auto& corrections = pDataset->createSurfaceCorrections(kExpectedSurfaceType,
         kExpectedNumCorrectors, chunkSize, compressionLevel);
 
-    UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(
-        corrections.getDescriptor()));
+    UNSCOPED_INFO("Check surface corrections descriptor is the default pDescriptor->");
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            corrections.getDescriptor());
+    CHECK(pDescriptor);
 
     constexpr BAG::VerticalDatumCorrections kExpectedItem0{1.2, 2.1, {3.4f, 4.5f}};
 
@@ -175,8 +180,11 @@ TEST_CASE("test surface corrections create and write gridded",
     auto& corrections = pDataset->createSurfaceCorrections(kExpectedSurfaceType,
         kExpectedNumCorrectors, chunkSize, compressionLevel);
 
-    UNSCOPED_INFO("Check surface corrections descriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const SurfaceCorrectionsDescriptor&>(corrections.getDescriptor()));
+    UNSCOPED_INFO("Check surface corrections descriptor is the default pDescriptor->");
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            corrections.getDescriptor());
+    CHECK(pDescriptor);
 
     constexpr BagVerticalDatumCorrectionsGridded kExpectedItem0{9.87f, 6.543f,
         2.109876f};

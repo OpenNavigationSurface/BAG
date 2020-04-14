@@ -477,7 +477,7 @@ BagError bagGetMinMaxSimple(
     if (!layer)
         return 9997;  // layer type not found
 
-    std::tie(*minValue, *maxValue) = layer->getDescriptor().getMinMax();
+    std::tie(*minValue, *maxValue) = layer->getDescriptor()->getMinMax();
 
     return BAG_SUCCESS;
 }
@@ -514,7 +514,7 @@ BagError bagSetMinMaxSimple(
     if (!layer)
         return BAG_SIMPLE_LAYER_MISSING;
 
-    layer->getDescriptor().setMinMax(minValue, maxValue);
+    layer->getDescriptor()->setMinMax(minValue, maxValue);
 
     return BAG_SUCCESS;
 }
@@ -1105,7 +1105,7 @@ uint8_t* bagAllocateBuffer(
         return {};
     }
 
-    const int8_t elementSize = layer->getDescriptor().getElementSize();
+    const int8_t elementSize = layer->getDescriptor()->getElementSize();
 
     *bagError = BAG_SUCCESS;
 
@@ -1170,10 +1170,10 @@ BagError bagReadCorrectorVerticalDatum(
     if (!layer)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    const auto& descriptor =
-        dynamic_cast<const BAG::SurfaceCorrectionsDescriptor&>(
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const BAG::SurfaceCorrectionsDescriptor>(
             layer->getDescriptor());
-    const auto& allVerticalDatums = descriptor.getVerticalDatums();
+    const auto& allVerticalDatums = pDescriptor->getVerticalDatums();
 
     if (!allVerticalDatums.empty())
     {
@@ -1233,14 +1233,14 @@ BagError bagWriteCorrectorVerticalDatum(
     if (!layer)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    auto& descriptor = dynamic_cast<BAG::SurfaceCorrectionsDescriptor&>(
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::SurfaceCorrectionsDescriptor>(
         layer->getDescriptor());
 
     // Set/replace the specified datum.
     std::vector<std::string> datums;
     datums.reserve(BAG_SURFACE_CORRECTOR_LIMIT);
 
-    std::istringstream iss{descriptor.getVerticalDatums()};
+    std::istringstream iss{pDescriptor->getVerticalDatums()};
 
     while (iss)
     {
@@ -1260,7 +1260,7 @@ BagError bagWriteCorrectorVerticalDatum(
             return dest.empty() ? datum : dest + ',' + datum;
         });
 
-    descriptor.setVerticalDatums(joinedDatums);
+    pDescriptor->setVerticalDatums(joinedDatums);
 
     // write out the attribute
     try
@@ -1524,13 +1524,13 @@ BagError bagGetNumSurfaceCorrectors(
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    const auto* descriptor =
-        dynamic_cast<const BAG::SurfaceCorrectionsDescriptor*>(
-            &layer->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const BAG::SurfaceCorrectionsDescriptor>(
+            layer->getDescriptor());
+    if (!pDescriptor)
         return BAG_WRONG_DESCRIPTOR_FOUND;
 
-    *numCorrectors = descriptor->getNumCorrectors();
+    *numCorrectors = pDescriptor->getNumCorrectors();
 
     return BAG_SUCCESS;
 }
@@ -1562,13 +1562,13 @@ BagError bagGetSurfaceCorrectionTopography(
     if (!layer)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    const auto* descriptor =
-        dynamic_cast<const BAG::SurfaceCorrectionsDescriptor*>(
-            &layer->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const BAG::SurfaceCorrectionsDescriptor>(
+            layer->getDescriptor());
+    if (!pDescriptor)
         return BAG_WRONG_DESCRIPTOR_FOUND;
 
-    *type = descriptor->getSurfaceType();
+    *type = pDescriptor->getSurfaceType();
 
     return BAG_SUCCESS;
 }
@@ -1601,9 +1601,9 @@ BagError bagCreateCorrectorLayer(
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
 
-    const auto& descriptor = elevationLayer->getDescriptor();
-    const auto chunkSize = descriptor.getChunkSize();
-    const auto compressionLevel = descriptor.getCompressionLevel();
+    auto pDescriptor = elevationLayer->getDescriptor();
+    const auto chunkSize = pDescriptor->getChunkSize();
+    const auto compressionLevel = pDescriptor->getCompressionLevel();
 
     handle->dataset->createSurfaceCorrections(topography, numCorrectors,
         chunkSize, compressionLevel);
@@ -1638,12 +1638,13 @@ BagError bagWriteCorrectorDefinition(
     if (!corrections)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    auto* descriptor = dynamic_cast<BAG::SurfaceCorrectionsDescriptor*>(
-        &corrections->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<BAG::SurfaceCorrectionsDescriptor>(
+            corrections->getDescriptor());
+    if (!pDescriptor)
         return BAG_WRONG_DESCRIPTOR_FOUND;
 
-    descriptor->setOrigin(def->swCornerX, def->swCornerY)
+    pDescriptor->setOrigin(def->swCornerX, def->swCornerY)
         .setSpacing(def->nodeSpacingX, def->nodeSpacingY);
 
     try
@@ -1685,13 +1686,14 @@ BagError bagReadCorrectorDefinition(
     if (!corrections)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor = dynamic_cast<BAG::SurfaceCorrectionsDescriptor*>(
-        &corrections->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<BAG::SurfaceCorrectionsDescriptor>(
+            corrections->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(def->swCornerX, def->swCornerY) = descriptor->getOrigin();
-    std::tie(def->nodeSpacingX, def->nodeSpacingY) = descriptor->getSpacing();
+    std::tie(def->swCornerX, def->swCornerY) = pDescriptor->getOrigin();
+    std::tie(def->nodeSpacingX, def->nodeSpacingY) = pDescriptor->getSpacing();
 
     return BAG_SUCCESS;
 }
@@ -2099,9 +2101,9 @@ BagError bagCreateCompoundLayer(
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
 
-    const auto& descriptor = elevationLayer->getDescriptor();
-    const auto chunkSize = descriptor.getChunkSize();
-    const auto compressionLevel = descriptor.getCompressionLevel();
+    auto pDescriptor = elevationLayer->getDescriptor();
+    const auto chunkSize = pDescriptor->getChunkSize();
+    const auto compressionLevel = pDescriptor->getCompressionLevel();
 
     // Convert the FieldDefinition* into a RecordDefinition.
     const BAG::RecordDefinition recordDef(definition, definition + numFields);
@@ -2761,9 +2763,9 @@ BagError bagCreateVRLayers(
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
 
-    const auto& descriptor = elevationLayer->getDescriptor();
-    const auto chunkSize = descriptor.getChunkSize();
-    const auto compressionLevel = descriptor.getCompressionLevel();
+    auto pDescriptor = elevationLayer->getDescriptor();
+    const auto chunkSize = pDescriptor->getChunkSize();
+    const auto compressionLevel = pDescriptor->getCompressionLevel();
 
     try
     {
@@ -2813,12 +2815,13 @@ BagError bagVRMetadataGetMinDimensions(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    const auto* descriptor =
-        dynamic_cast<const BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const BAG::VRMetadataDescriptor>(
+            vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*minX, *minY) = descriptor->getMinDimensions();
+    std::tie(*minX, *minY) = pDescriptor->getMinDimensions();
 
     return BAG_SUCCESS;
 }
@@ -2854,12 +2857,13 @@ BagError bagVRMetadataGetMaxDimensions(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    const auto* descriptor =
-        dynamic_cast<const BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const BAG::VRMetadataDescriptor>(
+            vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*maxX, *maxY) = descriptor->getMinDimensions();
+    std::tie(*maxX, *maxY) = pDescriptor->getMinDimensions();
 
     return BAG_SUCCESS;
 }
@@ -2895,12 +2899,13 @@ BagError bagVRMetadataGetMinResolution(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    const auto* descriptor =
-        dynamic_cast<const BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const BAG::VRMetadataDescriptor>(
+            vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*minX, *minY) = descriptor->getMinResolution();
+    std::tie(*minX, *minY) = pDescriptor->getMinResolution();
 
     return BAG_SUCCESS;
 };
@@ -2936,12 +2941,12 @@ BagError bagVRMetadataGetMaxResolution(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    const auto* descriptor =
-        dynamic_cast<const BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<const BAG::VRMetadataDescriptor>(
+        vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*maxX, *maxY) = descriptor->getMaxResolution();
+    std::tie(*maxX, *maxY) = pDescriptor->getMaxResolution();
 
     return BAG_SUCCESS;
 }
@@ -2972,12 +2977,12 @@ BagError bagVRMetadataSetMinDimensions(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRMetadataDescriptor>(
+        vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMinDimensions(minX, minY);
+    pDescriptor->setMinDimensions(minX, minY);
 
     try
     {
@@ -3025,12 +3030,12 @@ BagError bagVRMetadataSetMaxDimensions(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRMetadataDescriptor>(
+        vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMaxDimensions(maxX, maxY);
+    pDescriptor->setMaxDimensions(maxX, maxY);
 
     try
     {
@@ -3078,12 +3083,12 @@ BagError bagVRMetadataSetMinResolution(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRMetadataDescriptor>(
+        vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMinResolution(minX, minY);
+    pDescriptor->setMinResolution(minX, minY);
 
     try
     {
@@ -3131,12 +3136,12 @@ BagError bagVRMetadataSetMaxResolution(
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRMetadataDescriptor*>(&vrMetadata->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRMetadataDescriptor>(
+        vrMetadata->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMaxResolution(maxX, maxY);
+    pDescriptor->setMaxResolution(maxX, maxY);
 
     try
     {
@@ -3190,12 +3195,12 @@ BagError bagVRNodeGetMinMaxHypStrength(
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRNodeDescriptor*>(&vrNode->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRNodeDescriptor>(
+        vrNode->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*minHypStr, *maxHypStr) = descriptor->getMinMaxHypStrength();
+    std::tie(*minHypStr, *maxHypStr) = pDescriptor->getMinMaxHypStrength();
 
     return BAG_SUCCESS;
 }
@@ -3231,12 +3236,12 @@ BagError bagVRNodeGetMinMaxNumHypotheses(
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRNodeDescriptor*>(&vrNode->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRNodeDescriptor>(
+        vrNode->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*minNumHyp, *maxNumHyp) = descriptor->getMinMaxNumHypotheses();
+    std::tie(*minNumHyp, *maxNumHyp) = pDescriptor->getMinMaxNumHypotheses();
 
     return BAG_SUCCESS;
 }
@@ -3272,12 +3277,12 @@ BagError bagVRNodeGetMinMaxNSamples(
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRNodeDescriptor*>(&vrNode->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRNodeDescriptor>(
+        vrNode->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*minNSamples, *maxNSamples) = descriptor->getMinMaxNSamples();
+    std::tie(*minNSamples, *maxNSamples) = pDescriptor->getMinMaxNSamples();
 
     return BAG_SUCCESS;
 }
@@ -3308,12 +3313,12 @@ BagError bagVRNodeSetMinMaxHypStrength(
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRNodeDescriptor*>(&vrNode->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRNodeDescriptor>(
+        vrNode->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMinMaxHypStrength(minHypStr, maxHypStr);
+    pDescriptor->setMinMaxHypStrength(minHypStr, maxHypStr);
 
     try
     {
@@ -3361,12 +3366,12 @@ BagError bagVRNodeSetMinMaxNumHypotheses(
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRNodeDescriptor*>(&vrNode->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRNodeDescriptor>(
+        vrNode->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
+    pDescriptor->setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
 
     try
     {
@@ -3414,12 +3419,12 @@ BagError bagVRNodeSetMinMaxNSamples(
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRNodeDescriptor*>(&vrNode->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRNodeDescriptor>(
+        vrNode->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMinMaxNSamples(minNSamples, maxNSamples);
+    pDescriptor->setMinMaxNSamples(minNSamples, maxNSamples);
 
     try
     {
@@ -3473,12 +3478,12 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxDepth(
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRRefinementsDescriptor>(
+        vrRefinement->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*minDepth, *maxDepth) = descriptor->getMinMaxDepth();
+    std::tie(*minDepth, *maxDepth) = pDescriptor->getMinMaxDepth();
 
     return BAG_SUCCESS;
 }
@@ -3514,12 +3519,12 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxUncertainty(
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRRefinementsDescriptor>(
+        vrRefinement->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    std::tie(*minUncert, *maxUncert) = descriptor->getMinMaxUncertainty();
+    std::tie(*minUncert, *maxUncert) = pDescriptor->getMinMaxUncertainty();
 
     return BAG_SUCCESS;
 }
@@ -3550,12 +3555,12 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxDepth(
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRRefinementsDescriptor>(
+        vrRefinement->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMinMaxDepth(minDepth, maxDepth);
+    pDescriptor->setMinMaxDepth(minDepth, maxDepth);
 
     try
     {
@@ -3603,12 +3608,12 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxUncertainty(
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    auto* descriptor =
-        dynamic_cast<BAG::VRRefinementsDescriptor*>(&vrRefinement->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor = std::dynamic_pointer_cast<BAG::VRRefinementsDescriptor>(
+        vrRefinement->getDescriptor());
+    if (!pDescriptor)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
-    descriptor->setMinMaxUncertainty(minUncert, maxUncert);
+    pDescriptor->setMinMaxUncertainty(minUncert, maxUncert);
 
     try
     {

@@ -230,8 +230,10 @@ UInt8Array VRNode::readProxy(
     uint32_t /*rowEnd*/,
     uint32_t columnEnd) const
 {
-    if (!dynamic_cast<const VRNodeDescriptor*>(&this->getDescriptor()))
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<const VRNodeDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     // Query the file for the specified rows and columns.
     const hsize_t columns = (columnEnd - columnStart) + 1;
@@ -240,10 +242,7 @@ UInt8Array VRNode::readProxy(
     const auto fileDataSpace = m_pH5dataSet->getSpace();
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
 
-    const auto& descriptor =
-        dynamic_cast<const VRNodeDescriptor&>(this->getDescriptor());
-
-    const auto bufferSize = descriptor.getReadBufferSize(1,
+    const auto bufferSize = pDescriptor->getReadBufferSize(1,
         static_cast<uint32_t>(columns));
     UInt8Array buffer{bufferSize};
 
@@ -259,14 +258,14 @@ UInt8Array VRNode::readProxy(
 //! \copydoc Layer::writeAttributes
 void VRNode::writeAttributesProxy() const
 {
-    const auto* descriptor =
-        dynamic_cast<const VRNodeDescriptor*>(&this->getDescriptor());
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<const VRNodeDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     // Write the attributes from the layer descriptor.
     // min/max hyp strength
-    const auto minMaxHypStrength = descriptor->getMinMaxHypStrength();
+    const auto minMaxHypStrength = pDescriptor->getMinMaxHypStrength();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minMaxHypStrength), VR_NODE_MIN_HYP_STRENGTH);
 
@@ -274,7 +273,7 @@ void VRNode::writeAttributesProxy() const
         std::get<1>(minMaxHypStrength), VR_NODE_MAX_HYP_STRENGTH);
 
     // min/max num hypotheses
-    const auto minMaxNumHypotheses = descriptor->getMinMaxNumHypotheses();
+    const auto minMaxNumHypotheses = pDescriptor->getMinMaxNumHypotheses();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minMaxNumHypotheses), VR_NODE_MIN_NUM_HYPOTHESES);
 
@@ -282,7 +281,7 @@ void VRNode::writeAttributesProxy() const
         std::get<1>(minMaxNumHypotheses), VR_NODE_MAX_NUM_HYPOTHESES);
 
     // min/max n samples
-    const auto minMaxNSamples = descriptor->getMinMaxNSamples();
+    const auto minMaxNSamples = pDescriptor->getMinMaxNSamples();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minMaxNSamples), VR_NODE_MIN_N_SAMPLES);
 
@@ -299,9 +298,10 @@ void VRNode::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    auto* descriptor = dynamic_cast<VRNodeDescriptor*>(&this->getDescriptor());
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     const hsize_t columns = (columnEnd - columnStart) + 1;
     const hsize_t offset = columnStart;
@@ -342,13 +342,13 @@ void VRNode::writeProxy(
     // Update min/max attributes
     // Get the current min/max from descriptor.
     float minHypStr = 0.f, maxHypStr = 0.f;
-    std::tie(minHypStr, maxHypStr) = descriptor->getMinMaxHypStrength();
+    std::tie(minHypStr, maxHypStr) = pDescriptor->getMinMaxHypStrength();
 
     uint32_t minNumHyp = 0, maxNumHyp = 0;
-    std::tie(minNumHyp, maxNumHyp) = descriptor->getMinMaxNumHypotheses();
+    std::tie(minNumHyp, maxNumHyp) = pDescriptor->getMinMaxNumHypotheses();
 
     uint32_t minNSamples = 0, maxNSamples = 0;
-    std::tie(minNSamples, maxNSamples) = descriptor->getMinMaxNSamples();
+    std::tie(minNSamples, maxNSamples) = pDescriptor->getMinMaxNSamples();
 
     // Update the min/max from new data.
     const auto* items = reinterpret_cast<const BagVRNodeItem*>(buffer);
@@ -368,9 +368,9 @@ void VRNode::writeProxy(
         maxNSamples = item->n_samples > maxNSamples ? item->n_samples : maxNSamples;
     }
 
-    descriptor->setMinMaxHypStrength(minHypStr, maxHypStr);
-    descriptor->setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
-    descriptor->setMinMaxNSamples(minNSamples, maxNSamples);
+    pDescriptor->setMinMaxHypStrength(minHypStr, maxHypStr);
+    pDescriptor->setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
+    pDescriptor->setMinMaxNSamples(minNSamples, maxNSamples);
 }
 
 void VRNode::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept

@@ -62,15 +62,15 @@ Layer* getLayer(
 
     auto layerIter = std::find_if(cbegin(layers), cend(layers),
         [type, &nameLower](const std::unique_ptr<Layer>& layer) {
-            const auto& descriptor = layer->getDescriptor();
+            auto pDescriptor = layer->getDescriptor();
 
-            if (descriptor.getLayerType() != type)
+            if (pDescriptor->getLayerType() != type)
                 return false;
 
             if (nameLower.empty())
                 return true;
 
-            std::string foundNameLower{descriptor.getName()};
+            std::string foundNameLower{pDescriptor->getName()};
             std::transform(begin(foundNameLower), end(foundNameLower), begin(foundNameLower),
                 [](char c) noexcept {
                     return static_cast<char>(std::tolower(c));
@@ -308,7 +308,7 @@ Layer& Dataset::addLayer(
 
     const auto& layer = m_layers.back();
 
-    m_descriptor.addLayerDescriptor(layer->getDescriptor());
+    m_descriptor.addLayerDescriptor(*layer->getDescriptor());
 
     return *layer;
 }
@@ -349,16 +349,16 @@ CompoundLayer& Dataset::createCompoundLayer(
     // Make sure a corresponding simple layer exists.
     const bool simpleLayerExists = std::any_of(cbegin(m_layers), cend(m_layers),
         [&nameLower](const std::unique_ptr<Layer>& layer) {
-            const auto& descriptor = layer->getDescriptor();
+            auto pDescriptor = layer->getDescriptor();
 
-            const auto layerType = descriptor.getLayerType();
+            const auto layerType = pDescriptor->getLayerType();
 
             // Skip non-simple layers.
             if (layerType == Compound || layerType == VarRes_Metadata ||
                 layerType == VarRes_Refinement || layerType == VarRes_Node)
                 return false;
 
-            std::string simpleNameLower{descriptor.getName()};
+            std::string simpleNameLower{pDescriptor->getName()};
             std::transform(begin(simpleNameLower), end(simpleNameLower), begin(simpleNameLower),
                 [](char c) noexcept {
                     return static_cast<char>(std::tolower(c));
@@ -612,7 +612,7 @@ std::vector<CompoundLayer*> Dataset::getCompoundLayers() & noexcept
     std::vector<CompoundLayer*> layers;
 
     for (const auto& layer : m_layers)
-        if (layer->getDescriptor().getLayerType() == Compound)
+        if (layer->getDescriptor()->getLayerType() == Compound)
             layers.emplace_back(dynamic_cast<CompoundLayer*>(layer.get()));
 
     return layers;
@@ -751,12 +751,14 @@ std::vector<LayerType> Dataset::getLayerTypes() const
 
     for (auto&& layer : m_layers)
     {
-        const auto type = layer->getDescriptor().getLayerType();
+        const auto type = layer->getDescriptor()->getLayerType();
         if (type == Compound)
+        {
             if (compoundLayerAdded)
                 continue;
             else
                 compoundLayerAdded = true;
+        }
 
         types.push_back(type);
     }

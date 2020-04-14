@@ -10,32 +10,36 @@
 #include "../bag_interleavedlayerdescriptor.h"
 %}
 
-#define final
-
-%include <std_shared_ptr.i>
-%shared_ptr(BAG::InterleavedLayerDescriptor)
-
+%import "bag_dataset.i"
 %import "bag_layerdescriptor.i"
 %import "bag_types.i"
 
+%include <std_shared_ptr.i>
+
+%shared_ptr(BAG::InterleavedLayerDescriptor)
+
+
 namespace BAG {
-    class InterleavedLayerDescriptor final : public LayerDescriptor
-    {
-    public:
-        static std::shared_ptr<InterleavedLayerDescriptor> create(
-            const Dataset& dataset, LayerType layerType, GroupType groupType);
 
-        %rename(openDataset) open(const Dataset& dataset, LayerType layerType,
-            GroupType groupType);
-        static std::shared_ptr<InterleavedLayerDescriptor> open(
-            const Dataset& dataset, LayerType layerType, GroupType groupType);
+class InterleavedLayerDescriptor final : public LayerDescriptor
+{
+public:
+    static std::shared_ptr<InterleavedLayerDescriptor> create(
+        const Dataset& dataset, LayerType layerType, GroupType groupType);
 
-        InterleavedLayerDescriptor(const InterleavedLayerDescriptor&) = delete;
-        InterleavedLayerDescriptor(InterleavedLayerDescriptor&&) = delete;
+    %rename(openDataset) open(const Dataset& dataset, LayerType layerType,
+        GroupType groupType);
+    static std::shared_ptr<InterleavedLayerDescriptor> open(
+        const Dataset& dataset, LayerType layerType, GroupType groupType);
 
-        InterleavedLayerDescriptor& operator=(const InterleavedLayerDescriptor&) = delete;
-        InterleavedLayerDescriptor& operator=(InterleavedLayerDescriptor&&) = delete;
+    InterleavedLayerDescriptor(const InterleavedLayerDescriptor&) = delete;
+    InterleavedLayerDescriptor(InterleavedLayerDescriptor&&) = delete;
 
-        GroupType getGroupType() const noexcept;
-    };
-}
+    InterleavedLayerDescriptor& operator=(const InterleavedLayerDescriptor&) = delete;
+    InterleavedLayerDescriptor& operator=(InterleavedLayerDescriptor&&) = delete;
+
+    GroupType getGroupType() const noexcept;
+};
+
+}  // namespace BAG
+

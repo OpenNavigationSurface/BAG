@@ -10,14 +10,16 @@
 #include "../bag_surfacecorrectionsdescriptor.h"
 %}
 
-#define final
+%import "bag_dataset.i"
+%import "bag_layerdescriptor.i"
+%import "bag_types.i"
 
 %include <std_string.i>
 %include <std_shared_ptr.i>
+%include <stdint.i>
+
 %shared_ptr(BAG::SurfaceCorrectionsDescriptor)
 
-%import "bag_layerdescriptor.i"
-%import "bag_types.i"
 
 namespace BAG {
 
@@ -59,9 +61,8 @@ public:
     SurfaceCorrectionsDescriptor& setVerticalDatums(
         std::string verticalDatums) & noexcept;
 };
-}
 
-%extend BAG::SurfaceCorrectionsDescriptor
+%extend SurfaceCorrectionsDescriptor
 {
     std::pair<uint32_t, uint32_t> getDims() const & noexcept
     {
@@ -84,3 +85,6 @@ public:
         return std::pair<double, double>(x, y);
     }
 }
+
+}  // namespace BAG
+

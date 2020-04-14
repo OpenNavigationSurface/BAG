@@ -157,9 +157,9 @@ ValueTable::ValueTable(
     constexpr hsize_t startIndex = 0;
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &startIndex);
 
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
-    const auto& definition = descriptor.getDefinition();
+    auto pDescriptor = std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        m_layer.getDescriptor());
+    const auto& definition = pDescriptor->getDefinition();
 
     const size_t recordSize = getRecordSize(definition);
     std::vector<uint8_t> buffer(recordSize * numRecords, 0);
@@ -236,10 +236,11 @@ void ValueTable::addRecords(
 std::vector<uint8_t> ValueTable::convertRecordToRaw(
     const Record& record) const
 {
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+            m_layer.getDescriptor());
 
-    std::vector<uint8_t> buffer(getRecordSize(descriptor.getDefinition()), 0);
+    std::vector<uint8_t> buffer(getRecordSize(pDescriptor->getDefinition()), 0);
 
     convertRecordToMemory(record, buffer.data());
 
@@ -260,10 +261,11 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     if (records.empty())
         return {};
 
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+            m_layer.getDescriptor());
 
-    const auto recordSize = getRecordSize(descriptor.getDefinition());
+    const auto recordSize = getRecordSize(pDescriptor->getDefinition());
     std::vector<uint8_t> buffer(recordSize * records.size(), 0);
 
     // Write values into memory.
@@ -285,8 +287,8 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
 */
 const RecordDefinition& ValueTable::getDefinition() const & noexcept
 {
-    return dynamic_cast<const CompoundLayerDescriptor&>(
-        m_layer.getDescriptor()).getDefinition();
+    return std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        m_layer.getDescriptor())->getDefinition();
 }
 
 //! Retrieve the value of a specific field in a specific record.
@@ -454,12 +456,13 @@ void ValueTable::setValue(
 bool ValueTable::validateRecord(
     const Record& record) const
 {
-    const auto* descriptor =
-        dynamic_cast<const CompoundLayerDescriptor*>(&m_layer.getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+            m_layer.getDescriptor());
+    if (!pDescriptor)
         throw InvalidDescriptor{};
 
-    const auto& definition = descriptor->getDefinition();
+    const auto& definition = pDescriptor->getDefinition();
 
     if (record.size() != definition.size())
         return false;
@@ -502,10 +505,11 @@ void ValueTable::writeRecord(
     // Prepare the memory details.
     const auto rawMemory = this->convertRecordToRaw(record);
 
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+            m_layer.getDescriptor());
 
-    const auto memDataType = createH5memoryCompType(descriptor.getDefinition());
+    const auto memDataType = createH5memoryCompType(pDescriptor->getDefinition());
 
     constexpr hsize_t one = 1;
     ::H5::DataSpace memDataSpace(1, &one, &one);
@@ -543,10 +547,11 @@ void ValueTable::writeRecords(
     // Prepare the memory details.
     const auto rawMemory = this->convertRecordsToRaw(records);
 
-    const auto& descriptor =
-        dynamic_cast<const CompoundLayerDescriptor&>(m_layer.getDescriptor());
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+            m_layer.getDescriptor());
 
-    const auto memDataType = createH5memoryCompType(descriptor.getDefinition());
+    const auto memDataType = createH5memoryCompType(pDescriptor->getDefinition());
 
     const hsize_t numRecords = records.size();
     ::H5::DataSpace memDataSpace(1, &numRecords, &numRecords);

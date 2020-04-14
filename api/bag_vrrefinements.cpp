@@ -205,8 +205,10 @@ UInt8Array VRRefinements::readProxy(
     uint32_t /*rowEnd*/,
     uint32_t columnEnd) const
 {
-    if (!dynamic_cast<const VRRefinementsDescriptor*>(&this->getDescriptor()))
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<const VRRefinementsDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     // Query the file for the specified rows and columns.
     const hsize_t columns = (columnEnd - columnStart) + 1;
@@ -215,10 +217,7 @@ UInt8Array VRRefinements::readProxy(
     const auto fileDataSpace = m_pH5dataSet->getSpace();
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
 
-    const auto& descriptor =
-        dynamic_cast<const VRRefinementsDescriptor&>(this->getDescriptor());
-
-    const auto bufferSize = descriptor.getReadBufferSize(1,
+    const auto bufferSize = pDescriptor->getReadBufferSize(1,
         static_cast<uint32_t>(columns));
     UInt8Array buffer{bufferSize};
 
@@ -234,15 +233,15 @@ UInt8Array VRRefinements::readProxy(
 //! \copydoc Layer::writeAttributes
 void VRRefinements::writeAttributesProxy() const
 {
-    if (!dynamic_cast<const VRRefinementsDescriptor*>(&this->getDescriptor()))
-        throw UnexpectedLayerDescriptorType{};
-
-    const auto& descriptor =
-        dynamic_cast<const VRRefinementsDescriptor&>(this->getDescriptor());
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const VRRefinementsDescriptor>(
+            this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     // Write the attributes from the layer descriptor.
     // min/max depth
-    const auto minMaxDepth = descriptor.getMinMaxDepth();
+    const auto minMaxDepth = pDescriptor->getMinMaxDepth();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minMaxDepth), VR_REFINEMENT_MIN_DEPTH);
 
@@ -250,7 +249,7 @@ void VRRefinements::writeAttributesProxy() const
         std::get<1>(minMaxDepth), VR_REFINEMENT_MAX_DEPTH);
 
     // min/max uncertainty
-    const auto minMaxUncertainty = descriptor.getMinMaxUncertainty();
+    const auto minMaxUncertainty = pDescriptor->getMinMaxUncertainty();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minMaxUncertainty), VR_REFINEMENT_MIN_UNCERTAINTY);
 
@@ -267,10 +266,10 @@ void VRRefinements::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    auto* descriptor = dynamic_cast<VRRefinementsDescriptor*>(
-        &this->getDescriptor());
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<VRRefinementsDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     const hsize_t columns = (columnEnd - columnStart) + 1;
     const hsize_t offset = columnStart;
@@ -311,10 +310,10 @@ void VRRefinements::writeProxy(
     // Update min/max attributes
     // Get the current min/max from descriptor.
     float minDepth = 0.f, maxDepth = 0.f;
-    std::tie(minDepth, maxDepth) = descriptor->getMinMaxDepth();
+    std::tie(minDepth, maxDepth) = pDescriptor->getMinMaxDepth();
 
     float minUncert = 0.f, maxUncert = 0.f;
-    std::tie(minUncert, maxUncert) = descriptor->getMinMaxUncertainty();
+    std::tie(minUncert, maxUncert) = pDescriptor->getMinMaxUncertainty();
 
     // Update the min/max from new data.
     const auto* items = reinterpret_cast<const BagVRRefinementsItem*>(buffer);
@@ -331,8 +330,8 @@ void VRRefinements::writeProxy(
         maxUncert = item->depth_uncrt > maxUncert ? item->depth_uncrt : maxUncert;
     }
 
-    descriptor->setMinMaxDepth(minDepth, maxDepth);
-    descriptor->setMinMaxUncertainty(minUncert, maxUncert);
+    pDescriptor->setMinMaxDepth(minDepth, maxDepth);
+    pDescriptor->setMinMaxUncertainty(minUncert, maxUncert);
 }
 
 void VRRefinements::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept

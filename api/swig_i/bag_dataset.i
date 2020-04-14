@@ -10,30 +10,32 @@
 #include "../bag_dataset.h"
 %}
 
-#define final
-
+%import "bag_compoundlayer.i"
+%import "bag_descriptor.i"
+%import "bag_metadata.i"
+%import "bag_simplelayer.i"
+%import "bag_surfacecorrections.i"
+%import "bag_trackinglist.i"
 %import "bag_types.i"
-%include <stl.i>
-namespace std 
+#%import "bag_vrmetadata.i"
+#%import "bag_vrnode.i"
+#%import "bag_vrrefinements.i"
+#%import "bag_vrtrackinglist.i"
+
+%include <std_vector.i>
+
+namespace std
 {
     %template(CompoundLayerVector) vector<BAG::CompoundLayer*>;
     %template(LayerVector) vector<BAG::Layer*>;
 }
 
-%import "bag_compoundlayer.i"
-%import "bag_descriptor.i"
-%import "bag_metadata.i"
-%import "bag_surfacecorrections.i"
-%import "bag_trackinglist.i"
-%import "bag_types.i"
-%import "bag_vrmetadata.i"
-
-%include <pyabc.i>
 %include <std_string.i>
 %include <std_shared_ptr.i>
 %include <stdint.i>
 
 %shared_ptr(BAG::Dataset)
+
 
 namespace BAG {
 
@@ -48,6 +50,7 @@ public:
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
+
     Dataset& operator=(const Dataset&) = delete;
     Dataset& operator=(Dataset&&) = delete;
 
@@ -71,24 +74,30 @@ public:
     void createVR(uint64_t chunkSize, int compressionLevel, bool makeNode);
 
     const Metadata& getMetadata() const & noexcept;
+
     TrackingList& getTrackingList() & noexcept;
     %ignore getTrackingList() const& noexcept;
+
     CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
     %ignore getCompoundLayer(const std::string& name) const & noexcept;
     std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
+
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
     %ignore getSurfaceCorrections() const & noexcept;
+
     SimpleLayer* getSimpleLayer(LayerType type) & noexcept;
     %ignore getSimpleLayer(LayerType type) const & noexcept;
 
+#if 0  //TODO Enable rest as implemented.
     VRMetadata* getVRMetadata() & noexcept;
     %ignore getVRMetadata() const & noexcept;
 
-#if 0  //TODO Enable rest as implemented.
     VRNode* getVRNode() & noexcept;
     %ignore getVRNode() const & noexcept;
+
     VRRefinement* getVRRefinement() & noexcept;
     %ignore getVRRefinement() const & noexcept;
+
     VRTrackingList* getVRTrackingList() & noexcept;
     %ignore getVRTrackingList() const & noexcept;
 #endif
@@ -103,10 +112,8 @@ public:
     std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
 #endif
 };
-}
 
-
-%extend BAG::Dataset
+%extend Dataset
 {
     std::pair<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept
     {
@@ -122,3 +129,6 @@ public:
         return std::pair<uint32_t, uint32_t>(row, column);
     }
 }
+
+}  // namespace BAG
+

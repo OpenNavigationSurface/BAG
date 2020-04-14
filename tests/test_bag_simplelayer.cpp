@@ -330,9 +330,9 @@ TEST_CASE("test simple layer get name", "[simplelayer][getDescriptor]")
 
     REQUIRE_NOTHROW(layer.getDescriptor());
 
-    const auto& descriptor = layer.getDescriptor();
+    auto pDescriptor = layer.getDescriptor();
 
-    CHECK(std::string{descriptor.getName()} == BAG::kLayerTypeMapString.at(Elevation));
+    CHECK(std::string{pDescriptor->getName()} == BAG::kLayerTypeMapString.at(Elevation));
 }
 
 //  virtual UInt8Array read(uint32_t rowStart,
@@ -471,14 +471,14 @@ TEST_CASE("test simple layer write attributes", "[simplelayer][write]")
         auto& elevLayer = pDataset->getLayer(kLayerType);
 
         REQUIRE_NOTHROW(elevLayer.getDescriptor());
-        auto& descriptor = elevLayer.getDescriptor();
+        auto pDescriptor = elevLayer.getDescriptor();
 
         // change min & max values
-        const auto originalMinMax = descriptor.getMinMax();
+        const auto originalMinMax = pDescriptor->getMinMax();
         kExpectedMin = std::get<0>(originalMinMax) - 12.34f;
         kExpectedMax = std::get<1>(originalMinMax) + 56.789f;
 
-        REQUIRE_NOTHROW(descriptor.setMinMax(kExpectedMin, kExpectedMax));
+        REQUIRE_NOTHROW(pDescriptor->setMinMax(kExpectedMin, kExpectedMax));
         REQUIRE_NOTHROW(elevLayer.writeAttributes());
     }
 
@@ -486,9 +486,9 @@ TEST_CASE("test simple layer write attributes", "[simplelayer][write]")
     REQUIRE(pDataset);
 
     const auto& elevLayer = pDataset->getLayer(kLayerType);
-    const auto& descriptor = elevLayer.getDescriptor();
+    auto pDescriptor = elevLayer.getDescriptor();
 
-    const auto actualMinMax = descriptor.getMinMax();
+    const auto actualMinMax = pDescriptor->getMinMax();
     CHECK(actualMinMax == std::make_tuple(kExpectedMin, kExpectedMax));
 }
 

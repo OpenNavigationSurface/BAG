@@ -333,7 +333,7 @@ UInt8Array CompoundLayer::readProxy(
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Initialize the output buffer.
-    const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
+    const auto bufferSize = this->getDescriptor()->getReadBufferSize(rows,
         columns);
     UInt8Array buffer{bufferSize};
 

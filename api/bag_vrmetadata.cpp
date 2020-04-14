@@ -238,10 +238,10 @@ UInt8Array VRMetadata::readProxy(
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
-    const auto* descriptor = dynamic_cast<const VRMetadataDescriptor*>(
-        &this->getDescriptor());
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<const VRMetadataDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     // Query the file for the specified rows and columns.
     const auto rows = (rowEnd - rowStart) + 1;
@@ -252,7 +252,7 @@ UInt8Array VRMetadata::readProxy(
     const auto fileDataSpace = m_pH5dataSet->getSpace();
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
-    const auto bufferSize = descriptor->getReadBufferSize(rows, columns);
+    const auto bufferSize = pDescriptor->getReadBufferSize(rows, columns);
     UInt8Array buffer{bufferSize};
 
     const ::H5::DataSpace memDataSpace{kRank, count.data(), count.data()};
@@ -267,14 +267,14 @@ UInt8Array VRMetadata::readProxy(
 //! \copydoc Layer::writeAttributes
 void VRMetadata::writeAttributesProxy() const
 {
-    auto* descriptor = dynamic_cast<const VRMetadataDescriptor*>(
-        &this->getDescriptor());
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<const VRMetadataDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     // Write the attributes from the layer descriptor.
     // min X,Y dimensions
-    const auto minDims = descriptor->getMinDimensions();
+    const auto minDims = pDescriptor->getMinDimensions();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(minDims), VR_METADATA_MIN_DIMS_X);
 
@@ -282,7 +282,7 @@ void VRMetadata::writeAttributesProxy() const
         std::get<1>(minDims), VR_METADATA_MIN_DIMS_Y);
 
     // max X,Y dimensions
-    const auto maxDims = descriptor->getMaxDimensions();
+    const auto maxDims = pDescriptor->getMaxDimensions();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_UINT32,
         std::get<0>(maxDims), VR_METADATA_MAX_DIMS_X);
 
@@ -290,7 +290,7 @@ void VRMetadata::writeAttributesProxy() const
         std::get<1>(maxDims), VR_METADATA_MAX_DIMS_Y);
 
     // min X,Y resolution
-    const auto minRes = descriptor->getMinResolution();
+    const auto minRes = pDescriptor->getMinResolution();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(minRes), VR_METADATA_MIN_RES_X);
 
@@ -298,7 +298,7 @@ void VRMetadata::writeAttributesProxy() const
         std::get<1>(minRes), VR_METADATA_MIN_RES_Y);
 
     // max X,Y resolution
-    const auto maxRes = descriptor->getMaxResolution();
+    const auto maxRes = pDescriptor->getMaxResolution();
     writeAttribute(*m_pH5dataSet, ::H5::PredType::NATIVE_FLOAT,
         std::get<0>(maxRes), VR_METADATA_MAX_RES_X);
 
@@ -314,10 +314,10 @@ void VRMetadata::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    auto* descriptor = dynamic_cast<VRMetadataDescriptor*>(
-        &this->getDescriptor());
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<VRMetadataDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
@@ -361,16 +361,16 @@ void VRMetadata::writeProxy(
     // Update any attributes that are affected by the data being written.
     // Get the current min/max from descriptor.
     uint32_t minDimX = 0, minDimY = 0;
-    std::tie(minDimX, minDimY) = descriptor->getMinDimensions();
+    std::tie(minDimX, minDimY) = pDescriptor->getMinDimensions();
 
     uint32_t maxDimX = 0, maxDimY = 0;
-    std::tie(maxDimX, maxDimY) = descriptor->getMaxDimensions();
+    std::tie(maxDimX, maxDimY) = pDescriptor->getMaxDimensions();
 
     float minResX = 0.f, minResY = 0.f;
-    std::tie(minResX, minResY) = descriptor->getMinResolution();
+    std::tie(minResX, minResY) = pDescriptor->getMinResolution();
 
     float maxResX = 0.f, maxResY = 0.f;
-    std::tie(maxResX, maxResY) = descriptor->getMaxResolution();
+    std::tie(maxResX, maxResY) = pDescriptor->getMaxResolution();
 
     // Update the min/max from new data.
     const auto* items = reinterpret_cast<const VRMetadataItem*>(buffer);
@@ -393,10 +393,10 @@ void VRMetadata::writeProxy(
         maxResY = item->resolution_y > minResY ? item->resolution_y : maxResY;
     }
 
-    descriptor->setMinDimensions(minDimX, minDimY);
-    descriptor->setMaxDimensions(maxDimX, maxDimY);
-    descriptor->setMinResolution(minResX, minResY);
-    descriptor->setMaxResolution(maxResX, maxResY);
+    pDescriptor->setMinDimensions(minDimX, minDimY);
+    pDescriptor->setMaxDimensions(maxDimX, maxDimY);
+    pDescriptor->setMinResolution(minResX, minResY);
+    pDescriptor->setMaxResolution(maxResX, maxResY);
 }
 
 void VRMetadata::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
