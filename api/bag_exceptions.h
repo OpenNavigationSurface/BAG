@@ -27,7 +27,7 @@ struct BAG_API CompressionNeedsChunkingSet final : virtual std::exception
 };
 
 // Attribute related.
-//! Attribute type not supported (yet)  //TODO temp exception
+//! Attribute type not supported (yet)
 struct BAG_API UnsupportedAttributeType final : virtual std::exception
 {
     const char* what() const noexcept override

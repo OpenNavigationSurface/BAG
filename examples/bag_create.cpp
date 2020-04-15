@@ -210,7 +210,7 @@ int main(
 
     try
     {
-        uint64_t chunkSize = 0;  //TODO look into this (hopefully turns off chunking)
+        uint64_t chunkSize = 0;
         unsigned int compressionLevel = 0;
         constexpr uint8_t kNumCorrectors = 2;
 
