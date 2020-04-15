@@ -18,7 +18,7 @@ import testUtils
 #    f = open(tmpFile.getName(), "r")
 #    #print(f.read())
 #    f.close()
-    
+
 #testRandomFile_WriteDirect()
 #testRandomFile_Open()
 
@@ -32,4 +32,11 @@ import test_interleavedlayerdescriptor
 import test_metadata
 import test_simplelayer
 import test_simplelayerdescriptor
-import test_trackinglist
+#import test_trackinglist
+import test_vrmetadata
+import test_vrmetadatadescriptor
+import test_vrnode
+import test_vrnodedescriptor
+import test_vrrefinements
+import test_vrrefinementsdescriptor
+import test_vrtrackinglist

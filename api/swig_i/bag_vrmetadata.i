@@ -10,12 +10,11 @@
 #include "../bag_vrmetadata.h"
 %}
 
-#define final
-#define BAG_API
-
-%include <stdint.i>
-
 %import "bag_layer.i"
+
+%include <std_shared_ptr.i>
+
+%shared_ptr(BAG::LayerDescriptor)
 
 
 namespace BAG {

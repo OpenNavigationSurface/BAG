@@ -34,9 +34,9 @@ namespace std
 %include "bag_metadata.i"
 
 %include "bag_layerdescriptor.i"
-#%include "bag_vrmetadatadescriptor.i"
-#%include "bag_vrnodedescriptor.i"
-#%include "bag_vrrefinementsdescriptor.i"
+%include "bag_vrmetadatadescriptor.i"
+%include "bag_vrnodedescriptor.i"
+%include "bag_vrrefinementsdescriptor.i"
 
 %include "bag_valuetable.i"
 
@@ -45,12 +45,12 @@ namespace std
 %include "bag_interleavedlayer.i"
 %include "bag_surfacecorrections.i"
 %include "bag_compoundlayer.i"
-#%include "bag_vrmetadata.i"
-#%include "bag_vrnode.i"
-#%include "bag_vrrefinements.i"
+%include "bag_vrmetadata.i"
+%include "bag_vrnode.i"
+%include "bag_vrrefinements.i"
 
 %include "bag_trackinglist.i"
-#%include "bag_vrtrackinglist.i"
+%include "bag_vrtrackinglist.i"
 %include "bag_descriptor.i"
 
 %include "bag_dataset.i"

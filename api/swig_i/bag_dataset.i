@@ -17,10 +17,10 @@
 %import "bag_surfacecorrections.i"
 %import "bag_trackinglist.i"
 %import "bag_types.i"
-#%import "bag_vrmetadata.i"
-#%import "bag_vrnode.i"
-#%import "bag_vrrefinements.i"
-#%import "bag_vrtrackinglist.i"
+%import "bag_vrmetadata.i"
+%import "bag_vrnode.i"
+%import "bag_vrrefinements.i"
+%import "bag_vrtrackinglist.i"
 
 %include <std_vector.i>
 
@@ -76,34 +76,32 @@ public:
     const Metadata& getMetadata() const & noexcept;
 
     TrackingList& getTrackingList() & noexcept;
-    %ignore getTrackingList() const& noexcept;
+    //const TrackingList& getTrackingList() const& noexcept;
 
     CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
-    %ignore getCompoundLayer(const std::string& name) const & noexcept;
+    //const CompoundLayer* getCompoundLayer(const std::string& name) const & noexcept;
     std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
 
     SurfaceCorrections* getSurfaceCorrections() & noexcept;
-    %ignore getSurfaceCorrections() const & noexcept;
+    //const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
 
     SimpleLayer* getSimpleLayer(LayerType type) & noexcept;
-    %ignore getSimpleLayer(LayerType type) const & noexcept;
+    //const SimpleLayer* getSimpleLayer(LayerType type) const & noexcept;
 
-#if 0  //TODO Enable rest as implemented.
     VRMetadata* getVRMetadata() & noexcept;
-    %ignore getVRMetadata() const & noexcept;
+    //const VRMetadata* getVRMetadata() const & noexcept;
 
     VRNode* getVRNode() & noexcept;
-    %ignore getVRNode() const & noexcept;
+    //const VRNode* getVRNode() const & noexcept;
 
-    VRRefinement* getVRRefinement() & noexcept;
-    %ignore getVRRefinement() const & noexcept;
+    VRRefinements* getVRRefinements() & noexcept;
+    // const VRRefinements* getVRRefinements() const & noexcept;
 
     VRTrackingList* getVRTrackingList() & noexcept;
-    %ignore getVRTrackingList() const & noexcept;
-#endif
+    //const VRTrackingList* getVRTrackingList() const & noexcept;
 
     Descriptor& getDescriptor() & noexcept;
-    %ignore getDescriptor() const & noexcept;
+    //const Descriptor& getDescriptor() const & noexcept;
 
 #if 0
     //! Intentionally omit exposing of std::tuple methods (unsupported by SWIG), 

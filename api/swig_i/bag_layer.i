@@ -28,7 +28,7 @@
     $result = SWIG_NewPointerObj(($1_ltype*)&$1, $&1_descriptor, 0);
 %}
 
-%downcast_shared(BAG::LayerDescriptor& BAG::Layer::getDescriptor,
+%downcast_shared(std::shared_ptr<BAG::LayerDescriptor> BAG::Layer::getDescriptor,
     BAG::CompoundLayerDescriptor, BAG::InterleavedLayerDescriptor,
     BAG::SimpleLayerDescriptor, BAG::SurfaceCorrectionsDescriptor,
     BAG::VRMetadataDescriptor, BAG::VRNodeDescriptor,
