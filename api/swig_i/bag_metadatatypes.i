@@ -10,4 +10,7 @@
 #include "../bag_metadatatypes.h"
 %}
 
+#define BAG_EXTERNAL
+
 %include "../bag_metadatatypes.h"
+

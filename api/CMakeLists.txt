@@ -154,6 +154,13 @@ endif()
 if(BUILD_PYTHON)
     # Build Python bindings
     add_subdirectory(swig_i)
+
+    # Make a link to the DLL that was built.
+    if(BUILD_SHARED_LIBS)
+        add_custom_command(TARGET baglib POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:baglib> "${CMAKE_HOME_DIRECTORY}/python/$<TARGET_FILE_NAME:baglib>"
+        )
+    endif()
 endif()
 
 

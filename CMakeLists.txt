@@ -29,11 +29,7 @@ endif()
 
 # Python bindings
 option(BUILD_PYTHON "Build Python bindings" OFF)
-
-## turning this on causes unresolved external errors in swig-generated wrapper and pyd files - investigate cause.
-if(NOT BUILD_PYTHON)
-    option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
-endif()
+option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 
 add_subdirectory(api)
 
