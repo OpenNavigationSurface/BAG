@@ -79,7 +79,7 @@ std::shared_ptr<BAG::Dataset> constructBasicBAG(
     constexpr float minElevation = -10.f;
     constexpr float maxElevation = 10.f;
 
-    elevationLayer->getDescriptor().setMinMax(minElevation, maxElevation);
+    elevationLayer->getDescriptor()->setMinMax(minElevation, maxElevation);
 
     // Get the uncertainty layer.
     auto* uncertaintyLayer = dataset->getSimpleLayer(Uncertainty);
@@ -90,7 +90,7 @@ std::shared_ptr<BAG::Dataset> constructBasicBAG(
     constexpr float minUncert = 0.f;
     constexpr float maxUncert = 10.f;
 
-    uncertaintyLayer->getDescriptor().setMinMax(minUncert, maxUncert);
+    uncertaintyLayer->getDescriptor()->setMinMax(minUncert, maxUncert);
 
     const auto& descriptor = dataset->getDescriptor();
 

@@ -93,8 +93,8 @@ int main(
         const std::array<float, 2> surfRange{-10.0f,
             -10.0f - ((kGridSize - 1) * (kGridSize - 1) + kGridSize) / 10.0f};
 
-        auto& descriptor = elevationLayer->getDescriptor();
-        descriptor.setMinMax(surfRange[0], surfRange[1]);
+        auto pDescriptor = elevationLayer->getDescriptor();
+        pDescriptor->setMinMax(surfRange[0], surfRange[1]);
 
         elevationLayer->writeAttributes();
     }
@@ -133,8 +133,8 @@ int main(
         const std::array<float, 2> uncertRange{1.0f,
             1.0f + ((kGridSize - 1) * (kGridSize - 1) + kGridSize) / 100.0f};
 
-        auto& descriptor = uncertaintyLayer->getDescriptor();
-        descriptor.setMinMax(uncertRange[0], uncertRange[1]);
+        auto pDescriptor = uncertaintyLayer->getDescriptor();
+        pDescriptor->setMinMax(uncertRange[0], uncertRange[1]);
 
         uncertaintyLayer->writeAttributes();
     }
@@ -178,8 +178,8 @@ int main(
 	        const std::array<float, 2> nominalDepthRange{20.0f,
                 20.0f + ((kGridSize - 1) * (kGridSize - 1) + kGridSize) / 20.0f};
 
-            auto& descriptor = uncertaintyLayer->getDescriptor();
-            descriptor.setMinMax(nominalDepthRange[0], nominalDepthRange[1]);
+            auto pDescriptor = uncertaintyLayer->getDescriptor();
+            pDescriptor->setMinMax(nominalDepthRange[0], nominalDepthRange[1]);
 
             nominalElevationLayer.writeAttributes();
         }
@@ -220,9 +220,10 @@ int main(
 
         // Set the min/max values (optional).
         // NOTE: Layer::write() calls update min/max.
-        auto* descriptor = dynamic_cast<BAG::SurfaceCorrectionsDescriptor*>(
-            &correctionsLayer.getDescriptor());
-        if (!descriptor)
+        auto pDescriptor =
+            std::dynamic_pointer_cast<BAG::SurfaceCorrectionsDescriptor>(
+                correctionsLayer.getDescriptor());
+        if (!pDescriptor)
         {
             std::cerr << "Internal error\n";
             return EXIT_FAILURE;
@@ -232,7 +233,7 @@ int main(
 
         // Set the vertical datums.
         const std::string verticalDatums{"Test,Unknown"};
-        descriptor->setVerticalDatums(verticalDatums);
+        pDescriptor->setVerticalDatums(verticalDatums);
 
         // Write the data.
         std::array<std::array<BAG::VerticalDatumCorrections, kSepSize>, kSepSize> sepDepth{};

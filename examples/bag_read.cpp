@@ -87,12 +87,12 @@ int main(
 
     for (const auto& layer : pDataset->getLayers())
     {
-        const auto& descriptor = layer->getDescriptor();
+        auto pDescriptor = layer->getDescriptor();
 
-        std::cout << "\t" << descriptor.getName() << " Layer .. id(" <<
-            descriptor.getId() << ")\n";
+        std::cout << "\t" << pDescriptor->getName() << " Layer .. id(" <<
+            pDescriptor->getId() << ")\n";
 
-        printLayerDescriptor(descriptor);
+        printLayerDescriptor(*pDescriptor);
     }
 
     const auto& trackingList = pDataset->getTrackingList();
