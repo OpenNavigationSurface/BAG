@@ -15,6 +15,13 @@ namespace H5
     class DataSet;
 }
 
+%import "bag_types.i"
+
+%include <std_vector.i>
+
+%template(TrackingItems) std::vector<BagTrackingItem>; //BagTrackingList::value_type
+
+
 #define final
 
 namespace BAG
@@ -43,10 +50,9 @@ namespace BAG
         const_iterator cend() const & noexcept;
 
         void clear() noexcept;
-        %ignore push_back(const value_type& value);
-        void push_back(value_type&& value);
-        template <typename... Args>
-        void emplace_back(Args&&... args) &;
+        void push_back(const value_type& value);
+        %ignore push_back(value_type&& value);
+        %ignore emplace_back(Args&&... args) &;
         reference front() &;
         %ignore front() const &;
         reference back() &;
@@ -58,18 +64,10 @@ namespace BAG
 
         bool empty() const noexcept;
         size_t size() const noexcept;
-        
-        %rename(__getitem__) operator[];
-        %ignore operator[] const &;
+
+        %rename(at) operator[](size_t index) & noexcept;
+        reference operator[](size_t index) & noexcept;
 
         void write() const;
     };
-}
-
-%extend BAG::TrackingList
-{
-    BAG::TrackingList::reference __getitem__(size_t index)
-    {
-        return (*($self))[index];
-    }
 }

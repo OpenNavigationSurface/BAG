@@ -59,6 +59,7 @@ set(BAG_HEADER_FILES
     bag_interleavedlayerdescriptor.h
     bag_layer.h
     bag_layerdescriptor.h
+    bag_layeritem.h
     bag_legacy_crs.h
     bag_metadata.h
     bag_metadata_export.h

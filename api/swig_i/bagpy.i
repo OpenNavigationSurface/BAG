@@ -14,6 +14,7 @@
 //! Common templates used by multiple interfaces
 %include <stdint.i>
 %include <std_pair.i>
+%include <stl.i>
 
 namespace std
 {
@@ -21,6 +22,7 @@ namespace std
     %template(FloatPair) pair<float, float>;
     %template(UInt32Pair) pair<uint32_t, uint32_t>;
     %template(Cover) pair<pair<double, double>, pair<double, double> >;
+    %template(FloatVector) vector<float>;
 }
 
 %include "bag_c_types.i"
@@ -39,7 +41,7 @@ namespace std
 %include "bag_vrrefinementsdescriptor.i"
 
 %include "bag_valuetable.i"
-
+%include "bag_layeritem.i"
 %include "bag_layer.i"
 %include "bag_simplelayer.i"
 %include "bag_interleavedlayer.i"

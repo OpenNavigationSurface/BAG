@@ -54,7 +54,7 @@ def testCreation():
     kNumExpectedLayers = 2
     assert(numLayerTypes == kNumExpectedLayers)
 
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY) #tmpFileName.getName()
+    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
     assert(dataset)
     numLayerTypes = len(dataset.getLayerTypes())
     #print(numLayerTypes)

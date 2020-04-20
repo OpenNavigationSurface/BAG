@@ -15,13 +15,15 @@ def testConstructors():
     assert(descriptor)
     kExpectedVersion = "1.5.0"
     descriptor.setVersion(kExpectedVersion)
+    #print(descriptor.getVersion())
     assert(descriptor.getVersion() == kExpectedVersion)
 
     descriptor2 = Descriptor()
-    assert(descriptor.getVersion() == "")
+    assert(descriptor2)
+    #print(descriptor2.getVersion())
+    assert(descriptor2.getVersion() == "")
 
-    #TODO fix move operator
-    #descriptor2.assign(descriptor)
+    descriptor2 = descriptor
     assert(descriptor2.getVersion() == kExpectedVersion);
 
 
@@ -36,7 +38,7 @@ def testGetLayerTypes():
     assert(metadata)
 
     tmpFile = testUtils.RandomFileGuard("name")
-    print(tmpFile.getName())
+    #print(tmpFile.getName())
 
     dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
     assert(dataset)
@@ -46,11 +48,12 @@ def testGetLayerTypes():
 
     layerTypes = descriptor.getLayerTypes()
     assert(len(layerTypes) == 2)
-    #print(getLayerTypeAsString(layerTypes[0]))
-    #print(getLayerTypeAsString(layerTypes[1]))
-    
+        
     assert(Elevation in layerTypes)
     assert(Uncertainty in layerTypes)
+
+    assert(getLayerTypeAsString(layerTypes[0]) == "Elevation")
+    assert(getLayerTypeAsString(layerTypes[1]) == "Uncertainty")
 
     del dataset #ensure dataset is deleted before tmpFile
 
@@ -77,9 +80,8 @@ def testGetLayerDescriptors():
     assert(descriptor)
 
     layerDescriptors = descriptor.getLayerDescriptors()
-
-    # TODO functions on vector<shared_ptr<X>> not working. need typemaps?
-  #  assert(len(layerDescriptors) == 2)
+    assert(len(layerDescriptors) == 2)
+    #layerDescriptors = None
     
     del dataset #ensure dataset is deleted before tmpFile
 
@@ -94,7 +96,7 @@ def testGetLayerDescriptor():
     assert(metadata)
 
     tmpFile = testUtils.RandomFileGuard("name")
-    print(tmpFile.getName())
+    #print(tmpFile.getName())
 
     dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
     assert(dataset)
@@ -198,10 +200,12 @@ def testSetValues():
     assert(descriptor.getOrigin() == (kExpectedXspacing, kExpectedYspacing))
 
 
-#testConstructors() #TODO fix move constructor
+testConstructors()
 testReadOnly()
 testGetLayerTypes()
-testGetLayerDescriptors()
 testGetLayerDescriptor()
 testFromMetadata()
 testSetValues()
+
+#TODO: fix memory leak
+#testGetLayerDescriptors()

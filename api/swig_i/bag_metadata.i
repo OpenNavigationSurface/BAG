@@ -6,7 +6,6 @@
 
 %module bag_metadata
 
-#pragma SWIG nowarn=475 // ignore warnings about "optimal attribute usage in the out typemap."
 
 %{
 #include "../bag_dataset.h"

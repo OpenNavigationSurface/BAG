@@ -52,7 +52,7 @@ public:
 
 %extend LayerDescriptor
 {
-    std::pair<float, float> BAG::LayerDescriptor::getMinMax() const noexcept
+    std::pair<float, float> getMinMax() const noexcept
     {
         float min=0.0, max=0.0;
         std::tie(min, max) = self->getMinMax();

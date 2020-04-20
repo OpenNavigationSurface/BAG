@@ -15,24 +15,22 @@
 %include <std_string.i>
 %include <stdint.i>
 
+
+%include "std_weak_ptr.i"
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::Descriptor)
-%shared_ptr(BAG::LayerDescriptor)
 
-
-//*****
-// TODO change to weak_ptr
-//*****
 %include <stl.i>
 namespace std 
 {
-    %template(SharedLayerDescVector) vector<shared_ptr<BAG::LayerDescriptor>>;
+    %template(WeakLayerDescPtr) weak_ptr<BAG::LayerDescriptor>;
+    %template(WeakLayerDescVector) vector<weak_ptr<const BAG::LayerDescriptor>>;
 }
 
 
 %import "bag_layerdescriptor.i"
-%import "bag_types.i"
 
+%import "bag_types.i"
 namespace BAG {
 
     class Metadata;

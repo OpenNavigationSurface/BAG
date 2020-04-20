@@ -20,7 +20,7 @@ def testConstructor():
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
 
-    #metadata = Metadata()
+    #metadata = Metadata(dataset)
     metadata = Metadata.fromSharedDataset(dataset)
     assert(metadata)
     print(metadata.llCornerX())
@@ -56,7 +56,7 @@ def testHorizontalReferenceSystemAsWKT():
 def testLoadFromFile():
     tmpFile = testUtils.RandomFileGuard("string",
         bagMetadataSamples.kXMLv2MetadataBuffer)
-    print(tmpFile.getName())
+    #print(tmpFile.getName())
 
     metadata = Metadata()
     metadata.loadFromFile(tmpFile.getName())
