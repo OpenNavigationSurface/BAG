@@ -139,11 +139,11 @@ def testWriteRead():
     #TODO rework this if possible.
     items = BagVRMetadataItems((kExpectedItem0,))
     buffer = VRMetadataLayerItems(items)  # LayerItem((kExpectedItem0,))
-    vrMetadata.write2(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+    vrMetadata.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
 
     # Read the record back.
-    buffer = vrMetadata.read2(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+    buffer = vrMetadata.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
     assert(buffer)
 
     result = buffer.asVRMetadataItems()

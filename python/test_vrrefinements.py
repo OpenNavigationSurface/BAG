@@ -108,10 +108,10 @@ def testWriteRead():
     #TODO rework this if possible.
     items = BagVRRefinementsItems((kExpectedItem0,))
     buffer = VRRefinementsLayerItems(items)  # LayerItem((kExpectedItem0,))
-    vrRefinements.write2(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+    vrRefinements.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
     # Read the record back.
-    buffer = vrRefinements.read2(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+    buffer = vrRefinements.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
     assert(buffer);
 
     result = buffer.asVRRefinementsItems()

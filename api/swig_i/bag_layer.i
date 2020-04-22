@@ -61,18 +61,18 @@ public:
     std::shared_ptr<LayerDescriptor> getDescriptor() & noexcept;
     //std::shared_ptr<const LayerDescriptor> getDescriptor() const & noexcept;
 
-    UInt8Array read(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
-        uint32_t columnEnd) const;
+    //UInt8Array read(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
+    //    uint32_t columnEnd) const;
 
-    void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
-        uint32_t columnEnd, const uint8_t* buffer);
+    //void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
+    //    uint32_t columnEnd, const uint8_t* buffer);
 
     void writeAttributes() const;
 };
 
 %extend Layer
 {
-    LayerItem read2(
+    LayerItem read(
         uint32_t rowStart,
         uint32_t columnStart,
         uint32_t rowEnd,
@@ -82,7 +82,7 @@ public:
             columnEnd)};
     }
 
-    void write2(
+    void write(
         uint32_t rowStart,
         uint32_t columnStart,
         uint32_t rowEnd,

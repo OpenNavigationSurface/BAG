@@ -124,10 +124,10 @@ def testWriteRead():
     #TODO rework this if possible.
     items = BagVRNodeItems((kExpectedItem0,))
     buffer = VRNodeLayerItems(items)  # LayerItem((kExpectedItem0,))
-    vrNode.write2(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+    vrNode.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
     # Read the record back.
-    buffer = vrNode.read2(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+    buffer = vrNode.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
     assert(buffer)
 
     result = buffer.asVRNodeItems()
