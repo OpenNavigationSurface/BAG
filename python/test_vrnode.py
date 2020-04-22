@@ -116,35 +116,31 @@ def testWriteRead():
     # Write one record.
     kExpectedItem0 = BagVRNodeItem(123.456, 42, 1701);
 
-    #const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
-    #TODO use UInt8Array ???
-    # convert BagVRNodeItem -> array/tuple of uint8_t*
-
     kRowStart = 0  # not used
     kColumnStart = 0
     kRowEnd = 0  # not used
     kColumnEnd = 0
 
-    #TODO read/write fix in the works
-    #vrNode.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+    #TODO rework this if possible.
+    items = BagVRNodeItems((kExpectedItem0,))
+    buffer = VRNodeLayerItems(items)  # LayerItem((kExpectedItem0,))
+    vrNode.write2(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
     # Read the record back.
-    #TODO read/write fix in the works
-    #buffer = vrNode.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+    buffer = vrNode.read2(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
     assert(buffer)
 
-    #const auto* res = reinterpret_cast<const BagVRNodeItem*>(buffer.data());
-    #TODO use UInt8Array ???
-    # convert uint8_t* -> array/tuple of BagVRNodeItem
+    result = buffer.asVRNodeItems()
+    assert(len(result) == 1)
 
     # Check the expected value of BagVRNodeItem::hyp_strength.
-    assert(res.hyp_strength == kExpectedItem0.hyp_strength)
+    assert(result[0].hyp_strength == kExpectedItem0.hyp_strength)
 
     # Check the expected value of BagVRNodeItem::num_hypotheses.
-    assert(res.num_hypotheses == kExpectedItem0.num_hypotheses)
+    assert(result[0].num_hypotheses == kExpectedItem0.num_hypotheses)
 
     # Check the expected value of BagVRNodeItem::n_samples.
-    assert(res.n_samples == kExpectedItem0.n_samples)
+    assert(result[0].n_samples == kExpectedItem0.n_samples)
 
     # Force a close.
     del dataset

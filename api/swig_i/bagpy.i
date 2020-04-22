@@ -41,7 +41,7 @@ namespace std
 %include "bag_vrrefinementsdescriptor.i"
 
 %include "bag_valuetable.i"
-%include "bag_layeritem.i"
+%include "bag_layeritems.i"
 %include "bag_layer.i"
 %include "bag_simplelayer.i"
 %include "bag_interleavedlayer.i"

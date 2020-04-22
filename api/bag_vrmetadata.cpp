@@ -389,8 +389,8 @@ void VRMetadata::writeProxy(
         minResX = item->resolution_x < minResX ? item->resolution_x : minResX;
         minResY = item->resolution_y < minResY ? item->resolution_y : minResY;
 
-        maxResX = item->resolution_x > minResX ? item->resolution_x : maxResX;
-        maxResY = item->resolution_y > minResY ? item->resolution_y : maxResY;
+        maxResX = item->resolution_x > maxResX ? item->resolution_x : maxResX;
+        maxResY = item->resolution_y > maxResY ? item->resolution_y : maxResY;
     }
 
     pDescriptor->setMinDimensions(minDimX, minDimY);

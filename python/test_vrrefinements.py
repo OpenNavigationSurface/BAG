@@ -100,31 +100,28 @@ def testWriteRead():
     # "Write one record.
     kExpectedItem0 = BagVRRefinementsItem(9.8, 0.654)
 
-    #const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
-    #TODO use UInt8Array ???
-    # convert BagVRRefinementsItem -> array/tuple of uint8_t
-
     kRowStart = 0  # unused
     kColumnStart = 0
     kRowEnd = 0  # unused
     kColumnEnd = 0
 
-    #TODO read/write fix in the works
-    #vrRefinements.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+    #TODO rework this if possible.
+    items = BagVRRefinementsItems((kExpectedItem0,))
+    buffer = VRRefinementsLayerItems(items)  # LayerItem((kExpectedItem0,))
+    vrRefinements.write2(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
     # Read the record back.
-    #TODO read/write fix in the works
-    #result = vrRefinements.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
-    assert(result);
+    buffer = vrRefinements.read2(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+    assert(buffer);
 
-    #TODO ??? const auto* res = reinterpret_cast<const BAG::VRRefinementsItem*>(result.data());
-    # convert tuple/array of uint8_t into BAG::VRRefinementsItem
+    result = buffer.asVRRefinementsItems()
+    assert(len(result) == 1)
 
     # Check the expected value of VRRefinementItem::depth.
-    assert(res.depth == kExpectedItem0.depth)
+    assert(result[0].depth == kExpectedItem0.depth)
 
     # Check the expected value of VRRefinementItem::depth_uncrt.
-    assert(res.depth_uncrt == kExpectedItem0.depth_uncrt)
+    assert(result[0].depth_uncrt == kExpectedItem0.depth_uncrt)
 
     # Force a close.
     del dataset

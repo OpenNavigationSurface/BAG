@@ -14,7 +14,7 @@
 %import "bag_layerdescriptor.i"
 %import "bag_types.i"
 %import "bag_uint8array.i"
-%import "bag_layeritem.i"
+%import "bag_layeritems.i"
 
 %include <downcast_shared_ptr.i>
 %include <std_shared_ptr.i>
@@ -59,14 +59,12 @@ public:
         GroupType groupType = UNKNOWN_GROUP_TYPE);
 
     std::shared_ptr<LayerDescriptor> getDescriptor() & noexcept;
-    %ignore getDescriptor() const & noexcept;
+    //std::shared_ptr<const LayerDescriptor> getDescriptor() const & noexcept;
 
-    //UInt8Array 
-    %ignore read(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
+    UInt8Array read(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
         uint32_t columnEnd) const;
 
-    //void 
-    %ignore write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
+    void write(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
         uint32_t columnEnd, const uint8_t* buffer);
 
     void writeAttributes() const;
@@ -74,21 +72,26 @@ public:
 
 %extend Layer
 {
-    BAG::LayerItem read2(uint32_t rowStart, uint32_t columnStart, 
-        uint32_t rowEnd, uint32_t columnEnd) const
+    LayerItem read2(
+        uint32_t rowStart,
+        uint32_t columnStart,
+        uint32_t rowEnd,
+        uint32_t columnEnd) const
     {
-        BAG::UInt8Array readItem = self->read(rowStart, columnStart, rowEnd, columnEnd);
-        return BAG::LayerItem(readItem.data()); 
+        return BAG::LayerItem{$self->read(rowStart, columnStart, rowEnd,
+            columnEnd)};
     }
 
-    void write2(uint32_t rowStart, uint32_t columnStart, uint32_t rowEnd,
-        uint32_t columnEnd, BAG::LayerItem item)
+    void write2(
+        uint32_t rowStart,
+        uint32_t columnStart,
+        uint32_t rowEnd,
+        uint32_t columnEnd,
+        const LayerItem& items)
     {
-        //auto surfC = item.getAs<BagVerticalDatumCorrections>();
-        //printf("x: %f \n", surfC->x);
-        //printf("y: %f \n", surfC->y);
-        self->write(rowStart, columnStart, rowEnd, columnEnd, item.data());
+        $self->write(rowStart, columnStart, rowEnd, columnEnd, items.data());
     }
 }
 
-}
+}  // namespace BAG
+

@@ -10,11 +10,6 @@
 #include "../bag_trackinglist.h"
 %}
 
-namespace H5
-{
-    class DataSet;
-}
-
 %import "bag_types.i"
 
 %include <std_vector.i>

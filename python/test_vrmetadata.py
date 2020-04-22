@@ -131,45 +131,44 @@ def testWriteRead():
     # Write one record.
     kExpectedItem0 = BagVRMetadataItem(0, 1, 2, 3.45, 6.789, 1001.01, 4004.004)
 
-    #const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
-    #TODO use UInt8Array ???
-    # convert uint8_t* -> array/tuple of BagVRMetadataItem
     kRowStart = 0
     kColumnStart = 0
     kRowEnd = 0
     kColumnEnd = 0
 
-    #TODO read/write fix in the works
-    #vrMetadata.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+    #TODO rework this if possible.
+    items = BagVRMetadataItems((kExpectedItem0,))
+    buffer = VRMetadataLayerItems(items)  # LayerItem((kExpectedItem0,))
+    vrMetadata.write2(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+
 
     # Read the record back.
-    #TODO read/write fix in the works
-    #buffer = vrMetadata.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+    buffer = vrMetadata.read2(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
     assert(buffer)
 
-    #result = reinterpret_cast<const BAG::VRMetadataItem*>(buffer.data());
-    #TODO convert uint8_t* -> VRMetadataItem
+    result = buffer.asVRMetadataItems()
+    assert(len(result) == 1)
 
     # Check the expected value of VRMetadataItem::index.
-    assert(result.index == kExpectedItem0.index)
+    assert(result[0].index == kExpectedItem0.index)
 
     # Check the expected value of VRMetadataItem::dimensions_x.
-    assert(result.dimensions_x == kExpectedItem0.dimensions_x)
+    assert(result[0].dimensions_x == kExpectedItem0.dimensions_x)
 
     # Check the expected value of VRMetadataItem::dimensions_y.
-    assert(result.dimensions_y == kExpectedItem0.dimensions_y)
+    assert(result[0].dimensions_y == kExpectedItem0.dimensions_y)
 
     # Check the expected value of VRMetadataItem::resolution_x.
-    assert(isclose(result.resolution_x, kExpectedItem0.resolution_x, abs_tol = 1e-5))
+    assert(isclose(result[0].resolution_x, kExpectedItem0.resolution_x, abs_tol = 1e-5))
 
     # Check the expected value of VRMetadataItem::resolution_y.
-    assert(isclose(result.resolution_y, kExpectedItem0.resolution_y, abs_tol = 1e-5))
+    assert(isclose(result[0].resolution_y, kExpectedItem0.resolution_y, abs_tol = 1e-5))
 
     # Check the expected value of VRMetadataItem::sw_corner_x.".
-    assert(isclose(result.sw_corner_x, kExpectedItem0.sw_corner_x, abs_tol = 1e-5))
+    assert(isclose(result[0].sw_corner_x, kExpectedItem0.sw_corner_x, abs_tol = 1e-5))
 
     # Check the expected value of VRMetadataItem::sw_corner_y."
-    assert(isclose(result.sw_corner_y, kExpectedItem0.sw_corner_y, abs_tol = 1e-5))
+    assert(isclose(result[0].sw_corner_y, kExpectedItem0.sw_corner_y, abs_tol = 1e-5))
 
     # Force a close.
     del dataset

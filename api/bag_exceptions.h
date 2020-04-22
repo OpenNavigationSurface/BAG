@@ -211,6 +211,17 @@ struct BAG_API InvalidLayerDescriptor final : virtual std::exception
 };
 
 
+// LayerItem related.
+//! The type cannot be cast to the specified type.
+struct BAG_API InvalidCast final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The LayerItem cannot be cast to the specified type.";
+    }
+};
+
+
 //! Legacy CRS related.
 //! Ran into a problem (internal).
 struct CoordSysError : virtual std::exception
@@ -367,6 +378,7 @@ struct BAG_API RecordNotFound final : virtual std::exception
             "than 0, and less than the number of records present.";
     }
 };
+
 
 // VRRefinement related.
 //! VR Refinements are the wrong dimensions.
