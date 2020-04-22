@@ -121,9 +121,7 @@ def testWriteRead():
     kRowEnd = 0  # not used
     kColumnEnd = 0
 
-    #TODO rework this if possible.
-    items = BagVRNodeItems((kExpectedItem0,))
-    buffer = VRNodeLayerItems(items)  # LayerItem((kExpectedItem0,))
+    buffer = VRNodeLayerItems((kExpectedItem0,))  # LayerItem((kExpectedItem0,))
     vrNode.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
     # Read the record back.

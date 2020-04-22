@@ -1,11 +1,12 @@
 from bagPy import *
+from math import isclose
 import shutil, pathlib, math
 import bagMetadataSamples, testUtils
 import sys
 
 
 # define constants used in multiple tests
-datapath = str(pathlib.Path(__file__).parent.absolute()) + "\..\examples\sample-data"
+datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 chunkSize = 100
 compressionLevel = 6
 
@@ -13,8 +14,7 @@ compressionLevel = 6
 # define the unit test methods:
 
 def testGetName():
-    bagFileName = datapath + "\sample.bag"
-    #print(bagFileName)
+    bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
 
@@ -23,12 +23,10 @@ def testGetName():
     descriptor = layer.getDescriptor()
     assert(descriptor)
 
-    #print(descriptor.getName())
-    #print(getLayerTypeAsString(Elevation))
     assert(descriptor.getName() == getLayerTypeAsString(Elevation))
 
 def testRead():
-    bagFileName = datapath + "\\NAVO_data\\JD211_public_Release_1-4_UTM.bag"
+    bagFileName = datapath + "/NAVO_data/JD211_public_Release_1-4_UTM.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
 
@@ -39,50 +37,30 @@ def testRead():
     rowEnd = 289
     columnStart = 249
     columnEnd = 251
-    buffer = elevLayer.read(rowStart, columnStart, rowEnd, columnEnd) # 2x3
+
+    result = elevLayer.read(rowStart, columnStart, rowEnd, columnEnd) # 2x3
+    assert(result)
 
     kExpectedNumNodes = 6
+
+    buffer = result.asFloatItems()
+    assert(len(buffer) == kExpectedNumNodes)
+
     rows = (rowEnd - rowStart) + 1
     columns = (columnEnd - columnStart) + 1
-
-    assert(buffer.size() > 0)
-
-    datatype = Layer.getDataType(kLayerType)
-    #print(datatype)
-    elemsize = Layer.getElementSize(datatype)
-    #print(elemsize)
-    datasize = (elemsize * rows * columns)
-    #print(datasize)
-
-    #floatBuffer = float(buffer.get())
-
-   # bufferSize = sys.getsizeof(buffer[0])
-    #print(floatSize)
-   # floatBufferSize = sys.getsizeof(floatBuffer[0])
-   # print(floatBufferSize)
-    #print(buffer[0])
-    #print(buffer[0].value())
-    ##print(buffer.get(0))
-    #print(buffer.__getitem__(0))
-
-    #???
-    #assert((kExpectedNumNodes * floatSize) == datasize)
 
     kExpectedBuffer = (1000000.0, -52.161003, -52.172005,
         1000000.0, -52.177002, -52.174004)
 
-    # TODO: get UInt8Array [] working
-    #for i in range (0, kExpectedNumNodes):
-        #print(buffer[i])        
-        #assert(kExpectedBuffer[i] == buffer[i])
-
+    assert(all(isclose(actual, expected, abs_tol = 1e-5)
+        for actual, expected in zip(buffer, kExpectedBuffer)))
 
 def testWrite():
     kLayerType = Elevation
     kExpectedNumNodes = 12
     kFloatValue = 123.456
     tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
+
     metadata = Metadata()
     metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
     assert(metadata)
@@ -90,47 +68,50 @@ def testWrite():
     # Create the dataset.
     dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
     assert(dataset)
+
     layer = dataset.getLayer(kLayerType)
     assert(layer)
+
     fileDims = dataset.getDescriptor().getDims()
+
     kExpectedRows = dataset.getMetadata().getStruct().spatialRepresentationInfo.numberOfRows
     kExpectedColumns = dataset.getMetadata().getStruct().spatialRepresentationInfo.numberOfColumns
     assert(fileDims == (kExpectedRows, kExpectedColumns))
 
+
     # Open the dataset read/write and write to it.
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
     assert(dataset)
+
     elevLayer = dataset.getLayer(kLayerType);
-    assert(layer)    
-    origBuffer = [kFloatValue] * kExpectedNumNodes
-    print(origBuffer)
+    assert(elevLayer)
 
-    uint8Buffer = [int(i) for i in origBuffer] 
+    origBuffer = (kFloatValue,) * kExpectedNumNodes
+    buffer = FloatLayerItems(origBuffer)
 
-    assert(elevLayer.write(1, 2, 3, 5, uint8Buffer))
-            #reinterpret_cast<uint8_t*>(buffer.data()))); // 3x4
-    
+    # Write the floats to the elevation layer.
+    elevLayer.write(1, 2, 3, 5, buffer)
+
+
     # Open the dataset and read what was written.
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
     assert(dataset)
+
     elevLayer = dataset.getLayer(kLayerType)
+    assert(elevLayer)
+
     readBuffer = elevLayer.read(1, 2, 3, 5) # 3x4
     assert(readBuffer.size() > 0)
 
-    floatBuffer = [float(i) for i in readBuffer]
+    floatBuffer = readBuffer.asFloatItems()
 
-    #const auto* floatBuffer = reinterpret_cast<const float*>(buffer.get());
+    assert(all(isclose(actual, expected, abs_tol = 1e-5)
+        for actual, expected in zip(floatBuffer, origBuffer)))
 
-
-    for i in (0, kExpectedNumNodes):
-        assert(floatBuffer[i] == origBuffer[i])
-    
     del dataset #ensure dataset is deleted before tmpFile
 
-
-
 def testWriteAttributes():
-    bagFileName = datapath + "\sample.bag"
+    bagFileName = datapath + "/sample.bag"
     tmpFile = testUtils.RandomFileGuard("file", bagFileName)
     kLayerType = Elevation
     kExpectedMin = 0.0
@@ -140,7 +121,7 @@ def testWriteAttributes():
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
     assert(dataset)
     elevLayer = dataset.getLayer(kLayerType)
-    assert(elevLayer)    
+    assert(elevLayer)
     descriptor = elevLayer.getDescriptor()
     assert(descriptor)
 
@@ -165,9 +146,6 @@ def testWriteAttributes():
 
 # run the unit test methods
 testGetName()
-
-#TODO fix read/write
-#testRead()
-#testWrite()
-
+testRead()
+testWrite()
 testWriteAttributes()

@@ -105,9 +105,7 @@ def testWriteRead():
     kRowEnd = 0  # unused
     kColumnEnd = 0
 
-    #TODO rework this if possible.
-    items = BagVRRefinementsItems((kExpectedItem0,))
-    buffer = VRRefinementsLayerItems(items)  # LayerItem((kExpectedItem0,))
+    buffer = VRRefinementsLayerItems((kExpectedItem0,))  # LayerItem((kExpectedItem0,))
     vrRefinements.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
     # Read the record back.

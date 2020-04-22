@@ -136,9 +136,7 @@ def testWriteRead():
     kRowEnd = 0
     kColumnEnd = 0
 
-    #TODO rework this if possible.
-    items = BagVRMetadataItems((kExpectedItem0,))
-    buffer = VRMetadataLayerItems(items)  # LayerItem((kExpectedItem0,))
+    buffer = VRMetadataLayerItems((kExpectedItem0,))
     vrMetadata.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
 
