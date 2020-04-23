@@ -30,7 +30,6 @@ public:
 
         std::memcpy(m_data.data(), items.data(), numBytes);
     }
-    //TODO SurfaceCorrections
     //TODO CompoundLayer
 
     const uint8_t* data() const & noexcept

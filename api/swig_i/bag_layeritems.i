@@ -20,11 +20,12 @@
 //%template(FloatItems) std::vector<float>;
 //%template(UInt32Items) std::vector<uint32_t>;
 
+%template(BagVerticalDatumCorrectionsItems) std::vector<BagVerticalDatumCorrections>;
+%template(BagVerticalDatumCorrectionsGriddedItems) std::vector<BagVerticalDatumCorrectionsGridded>;
+
 %template(BagVRMetadataItems) std::vector<BagVRMetadataItem>;
 %template(BagVRNodeItems) std::vector<BagVRNodeItem>;
 %template(BagVRRefinementsItems) std::vector<BagVRRefinementsItem>;
-%template(BagVerticalDatumCorrectionsItems) std::vector<BagVerticalDatumCorrections>;
-%template(BagVRMetadatBagVerticalDatumCorrectionsGriddedItems) std::vector<BagVerticalDatumCorrectionsGridded>;
 
 
 namespace BAG {
@@ -48,6 +49,8 @@ public:
 %template(FloatLayerItems) LayerItem::LayerItem<float>;
 %template(UInt32LayerItems) LayerItem::LayerItem<uint32_t>;
 //TODO SurfaceCorrections
+%template(SurfaceCorrectionsLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrections>;
+%template(SurfaceCorrectionsGriddedLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrectionsGridded>;
 //TODO CompoundLayer
 %template(VRMetadataLayerItems) LayerItem::LayerItem<BagVRMetadataItem>;
 %template(VRNodeLayerItems) LayerItem::LayerItem<BagVRNodeItem>;
@@ -58,12 +61,12 @@ public:
 %template(asUInt32Items) LayerItem::getAs<uint32_t>;
 %template(asFloatItems) LayerItem::getAs<float>;
 //TODO SurfaceCorrections
+%template(asVerticalDatumCorrections) LayerItem::getAs<BagVerticalDatumCorrections>;
+%template(asVerticalDatumCorrectionsGridded) LayerItem::getAs<BagVerticalDatumCorrectionsGridded>;
 //TODO CompoundLayer
 %template(asVRMetadataItems) LayerItem::getAs<BagVRMetadataItem>;
 %template(asVRRefinementsItems) LayerItem::getAs<BagVRRefinementsItem>;
 %template(asVRNodeItems) LayerItem::getAs<BagVRNodeItem>;
-%template(asVerticalDatumCorrections) LayerItem::getAs<BagVerticalDatumCorrections>;
-%template(asVerticalDatumCorrectionsGridded) LayerItem::getAs<BagVerticalDatumCorrectionsGridded>;
 
 }  // namespace BAG
 
