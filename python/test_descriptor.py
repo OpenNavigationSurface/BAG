@@ -203,9 +203,7 @@ def testSetValues():
 testConstructors()
 testReadOnly()
 testGetLayerTypes()
+testGetLayerDescriptors()
 testGetLayerDescriptor()
 testFromMetadata()
 testSetValues()
-
-#TODO: fix memory leak
-#testGetLayerDescriptors()

@@ -23,7 +23,7 @@
 %include <stl.i>
 namespace std 
 {
-    %template(WeakLayerDescPtr) weak_ptr<BAG::LayerDescriptor>;
+    %template(WeakLayerDescPtr) weak_ptr<const BAG::LayerDescriptor>;
     %template(WeakLayerDescVector) vector<weak_ptr<const BAG::LayerDescriptor>>;
 }
 
