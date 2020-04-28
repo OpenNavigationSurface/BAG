@@ -57,6 +57,9 @@ const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {VarRes_Node, "Variable_Resolution_Node"},
 };
 
+
+using RecordDefinition = std::vector<FieldDefinition>;
+
 }   //namespace BAG
 
 #endif  //BAG_TYPES_H

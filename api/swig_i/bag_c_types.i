@@ -13,6 +13,13 @@
 //%include "bag_uint8array.i"
 %include "../bag_c_types.h"
 
+%extend FieldDefinition
+{
+    bool __eq__(const FieldDefinition& o) const
+    {
+        return ($self->name == o.name) && ($self->type == o.type);
+    }
+}
 
 //! SWIG-style constructor for BagTrackingItem
 %extend BagTrackingItem

@@ -11,6 +11,7 @@
 %}
 
 %include "../bag_types.h"
+%import "bag_c_types.i"
 
 %include <stl.i>
 %include <std_string.i>
@@ -20,6 +21,7 @@ namespace std
 {
     %template(LayerTypeVector) vector<BAG::LayerType>;
     %template(LayerTypeMap) unordered_map<BAG::LayerType, std::string>;
+    %template(RecordDefinition) vector<FieldDefinition>;
 }
 
 %inline

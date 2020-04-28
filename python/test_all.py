@@ -11,6 +11,7 @@ import test_simplelayerdescriptor
 import test_surfacecorrections
 import test_surfacecorrectionsdescriptor
 import test_trackinglist
+import test_valuetable
 import test_vrmetadata
 import test_vrmetadatadescriptor
 import test_vrnode

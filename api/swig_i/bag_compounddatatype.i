@@ -15,6 +15,13 @@
 %import "bag_types.i"
 %include <std_string.i>
 
+%include <stl.i>
+namespace std
+{
+    %template(Record) vector<BAG::CompoundDataType>;
+    %template(Records) vector<vector<BAG::CompoundDataType>>;
+}
+
 namespace BAG {
 
 class CompoundDataType final {
@@ -50,8 +57,6 @@ class CompoundDataType final {
         DataType getType() const noexcept;
 };
 
-struct ::FieldDefinition; //TODO now defined in c_types, not needed here?
-using RecordDefinition = std::vector<FieldDefinition>;
 using Record = std::vector<CompoundDataType>;
 using Records = std::vector<Record>;
 
