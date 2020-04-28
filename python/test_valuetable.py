@@ -80,18 +80,8 @@ def testReadEmpty():
 
 def testAddRecord():
     tmpFile = testUtils.RandomFileGuard("name")
-    
-    kExpectedLayerName = "uncertainty"
-    kExpectedNumRecords = 2
 
-    kExpectedNewRecord0 = Record(7)
-    kExpectedNewRecord0[0] = CompoundDataType("Bob")
-    kExpectedNewRecord0[1] = CompoundDataType("Jones")
-    kExpectedNewRecord0[2] = CompoundDataType(42.2)
-    kExpectedNewRecord0[3] = CompoundDataType(102)
-    kExpectedNewRecord0[4] = CompoundDataType(True)
-    kExpectedNewRecord0[5] = CompoundDataType(1234.567)
-    kExpectedNewRecord0[6] = CompoundDataType("101 Tape Drive")
+    kExpectedLayerName = getLayerTypeAsString(Uncertainty)
 
     # Write a record.
     metadata = Metadata()
@@ -103,6 +93,7 @@ def testAddRecord():
 
     indexType = DT_UINT16
 
+    # THe record definition.
     definition = RecordDefinition(7)
     definition[0].name = "first name"
     definition[0].type = DT_STRING
@@ -111,9 +102,9 @@ def testAddRecord():
     definition[2].name = "float value0"
     definition[2].type = DT_FLOAT32
     definition[3].name = "bool value"
-    definition[3].type = DT_UINT32
+    definition[3].type = DT_BOOLEAN
     definition[4].name = "uint32 value"
-    definition[4].type = DT_BOOLEAN
+    definition[4].type = DT_UINT32
     definition[5].name = "float value1"
     definition[5].type = DT_FLOAT32
     definition[6].name = "address"
@@ -122,13 +113,26 @@ def testAddRecord():
     layer = dataset.createCompoundLayer(indexType,
         kExpectedLayerName, definition, chunkSize, compressionLevel)
 
+    # There is one No Data Value record at index 0.
     valueTable = layer.getValueTable()
     assert(len(valueTable.getRecords()) == 1)
+
+    # A record matching the definition.
+    kExpectedNewRecord0 = Record(7)
+    kExpectedNewRecord0[0] = CompoundDataType("Bob")
+    kExpectedNewRecord0[1] = CompoundDataType("Jones")
+    kExpectedNewRecord0[2] = CompoundDataType(42.2)
+    kExpectedNewRecord0[3] = CompoundDataType(True)
+    kExpectedNewRecord0[4] = CompoundDataType(102)
+    kExpectedNewRecord0[5] = CompoundDataType(1234.567)
+    kExpectedNewRecord0[6] = CompoundDataType("101 Tape Drive")
+
+    kExpectedNumRecords = 2
 
     index = valueTable.addRecord(kExpectedNewRecord0)
     assert(index == 1)
     assert(len(valueTable.getRecords()) == kExpectedNumRecords)
-    
+
     ## TODO add assert that adding the following invalid record will throw
     #kJunkRecord = Record()
     #valueTable.addRecord(kJunkRecord)
@@ -151,41 +155,31 @@ def testAddRecord():
 
     field0value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field0value == kExpectedNewRecord0[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field1value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field1value == kExpectedNewRecord0[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field2value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field2value == kExpectedNewRecord0[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field3value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field3value == kExpectedNewRecord0[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field4value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field4value == kExpectedNewRecord0[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field5value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field5value == kExpectedNewRecord0[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field6value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field6value == kExpectedNewRecord0[fieldIndex])
-    ++fieldIndex
-
-
-    kExpectedNewRecord1 = Record(7)
-    kExpectedNewRecord1[0] = CompoundDataType("Ernie")
-    kExpectedNewRecord1[1] = CompoundDataType("Jones")
-    kExpectedNewRecord1[2] = CompoundDataType(987.6543)
-    kExpectedNewRecord1[3] = CompoundDataType(1001)
-    kExpectedNewRecord1[4] = CompoundDataType(False)
-    kExpectedNewRecord1[5] = CompoundDataType(0.08642)
-    kExpectedNewRecord1[6] = CompoundDataType("404 Disk Drive")
+    fieldIndex += 1
 
 
     # Set some new values an existing record.
@@ -200,47 +194,58 @@ def testAddRecord():
     records = valueTable.getRecords()
     assert(len(records) == kExpectedNumRecords)
 
+
+    # Set the values.
     kRecordIndex = 1
     fieldIndex = 0
 
+    kExpectedNewRecord1 = Record(7)
+    kExpectedNewRecord1[0] = CompoundDataType("Ernie")
+    kExpectedNewRecord1[1] = CompoundDataType("Jones")
+    kExpectedNewRecord1[2] = CompoundDataType(987.6543)
+    kExpectedNewRecord1[3] = CompoundDataType(False)
+    kExpectedNewRecord1[4] = CompoundDataType(1001)
+    kExpectedNewRecord1[5] = CompoundDataType(0.08642)
+    kExpectedNewRecord1[6] = CompoundDataType("404 Disk Drive")
 
-    # Read values back from memory.
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
+    # Read values back from memory.
     field0value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field0value == kExpectedNewRecord1[fieldIndex])
 
-    ++fieldIndex
+    fieldIndex += 1
+    print(fieldIndex)
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field1value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field1value == kExpectedNewRecord1[fieldIndex])
 
-    ++fieldIndex
+    fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field2value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field2value == kExpectedNewRecord1[fieldIndex])
 
-    ++fieldIndex
+    fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field3value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field3value == kExpectedNewRecord1[fieldIndex])
 
-    ++fieldIndex
+    fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field4value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field4value == kExpectedNewRecord1[fieldIndex])
 
-    ++fieldIndex
+    fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field5value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field5value == kExpectedNewRecord1[fieldIndex])
 
-    ++fieldIndex
+    fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field6value = valueTable.getValue(kRecordIndex, fieldIndex)
@@ -263,31 +268,31 @@ def testAddRecord():
 
     field0value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field0value == kExpectedNewRecord1[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field1value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field1value == kExpectedNewRecord1[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field2value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field2value == kExpectedNewRecord1[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field3value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field3value == kExpectedNewRecord1[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field4value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field4value == kExpectedNewRecord1[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field5value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field5value == kExpectedNewRecord1[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     field6value = valueTable.getValue(kRecordIndex, fieldIndex)
     assert(field6value == kExpectedNewRecord1[fieldIndex])
-    ++fieldIndex
+    fieldIndex += 1
 
     del dataset #ensure dataset is deleted before tmpFile
 
@@ -318,7 +323,7 @@ def testAddRecords():
     kExpectedRecords3[0] = CompoundDataType(False)
     kExpectedRecords3[1] = CompoundDataType("string 4")
     kExpectedRecords3[2] = CompoundDataType(False)
-    
+
     kExpectedRecords = Records(4)
     kExpectedRecords[0] = kExpectedRecords0
     kExpectedRecords[1] = kExpectedRecords1
