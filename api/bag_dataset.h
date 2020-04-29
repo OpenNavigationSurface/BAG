@@ -115,7 +115,6 @@ private:
     void createDataset(const std::string& fileName, Metadata&& metadata,
         uint64_t chunkSize, int compressionLevel);
 
-    //TODO What about uint32_t type min/max?
     std::tuple<bool, float, float> getMinMax(LayerType type,
         const std::string& path = {}) const;
 

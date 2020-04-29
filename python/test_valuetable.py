@@ -133,11 +133,6 @@ def testAddRecord():
     assert(index == 1)
     assert(len(valueTable.getRecords()) == kExpectedNumRecords)
 
-    ## TODO add assert that adding the following invalid record will throw
-    #kJunkRecord = Record()
-    #valueTable.addRecord(kJunkRecord)
-    #assert(len(valueTable.getRecords()) == kExpectedNumRecords)
-
 
     # Read the new record.
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)

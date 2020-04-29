@@ -147,4 +147,3 @@ testAssignString()
 testCopyConstuct()
 testCopyAssign()
 
-#TODO add tests of invalid cases after hooking up unit test platform

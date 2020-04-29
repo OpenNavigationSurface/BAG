@@ -16,8 +16,6 @@ using BAG::Dataset;
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
 TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read]")  //TODO Hidden because micro151 is not in git.
 {
-    //TODO Rewrite this to create a temporary BAG.
-    //TODO ^ cannot; only support reading interleaved layers
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/micro151.bag"};
 

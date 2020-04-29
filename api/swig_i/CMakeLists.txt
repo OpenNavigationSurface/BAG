@@ -26,8 +26,6 @@ swig_add_library(bagPy TYPE SHARED LANGUAGE python
     SOURCES "bagpy.i"
     )
 
-#TODO add dependencies on all the .i files
-
 swig_link_libraries(bagPy
     baglib
     Python3::Python

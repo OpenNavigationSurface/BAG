@@ -70,8 +70,8 @@ int main(
 
     try
     {
-        uint64_t chunkSize = 100;
-        unsigned int compressionLevel = 1;
+        constexpr uint64_t chunkSize = 100;
+        constexpr int compressionLevel = 1;
 
         dataset = BAG::Dataset::create(outFileName, std::move(metadata),
             chunkSize, compressionLevel);
@@ -166,8 +166,8 @@ int main(
 
     try
     {
-        uint64_t chunkSize = 100;
-        unsigned int compressionLevel = 1;
+        constexpr uint64_t chunkSize = 100;
+        constexpr int compressionLevel = 1;
 
         auto& nominalElevationLayer = dataset->createSimpleLayer(
             Nominal_Elevation, chunkSize, compressionLevel);
@@ -210,8 +210,8 @@ int main(
 
     try
     {
-        uint64_t chunkSize = 0;
-        unsigned int compressionLevel = 0;
+        uint64_t chunkSize = 100;  // > 0 chunksize is needed
+        constexpr int compressionLevel = 0;
         constexpr uint8_t kNumCorrectors = 2;
 
         auto& correctionsLayer = dataset->createSurfaceCorrections(

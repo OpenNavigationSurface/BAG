@@ -95,8 +95,6 @@ set_target_properties(baglib
         CMAKE_CXX_EXTENSIONS OFF
 )
 
-#TODO if shared, add -fpic for non-MSVC compiler
-
 target_compile_definitions(baglib
     PRIVATE
         $<$<CXX_COMPILER_ID:MSVC>:_USE_MATH_DEFINES>

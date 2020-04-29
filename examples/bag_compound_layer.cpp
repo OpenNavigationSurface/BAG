@@ -63,7 +63,7 @@ int main(
     try
     {
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 1;
+        constexpr int compressionLevel = 1;
 
         dataset = BAG::Dataset::create(outFileName, std::move(metadata),
             chunkSize, compressionLevel);

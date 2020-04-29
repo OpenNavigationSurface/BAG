@@ -215,8 +215,6 @@ BagError bagCreateFromFile(
         BAG::Metadata metadata;
         metadata.loadFromFile(std::string{metadataFile});
 
-        //TODO Where do these values come from?
-        // Thinking parameters to this function.
         constexpr uint64_t chunkSize = 100;
         constexpr int compressionLevel = 6;
 
@@ -271,8 +269,6 @@ BagError bagCreateFromBuffer(
         metadata.loadFromBuffer(
             std::string{reinterpret_cast<char*>(metadataBuffer), metadataBufferSize});
 
-        //TODO Where do these values come from?
-        // Thinking parameters to this function.
         constexpr uint64_t chunkSize = 100;
         constexpr int compressionLevel = 6;
 
@@ -310,8 +306,6 @@ BagError bagCreateLayer(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    //TODO Where do these values come from?
-    // Thinking parameters to this function.
     constexpr uint64_t chunkSize = 100;
     constexpr int compressionLevel = 6;
 
@@ -1596,7 +1590,7 @@ BagError bagCreateCorrectorLayer(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    //TODO where to get chunkSize & compressionLevel from?  elevation layer?
+    // Get chunkSize & compressionLevel from the elevation layer.
     const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
@@ -2096,7 +2090,7 @@ BagError bagCreateCompoundLayer(
     if (!layerName || !definition || numFields < 1)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    //TODO where to get chunkSize & compressionLevel from?  elevation layer?
+    // Get the chunkSize & compressionLevel from the elevation layer.
     const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
@@ -2161,7 +2155,7 @@ BagError bagGetCompoundLayerDefinition(
     *numFields = static_cast<uint32_t>(recordDef.size());
 
     auto* pDef = *definition;
-    pDef = new FieldDefinition[*numFields];  //TODO Write a free for this.
+    pDef = new FieldDefinition[*numFields];
 
     uint32_t index = 0;
     for (const auto& def : recordDef)
@@ -2758,7 +2752,7 @@ BagError bagCreateVRLayers(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    //TODO where to get chunkSize & compressionLevel from?  elevation layer?
+    //  Get chunkSize & compressionLevel from the elevation layer.
     const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;

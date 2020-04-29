@@ -20,26 +20,6 @@
 
 namespace BAG {
 
-#if 0
-struct Bob
-{
-    std::vector<int> ints;
-};
-
-%extend Bob
-{
-    int& __setitem__(size_t index) & noexcept
-    {
-        return ints[index];
-    }
-
-    const int& __getitem__(size_t index) & const noexcept
-    {
-        return ints[index];
-    }
-};
-#endif
-
 class VRTrackingList final
 {
 public:
@@ -67,7 +47,6 @@ public:
     void push_back(value_type&& value);
     //void push_back(const value_type& value);
 
-    //TODO variadic template
     //template <typename... Args>
     //void emplace_back(Args&&... args) &;
 

@@ -36,8 +36,6 @@ public:
     explicit LayerItem(const UInt8Array& items);
     template <typename T>
     explicit LayerItem(const std::vector<T>& items);
-    //TODO SurfaceCorrections
-    //TODO CompoundLayer
 
     const uint8_t* data() const &;
     bool empty() const noexcept;
@@ -48,10 +46,8 @@ public:
 
 %template(FloatLayerItems) LayerItem::LayerItem<float>;
 %template(UInt32LayerItems) LayerItem::LayerItem<uint32_t>;
-//TODO SurfaceCorrections
 %template(SurfaceCorrectionsLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrections>;
 %template(SurfaceCorrectionsGriddedLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrectionsGridded>;
-//TODO CompoundLayer
 %template(VRMetadataLayerItems) LayerItem::LayerItem<BagVRMetadataItem>;
 %template(VRNodeLayerItems) LayerItem::LayerItem<BagVRNodeItem>;
 %template(VRRefinementsLayerItems) LayerItem::LayerItem<BagVRRefinementsItem>;
@@ -60,10 +56,8 @@ public:
 
 %template(asUInt32Items) LayerItem::getAs<uint32_t>;
 %template(asFloatItems) LayerItem::getAs<float>;
-//TODO SurfaceCorrections
 %template(asVerticalDatumCorrections) LayerItem::getAs<BagVerticalDatumCorrections>;
 %template(asVerticalDatumCorrectionsGridded) LayerItem::getAs<BagVerticalDatumCorrectionsGridded>;
-//TODO CompoundLayer
 %template(asVRMetadataItems) LayerItem::getAs<BagVRMetadataItem>;
 %template(asVRRefinementsItems) LayerItem::getAs<BagVRRefinementsItem>;
 %template(asVRNodeItems) LayerItem::getAs<BagVRNodeItem>;

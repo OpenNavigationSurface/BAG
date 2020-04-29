@@ -15,7 +15,6 @@
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::Dataset)
 
-//%import "bag_dataset.i"  //TODO Is the fordec below and #include above the solution?
 %import "bag_types.i"
 
 %include <std_string.i>

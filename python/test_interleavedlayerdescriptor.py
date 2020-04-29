@@ -47,9 +47,6 @@ def testGetGroupType():
     assert(descriptor)
     assert(descriptor.getGroupType() == kExpectedGroup)
 
-    #TODO add assert that the interleaved layer creation throws with an invalid group and layer combination.
-    #InterleavedLayerDescriptor.create(dataset, Hypothesis_Strength, ELEVATION)
-
     del dataset #ensure dataset is deleted before tmpFile
 
 def testElementSize():
@@ -78,6 +75,7 @@ def testElementSize():
         Layer.getElementSize(Layer.getDataType(kExpectedLayerType)))
 
     del dataset #ensure dataset is deleted before tmpFile
+
 
 # run the unit test methods
 testCreate()
