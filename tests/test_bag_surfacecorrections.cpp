@@ -584,8 +584,5 @@ TEST_CASE("test surface corrections create, write, read two gridded records",
     CHECK(res[1].z[0] == kExpectedItems[1].z[0]);
     CHECK(res[1].z[1] == kExpectedItems[1].z[1]);
     CHECK(res[1].z[2] == kExpectedItems[1].z[2]);
-
-    //TODO Flush the HDF5 file.
-    pDataset.reset();
 }
 

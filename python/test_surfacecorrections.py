@@ -1,5 +1,6 @@
 from bagPy import *
-import shutil, pathlib, math
+from math import isclose
+import shutil, pathlib
 import bagMetadataSamples, testUtils
 import sys
 
@@ -105,10 +106,14 @@ def testCreateWriteIrregular():
     correctionsResult = result.asVerticalDatumCorrections()
     assert(len(correctionsResult) == 1)
 
-    assert(correctionsResult[0].x == kExpectedItem0.x)
-    assert(correctionsResult[0].y == kExpectedItem0.y)
-    assert(correctionsResult[0].z[0] == kExpectedItem0.z[0])
-    assert(correctionsResult[0].z[1] == kExpectedItem0.z[1])
+    assert(isclose(correctionsResult[0].x, kExpectedItem0.x, abs_tol = 1e-5))
+    assert(isclose(correctionsResult[0].y, kExpectedItem0.y, abs_tol = 1e-5))
+
+    actualZValues = correctionsResult[0].zValues()
+    expectedZValues = kExpectedItem0.zValues()
+
+    assert(all(isclose(actual, expected, abs_tol = 1e-5)
+        for actual, expected in zip(actualZValues, expectedZValues)))
 
     del dataset #ensure dataset is deleted before tmpFile
 
@@ -118,6 +123,4 @@ testReadIrregular()
 testCreateIrregular()
 testCreateGridded()
 testCreateWriteIrregular()
-
-#TODO add more tests
 

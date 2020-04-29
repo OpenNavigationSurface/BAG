@@ -10,8 +10,10 @@
 #include "../bag_c_types.h"
 %}
 
-//%include "bag_uint8array.i"
 %include "../bag_c_types.h"
+
+%include <std_vector.i>
+
 
 %extend FieldDefinition
 {
@@ -81,15 +83,24 @@
         double inY,
         const std::vector<float>& inZ)
     {
-        auto* item = new BagVerticalDatumCorrections();
+        auto* item = new BagVerticalDatumCorrections{};
 
         item->x = inX;
         item->y = inY;
 
-        std::memcpy(item->z, inZ.data(),
-            sizeof(float) * BAG_SURFACE_CORRECTOR_LIMIT);
+        std::memcpy(item->z, inZ.data(), sizeof(float) * inZ.size());
 
         return item;
+    }
+
+    std::vector<float> zValues() const
+    {
+        std::vector<float> result(10);
+
+        std::memcpy(result.data(), $self->z,
+            BAG_SURFACE_CORRECTOR_LIMIT * sizeof(float));
+
+        return result;
     }
 }
 
@@ -100,9 +111,19 @@
     {
         auto* item = new BagVerticalDatumCorrectionsGridded{};
 
-        std::memcpy(item->z, inZ.data(),
-            sizeof(float) * BAG_SURFACE_CORRECTOR_LIMIT);
+        std::memcpy(item->z, inZ.data(), sizeof(float) * inZ.size());
 
         return item;
     }
+
+    std::vector<float> zValues() const
+    {
+        std::vector<float> result(10);
+
+        std::memcpy(result.data(), $self->z,
+            BAG_SURFACE_CORRECTOR_LIMIT * sizeof(float));
+
+        return result;
+    }
 }
+
