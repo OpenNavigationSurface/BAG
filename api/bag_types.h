@@ -29,6 +29,7 @@ using OpenMode = BAG_OPEN_MODE;
 using TrackingItem = BagTrackingItem;
 
 using VerticalDatumCorrections = BagVerticalDatumCorrections;
+using VerticalDatumCorrectionsGridded = BagVerticalDatumCorrectionsGridded;
 
 //! The type of item in a variable resolution metadata layer.
 using VRMetadataItem = BagVRMetadataItem;

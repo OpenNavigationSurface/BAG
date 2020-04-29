@@ -17,18 +17,18 @@ namespace {
 \param type
     The topography type.
 \param numCorrectors
-    The number of correctory.
+    The number of correctors.
     Valid values are 1-10.
 
 \return
     The size of a node in the specified topography.
 */
 uint8_t getElementSize(
-    BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
-    uint8_t numCorrectors) noexcept
+    BAG_SURFACE_CORRECTION_TOPOGRAPHY type) noexcept
 {
-    return (type == BAG_SURFACE_IRREGULARLY_SPACED ? 2 * sizeof(double) : 0)
-        + numCorrectors * sizeof(float);
+    return (type == BAG_SURFACE_IRREGULARLY_SPACED)
+        ? sizeof(BAG::VerticalDatumCorrections)
+        : sizeof(BAG::VerticalDatumCorrectionsGridded);
 }
 
 }  // namespace
@@ -56,7 +56,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
         kLayerTypeMapString.at(Surface_Correction), Surface_Correction,
         chunkSize, compressionLevel)
     , m_surfaceType(type)
-    , m_elementSize(BAG::getElementSize(type, numCorrectors))
+    , m_elementSize(BAG::getElementSize(type))
     , m_numCorrectors(numCorrectors)
 {
 }
@@ -128,7 +128,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
         throw CannotReadNumCorrections{};
 
     // Element size.
-    m_elementSize = BAG::getElementSize(m_surfaceType, m_numCorrectors);
+    m_elementSize = BAG::getElementSize(m_surfaceType);
 
     // Number of rows & columns.
     const auto h5Space = h5dataSet.getSpace();
