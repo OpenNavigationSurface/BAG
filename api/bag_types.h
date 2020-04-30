@@ -5,6 +5,7 @@
 
 #include <limits>
 #include <unordered_map>
+#include <vector>
 
 
 namespace BAG
@@ -40,6 +41,10 @@ using VRRefinementsItem = BagVRRefinementsItem;
 //! The type of item in a variable resolution tracking list.
 using VRTrackingItem = BagVRTrackingItem;
 
+//! The type of a record definition (used with Compound Layers).
+using RecordDefinition = std::vector<FieldDefinition>;
+
+
 //! A default layer name for each layer.
 const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {Elevation, "Elevation"},
@@ -57,9 +62,6 @@ const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {VarRes_Refinement, "Variable_Resolution_Refinement"},
     {VarRes_Node, "Variable_Resolution_Node"},
 };
-
-
-using RecordDefinition = std::vector<FieldDefinition>;
 
 }   //namespace BAG
 
