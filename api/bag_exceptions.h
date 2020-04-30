@@ -249,7 +249,7 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     }
 };
 
-//! An error occured loading metatada.
+//! An error occurred loading metadata.
 struct BAG_API ErrorLoadingMetadata final : virtual std::exception
 {
     ErrorLoadingMetadata(BagError bagError) : m_error(bagError)
