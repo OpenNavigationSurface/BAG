@@ -58,6 +58,33 @@ def testGetLayerTypes():
 
     del dataset #ensure dataset is deleted before tmpFile
 
+
+def testGetLayerIds():
+    descriptor = Descriptor()
+    assert(descriptor)
+    layerIds = descriptor.getLayerIds()
+    assert(len(layerIds) == 0)
+
+    metadata = Metadata()
+    metadata.loadFromBuffer(bagMetadataSamples.kXMLv2MetadataBuffer)
+    assert(metadata)
+
+    tmpFile = testUtils.RandomFileGuard("name")
+
+    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+    assert(dataset)
+
+    descriptor = dataset.getDescriptor()
+    assert(descriptor)
+
+    layerIds = descriptor.getLayerIds()
+    assert(len(layerIds) == 2)
+
+    assert(layerIds[0] == 0)
+    assert(layerIds[1] == 1)
+
+    del dataset #ensure dataset is deleted before tmpFile
+
 def testReadOnly():
     descriptor = Descriptor()
     assert(descriptor)
@@ -209,6 +236,7 @@ def testSetValues():
 testConstructors()
 testReadOnly()
 testGetLayerTypes()
+testGetLayerIds()
 testGetLayerDescriptors()
 testGetLayerDescriptor()
 testFromMetadata()

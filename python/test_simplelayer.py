@@ -144,9 +144,22 @@ def testWriteAttributes():
 
     del dataset #ensure dataset is deleted before tmpFile
 
+    
+def testGetSimpleLayer():
+    bagFileName = datapath + "/sample.bag"
+    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+    assert(dataset)
+
+    layer = dataset.getSimpleLayer(Elevation)
+    assert(layer)
+    descriptor = layer.getDescriptor()
+    assert(descriptor)
+
+    assert(descriptor.getName() == getLayerTypeAsString(Elevation))
 
 # run the unit test methods
 testGetName()
 testRead()
 testWrite()
 testWriteAttributes()
+testGetSimpleLayer()

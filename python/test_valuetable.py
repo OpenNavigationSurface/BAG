@@ -73,6 +73,16 @@ def testReadEmpty():
     assert(valueTable.getFieldName(2) == kFieldName2)
     assert(valueTable.getFieldName(3) == kFieldName3)
 
+
+    descriptor = compoundLayer.getDescriptor()
+    descriptorDefinition = descriptor.getDefinition()    
+    assert(len(descriptorDefinition) == kExpectedDefinitionSize)
+
+    assert(descriptorDefinition[0] == kExpectedDefinition[0])
+    assert(descriptorDefinition[1] == kExpectedDefinition[1])
+    assert(descriptorDefinition[2] == kExpectedDefinition[2])
+    assert(descriptorDefinition[3] == kExpectedDefinition[3])
+
     del dataset #ensure dataset is deleted before tmpFile
 
 def testAddRecord():
@@ -353,12 +363,18 @@ def testAddRecords():
     assert(len(valueTable.getRecords()) == kExpectedNumRecords)
 
 
+
     #Read the new records.
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
     assert(dataset)
 
     layer = dataset.getCompoundLayer(kExpectedLayerName)
     assert(layer)
+
+    compoundLayerList = dataset.getCompoundLayers()
+    assert(compoundLayerList)
+    assert(len(compoundLayerList) == 1)
+    assert(compoundLayerList[0] == layer)
 
     valueTable = layer.getValueTable()
     records = valueTable.getRecords()
