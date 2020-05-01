@@ -14,10 +14,8 @@ compressionLevel = 6
 def testReadOnly():
     print("Dataset testReadOnly()")
     bagFileName = datapath + "/sample.bag"
-    print(bagFileName)
 
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    print("after Dataset.openDataset() call")
     assert(dataset)
 
     kNumExpectedLayers = 4
@@ -27,6 +25,7 @@ def testReadOnly():
     assert(numLayerTypes == kNumExpectedLayers)
 
 def testReadWrite():
+    print("Dataset testReadWrite()")
     bagFileName = datapath + "/sample.bag"
     tmpFile = testUtils.RandomFileGuard("file", bagFileName)
     #print(tmpFile.getName())
@@ -47,6 +46,7 @@ def testReadWrite():
     del dataset #ensure dataset is deleted before tmpFile
 
 def testCreation():
+    print("Dataset testCreation()")
     tmpFile = testUtils.RandomFileGuard("name")
     #print(tmpFile.getName())
     metadata = Metadata()
@@ -68,6 +68,7 @@ def testCreation():
     del dataset #ensure dataset is deleted before tmpFile
 
 def testGetLayerTypes():
+    print("Dataset testGetLayerTypes()")
     bagFileName = datapath + "/NAVO_data/JD211_Public_Release_1-5.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
@@ -76,6 +77,7 @@ def testGetLayerTypes():
     assert(numLayerTypes == 2)
 
 def testAddLayer():
+    print("Dataset testAddLayer()")
     bagFileName = datapath + "/sample.bag"
     tmpFile = testUtils.RandomFileGuard("file", bagFileName)
     #print(tmpFile)
@@ -96,6 +98,7 @@ def testAddLayer():
     del dataset #ensure dataset is deleted before tmpFile
 
 def testGetLayer():
+    print("Dataset testGetLayer()")
     bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
     assert(dataset)
@@ -111,6 +114,7 @@ def testGetLayer():
                == layer.getDescriptor().getInternalPath())
 
 def testGetTrackingList():
+    print("Dataset testGetTrackingList()")
     bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
     assert(dataset)
@@ -122,6 +126,7 @@ def testGetTrackingList():
     assert(trackingList.size() == 0)
 
 def testGetMetadata():
+    print("Dataset testGetMetadata()")
     bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
     assert(dataset)
@@ -137,6 +142,7 @@ def testGetMetadata():
     assert(metadata.llCornerY() == kExpectedLLcornerY)
 
 def testGridToGeo():
+    print("Dataset testGridToGeo()")
     bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
     assert(dataset)
@@ -150,6 +156,7 @@ def testGridToGeo():
     assert(xy[1] == 5554620.0);
 
 def testGeoToGrid():
+    print("Dataset testGeoToGrid()")
     bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
     assert(dataset)
@@ -163,6 +170,7 @@ def testGeoToGrid():
     assert(rc[1] == 0)
 
 def testGetDescriptor():
+    print("Dataset testGetDescriptor()")
     bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
     assert(dataset)
