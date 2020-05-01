@@ -41,3 +41,4 @@ script:
   - cmake --install build
   #- ctest -build-config Release --progress --verbose
   - build/tests/bag_tests --samples-path examples/sample-data
+  - python python/test_all.py
