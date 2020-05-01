@@ -14,7 +14,7 @@
 
 %include <std_vector.i>
 
-%template(TrackingItems) std::vector<BagTrackingItem>; //BagTrackingList::value_type
+%template(TrackingItems) std::vector<BagTrackingItem>;
 
 
 #define final

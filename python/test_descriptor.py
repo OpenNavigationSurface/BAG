@@ -200,6 +200,11 @@ def testSetValues():
     descriptor.setGridSpacing(kExpectedXspacing, kExpectedYspacing)
     assert(descriptor.getOrigin() == (kExpectedXspacing, kExpectedYspacing))
 
+    # test chaining of set methods
+    descriptor.setOrigin(0.0, 0.0).setGridSpacing(0.0, 0.0)
+    assert(descriptor.getOrigin() == (0.0, 0.0))
+    assert(descriptor.getOrigin() == (0.0, 0.0))
+
 
 testConstructors()
 testReadOnly()

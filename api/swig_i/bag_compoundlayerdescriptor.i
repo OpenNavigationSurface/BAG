@@ -19,7 +19,6 @@
 
 %include "std_weak_ptr.i"
 %shared_ptr(BAG::CompoundLayerDescriptor)
-//%template(WeakDataset) std::weak_ptr<Dataset>;
 %shared_ptr(BAG::Dataset)
 
 namespace std 
