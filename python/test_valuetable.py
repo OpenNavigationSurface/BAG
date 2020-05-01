@@ -76,7 +76,7 @@ def testReadEmpty():
 
     del dataset #ensure dataset is deleted before tmpFile
 
-print"abc"
+print("abc")
 
 def testAddRecord():
     print("   Value Table testAddRecord()")
@@ -292,7 +292,7 @@ def testAddRecord():
 
     del dataset #ensure dataset is deleted before tmpFile
 
-print"def"
+print("def")
 
 def testAddRecords():
     print("   Value Table testAddRecords()")
