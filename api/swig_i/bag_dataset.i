@@ -12,7 +12,6 @@
 
 %import "bag_compoundlayer.i"
 %import "bag_descriptor.i"
-%import "bag_metadata.i"
 %import "bag_simplelayer.i"
 %import "bag_surfacecorrections.i"
 %import "bag_trackinglist.i"
