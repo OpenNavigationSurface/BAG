@@ -12,10 +12,10 @@
 namespace BAG
 {
 
-class LayerItem
+class LayerItems
 {
 public:
-    explicit LayerItem(const UInt8Array& items)
+    explicit LayerItems(const UInt8Array& items)
         : m_data()
     {
         const auto bufferSize = items.size();
@@ -23,7 +23,7 @@ public:
         std::memcpy(m_data.data(), items.data(), bufferSize);
     }
     template <typename T>
-    explicit LayerItem(const std::vector<T>& items)
+    explicit LayerItems(const std::vector<T>& items)
     {
         const auto numBytes = sizeof(T) * items.size();
         m_data.resize(numBytes);

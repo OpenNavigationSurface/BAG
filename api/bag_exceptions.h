@@ -211,13 +211,13 @@ struct BAG_API InvalidLayerDescriptor final : virtual std::exception
 };
 
 
-// LayerItem related.
+// LayerItems related.
 //! The type cannot be cast to the specified type.
 struct BAG_API InvalidCast final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "The LayerItem cannot be cast to the specified type.";
+        return "The LayerItems cannot be cast to the specified type.";
     }
 };
 

@@ -30,12 +30,12 @@
 
 namespace BAG {
 
-class LayerItem
+class LayerItems
 {
 public:
-    explicit LayerItem(const UInt8Array& items);
+    explicit LayerItems(const UInt8Array& items);
     template <typename T>
-    explicit LayerItem(const std::vector<T>& items);
+    explicit LayerItems(const std::vector<T>& items);
 
     const uint8_t* data() const &;
     bool empty() const noexcept;
@@ -44,23 +44,23 @@ public:
     size_t size() const noexcept;
 };
 
-%template(FloatLayerItems) LayerItem::LayerItem<float>;
-%template(UInt32LayerItems) LayerItem::LayerItem<uint32_t>;
-%template(SurfaceCorrectionsLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrections>;
-%template(SurfaceCorrectionsGriddedLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrectionsGridded>;
-%template(VRMetadataLayerItems) LayerItem::LayerItem<BagVRMetadataItem>;
-%template(VRNodeLayerItems) LayerItem::LayerItem<BagVRNodeItem>;
-%template(VRRefinementsLayerItems) LayerItem::LayerItem<BagVRRefinementsItem>;
-%template(VerticalDatumCorrectionsLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrections>;
-%template(VerticalDatumCorrectionsGriddedLayerItems) LayerItem::LayerItem<BagVerticalDatumCorrectionsGridded>;
+%template(FloatLayerItems) LayerItems::LayerItems<float>;
+%template(UInt32LayerItems) LayerItems::LayerItems<uint32_t>;
+%template(SurfaceCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
+%template(SurfaceCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
+%template(VRMetadataLayerItems) LayerItems::LayerItems<BagVRMetadataItem>;
+%template(VRNodeLayerItems) LayerItems::LayerItems<BagVRNodeItem>;
+%template(VRRefinementsLayerItems) LayerItems::LayerItems<BagVRRefinementsItem>;
+%template(VerticalDatumCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
+%template(VerticalDatumCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
 
-%template(asUInt32Items) LayerItem::getAs<uint32_t>;
-%template(asFloatItems) LayerItem::getAs<float>;
-%template(asVerticalDatumCorrections) LayerItem::getAs<BagVerticalDatumCorrections>;
-%template(asVerticalDatumCorrectionsGridded) LayerItem::getAs<BagVerticalDatumCorrectionsGridded>;
-%template(asVRMetadataItems) LayerItem::getAs<BagVRMetadataItem>;
-%template(asVRRefinementsItems) LayerItem::getAs<BagVRRefinementsItem>;
-%template(asVRNodeItems) LayerItem::getAs<BagVRNodeItem>;
+%template(asUInt32Items) LayerItems::getAs<uint32_t>;
+%template(asFloatItems) LayerItems::getAs<float>;
+%template(asVerticalDatumCorrections) LayerItems::getAs<BagVerticalDatumCorrections>;
+%template(asVerticalDatumCorrectionsGridded) LayerItems::getAs<BagVerticalDatumCorrectionsGridded>;
+%template(asVRMetadataItems) LayerItems::getAs<BagVRMetadataItem>;
+%template(asVRRefinementsItems) LayerItems::getAs<BagVRRefinementsItem>;
+%template(asVRNodeItems) LayerItems::getAs<BagVRNodeItem>;
 
 }  // namespace BAG
 

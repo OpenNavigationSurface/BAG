@@ -23,17 +23,6 @@
 
 %shared_ptr(BAG::LayerDescriptor)
 
-// define typemap so that returned UInt8Array objects are converted correctly
-%typemap(out, optimal="1") BAG::UInt8Array %{
-    $result = SWIG_NewPointerObj(($1_ltype*)&$1, $&1_descriptor, 0);
-%}
-//%typemap(out, optimal="1") BAG::LayerDescriptor& %{
-//
-//    $result = *SWIG_NewPointerObj(SWIG_as_voidptr($1),
-//        SWIGTYPE_p_BAG__LayerDescriptor, 0 |  0 );
-//
-//%}
-
 %downcast_shared(std::shared_ptr<BAG::LayerDescriptor> BAG::Layer::getDescriptor,
     BAG::CompoundLayerDescriptor, BAG::InterleavedLayerDescriptor,
     BAG::SimpleLayerDescriptor, BAG::SurfaceCorrectionsDescriptor,
@@ -72,13 +61,13 @@ public:
 
 %extend Layer
 {
-    LayerItem read(
+    LayerItems read(
         uint32_t rowStart,
         uint32_t columnStart,
         uint32_t rowEnd,
         uint32_t columnEnd) const
     {
-        return BAG::LayerItem{$self->read(rowStart, columnStart, rowEnd,
+        return BAG::LayerItems{$self->read(rowStart, columnStart, rowEnd,
             columnEnd)};
     }
 
@@ -87,7 +76,7 @@ public:
         uint32_t columnStart,
         uint32_t rowEnd,
         uint32_t columnEnd,
-        const LayerItem& items)
+        const LayerItems& items)
     {
         $self->write(rowStart, columnStart, rowEnd, columnEnd, items.data());
     }
