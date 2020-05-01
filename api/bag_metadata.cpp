@@ -28,7 +28,7 @@ Metadata::Metadata() noexcept
 
 //! Make metadata from a BAG Dataset.
 /*!
-    Read the metadta from the specified BAG Dataset.
+    Read the metadata from the specified BAG Dataset.
 
 \param dataset
     The BAG Dataset.
@@ -36,6 +36,16 @@ Metadata::Metadata() noexcept
 Metadata Metadata::fromDataset(Dataset& dataset)
 {
     return Metadata(dataset);
+}
+
+//! Constructor
+/*!
+\param pDataset
+    A shared pointer to the BAG Dataset the metadata belongs to.
+*/
+Metadata::Metadata(std::shared_ptr<Dataset> pDataset)
+    : Metadata(*pDataset)
+{    
 }
 
 //! Constructor.

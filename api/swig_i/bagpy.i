@@ -32,9 +32,6 @@ namespace std
 
 %include "bag_exceptions.i"
 %include "bag_compounddatatype.i"
-
-%include "bag_metadata.i"
-
 %include "bag_layerdescriptor.i"
 %include "bag_vrmetadatadescriptor.i"
 %include "bag_vrnodedescriptor.i"
@@ -56,6 +53,7 @@ namespace std
 %include "bag_descriptor.i"
 
 %include "bag_dataset.i"
+%include "bag_metadata.i"
 
 %include "bag_compoundlayerdescriptor.i"
 %include "bag_interleavedlayerdescriptor.i"
