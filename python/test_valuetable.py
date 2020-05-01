@@ -11,7 +11,6 @@ compressionLevel = 6
 print("Testing ValueTable")
 
 def testReadEmpty():
-    print("   Value Table testReadEmpty()")
     tmpFile = testUtils.RandomFileGuard("name")
 
     metadata = Metadata()
@@ -76,10 +75,7 @@ def testReadEmpty():
 
     del dataset #ensure dataset is deleted before tmpFile
 
-print("abc")
-
 def testAddRecord():
-    print("   Value Table testAddRecord()")
     tmpFile = testUtils.RandomFileGuard("name")
 
     kExpectedLayerName = getLayerTypeAsString(Uncertainty)
@@ -87,17 +83,14 @@ def testAddRecord():
     # Write a record.
     metadata = Metadata()
     metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    print("      1")
     assert(metadata)
 
     dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
-    print("      2")
     assert(dataset)
 
     indexType = DT_UINT16
 
     # THe record definition.
-    print("      3")
     definition = RecordDefinition(7)
     definition[0].name = "first name"
     definition[0].type = DT_STRING
@@ -114,17 +107,14 @@ def testAddRecord():
     definition[6].name = "address"
     definition[6].type = DT_STRING
 
-    print("      4")
     layer = dataset.createCompoundLayer(indexType,
         kExpectedLayerName, definition, chunkSize, compressionLevel)
 
     # There is one No Data Value record at index 0.
     valueTable = layer.getValueTable()
-    print("      5")
     assert(len(valueTable.getRecords()) == 1)
 
     # A record matching the definition.
-    print("      6")
     kExpectedNewRecord0 = Record(7)
     kExpectedNewRecord0[0] = CompoundDataType("Bob")
     kExpectedNewRecord0[1] = CompoundDataType("Jones")
@@ -136,85 +126,66 @@ def testAddRecord():
 
     kExpectedNumRecords = 2
 
-    print("      7")
     index = valueTable.addRecord(kExpectedNewRecord0)
-    print("      8")
     assert(index == 1)
-    print("      9")
     assert(len(valueTable.getRecords()) == kExpectedNumRecords)
 
 
     # Read the new record.
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
-    print("      10")
     assert(dataset)
 
     layer = dataset.getCompoundLayer(kExpectedLayerName)
-    print("      11")
     assert(layer)
 
     valueTable = layer.getValueTable()
     records = valueTable.getRecords()
-    print("      12")
     assert(len(records) == kExpectedNumRecords)
-    print("      12a")
 
     kRecordIndex = 1
     fieldIndex = 0
 
     field0value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      12b")
     assert(field0value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field1value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      12c")
     assert(field1value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field2value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      12d")
     assert(field2value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field3value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      12e")
     assert(field3value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field4value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      12f")
     assert(field4value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field5value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      12g")
     assert(field5value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field6value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      12h")
     assert(field6value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
-    print("      12i")
     del dataset
 
 
     # Set some new values an existing record.
-    print("      12z")
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
-    print("      13")
     assert(dataset)
 
     layer = dataset.getCompoundLayer(kExpectedLayerName)
-    print("      14")
     assert(layer)
 
     valueTable = layer.getValueTable()
 
     records = valueTable.getRecords()
-    print("      15")
     assert(len(records) == kExpectedNumRecords)
 
 
@@ -235,112 +206,90 @@ def testAddRecord():
 
     # Read values back from memory.
     field0value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      16")
     assert(field0value == kExpectedNewRecord1[fieldIndex])
 
     fieldIndex += 1
-    print(fieldIndex)
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field1value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      17")
     assert(field1value == kExpectedNewRecord1[fieldIndex])
 
     fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field2value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      18")
     assert(field2value == kExpectedNewRecord1[fieldIndex])
 
     fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field3value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      19")
     assert(field3value == kExpectedNewRecord1[fieldIndex])
 
     fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field4value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      20")
     assert(field4value == kExpectedNewRecord1[fieldIndex])
 
     fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field5value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      21")
     assert(field5value == kExpectedNewRecord1[fieldIndex])
 
     fieldIndex += 1
     valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
 
     field6value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      22")
     assert(field6value == kExpectedNewRecord1[fieldIndex])
 
 
     # Read new values back from the HDF5 file.
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
-    print("      23")
     assert(dataset)
 
     layer = dataset.getCompoundLayer(kExpectedLayerName)
-    print("      24")
     assert(layer)
 
     valueTable = layer.getValueTable()
     records = valueTable.getRecords()
-    print("      25")
     assert(len(records) == kExpectedNumRecords)
 
     kRecordIndex = 1
     fieldIndex = 0
 
     field0value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      26")
     assert(field0value == kExpectedNewRecord1[fieldIndex])
     fieldIndex += 1
 
     field1value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      27")
     assert(field1value == kExpectedNewRecord1[fieldIndex])
     fieldIndex += 1
 
     field2value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      28")
     assert(field2value == kExpectedNewRecord1[fieldIndex])
     fieldIndex += 1
 
     field3value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      29")
     assert(field3value == kExpectedNewRecord1[fieldIndex])
     fieldIndex += 1
 
     field4value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      30")
     assert(field4value == kExpectedNewRecord1[fieldIndex])
     fieldIndex += 1
 
     field5value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      31")
     assert(field5value == kExpectedNewRecord1[fieldIndex])
     fieldIndex += 1
 
     field6value = valueTable.getValue(kRecordIndex, fieldIndex)
-    print("      32")
     assert(field6value == kExpectedNewRecord1[fieldIndex])
     fieldIndex += 1
 
-    print("      33")
     del dataset #ensure dataset is deleted before tmpFile
 
-print("def")
-
 def testAddRecords():
-    print("   Value Table testAddRecords()")
     tmpFile = testUtils.RandomFileGuard("name")
     kExpectedLayerName = "elevation"
 
@@ -434,11 +383,8 @@ def testAddRecords():
 
     del dataset #ensure dataset is deleted before tmpFile
 
-print("test start")
 
 testReadEmpty()
 testAddRecord()
 testAddRecords()
-
-print("test done")
 
