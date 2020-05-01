@@ -8,6 +8,8 @@
 
 %{
 #include "../bag_c_types.h"
+
+#include <cstring>
 %}
 
 %include "../bag_c_types.h"

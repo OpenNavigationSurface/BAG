@@ -39,13 +39,11 @@ script:
   - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/install -DBUILD_PYTHON:BOOL=ON -B build -S .
   - cmake --build build
   - cmake --install build
-  - pwd
   - find . -type f -iname '*.so' -or -iname '*.pyd'
   # C++ tests.
   - build/tests/bag_tests --samples-path examples/sample-data
   # Python tests.
   # .pyd -> build/api/swig_i/_bagPyd.pyd
   # .so -> build/api/libbaglib.so
-  - printenv LD_LIBRARY_PATH
-  #- LD_LIBRARY_PATH=?/build/api:?/build/api/swig_i python python/test_all.py
-  - python python/test_all.py
+  - LD_LIBRARY_PATH=/home/travis/build/jice73/BAG/build/api:/home/travis/build/jice73/BAG/build/api/swig_i python python/test_all.py
+
