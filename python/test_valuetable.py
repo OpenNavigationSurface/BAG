@@ -14,6 +14,7 @@ compressionLevel = 6
 print("Testing ValueTable")
 
 def testReadEmpty():
+    print("   Value Table testAddRecords()")
     tmpFile = testUtils.RandomFileGuard("name")
 
     metadata = Metadata()
@@ -80,6 +81,7 @@ def testReadEmpty():
 
 
 def testAddRecord():
+    print("   Value Table testAddRecords()")
     tmpFile = testUtils.RandomFileGuard("name")
 
     kExpectedLayerName = getLayerTypeAsString(Uncertainty)
@@ -294,6 +296,7 @@ def testAddRecord():
 
 
 def testAddRecords():
+    print("   Value Table testAddRecords()")
     tmpFile = testUtils.RandomFileGuard("name")
     kExpectedLayerName = "elevation"
 
