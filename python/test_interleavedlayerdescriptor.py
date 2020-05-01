@@ -10,6 +10,7 @@ compressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing InterleavedLayerDescriptor")
 
 def testCreate():
     tmpFile = testUtils.RandomFileGuard("name")

@@ -11,6 +11,7 @@ compressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing InterleavedLayer")
 
 def testGetLayerAndRead():
     bagFileName = datapath + "/micro151.bag"

@@ -11,6 +11,8 @@ compressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing TrackingList")
+
 def testConstructOpen():
     tmpFile = testUtils.RandomFileGuard("name")
     #print(tmpFile.getName())

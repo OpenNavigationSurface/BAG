@@ -10,6 +10,8 @@ chunkSize = 100
 compressionLevel = 6
 
 
+print("Testing VRNodeDescriptor")
+
 def testGetSetminMaxHypStr():
     tmpBagFile = testUtils.RandomFileGuard("name")
 

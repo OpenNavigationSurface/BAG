@@ -10,6 +10,8 @@ chunkSize = 100
 compressionLevel = 6
 
 
+print("Testing VRRefinementsDescriptor")
+
 def testGetSetMinMaxDepth():
     tmpBagFile = testUtils.RandomFileGuard("name")
 

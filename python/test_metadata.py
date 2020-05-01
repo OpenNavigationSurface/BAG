@@ -8,6 +8,7 @@ datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-
 
 
 # define the unit test methods:
+print("Testing Metadata")
 
 def testDefaultConstructor():
     metadata = Metadata()

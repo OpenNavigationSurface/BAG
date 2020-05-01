@@ -7,8 +7,9 @@ datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-
 chunkSize = 100
 compressionLevel = 6
 
-
 # define the unit test methods:
+print("Testing Descriptor")
+
 
 def testConstructors():
     descriptor = Descriptor()

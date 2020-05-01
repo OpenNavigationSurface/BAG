@@ -10,6 +10,7 @@ compressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing Dataset")
 
 def testReadOnly():
     print("Dataset testReadOnly()")

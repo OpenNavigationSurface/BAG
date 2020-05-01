@@ -11,6 +11,7 @@ compressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing ValueTable")
 
 def testReadEmpty():
     tmpFile = testUtils.RandomFileGuard("name")

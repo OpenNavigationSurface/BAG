@@ -10,6 +10,8 @@ chunkSize = 100
 compressionLevel = 6
 
 
+print("Testing VRMetadata")
+
 def testCreateOpen():
     tmpBagFile = testUtils.RandomFileGuard("name")
 

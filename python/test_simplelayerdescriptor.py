@@ -9,6 +9,8 @@ datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-
 kExpectedChunkSize = 100
 kExpectedCompressionLevel = 6
 
+print("Testing SimpleLayerDescriptor")
+
 
 # define the unit test methods:
 def testCreation():

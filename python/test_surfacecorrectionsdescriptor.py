@@ -11,6 +11,8 @@ kExpectedCompressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing SurfaceCorrectionsDescriptor")
+
 def testCreation():
     tmpFile = testUtils.RandomFileGuard("name")
     #print(tmpFile.getName())

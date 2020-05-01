@@ -12,6 +12,7 @@ compressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing SurfaceCorrections")
 
 def testReadIrregular():
     bagFileName = datapath + "/sample.bag"

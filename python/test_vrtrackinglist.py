@@ -9,8 +9,8 @@ datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-
 chunkSize = 100
 compressionLevel = 6
 
-# NOTE .. Testing the methods that forward to std::vector<VRTrackingList::value_type> is not covered.
 
+print("Testing VRTrackingList")
 
 def testCreateOpen():
     tmpBagFile = testUtils.RandomFileGuard("name")

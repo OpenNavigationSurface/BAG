@@ -9,6 +9,8 @@ datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-
 chunkSize = 100
 compressionLevel = 6
 
+print("Testing VRMetadataDescriptor")
+
 def testGetMinMaxDimensions():
     tmpFile = testUtils.RandomFileGuard("name")
 

@@ -12,6 +12,7 @@ compressionLevel = 6
 
 
 # define the unit test methods:
+print("Testing SimpleLayer")
 
 def testGetName():
     bagFileName = datapath + "/sample.bag"
