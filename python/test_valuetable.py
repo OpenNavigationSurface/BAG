@@ -197,8 +197,12 @@ def testAddRecord():
     assert(field6value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
+    print("      12i")
+    del dataset
+
 
     # Set some new values an existing record.
+    print("      12z")
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
     print("      13")
     assert(dataset)
