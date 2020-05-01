@@ -23,6 +23,7 @@ namespace std
     %template(UInt32Pair) pair<uint32_t, uint32_t>;
     %template(Cover) pair<pair<double, double>, pair<double, double> >;
     %template(FloatVector) vector<float>;
+    %template(UInt32Vector) vector<uint32_t>;
 }
 
 %include "bag_c_types.i"
