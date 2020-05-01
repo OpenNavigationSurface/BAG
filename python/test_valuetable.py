@@ -393,3 +393,5 @@ def testAddRecords():
 testReadEmpty()
 testAddRecord()
 testAddRecords()
+
+print("test done")
