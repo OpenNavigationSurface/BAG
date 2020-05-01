@@ -53,10 +53,11 @@ build_script:
   - set CC=cl.exe
   - set CXX=cl.exe
   - cd
-  - cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install
+  - cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install -DBUILD_PYTHON:BOOL=ON
   - cmake --build build
   - set PATH=C:\projects\bag\build\api;%PATH%
   - build\tests\bag_tests.exe --samples-path "C:\projects\bag\examples\sample-data"
+  - build\python\test_app.py
 
 deploy: off
 
