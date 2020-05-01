@@ -1011,7 +1011,7 @@ void Dataset::readDataset(
         (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
         DeleteH5File{});
 
-    m_pMetadata = std::make_unique<Metadata>(Metadata::fromDataset(*this));
+    m_pMetadata = std::make_unique<Metadata>(*this);
 
     m_descriptor = Descriptor{*m_pMetadata};
     m_descriptor.setReadOnly(openMode == BAG_OPEN_READONLY);

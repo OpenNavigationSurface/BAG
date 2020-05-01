@@ -31,7 +31,7 @@ swig_link_libraries(bagPy
     Python3::Python
 )
 
-# copy the generated .pyd file to test dir
+# copy the generated Python shared library file to test dir
 add_custom_command(TARGET bagPy POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:bagPy> "${CMAKE_HOME_DIRECTORY}/python"
 )

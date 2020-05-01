@@ -26,18 +26,6 @@ Metadata::Metadata() noexcept
     bagInitMetadata(*m_pMetaStruct);
 }
 
-//! Make metadata from a BAG Dataset.
-/*!
-    Read the metadata from the specified BAG Dataset.
-
-\param dataset
-    The BAG Dataset.
-*/
-Metadata Metadata::fromDataset(Dataset& dataset)
-{
-    return Metadata(dataset);
-}
-
 //! Constructor
 /*!
 \param pDataset

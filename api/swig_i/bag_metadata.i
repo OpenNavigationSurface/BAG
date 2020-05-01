@@ -15,11 +15,6 @@
 %include <std_string.i>
 %include <stdint.i>
 
-// define typemap so that returned Metadata objects are converted correctly
-%typemap(out, optimal="1") BAG::Metadata %{
-    $result = SWIG_NewPointerObj(($1_ltype*)&$1, $&1_descriptor, 0);
-%}
-
 namespace BAG
 {
 
@@ -34,8 +29,6 @@ public:
 
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
-
-    Metadata fromDataset(Dataset& dataset);
 
     const BagMetadata& getStruct() const & noexcept;
 

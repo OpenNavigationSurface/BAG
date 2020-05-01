@@ -330,7 +330,7 @@ TEST_CASE("test metadata construction and destruction", "[metadata][constructor]
         const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        Metadata metadata = Metadata::fromDataset(*pDataset);
+        Metadata metadata(*pDataset);
         CHECK(metadata.llCornerX() == Approx{687910.0});
         auto wkt = metadata.horizontalReferenceSystemAsWKT();
         CHECK(!wkt.empty());
