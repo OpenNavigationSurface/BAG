@@ -57,7 +57,7 @@ build_script:
   - cmake --build build
   - set PATH=C:\projects\bag\build\api;%PATH%
   - build\tests\bag_tests.exe --samples-path "C:\projects\bag\examples\sample-data"
-  - python python\test_app.py
+  - python python\test_all.py
 
 deploy: off
 
