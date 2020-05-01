@@ -1,11 +1,8 @@
 from bagPy import *
-import shutil, pathlib, math
 import bagMetadataSamples, testUtils
-import sys
 
 
 # define constants used in multiple tests
-datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 chunkSize = 100
 compressionLevel = 6
 
@@ -14,7 +11,7 @@ compressionLevel = 6
 print("Testing ValueTable")
 
 def testReadEmpty():
-    print("   Value Table testAddRecords()")
+    print("   Value Table testReadEmpty()")
     tmpFile = testUtils.RandomFileGuard("name")
 
     metadata = Metadata()
@@ -79,9 +76,10 @@ def testReadEmpty():
 
     del dataset #ensure dataset is deleted before tmpFile
 
+print"abc"
 
 def testAddRecord():
-    print("   Value Table testAddRecords()")
+    print("   Value Table testAddRecord()")
     tmpFile = testUtils.RandomFileGuard("name")
 
     kExpectedLayerName = getLayerTypeAsString(Uncertainty)
@@ -294,6 +292,7 @@ def testAddRecord():
 
     del dataset #ensure dataset is deleted before tmpFile
 
+print"def"
 
 def testAddRecords():
     print("   Value Table testAddRecords()")
@@ -390,11 +389,11 @@ def testAddRecords():
 
     del dataset #ensure dataset is deleted before tmpFile
 
-
-# run the unit test methods
+print("test start")
 
 testReadEmpty()
 testAddRecord()
 testAddRecords()
 
 print("test done")
+
