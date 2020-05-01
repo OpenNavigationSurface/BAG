@@ -157,35 +157,43 @@ def testAddRecord():
     records = valueTable.getRecords()
     print("      12")
     assert(len(records) == kExpectedNumRecords)
+    print("      12a")
 
     kRecordIndex = 1
     fieldIndex = 0
 
     field0value = valueTable.getValue(kRecordIndex, fieldIndex)
+    print("      12b")
     assert(field0value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field1value = valueTable.getValue(kRecordIndex, fieldIndex)
+    print("      12c")
     assert(field1value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field2value = valueTable.getValue(kRecordIndex, fieldIndex)
+    print("      12d")
     assert(field2value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field3value = valueTable.getValue(kRecordIndex, fieldIndex)
+    print("      12e")
     assert(field3value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field4value = valueTable.getValue(kRecordIndex, fieldIndex)
+    print("      12f")
     assert(field4value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field5value = valueTable.getValue(kRecordIndex, fieldIndex)
+    print("      12g")
     assert(field5value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
     field6value = valueTable.getValue(kRecordIndex, fieldIndex)
+    print("      12h")
     assert(field6value == kExpectedNewRecord0[fieldIndex])
     fieldIndex += 1
 
