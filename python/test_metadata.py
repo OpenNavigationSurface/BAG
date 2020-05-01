@@ -19,11 +19,10 @@ def testConstructor():
     bagFileName = datapath + "\sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
+    #print(dataset)
 
-    #metadata = Metadata(dataset)
-    metadata = Metadata.fromSharedDataset(dataset)
+    metadata = Metadata(dataset)
     assert(metadata)
-    print(metadata.llCornerX())
     assert(metadata.llCornerX() == 687910.0)
     wkt = metadata.horizontalReferenceSystemAsWKT()
     assert(wkt.startswith('''PROJCS["UTM-19N-Nad83'''))
@@ -87,7 +86,7 @@ def testLoadFromBuffer():
 
 
 # run the unit test methods
-#testConstructor()  #TODO need to fix fromDataset method/constructor
+testConstructor()
 testDefaultConstructor()
 testGetStruct()
 testHorizontalReferenceSystemAsWKT()

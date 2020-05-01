@@ -33,6 +33,7 @@ public:
 
     Metadata(const Metadata& other) = delete;
     Metadata(Metadata&& other) = default;
+    explicit Metadata(std::shared_ptr<Dataset> pDataset);
 
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
