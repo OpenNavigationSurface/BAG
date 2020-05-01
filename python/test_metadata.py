@@ -4,7 +4,7 @@ import bagMetadataSamples, testUtils
 
 
 # define constants used in multiple tests
-datapath = str(pathlib.Path(__file__).parent.absolute()) + "\..\examples\sample-data"
+datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 
 
 # define the unit test methods:
@@ -16,7 +16,7 @@ def testDefaultConstructor():
     assert(metadata.llCornerX() == INIT_VALUE)
 
 def testConstructor():
-    bagFileName = datapath + "\sample.bag"
+    bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
     #print(dataset)
@@ -28,7 +28,7 @@ def testConstructor():
     assert(wkt.startswith('''PROJCS["UTM-19N-Nad83'''))
 
 def testGetStruct():
-    bagFileName = datapath + "\sample.bag"
+    bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
 
@@ -42,7 +42,7 @@ def testGetStruct():
     assert(bagStruct.spatialRepresentationInfo.llCornerX == 687910.0)
 
 def testHorizontalReferenceSystemAsWKT():
-    bagFileName = datapath + "\sample.bag"
+    bagFileName = datapath + "/sample.bag"
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
     assert(dataset)
 

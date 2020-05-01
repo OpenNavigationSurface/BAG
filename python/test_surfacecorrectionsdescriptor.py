@@ -5,7 +5,7 @@ import sys
 
 
 # define constants used in multiple tests
-datapath = str(pathlib.Path(__file__).parent.absolute()) + "\..\examples\sample-data"
+datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 kExpectedChunkSize = 100
 kExpectedCompressionLevel = 6
 

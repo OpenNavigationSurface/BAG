@@ -3,7 +3,9 @@ import pathlib, math
 import bagMetadataSamples
 
 # define constants used in multiple tests
-datapath = str(pathlib.Path(__file__).parent.absolute()) + "\..\examples\sample-data"
+datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
+print("+++")
+print(datapath)
 
 # define the unit test methods:
 

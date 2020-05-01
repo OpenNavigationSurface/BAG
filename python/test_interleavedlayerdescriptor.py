@@ -4,7 +4,7 @@ import bagMetadataSamples, testUtils
 
 
 # define constants used in multiple tests
-datapath = str(pathlib.Path(__file__).parent.absolute()) + "\..\examples\sample-data"
+datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 chunkSize = 100
 compressionLevel = 6
 
