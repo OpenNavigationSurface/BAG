@@ -12,13 +12,18 @@ compressionLevel = 6
 # define the unit test methods:
 
 def testReadOnly():
+    print("Dataset testReadOnly()")
     bagFileName = datapath + "/sample.bag"
-    #print(bagFileName)
+    print(bagFileName)
+
     dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+    print("after Dataset.openDataset() call")
     assert(dataset)
+
     kNumExpectedLayers = 4
     numLayerTypes = len(dataset.getLayerTypes())
     #print(numLayerTypes)
+
     assert(numLayerTypes == kNumExpectedLayers)
 
 def testReadWrite():
