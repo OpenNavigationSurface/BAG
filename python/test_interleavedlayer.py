@@ -24,7 +24,7 @@ def testGetLayerAndRead():
     assert(layer)
 
     result = layer.read(1, 2, 2, 4) # 2x3
-    assert(len(result) > 0)
+    assert(result)
 
     kExpectedNumNodes = 6;
 

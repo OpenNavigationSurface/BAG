@@ -10,6 +10,65 @@
 
 namespace BAG {
 
+namespace {
+
+//! Find a descriptor by layer type and case-insensitive name.
+/*!
+\param inDescriptors
+    The descriptors to search.
+\param inType
+    The layer type to match.
+\param inName
+    The case-insensitive layer name to match.
+
+\return
+    The found descriptor.
+    nullptr if not found.
+*/
+const LayerDescriptor* getLayerDescriptor(
+    const std::vector<std::weak_ptr<const LayerDescriptor>>& inDescriptors,
+    LayerType inType,
+    const std::string& inName)
+{
+    if (inType == Compound && inName.empty())
+        throw NameRequired{};
+
+    std::string nameLower{inName};
+    std::transform(begin(nameLower), end(nameLower), begin(nameLower),
+        [](char c) noexcept {
+            return static_cast<char>(std::tolower(c));
+        });
+
+    const auto& layerDesc = std::find_if(cbegin(inDescriptors),
+        cend(inDescriptors),
+        [inType, &nameLower](const std::weak_ptr<const LayerDescriptor>& d) {
+            if (d.expired())
+                return false;
+
+            auto desc = d.lock();
+
+            if (desc->getLayerType() != inType)
+                return false;
+
+            if (nameLower.empty())
+                return true;
+
+            std::string foundNameLower{desc->getName()};
+            std::transform(begin(foundNameLower), end(foundNameLower), begin(foundNameLower),
+                [](char c) noexcept {
+                    return static_cast<char>(std::tolower(c));
+                });
+
+            return foundNameLower == nameLower;
+        });
+    if (layerDesc == cend(inDescriptors))
+        return {};
+
+    return layerDesc->lock().get();
+}
+
+}  // namespace
+
 //! Constructor.
 /*!
 \param metadata
@@ -38,16 +97,9 @@ Descriptor::Descriptor(
 Descriptor& Descriptor::addLayerDescriptor(
     const LayerDescriptor& inDescriptor) &
 {
-    const auto foundIter = std::find_if(cbegin(m_layerDescriptors),
-        cend(m_layerDescriptors),
-        [&inDescriptor](const std::weak_ptr<const LayerDescriptor>& desc) {
-            if (desc.expired())
-                return false;
-
-            auto descriptor = desc.lock();
-            return inDescriptor.getInternalPath() == descriptor->getInternalPath();
-        });
-    if (foundIter != cend(m_layerDescriptors))
+    // Check if the layer descriptor already exists.
+    if (BAG::getLayerDescriptor(m_layerDescriptors, inDescriptor.getLayerType(),
+        inDescriptor.getName()))
         throw LayerExists{};
 
     m_layerDescriptors.emplace_back(inDescriptor.shared_from_this());
@@ -140,41 +192,7 @@ const LayerDescriptor* Descriptor::getLayerDescriptor(
     LayerType type,
     const std::string& name) const &
 {
-    if (type == Compound && name.empty())
-        throw NameRequired{};
-
-    std::string nameLower{name};
-    std::transform(begin(nameLower), end(nameLower), begin(nameLower),
-        [](char c) noexcept {
-            return static_cast<char>(std::tolower(c));
-        });
-
-    const auto& layerDesc = std::find_if(cbegin(m_layerDescriptors),
-        cend(m_layerDescriptors),
-        [type, &nameLower](const std::weak_ptr<const LayerDescriptor>& d) {
-            if (d.expired())
-                return false;
-
-            auto desc = d.lock();
-
-            if (desc->getLayerType() != type)
-                return false;
-
-            if (nameLower.empty())
-                return true;
-
-            std::string foundNameLower{desc->getName()};
-            std::transform(begin(foundNameLower), end(foundNameLower), begin(foundNameLower),
-                [](char c) noexcept {
-                    return static_cast<char>(std::tolower(c));
-                });
-
-            return foundNameLower == nameLower;
-        });
-    if (layerDesc == cend(m_layerDescriptors))
-        throw LayerNotFound{};
-
-    return layerDesc->lock().get();
+    return BAG::getLayerDescriptor(m_layerDescriptors, type, name);
 }
 
 //! Retrieve all the layer descriptors.
