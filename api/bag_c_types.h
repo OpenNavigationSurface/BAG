@@ -164,15 +164,15 @@ struct BagVerticalDatumCorrectionsGridded
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
+//! The attributes of a correction surface.  Only used in the C interface.
 struct BagVerticalCorrectorDef
 {
-    double nodeSpacingX; /* node spacing in x dimension in units defined by coord system */
-    double nodeSpacingY; /* node spacing in y dimension in units defined by coord system */
-    double swCornerX;    /* X coordinate of SW corner of vertical corrector surface in BAG_COORDINATES */
-    double swCornerY;    /* Y coordinate of SW corner of vertical corrector surface in BAG_COORDINATES */
+    double nodeSpacingX; //! node spacing in x dimension in units defined by coord system
+    double nodeSpacingY; //! node spacing in y dimension in units defined by coord system
+    double swCornerX;    //! X coordinate of SW corner of vertical corrector surface in BAG_COORDINATES
+    double swCornerY;    //! Y coordinate of SW corner of vertical corrector surface in BAG_COORDINATES
 };
 
-#define BAG_NULL_ELEVATION 1000000
 
 //! A structure to hold the definition of a value.
 //! ***NOTE:  This must be POD per the C++11 definition.

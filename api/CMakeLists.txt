@@ -59,6 +59,7 @@ set(BAG_HEADER_FILES
     bag_interleavedlayerdescriptor.h
     bag_layer.h
     bag_layerdescriptor.h
+    bag_layeritems.h
     bag_legacy_crs.h
     bag_metadata.h
     bag_metadata_export.h
@@ -93,8 +94,6 @@ set_target_properties(baglib
         CMAKE_CXX_STANDARD_REQUIRED ON
         CMAKE_CXX_EXTENSIONS OFF
 )
-
-#TODO if shared, add -fpic for non-MSVC compiler
 
 target_compile_definitions(baglib
     PRIVATE
@@ -151,127 +150,16 @@ else()
     )
 endif()
 
-
-# Build Python bindings
 if(BUILD_PYTHON)
-    # copied from BAG_HEADER_FILES.
-    # Other non-header files might need to be added,
-    # and some of these might not be needed?
-    set(BAG_SWIG_INPUT_FILES
-        bag_c_types
-        bag_metadatatypes
-        bag_types
-        bag_metadata
-        bag_metadata_import
-        bag_metadata_export
-        bag_exceptions
-        bag_layerdescriptor
-        bag_descriptor
-        bag_interleavedlayerdescriptor
-        bag_simplelayerdescriptor
-        bag_surfacecorrectionsdescriptor
-        bag_trackinglist
-        bag_compounddatatype
-        bag_valuetable
-        bag_layer
-        bag_simplelayer
-        bag_interleavedlayer
-        bag_surfacecorrections
-        bag_compoundlayer
-        bag_compoundlayerdescriptor
-        bag_dataset
+    # Build Python bindings
+    add_subdirectory(swig_i)
 
-
-        ## temp disabled to avoid warnings:
-        # bag_trackinglist      #needs overloaded operator[] and push_back(), etc to be redefined
-        # bag_compounddatatype  #need to handle overloaded operator=
-        # bag_valuetable        #compiles, just needs bag_compounddatatype enabled
-
-        # bag_layer     # need to add support for std::unique_ptr<uint8_t>
-
-
-        ## these need layer:
-        #   bag_compoundlayer
-        #   bag_compoundlayerdescriptor
-        #   bag_interleavedlayer
-        #   bag_simplelayer
-        #   bag_surfacecorrections
-
-        #  bag_dataset         #needs all of the above?
-
-
-        ## not sure about these?
-        #   #bag_xml_meta
-        #   bag.hdfhelper
-        #   bag_legacy_crs
-        #   #bag_metadata_def
-        #   #bag_opt_surfaces
-
-        ## these should not be needed:
-        #   bag_config
-        #   bag_errors
-        #   bag_fordec
-        #   bag_version
-    )
-
-    # https://cmake.org/cmake/help/latest/module/FindPython3.html
-    #testing: http://www.swig.org/Doc4.0/Introduction.html#Introduction_build_system
-    FIND_PACKAGE(PythonLibs COMPONENTS Interpreter Development REQUIRED)
-    #this one doesn't find Python.h but above one does
-    #find_package(Python3 COMPONENTS Interpreter Development REQUIRED)  #TODO Is Python 2 OK?
-    INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_PATH})
-
-    # https://cmake.org/cmake/help/latest/module/FindSWIG.html
-    find_package(SWIG 4.0.1 REQUIRED)
-    # https://cmake.org/cmake/help/v3.12/module/UseSWIG.html
-    include(${SWIG_USE_FILE})
-
-    INCLUDE_DIRECTORIES(${CMAKE_CURRENT_SOURCE_DIR})
-
-    # The -importall directive tells SWIG to follow all #include statements as imports.
-    # This might be useful if you want to extract type definitions from system header files without generating any wrappers.
-    # http://www.swig.org/Doc4.0/Preprocessor.html#Preprocessor_nn3
-
-    set(CMAKE_SWIG_FLAGS "-Wall" "-v")
-    #set(CMAKE_SWIG_FLAGS "-debug-symtabs") #write out symbol tables when building
-
-    foreach(ifile IN LISTS BAG_SWIG_INPUT_FILES)
-
-        #ATTEMPT1
-        ###set_source_files_properties(file.i PROPERTIES SWIG_FLAGS "-threads")
-        ###set_source_files_properties(bag_metadata.i PROPERTIES SWIG_FLAGS "-v -c++ -cppext cpp")
-
-
-        SET_SOURCE_FILES_PROPERTIES("interface/${ifile}.i" PROPERTIES
-            CPLUSPLUS ON
-            COMPILE_FLAGS "--std=c++14"
-            )
-
-        swig_add_library(${ifile} TYPE SHARED LANGUAGE python
-            OUTFILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/swig_wrapper"
-            #OUTPUT_DIR "${CMAKE_BINARY_DIR}/swig_python"  # change the dir of output .py files, but .pyd files don't move so this doesn't work
-            SOURCES "interface/${ifile}.i"
-            )
-        SWIG_LINK_LIBRARIES(${ifile} baglib ${PYTHON_LIBRARIES})
-
-        #END_ATTEMPT1
-
-        ###OLD:
-
-
-        #ATTEMPT2
-        #    target_include_directories(pyBag PRIVATE ${Python3_INCLUDE_DIRS})
-        #    set_property(TARGET pyBag PROPERTY SWIG_USE_TARGET_INCLUDE_DIRECTORIES ON)
-        #    target_link_libraries(pyBag PRIVATE bag ${Python3_LIBRARIES})
-        #END_ATTEMPT2
-
-        # Install
-        # Get the python site packages directory by invoking python
-        #execute_process(COMMAND ${Python3_EXECUTABLE} -c "import site; print(site.getsitepackages()[0])" OUTPUT_VARIABLE PYTHON_SITE_PACKAGES OUTPUT_STRIP_TRAILING_WHITESPACE)
-        #message("PYTHON_SITE_PACKAGES = ${PYTHON_SITE_PACKAGES}")
-        #install(TARGETS _bag DESTINATION ${PYTHON_SITE_PACKAGES})
-        #install(FILES ${CMAKE_CURRENT_BINARY_DIR}/bag.py DESTINATION ${PYTHON_SITE_PACKAGES})
-    endforeach()
+    # Make a link to the DLL that was built.
+    if(BUILD_SHARED_LIBS)
+        add_custom_command(TARGET baglib POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:baglib> "${CMAKE_HOME_DIRECTORY}/python/$<TARGET_FILE_NAME:baglib>"
+        )
+    endif()
 endif()
 
 

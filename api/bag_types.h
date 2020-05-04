@@ -5,6 +5,7 @@
 
 #include <limits>
 #include <unordered_map>
+#include <vector>
 
 
 namespace BAG
@@ -29,6 +30,7 @@ using OpenMode = BAG_OPEN_MODE;
 using TrackingItem = BagTrackingItem;
 
 using VerticalDatumCorrections = BagVerticalDatumCorrections;
+using VerticalDatumCorrectionsGridded = BagVerticalDatumCorrectionsGridded;
 
 //! The type of item in a variable resolution metadata layer.
 using VRMetadataItem = BagVRMetadataItem;
@@ -39,8 +41,12 @@ using VRRefinementsItem = BagVRRefinementsItem;
 //! The type of item in a variable resolution tracking list.
 using VRTrackingItem = BagVRTrackingItem;
 
+//! The type of a record definition (used with Compound Layers).
+using RecordDefinition = std::vector<FieldDefinition>;
+
+
 //! A default layer name for each layer.
-const std::unordered_map<LayerType, const char*> kLayerTypeMapString {
+const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {Elevation, "Elevation"},
     {Uncertainty, "Uncertainty"},
     {Hypothesis_Strength, "Hypothesis_Strength"},

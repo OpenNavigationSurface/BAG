@@ -334,11 +334,10 @@ TEST_CASE("test vr refinement descriptor min/max depth",
     auto* pVrRefinements = pDataset->getVRRefinements();
     REQUIRE(pVrRefinements);
 
-    auto& descriptor = pVrRefinements->getDescriptor();
-    REQUIRE_NOTHROW(dynamic_cast<VRRefinementsDescriptor&>(descriptor));
-
-    auto* pVrRefinementDescriptor =
-        dynamic_cast<VRRefinementsDescriptor*>(&descriptor);
+    auto pVrRefinementDescriptor =
+        std::dynamic_pointer_cast<VRRefinementsDescriptor>(
+            pVrRefinements->getDescriptor());
+    CHECK(pVrRefinementDescriptor);
 
     // Set some expected minimum depth values and verify they are set.
     UNSCOPED_INFO("Verify setting the min/max depth does not throw.");
@@ -374,11 +373,10 @@ TEST_CASE("test vr refinement descriptor min/max uncertainty",
     auto* pVrRefinements = pDataset->getVRRefinements();
     REQUIRE(pVrRefinements);
 
-    auto& descriptor = pVrRefinements->getDescriptor();
-    REQUIRE_NOTHROW(dynamic_cast<VRRefinementsDescriptor&>(descriptor));
-
-    auto* pVrRefinementDescriptor =
-        dynamic_cast<VRRefinementsDescriptor*>(&descriptor);
+    auto pVrRefinementDescriptor =
+        std::dynamic_pointer_cast<VRRefinementsDescriptor>(
+            pVrRefinements->getDescriptor());
+    CHECK(pVrRefinementDescriptor);
 
     // Set some expected min/max uncertainty values and verify they are set.
     UNSCOPED_INFO("Verify setting the min/max uncertainty does not throw.");

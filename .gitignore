@@ -23,9 +23,14 @@ lib/
 installed/
 api/Debug
 api/Release
-api/swig_wrapper/
 examples/Debug
 examples/Release
+/python/__pycache__/
+/python/*.dll
+/python/*.pyd
+/python/bagPy.py
+/python/bagTestPy.py
+swig_wrapper/
 
 # Visual Studio session files.
 /.vs

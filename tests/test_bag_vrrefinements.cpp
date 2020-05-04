@@ -339,17 +339,16 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
         UNSCOPED_INFO("Check that creating optional variable resolution layers does not throw.");
         REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
-        auto* pVrRefinements = pDataset->getVRRefinements();
         UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
+        auto* pVrRefinements = pDataset->getVRRefinements();
         REQUIRE(pVrRefinements);
-
-        auto& descriptor = pVrRefinements->getDescriptor();
 
         UNSCOPED_INFO("Check that writing attributes does not throw.");
         REQUIRE_NOTHROW(pVrRefinements->writeAttributes());
 
-        auto* pVrRefinementsDescriptor =
-            dynamic_cast<VRRefinementsDescriptor*>(&descriptor);
+        auto pVrRefinementsDescriptor =
+            std::dynamic_pointer_cast<VRRefinementsDescriptor>(
+                pVrRefinements->getDescriptor());
 
         // Set some attributes to save.
         pVrRefinementsDescriptor->setMinMaxDepth(kExpectedMinDepth,
@@ -379,9 +378,9 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
         UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
         REQUIRE(pVrRefinements);
 
-        const auto& descriptor = pVrRefinements->getDescriptor();
-        const auto* pVrRefinementsDescriptor =
-            dynamic_cast<const VRRefinementsDescriptor*>(&descriptor);
+        auto pVrRefinementsDescriptor =
+            std::dynamic_pointer_cast<const VRRefinementsDescriptor>(
+                pVrRefinements->getDescriptor());
 
         // Read the attributes back.
         const auto minMaxDepth = pVrRefinementsDescriptor->getMinMaxDepth();
@@ -422,8 +421,9 @@ TEST_CASE("test vr refinements write read", "[vrrefinements][write][read]")
     REQUIRE(pVrRefinements);
 
     UNSCOPED_INFO("Check VRRefinementsDescriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const VRRefinementsDescriptor&>(
-        pVrRefinements->getDescriptor()));
+    auto pDescriptor = std::dynamic_pointer_cast<const VRRefinementsDescriptor>(
+        pVrRefinements->getDescriptor());
+    CHECK(pDescriptor);
 
     UNSCOPED_INFO("Write one record.");
     constexpr BAG::VRRefinementsItem kExpectedItem0{9.8f, 0.654f};

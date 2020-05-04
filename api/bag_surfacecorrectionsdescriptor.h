@@ -42,12 +42,12 @@ public:
 
     SurfaceCorrectionsDescriptor& setDims(uint32_t numRows,
         uint32_t numColumns) & noexcept;
-    SurfaceCorrectionsDescriptor& setVerticalDatums(
-        std::string verticalDatums) & noexcept;
     SurfaceCorrectionsDescriptor& setOrigin(double swX,
         double swY) & noexcept;
     SurfaceCorrectionsDescriptor& setSpacing(double xSpacing,
         double ySpacing) & noexcept;
+    SurfaceCorrectionsDescriptor& setVerticalDatums(
+        std::string verticalDatums) & noexcept;
 
 protected:
     SurfaceCorrectionsDescriptor(uint32_t id,

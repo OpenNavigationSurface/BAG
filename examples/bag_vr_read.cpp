@@ -100,12 +100,12 @@ PATH == D:/caris_work/BAG/BAG2/examples/sample-data
 
     for (const auto& layer : pDataset->getLayers())
     {
-        const auto& descriptor = layer->getDescriptor();
+        auto pDescriptor = layer->getDescriptor();
 
-        std::cout << "\t" << descriptor.getName() << " Layer .. id(" <<
-            descriptor.getId() << ")\n";
+        std::cout << "\t" << pDescriptor->getName() << " Layer .. id(" <<
+            pDescriptor->getId() << ")\n";
 
-        printLayerDescriptor(descriptor);
+        printLayerDescriptor(*pDescriptor);
     }
 
     const auto& trackingList = pDataset->getTrackingList();
@@ -131,27 +131,29 @@ PATH == D:/caris_work/BAG/BAG2/examples/sample-data
         std::cout << "\nVR Metadata:\n";
 
         {
-            const auto& descriptor = dynamic_cast<const BAG::VRMetadataDescriptor&>(vrMetadata->getDescriptor());
+            auto pDescriptor =
+                std::dynamic_pointer_cast<const BAG::VRMetadataDescriptor>(
+                    vrMetadata->getDescriptor());
 
-            std::cout << "\t" << descriptor.getName() << " Layer .. id(" <<
-                descriptor.getId() << ")\n";
+            std::cout << "\t" << pDescriptor->getName() << " Layer .. id(" <<
+                pDescriptor->getId() << ")\n";
 
-            printLayerDescriptor(descriptor);
+            printLayerDescriptor(*pDescriptor);
 
             // VRMetadataDescriptor specific info.
-            const auto minDims = descriptor.getMinDimensions();
+            const auto minDims = pDescriptor->getMinDimensions();
             std::cout << "\t\tmin dims == (" << std::get<0>(minDims) << ", " <<
                 std::get<1>(minDims) << ")\n";
 
-            const auto maxDims = descriptor.getMaxDimensions();
+            const auto maxDims = pDescriptor->getMaxDimensions();
             std::cout << "\t\tmax dims == (" << std::get<0>(maxDims) << ", " <<
                 std::get<1>(maxDims) << ")\n";
 
-            const auto minRes = descriptor.getMinResolution();
+            const auto minRes = pDescriptor->getMinResolution();
             std::cout << "\t\tmin res == (" << std::get<0>(minRes) << ", " <<
                 std::get<1>(minRes) << ")\n";
 
-            const auto maxRes = descriptor.getMaxResolution();
+            const auto maxRes = pDescriptor->getMaxResolution();
             std::cout << "\t\tmax res == (" << std::get<0>(maxRes) << ", " <<
                 std::get<1>(maxRes) << ")\n";
         }
@@ -163,26 +165,27 @@ PATH == D:/caris_work/BAG/BAG2/examples/sample-data
 
         if (vrNode)
         {
-            const auto& descriptor = dynamic_cast<const BAG::VRNodeDescriptor&>(
-                vrNode->getDescriptor());
+            auto pDescriptor =
+                std::dynamic_pointer_cast<const BAG::VRNodeDescriptor>(
+                    vrNode->getDescriptor());
 
-            std::cout << "\t" << descriptor.getName() << " Layer .. id(" <<
-                descriptor.getId() << ")\n";
+            std::cout << "\t" << pDescriptor->getName() << " Layer .. id(" <<
+                pDescriptor->getId() << ")\n";
 
-            printLayerDescriptor(descriptor);
+            printLayerDescriptor(*pDescriptor);
 
             // VRNodeDescriptor specific info.
-            const auto minMaxHypStr = descriptor.getMinMaxHypStrength();
+            const auto minMaxHypStr = pDescriptor->getMinMaxHypStrength();
             std::cout << "\t\tmin/max hyp strength == (" <<
                 std::get<0>(minMaxHypStr) << ", " << std::get<1>(minMaxHypStr)
                 << ")\n";
 
-            const auto minMaxNumHpy = descriptor.getMinMaxNumHypotheses();
+            const auto minMaxNumHpy = pDescriptor->getMinMaxNumHypotheses();
             std::cout << "\t\tmin/max num hypotheses == (" <<
                 std::get<0>(minMaxNumHpy) << ", " << std::get<1>(minMaxNumHpy)
                 << ")\n";
 
-            const auto minMaxNSam = descriptor.getMinMaxNSamples();
+            const auto minMaxNSam = pDescriptor->getMinMaxNSamples();
             std::cout << "\t\tmin/max n samples == (" <<
                 std::get<0>(minMaxNSam) << ", " << std::get<1>(minMaxNSam) <<
                 ")\n";
@@ -192,22 +195,22 @@ PATH == D:/caris_work/BAG/BAG2/examples/sample-data
         std::cout << "\nVR Refinements:\n";
 
         {
-            const auto& descriptor =
-                dynamic_cast<const BAG::VRRefinementsDescriptor&>(
+            auto pDescriptor =
+                std::dynamic_pointer_cast<const BAG::VRRefinementsDescriptor>(
                     vrRefinements->getDescriptor());
 
-            std::cout << "\t" << descriptor.getName() << " Layer .. id(" <<
-                descriptor.getId() << ")\n";
+            std::cout << "\t" << pDescriptor->getName() << " Layer .. id(" <<
+                pDescriptor->getId() << ")\n";
 
-            printLayerDescriptor(descriptor);
+            printLayerDescriptor(*pDescriptor);
 
             // VRRefinementDescriptor specific info.
-            const auto minMaxDepth = descriptor.getMinMaxDepth();
+            const auto minMaxDepth = pDescriptor->getMinMaxDepth();
             std::cout << "\t\tmin/max depth == (" <<
                 std::get<0>(minMaxDepth) << ", " << std::get<1>(minMaxDepth) <<
                 ")\n";
 
-            const auto minMaxUncertainty = descriptor.getMinMaxUncertainty();
+            const auto minMaxUncertainty = pDescriptor->getMinMaxUncertainty();
             std::cout << "\t\tmin/max uncertainty == (" <<
                 std::get<0>(minMaxUncertainty) << ", " <<
                 std::get<1>(minMaxUncertainty) << ")\n";

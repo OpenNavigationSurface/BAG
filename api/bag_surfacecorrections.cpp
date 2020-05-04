@@ -252,9 +252,10 @@ UInt8Array SurfaceCorrections::readCorrected(
     uint8_t corrector,
     const SimpleLayer& layer) const
 {
-    const auto* descriptor =
-        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            this->getDescriptor());
+    if (!pDescriptor)
         throw InvalidDescriptor{};
 
     auto weakDataset = this->getDataset();
@@ -316,17 +317,18 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     uint8_t corrector,
     const SimpleLayer& layer) const
 {
-    const auto* descriptor =
-        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
-    if (!descriptor)
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            this->getDescriptor());
+    if (!pDescriptor)
         throw InvalidDescriptor{};
 
-    const auto surfaceType = descriptor->getSurfaceType();  // aka topography
+    const auto surfaceType = pDescriptor->getSurfaceType();  // aka topography
 
     if (surfaceType != BAG_SURFACE_GRID_EXTENTS)
         throw UnsupportedSurfaceType{};
 
-    if (corrector < 1 || corrector > descriptor->getNumCorrectors())
+    if (corrector < 1 || corrector > pDescriptor->getNumCorrectors())
         throw InvalidCorrector{};
 
     --corrector;  // This is 0 based when used.
@@ -336,15 +338,15 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
 
     // Obtain cell resolution and SW origin (0,1,1,0).
     double swCornerX = 0., swCornerY = 0.;
-    std::tie(swCornerX, swCornerY) = descriptor->getOrigin();
+    std::tie(swCornerX, swCornerY) = pDescriptor->getOrigin();
 
     double nodeSpacingX = 0., nodeSpacingY = 0.;
-    std::tie(nodeSpacingX, nodeSpacingY) = descriptor->getSpacing();
+    std::tie(nodeSpacingX, nodeSpacingY) = pDescriptor->getSpacing();
 
     const auto resratio = nodeSpacingX / nodeSpacingY;
 
     uint32_t ncols = 0, nrows = 0;
-    std::tie(nrows, ncols) = descriptor->getDims();
+    std::tie(nrows, ncols) = pDescriptor->getDims();
 
     std::array<int32_t, 2> lastP{-1, -1};
 
@@ -355,10 +357,12 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     auto dataset = weakDataset.lock();
 
     double swCornerXsimple = 0., swCornerYsimple = 0.;
-    std::tie(swCornerXsimple, swCornerYsimple) = dataset->getDescriptor().getOrigin();
+    std::tie(swCornerXsimple, swCornerYsimple) =
+        dataset->getDescriptor().getOrigin();
 
     double nodeSpacingXsimple = 0., nodeSpacingYsimple = 0.;
-    std::tie(nodeSpacingXsimple, nodeSpacingYsimple) = dataset->getDescriptor().getGridSpacing();
+    std::tie(nodeSpacingXsimple, nodeSpacingYsimple) =
+        dataset->getDescriptor().getGridSpacing();
 
     using std::floor;  using std::fabs;  using std::ceil;
 
@@ -464,7 +468,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
             {
                 const auto* vertCorr = readbuf + (u - colRange[0]);
 
-                const auto z1 = vertCorr->z[corrector - 1];
+                const auto z1 = vertCorr->z[corrector];
                 const auto x1 = swCornerX + u * nodeSpacingX;
 
                 double distSq = 0.;
@@ -529,18 +533,18 @@ UInt8Array SurfaceCorrections::readProxy(
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
-    if (!dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor()))
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
 
-    const auto& descriptor =
-        dynamic_cast<const SurfaceCorrectionsDescriptor&>(this->getDescriptor());
-
-    const auto bufferSize = descriptor.getReadBufferSize(rows, columns);
+    const auto bufferSize = pDescriptor->getReadBufferSize(rows, columns);
     UInt8Array buffer{bufferSize};
 
     const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
-    const auto h5memDataType = getCompoundType(descriptor);
+    const auto h5memDataType = getCompoundType(*pDescriptor);
 
     m_pH5dataSet->read(buffer.data(), h5memDataType, h5memSpace, h5fileDataSpace);
 
@@ -550,21 +554,21 @@ UInt8Array SurfaceCorrections::readProxy(
 //! \copydoc Layer::writeAttributes
 void SurfaceCorrections::writeAttributesProxy() const
 {
-    const auto* descriptor =
-        dynamic_cast<const SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
-
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor =
+        std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(
+            this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidDescriptor{};
 
     // Write any attributes, from the layer descriptor.
     // surface type
     auto att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SURFACE_TYPE);
-    const auto surfaceType = descriptor->getSurfaceType();
+    const auto surfaceType = pDescriptor->getSurfaceType();
     const auto tmpSurfaceType = static_cast<uint8_t>(surfaceType);
     att.write(::H5::PredType::NATIVE_UINT8, &tmpSurfaceType);
 
     // vertical datums
-    auto tmpDatums = descriptor->getVerticalDatums();
+    auto tmpDatums = pDescriptor->getVerticalDatums();
     if (tmpDatums.size() > kMaxDatumsLength)
         tmpDatums.resize(kMaxDatumsLength);
 
@@ -576,7 +580,7 @@ void SurfaceCorrections::writeAttributesProxy() const
     {
         // sw corner x
         att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_SWX);
-        const auto origin = descriptor->getOrigin();
+        const auto origin = pDescriptor->getOrigin();
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(origin));
 
         // sw corner y
@@ -584,7 +588,7 @@ void SurfaceCorrections::writeAttributesProxy() const
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<1>(origin));
 
         // node spacing x
-        const auto spacing = descriptor->getSpacing();
+        const auto spacing = pDescriptor->getSpacing();
         att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_NSX);
         att.write(::H5::PredType::NATIVE_DOUBLE, &std::get<0>(spacing));
 
@@ -602,11 +606,10 @@ void SurfaceCorrections::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    auto* descriptor =
-        dynamic_cast<SurfaceCorrectionsDescriptor*>(&this->getDescriptor());
-
-    if (!descriptor)
-        throw UnexpectedLayerDescriptorType{};
+    auto pDescriptor = std::dynamic_pointer_cast<SurfaceCorrectionsDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidDescriptor{};
 
     const auto rows = (rowEnd - rowStart) + 1;
     const auto columns = (columnEnd - columnStart) + 1;
@@ -643,7 +646,7 @@ void SurfaceCorrections::writeProxy(
 
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
-    const auto h5memDataType = getCompoundType(*descriptor);
+    const auto h5memDataType = getCompoundType(*pDescriptor);
 
     m_pH5dataSet->write(buffer, h5memDataType, h5memDataSpace, h5fileDataSpace);
 
@@ -653,7 +656,7 @@ void SurfaceCorrections::writeProxy(
     std::array<hsize_t, kRank> dims{};
     h5Space.getSimpleExtentDims(dims.data());
 
-    descriptor->setDims(static_cast<uint32_t>(dims[0]),
+    pDescriptor->setDims(static_cast<uint32_t>(dims[0]),
         static_cast<uint32_t>(dims[1]));
 }
 

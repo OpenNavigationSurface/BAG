@@ -447,7 +447,6 @@ T get(const CompoundDataType& v)
     return detail::GetFromCompoundDataType<T>::get(v);
 }
 
-using RecordDefinition = std::vector<FieldDefinition>;
 using Record = std::vector<CompoundDataType>;
 using Records = std::vector<Record>;
 

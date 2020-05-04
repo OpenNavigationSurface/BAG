@@ -33,8 +33,8 @@ public:
     static std::string getInternalPath(LayerType layerType,
         GroupType groupType = UNKNOWN_GROUP_TYPE);
 
-    LayerDescriptor& getDescriptor() & noexcept;
-    const LayerDescriptor& getDescriptor() const & noexcept;
+    std::shared_ptr<LayerDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const LayerDescriptor> getDescriptor() const & noexcept;
 
     UInt8Array read(uint32_t rowStart,
         uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;

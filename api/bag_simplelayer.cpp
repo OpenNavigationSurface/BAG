@@ -180,7 +180,7 @@ UInt8Array SimpleLayer::readProxy(
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     // Initialize the output buffer.
-    const auto bufferSize = this->getDescriptor().getReadBufferSize(rows,
+    const auto bufferSize = this->getDescriptor()->getReadBufferSize(rows,
         columns);
     UInt8Array buffer{bufferSize};
 
@@ -196,12 +196,12 @@ UInt8Array SimpleLayer::readProxy(
 //! \copydoc Layer::writeAttributes
 void SimpleLayer::writeAttributesProxy() const
 {
-    const auto& descriptor = this->getDescriptor();
-    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
+    auto pDescriptor = this->getDescriptor();
+    const auto attInfo = getAttributeInfo(pDescriptor->getLayerType());
 
     // Write any attributes, from the layer descriptor.
     // min value
-    const auto minMax = descriptor.getMinMax();
+    const auto minMax = pDescriptor->getMinMax();
 
     const auto minAtt = m_pH5dataSet->openAttribute(attInfo.minName);
     minAtt.write(attInfo.h5type, &std::get<0>(minMax));
@@ -242,8 +242,8 @@ void SimpleLayer::writeProxy(
         h5memDataSpace, h5fileDataSpace);
 
     // Update min/max attributes
-    auto& descriptor = this->getDescriptor();
-    const auto attInfo = getAttributeInfo(descriptor.getLayerType());
+    auto pDescriptor = this->getDescriptor();
+    const auto attInfo = getAttributeInfo(pDescriptor->getLayerType());
     float min = 0.f, max = 0.f;
 
     if (attInfo.h5type == ::H5::PredType::NATIVE_FLOAT)
@@ -271,10 +271,10 @@ void SimpleLayer::writeProxy(
     else
         throw UnsupportedAttributeType{};
 
-    const float currentMin = std::get<0>(descriptor.getMinMax());
-    const float currentMax = std::get<1>(descriptor.getMinMax());
+    const float currentMin = std::get<0>(pDescriptor->getMinMax());
+    const float currentMax = std::get<1>(pDescriptor->getMinMax());
 
-    descriptor.setMinMax(std::min(currentMin, min), std::max(currentMax, max));
+    pDescriptor->setMinMax(std::min(currentMin, min), std::max(currentMax, max));
 }
 
 }   //namespace BAG

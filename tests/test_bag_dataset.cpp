@@ -454,9 +454,9 @@ TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
         for (auto&& layer : layers)
         {
             const auto& layerFromId =
-                dataset->getLayer(layer->getDescriptor().getId());
-            CHECK(layerFromId.getDescriptor().getInternalPath() ==
-                layer->getDescriptor().getInternalPath());
+                dataset->getLayer(layer->getDescriptor()->getId());
+            CHECK(layerFromId.getDescriptor()->getInternalPath() ==
+                layer->getDescriptor()->getInternalPath());
         }
     }
 
@@ -471,9 +471,9 @@ TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
         for (auto&& layer : layers)
         {
             const auto& layerFromId =
-                constDataset->getLayer(layer->getDescriptor().getId());
-            CHECK(layerFromId.getDescriptor().getInternalPath() ==
-                layer->getDescriptor().getInternalPath());
+                constDataset->getLayer(layer->getDescriptor()->getId());
+            CHECK(layerFromId.getDescriptor()->getInternalPath() ==
+                layer->getDescriptor()->getInternalPath());
         }
     }
 }

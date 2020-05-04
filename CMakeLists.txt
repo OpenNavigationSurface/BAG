@@ -29,27 +29,14 @@ endif()
 
 # Python bindings
 option(BUILD_PYTHON "Build Python bindings" OFF)
-
-## turning this on causes unresolved external errors in swig-generated wrapper and pyd files - investigate cause.
-if(NOT BUILD_PYTHON)
-    option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
-endif()
+option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 
 add_subdirectory(api)
-
-## turning this on produces warnings about conflicting names in python
-if(NOT BUILD_PYTHON)
-    add_subdirectory(examples)
-endif()
-
-## turning on testing produces errors about not finding the bag files?
+add_subdirectory(examples)
 
 # Testing
-if(NOT BUILD_PYTHON)
-    option(BUILD_TESTS "Build Tests" ON)
-
-    if(BUILD_TESTS)
-        add_subdirectory(tests)
-    endif()
+option(BUILD_TESTS "Build Tests" ON)
+if(BUILD_TESTS)
+    add_subdirectory(tests)
 endif()
 

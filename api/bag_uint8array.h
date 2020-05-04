@@ -35,6 +35,22 @@ public:
         return *this;
     }
 
+    uint8_t& operator[](size_t index) &
+    {
+        if (index >= m_len)
+            throw std::out_of_range{"Invalid index."};
+
+        return *(m_array.get() + index);
+    }
+
+    const uint8_t& operator[](size_t index) const &
+    {
+        if (index >= m_len)
+            throw std::out_of_range{"Invalid index."};
+
+        return *(m_array.get() + index);
+    }
+
     explicit operator bool() const noexcept
     {
         return static_cast<bool>(m_array);
@@ -55,15 +71,7 @@ public:
         return m_array.release();
     }
 
-    uint8_t& operator[](size_t index) &
-    {
-        if (index >= m_len)
-            throw std::out_of_range{"Invalid index."};
-
-        return *(m_array.get() + index);
-    }
-
-    size_t size() noexcept
+    size_t size() const noexcept
     {
         return m_len;
     }

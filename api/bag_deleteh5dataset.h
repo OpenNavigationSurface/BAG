@@ -5,6 +5,8 @@
 #ifndef BAG_DELETEH5DATASET_H
 #define BAG_DELETEH5DATASET_H
 
+#include "bag_config.h"
+
 
 namespace H5 {
 
@@ -16,7 +18,7 @@ namespace BAG {
 
 //! Custom deleter for use with std::unique_ptr, to keep HDF5 dependencies out
 //! of header files.
-struct DeleteH5dataSet final
+struct BAG_API DeleteH5dataSet final
 {
     void operator()(::H5::DataSet* ptr) noexcept;
 };

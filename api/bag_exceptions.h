@@ -27,7 +27,7 @@ struct BAG_API CompressionNeedsChunkingSet final : virtual std::exception
 };
 
 // Attribute related.
-//! Attribute type not supported (yet)  //TODO temp exception
+//! Attribute type not supported (yet)
 struct BAG_API UnsupportedAttributeType final : virtual std::exception
 {
     const char* what() const noexcept override
@@ -201,21 +201,23 @@ struct BAG_API UnsupportedInterleavedLayer final : virtual std::exception
 
 
 // LayerDescriptor related.
-//! Attempt to make an unsupported interleaved layer.
-struct BAG_API UnexpectedLayerDescriptorType final : virtual std::exception
-{
-    const char* what() const noexcept override
-    {
-        return "An unexpected layer descriptor type was encountered.";
-    }
-};
-
-//! The layer descriptor is no longer valid.
+//! The layer descriptor is not valid.
 struct BAG_API InvalidLayerDescriptor final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "The specified layer descriptor is no longer valid.";
+        return "The specified layer descriptor is not valid.";
+    }
+};
+
+
+// LayerItems related.
+//! The type cannot be cast to the specified type.
+struct BAG_API InvalidCast final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The LayerItems cannot be cast to the specified type.";
     }
 };
 
@@ -247,7 +249,7 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     }
 };
 
-//! An error occured loading metatada.
+//! An error occurred loading metadata.
 struct BAG_API ErrorLoadingMetadata final : virtual std::exception
 {
     ErrorLoadingMetadata(BagError bagError) : m_error(bagError)
@@ -376,6 +378,7 @@ struct BAG_API RecordNotFound final : virtual std::exception
             "than 0, and less than the number of records present.";
     }
 };
+
 
 // VRRefinement related.
 //! VR Refinements are the wrong dimensions.

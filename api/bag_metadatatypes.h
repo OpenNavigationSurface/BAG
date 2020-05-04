@@ -11,6 +11,7 @@
 #define BAG_METADATATYPES_H
 
 #include "bag_c_types.h"
+#include "bag_config.h"
 
 #include <stdint.h>
 
@@ -307,12 +308,12 @@ struct BagMetadata
 }  // extern "C"
 #endif
 
-void bagInitMetadata(BagMetadata& metadata);
-void bagFreeMetadata(BagMetadata& metadata) noexcept;
+BAG_EXTERNAL void bagInitMetadata(BagMetadata& metadata);
+BAG_EXTERNAL void bagFreeMetadata(BagMetadata& metadata) noexcept;
 
-void initResponsibleParty(BagResponsibleParty& responsibleParty) noexcept;
-void initSourceInfo(BagSource& sourceInfo) noexcept;
-void initProcessStep(BagProcessStep& processStep) noexcept;
+BAG_EXTERNAL void initResponsibleParty(BagResponsibleParty& responsibleParty) noexcept;
+BAG_EXTERNAL void initSourceInfo(BagSource& sourceInfo) noexcept;
+BAG_EXTERNAL void initProcessStep(BagProcessStep& processStep) noexcept;
 
 #endif  // BAG_METADATATYPES_H
 

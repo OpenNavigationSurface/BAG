@@ -44,9 +44,8 @@ namespace BAG {
     to the BAG, and answer questions about said BAG.
 */
 class BAG_API Dataset final
-#ifndef SWIG
     : public std::enable_shared_from_this<Dataset>
-#endif
+
 {
 public:
     static std::shared_ptr<Dataset> open(const std::string &fileName,
@@ -116,7 +115,6 @@ private:
     void createDataset(const std::string& fileName, Metadata&& metadata,
         uint64_t chunkSize, int compressionLevel);
 
-    //TODO What about uint32_t type min/max?
     std::tuple<bool, float, float> getMinMax(LayerType type,
         const std::string& path = {}) const;
 

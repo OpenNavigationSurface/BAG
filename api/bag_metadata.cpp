@@ -26,6 +26,16 @@ Metadata::Metadata() noexcept
     bagInitMetadata(*m_pMetaStruct);
 }
 
+//! Constructor
+/*!
+\param pDataset
+    A shared pointer to the BAG Dataset the metadata belongs to.
+*/
+Metadata::Metadata(std::shared_ptr<Dataset> pDataset)
+    : Metadata(*pDataset)
+{    
+}
+
 //! Constructor.
 /*!
 \param dataset

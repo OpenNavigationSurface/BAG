@@ -36,8 +36,11 @@ install:
   - conda list --show-channel-urls
 
 script:
-  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/install -B build -S .
+  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/install -DBUILD_PYTHON:BOOL=ON -B build -S .
   - cmake --build build
   - cmake --install build
-  #- ctest -build-config Release --progress --verbose
+  # C++ tests.
   - build/tests/bag_tests --samples-path examples/sample-data
+  # Python tests.
+  - LD_LIBRARY_PATH=/home/travis/build/jice73/BAG/build/api PYTHONPATH=/home/travis/build/jice73/BAG/build/api/swig_i python python/test_all.py
+

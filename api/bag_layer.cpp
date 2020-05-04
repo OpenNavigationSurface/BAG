@@ -75,20 +75,22 @@ DataType Layer::getDataType(LayerType layerType) noexcept
 /*!
 \return
     The layer's descriptor.
+    Will never be nullptr.
 */
-LayerDescriptor& Layer::getDescriptor() & noexcept
+std::shared_ptr<LayerDescriptor> Layer::getDescriptor() & noexcept
 {
-    return *m_pLayerDescriptor;
+    return m_pLayerDescriptor;
 }
 
 //! Retrieve the layer's descriptor.
 /*!
 \return
     The layer's descriptor.
+    Will never be nullptr.
 */
-const LayerDescriptor& Layer::getDescriptor() const & noexcept
+std::shared_ptr<const LayerDescriptor> Layer::getDescriptor() const & noexcept
 {
-    return *m_pLayerDescriptor;
+    return m_pLayerDescriptor;
 }
 
 //! Retrieve the size of the specified data type.

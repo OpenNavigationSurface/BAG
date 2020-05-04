@@ -347,13 +347,12 @@ TEST_CASE("test vr metadata create open", "[vrmetadata][create][open]")
         UNSCOPED_INFO("Check that the optional variable resolution metadata layer exists.");
         REQUIRE(pVrMetadata);
 
-        auto& descriptor = pVrMetadata->getDescriptor();
-
         UNSCOPED_INFO("Check that writing attributes does not throw.");
         REQUIRE_NOTHROW(pVrMetadata->writeAttributes());
 
-        auto* pVrMetadataDescriptor =
-            dynamic_cast<VRMetadataDescriptor*>(&descriptor);
+        auto pVrMetadataDescriptor =
+            std::dynamic_pointer_cast<VRMetadataDescriptor>(
+                pVrMetadata->getDescriptor());
 
         // Set some attributes to save.
         pVrMetadataDescriptor->setMinDimensions(kExpectedMinDimX, kExpectedMinDimY);
@@ -385,9 +384,9 @@ TEST_CASE("test vr metadata create open", "[vrmetadata][create][open]")
         UNSCOPED_INFO("Check that the optional variable resolution metadata layer exists.");
         REQUIRE(pVrMetadata);
 
-        const auto& descriptor = pVrMetadata->getDescriptor();
-        const auto* pVrMetadataDescriptor =
-            dynamic_cast<const VRMetadataDescriptor*>(&descriptor);
+        auto pVrMetadataDescriptor =
+            std::dynamic_pointer_cast<const VRMetadataDescriptor>(
+                pVrMetadata->getDescriptor());
 
         // Read the attributes back.
         auto dims = pVrMetadataDescriptor->getMinDimensions();
@@ -431,8 +430,10 @@ TEST_CASE("test vr metadata write read", "[vrmetadata][write][read]")
     REQUIRE(pVrMetadata);
 
     UNSCOPED_INFO("Check VRMetadataDescriptor is the default descriptor.");
-    REQUIRE_NOTHROW(dynamic_cast<const VRMetadataDescriptor&>(
-        pVrMetadata->getDescriptor()));
+    auto pVrMetadataDescriptor =
+        std::dynamic_pointer_cast<VRMetadataDescriptor>(
+            pVrMetadata->getDescriptor());
+    REQUIRE(pVrMetadataDescriptor);
 
     UNSCOPED_INFO("Write one record.");
     constexpr BAG::VRMetadataItem kExpectedItem0{

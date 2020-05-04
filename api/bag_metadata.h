@@ -29,7 +29,7 @@ class BAG_API Metadata final
 public:
     Metadata() noexcept;
     explicit Metadata(Dataset& dataset);
-
+    explicit Metadata(std::shared_ptr<Dataset> pDataset);
     ~Metadata() noexcept;
 
     Metadata(const Metadata& other) = delete;
@@ -57,7 +57,6 @@ public:
     size_t getXMLlength() const noexcept;
 
 private:
-
     void createH5dataSet(const Dataset& inDataSet);
 
     void write() const;

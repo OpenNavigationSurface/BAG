@@ -63,7 +63,7 @@ int main(
     try
     {
         constexpr uint64_t chunkSize = 100;
-        constexpr unsigned int compressionLevel = 1;
+        constexpr int compressionLevel = 1;
 
         dataset = BAG::Dataset::create(outFileName, std::move(metadata),
             chunkSize, compressionLevel);
@@ -85,8 +85,8 @@ int main(
         const std::array<float, 2> surfRange{-10.0f,
             -10.0f - ((kGridSize - 1) * (kGridSize - 1) + kGridSize) / 10.0f};
 
-        auto& descriptor = elevationLayer->getDescriptor();
-        descriptor.setMinMax(surfRange[0], surfRange[1]);
+        auto pDescriptor = elevationLayer->getDescriptor();
+        pDescriptor->setMinMax(surfRange[0], surfRange[1]);
 
         elevationLayer->writeAttributes();
     }
@@ -125,8 +125,8 @@ int main(
         const std::array<float, 2> uncertRange{1.0f,
             1.0f + ((kGridSize - 1) * (kGridSize - 1) + kGridSize) / 100.0f};
 
-        auto& descriptor = uncertaintyLayer->getDescriptor();
-        descriptor.setMinMax(uncertRange[0], uncertRange[1]);
+        auto pDescriptor = uncertaintyLayer->getDescriptor();
+        pDescriptor->setMinMax(uncertRange[0], uncertRange[1]);
 
         uncertaintyLayer->writeAttributes();
     }
@@ -163,7 +163,7 @@ int main(
     try
     {
         const BAG::DataType indexType = DT_UINT16;  // Not expecting more than 65535 possible records.  (1 record is reserved)
-        const auto& simpleLayerName = elevationLayer->getDescriptor().getName();
+        const auto& simpleLayerName = elevationLayer->getDescriptor()->getName();
 
         BAG::RecordDefinition definition(12);
         definition[0].name = "temporal_variability";

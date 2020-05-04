@@ -336,11 +336,10 @@ TEST_CASE("test vr metadata descriptor min/max dimensions",
     auto* pVrMetadata = pDataset->getVRMetadata();
     REQUIRE(pVrMetadata);
 
-    auto& descriptor = pVrMetadata->getDescriptor();
-    REQUIRE_NOTHROW(dynamic_cast<VRMetadataDescriptor&>(descriptor));
-
-    auto* pVrMetadataDescriptor =
-        dynamic_cast<VRMetadataDescriptor*>(&descriptor);
+    auto pVrMetadataDescriptor =
+        std::dynamic_pointer_cast<VRMetadataDescriptor>(
+            pVrMetadata->getDescriptor());
+    REQUIRE(pVrMetadataDescriptor);
 
     // Set some expected minimum dimension values and verify they are set.
     UNSCOPED_INFO("Verify setting the min dimensions does not throw.");
@@ -390,11 +389,10 @@ TEST_CASE("test vr metadata descriptor min/max resolution",
     auto* pVrMetadata = pDataset->getVRMetadata();
     REQUIRE(pVrMetadata);
 
-    auto& descriptor = pVrMetadata->getDescriptor();
-    REQUIRE_NOTHROW(dynamic_cast<VRMetadataDescriptor&>(descriptor));
-
-    auto* pVrMetadataDescriptor =
-        dynamic_cast<VRMetadataDescriptor*>(&descriptor);
+    auto pVrMetadataDescriptor =
+        std::dynamic_pointer_cast<VRMetadataDescriptor>(
+            pVrMetadata->getDescriptor());
+    REQUIRE(pVrMetadataDescriptor);
 
     // Set some expected minimum resolution values and verify they are set.
     constexpr float kExpectedMinResX = 1.1f;

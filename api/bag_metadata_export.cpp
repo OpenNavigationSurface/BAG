@@ -3,7 +3,7 @@
 //      Open Navigation Surface Working Group, 2013
 //
 //************************************************************************
-#include "bag_metadata.h"
+#include "bag_metadata_export.h"
 
 #include <cstring>
 #include <iostream>
