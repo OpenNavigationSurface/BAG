@@ -228,6 +228,121 @@ def testCreateWriteTwoGridded():
     del dataset #ensure dataset is deleted before tmpFile
 
 
+# This test was thrown together from existing unit tests to 
+# test that readCorrectedRow can be called through python.
+# The simple and corrections layers used do not match one 
+# another, so the returned results are of the correct type 
+# but have meaningless values.
+def testReadCorrectedRow():
+    tmpFile = testUtils.RandomFileGuard("name")
+
+    metadata = Metadata()
+    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+
+    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+    assert(dataset)
+
+    # Create and write float values to a simple layer.
+    simpleLayer = dataset.createSimpleLayer(Average_Elevation, chunkSize, compressionLevel)
+    assert(simpleLayer)
+    kFloatValue = 123.456
+    kExpectedNumNodes = 12
+    origBuffer = (kFloatValue,) * kExpectedNumNodes
+    buffer = FloatLayerItems(origBuffer)
+    simpleLayer.write(1, 2, 3, 5, buffer)
+
+    # Create and write the surface corrections layer
+    kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS
+    kExpectedNumCorrectors = 3
+    corrections = dataset.createSurfaceCorrections(kExpectedSurfaceType,
+        kExpectedNumCorrectors, chunkSize, compressionLevel)
+    assert(corrections)
+
+    kExpectedItem0 = BagVerticalDatumCorrectionsGridded((9.87, 6.543, 2.109876))
+    kRowStart = 0
+    kColumnStart = 0
+    kRowEnd = 0
+    kColumnEnd = 0
+    items = SurfaceCorrectionsGriddedLayerItems((kExpectedItem0,))
+    corrections.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, items)
+
+    # get the Simple and SurfaceCorrections Layers
+    correctionsB = dataset.getSurfaceCorrections()
+    assert(correctionsB)
+    simpleLayerB = dataset.getSimpleLayer(Average_Elevation)
+    assert(simpleLayerB)
+
+    row = 0
+    corrector = 1
+    correctedData = correctionsB.readCorrectedRow(row,
+        kColumnStart, kColumnEnd, corrector, simpleLayerB)
+
+
+    # Since the corrections layer does not match the simple layer,
+    # the returned values are meaningless, but are of the correct type.
+    correctedFloats = correctedData.asFloatItems()
+    assert(len(correctedFloats) == 1)
+
+    del dataset #ensure dataset is deleted before tmpFile
+
+
+# This test was thrown together from existing unit tests to 
+# test that readCorrected can be called through python.
+# The simple and corrections layers used do not match one 
+# another, so the returned results are of the correct type 
+# but have meaningless values.
+def testReadCorrected():
+    tmpFile = testUtils.RandomFileGuard("name")
+
+    metadata = Metadata()
+    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+
+    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+    assert(dataset)
+
+    # Create and write float values to a simple layer.
+    simpleLayer = dataset.createSimpleLayer(Average_Elevation, chunkSize, compressionLevel)
+    assert(simpleLayer)
+    kFloatValue = 123.456
+    kExpectedNumNodes = 12
+    origBuffer = (kFloatValue,) * kExpectedNumNodes
+    buffer = FloatLayerItems(origBuffer)
+    simpleLayer.write(1, 2, 3, 5, buffer)
+
+    # Create and write the surface corrections layer
+    kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS
+    kExpectedNumCorrectors = 3
+    corrections = dataset.createSurfaceCorrections(kExpectedSurfaceType,
+        kExpectedNumCorrectors, chunkSize, compressionLevel)
+    assert(corrections)
+
+    kExpectedItem0 = BagVerticalDatumCorrectionsGridded((9.87, 6.543, 2.109876))
+    kRowStart = 0
+    kColumnStart = 0
+    kRowEnd = 0
+    kColumnEnd = 0
+    items = SurfaceCorrectionsGriddedLayerItems((kExpectedItem0,))
+    corrections.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, items)
+
+    # get the Simple and SurfaceCorrections Layers
+    correctionsB = dataset.getSurfaceCorrections()
+    assert(correctionsB)
+    simpleLayerB = dataset.getSimpleLayer(Average_Elevation)
+    assert(simpleLayerB)
+
+    corrector = 1
+    correctedData = correctionsB.readCorrected(kRowStart, kRowEnd,
+        kColumnStart, kColumnEnd, corrector, simpleLayerB)
+
+
+    # Since the corrections layer does not match the simple layer,
+    # the returned values are meaningless, but are of the correct type.
+    correctedFloats = correctedData.asFloatItems()
+    assert(len(correctedFloats) == 1)
+
+    del dataset #ensure dataset is deleted before tmpFile
+
+
 # run the unit test methods
 testReadIrregular()
 testCreateIrregular()
@@ -235,3 +350,10 @@ testCreateGridded()
 testCreateWriteIrregular()
 testCreateWriteGridded()
 testCreateWriteTwoGridded()
+
+#TODO: adjust these readCorrected() tests once suitable data 
+# has been found/created. These tests just ensure that the 
+# methods can be called, and that results of the correct type
+# are returned, but they currently return meaningless values.
+testReadCorrectedRow()
+testReadCorrected()
