@@ -18,12 +18,19 @@
 *.xcodeproj
 build*/
 bin/
+docs/api/html/
 lib/
 installed/
 api/Debug
 api/Release
 examples/Debug
 examples/Release
+/python/__pycache__/
+/python/*.dll
+/python/*.pyd
+/python/bagPy.py
+/python/bagTestPy.py
+swig_wrapper/
 
 # Visual Studio session files.
 /.vs

@@ -1,5 +1,5 @@
 /*! \file bag.h
- * \brief Declarations of Open Navigation Surface API.
+ * \brief Declarations of Open Navigation Surface C API.
  ********************************************************************
  *
  * Authors/Date : Fri Jan 27 14:41:13 2006
@@ -48,91 +48,124 @@
 #define BAG_H
 
 #include "bag_config.h"
+#include "bag_c_types.h"
 #include "bag_metadatatypes.h"
-#include "bag_types.h"
 #include "bag_version.h"
 
-#include <float.h>
-#include <limits.h>
-#include <math.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
-typedef struct BagHandle BagHandle;
+typedef struct BagHandle* Handle;
 
 /* Function prototypes */
 
-/* Open/Create/Close */
-BAG_EXTERNAL BagError bagFileOpen(BagHandle* BagHandle, BAG_OPEN_MODE accessMode, const char* fileName);
-BAG_EXTERNAL BagError bagFileClose(BagHandle BagHandle);
-BAG_EXTERNAL BagError bagCreateFromFile(const char* file_name, const char* metaDataFile, BagHandle* bag_handle);
-BAG_EXTERNAL BagError bagCreateFromBuffer(const char* file_name, uint8_t* metaDataBuffer, uint32_t metaDataBufferSize, BagHandle* bag_handle);
-BAG_EXTERNAL BagError bagCreateLayer(BagHandle hnd, BAG_LAYER_TYPE type);
-BAG_EXTERNAL BagError bagGetGridDimensions(BagHandle hnd, uint32_t* rows, uint32_t* cols);
-BAG_EXTERNAL BagError bagGetNodeSpacing(BagHandle handle, double* xSpacing, double* ySpacing);
-BAG_EXTERNAL BagError bagGetGeoCover(BagHandle handle, double* llx, double* lly, double* urx, double* ury);
-BAG_EXTERNAL const BagMetadata* bagGetMetaData(BagHandle handle);
+/* Open/Create/Close Dataset */
+BAG_EXTERNAL BagError bagCreateFromBuffer(BagHandle** handle, const char* fileName, uint8_t* metadataBuffer, uint32_t metadataBufferSize);
+BAG_EXTERNAL BagError bagCreateFromFile(BagHandle** handle, const char* fileName, const char* metadataFile);
+BAG_EXTERNAL BagError bagCreateLayer(BagHandle* handle, BAG_LAYER_TYPE type);
+BAG_EXTERNAL BagError bagFileClose(BagHandle* handle);
+BAG_EXTERNAL BagError bagFileOpen(BagHandle** handle, BAG_OPEN_MODE accessMode, const char* fileName);
+BAG_EXTERNAL BagError bagGetGeoCover(BagHandle* handle, double* llx, double* lly, double* urx, double* ury);
+BAG_EXTERNAL BagError bagGetGridDimensions(BagHandle* handle, uint32_t* rows, uint32_t* cols);
+BAG_EXTERNAL BagError bagGetSpacing(BagHandle* handle, double* rowSpacing, double* columnSpacing);
 
 /* Layer access */
-BAG_EXTERNAL BagError bagGetMinMax(BagHandle hnd, BAG_LAYER_TYPE type, double* minValue, double* maxValue);
-BAG_EXTERNAL BagError bagSetMinMax(BagHandle hnd, BAG_LAYER_TYPE type, double* minValue, double* maxValue);
-BAG_EXTERNAL BagError bagGetNumLayers(BagHandle hnd, uint32_t* numLayers);
-BAG_EXTERNAL bool bagContainsLayer(BagHandle hnd, BAG_LAYER_TYPE type);
-BAG_EXTERNAL BagError bagRead (BagHandle BagHandle, uint32_t start_row, uint32_t start_col, uint32_t end_row, uint32_t end_col, BAG_LAYER_TYPE type, uint8_t* data, double* x, double* y);
-BAG_EXTERNAL BagError bagWrite (BagHandle BagHandle, uint32_t start_row, uint32_t start_col, uint32_t end_row, uint32_t end_col, BAG_LAYER_TYPE type, uint8_t* data);
+BAG_EXTERNAL BagError bagGetNumLayers(BagHandle* handle, uint32_t* numLayers);
+BAG_EXTERNAL bool bagContainsLayer(BagHandle* handle, BAG_LAYER_TYPE type, const char* layerName, BagError* bagError);
+BAG_EXTERNAL BagError bagRead(BagHandle* handle, uint32_t rowStart, uint32_t colStart, uint32_t rowEnd, uint32_t colEnd, BAG_LAYER_TYPE type, const char* layerName, uint8_t** data, double* x, double* y);
+BAG_EXTERNAL BagError bagWrite(BagHandle* handle, uint32_t rowStart, uint32_t colStart, uint32_t rowEnd, uint32_t colEnd, BAG_LAYER_TYPE type, const char* layerName, uint8_t* data);
+
+/* Simple layer access */
+BAG_EXTERNAL BagError bagGetMinMaxSimple(BagHandle* handle, BAG_LAYER_TYPE type, float* minValue, float* maxValue);
+BAG_EXTERNAL BagError bagSetMinMaxSimple(BagHandle* handle, BAG_LAYER_TYPE type, float minValue, float maxValue);
 
 /* Utilities */
 BAG_EXTERNAL BagError bagGetErrorString(BagError code, uint8_t** error);
-BAG_EXTERNAL BagError bagComputePostion(BagHandle hnd, uint32_t row, uint32_t col, double* x, double* y);
-BAG_EXTERNAL void* bagGetNullValue(BAG_LAYER_TYPE type);
-BAG_EXTERNAL BagError bagComputeIndex(BagHandle hnd, double x, double y, uint32_t* row, uint32_t* col);
-BAG_EXTERNAL BagError bagSetCompressionLevel(uint8_t level);
-BAG_EXTERNAL uint8_t* bagAllocateBuffer(uint32_t start_row, uint32_t start_col, uint32_t end_row, uint32_t end_col, BAG_LAYER_TYPE type);
+BAG_EXTERNAL BagError bagComputePostion(BagHandle* handle, uint32_t row, uint32_t col, double* x, double* y);
+BAG_EXTERNAL BagError bagComputeIndex(BagHandle* handle, double x, double y, uint32_t* row, uint32_t* col);
+BAG_EXTERNAL uint8_t* bagAllocateBuffer(BagHandle* handle, uint32_t numRows, uint32_t numCols, BAG_LAYER_TYPE type, const char* layerName, BagError* bagError);
 BAG_EXTERNAL uint8_t* bagAllocate(uint32_t numBytes);
-BAG_EXTERNAL BagError bagFree(uint8_t* buffer);
+BAG_EXTERNAL void bagFree(uint8_t* buffer);
 
 /* Corrector surface access */
-BAG_EXTERNAL BagError bagReadCorrectorVerticalDatum(BagHandle hnd, uint32_t, uint8_t*  datum);
-BAG_EXTERNAL BagError bagWriteCorrectorVerticalDatum(BagHandle hnd, uint32_t, uint8_t*  datum);
-BAG_EXTERNAL BagError bagReadCorrectedDataset(BagHandle BagHandle, uint32_t corrIndex, uint32_t surfIndex, float* data);
-BAG_EXTERNAL BagError bagReadCorrectedRegion(BagHandle BagHandle, uint32_t startrow, uint32_t endrow, uint32_t startcol, uint32_t endcol, uint32_t corrIndex, uint32_t surfIndex, float* data);
-BAG_EXTERNAL BagError bagReadCorrectedRow(BagHandle BagHandle, uint32_t row, uint32_t corrIndex, uint32_t surfIndex, float* data);
-BAG_EXTERNAL BagError bagReadCorrectedNode(BagHandle BagHandle, uint32_t row, uint32_t col, uint32_t corrIndex, uint32_t surfIndex, float* data);
-BAG_EXTERNAL BagError bagGetNumSurfaceCorrectors(BagHandle hnd_opt, uint32_t* num);
-BAG_EXTERNAL BagError bagGetSurfaceCorrectionTopography(BagHandle hnd, uint8_t* type);
-BAG_EXTERNAL BagError bagCreateCorrectorDataset(BagHandle hnd, uint32_t numCorrectors, uint8_t type);
-//BAG_EXTERNAL BagError bagWriteCorrectorDefinition(BagHandle hnd, bagVerticalCorrectorDef *def);
-//BAG_EXTERNAL BagError bagReadCorrectorDefinition(BagHandle hnd, bagVerticalCorrectorDef *def);
+BAG_EXTERNAL BagError bagReadCorrectorVerticalDatum(BagHandle* handle, uint8_t corrector, uint8_t*  datum);
+BAG_EXTERNAL BagError bagWriteCorrectorVerticalDatum(BagHandle* handle, uint8_t corrector, const uint8_t*  datum);
+BAG_EXTERNAL BagError bagReadCorrectedLayer(BagHandle* handle, uint8_t corrector, BAG_LAYER_TYPE type, float** data);
+BAG_EXTERNAL BagError bagReadCorrectedRegion(BagHandle* handle, uint32_t rowStart, uint32_t colStart, uint32_t rowEnd, uint32_t colEnd, uint8_t corrector, BAG_LAYER_TYPE type, float** data);
+BAG_EXTERNAL BagError bagReadCorrectedRow(BagHandle* handle, uint32_t row, uint8_t corrector, BAG_LAYER_TYPE type, float** data);
+BAG_EXTERNAL BagError bagReadCorrectedNode(BagHandle* handle, uint32_t row, uint32_t col, uint8_t corrector, BAG_LAYER_TYPE type, float** data);
+BAG_EXTERNAL BagError bagGetNumSurfaceCorrectors(BagHandle* handle, uint8_t* numCorrectors);
+BAG_EXTERNAL BagError bagGetSurfaceCorrectionTopography(BagHandle* handle, BAG_SURFACE_CORRECTION_TOPOGRAPHY* topography);
+BAG_EXTERNAL BagError bagCreateCorrectorLayer(BagHandle* handle, uint8_t numCorrectors, BAG_SURFACE_CORRECTION_TOPOGRAPHY topography);
+BAG_EXTERNAL BagError bagWriteCorrectorDefinition(BagHandle* handle, BagVerticalCorrectorDef *def);
+BAG_EXTERNAL BagError bagReadCorrectorDefinition(BagHandle* handle, BagVerticalCorrectorDef *def);
 
 /* Tracking list access */
-BAG_EXTERNAL BagError bagTrackingListLength (BagHandle BagHandle, uint32_t* len);
-BAG_EXTERNAL BagError bagReadTrackingListNode(BagHandle BagHandle, uint32_t row, uint32_t col, BagTrackingItem* *items, uint32_t* length);
-BAG_EXTERNAL BagError bagReadTrackingListCode(BagHandle BagHandle, uint8_t code, BagTrackingItem* *items, uint32_t* length);
-BAG_EXTERNAL BagError bagReadTrackingListSeries(BagHandle BagHandle, uint16_t index, BagTrackingItem* *items, uint32_t* length);
-BAG_EXTERNAL BagError bagWriteTrackingListItem(BagHandle BagHandle, BagTrackingItem* item);
-BAG_EXTERNAL BagError bagSortTrackingListByNode(BagHandle BagHandle);
-BAG_EXTERNAL BagError bagSortTrackingListBySeries(BagHandle BagHandle);
-BAG_EXTERNAL BagError bagSortTrackingListByCode(BagHandle BagHandle);
-
-/* Digital signature */
-/*BAG_EXTERNAL uint8_t* bagComputeMessageDigest(const char* fileName, uint32_t signatureID, uint32_t* nBytes);
-BAG_EXTERNAL uint8_t* bagSignMessageDigest(uint8_t* md, uint32_t mdLen, uint8_t* secKey, BagError* errcode);
-BAG_EXTERNAL BagError bagReadCertification(const char* fileName, uint8_t* sig, uint32_t nBuffer, uint32_t* sigID);
-BAG_EXTERNAL BagError bagWriteCertification(const char* fileName, uint8_t* sig, uint32_t sigID);
-BAG_EXTERNAL bool bagVerifyCertification(uint8_t* sig, uint8_t* pubKey, uint8_t* md, uint32_t mdLen);
-BAG_EXTERNAL uint8_t* bagComputeFileSignature(const char* fileName, uint32_t sigID, uint8_t* secKey);
-BAG_EXTERNAL bool bagSignFile(const char* fileName, uint8_t* secKey, uint32_t sigID);
-BAG_EXTERNAL bool bagVerifyFile(const char* fileName, uint8_t* pubKey, uint32_t sigID);
-BAG_EXTERNAL BagError bagGenerateKeyPair(uint8_t* *pubKey, uint8_t** secKey);
-BAG_EXTERNAL BagError bagConvertCryptoFormat(uint8_t* object, bagCryptoObject objType, bagConvDir convDir, uint8_t** converted);
-*/
+BAG_EXTERNAL BagError bagTrackingListLength (BagHandle* handle, uint32_t* len);
+BAG_EXTERNAL BagError bagReadTrackingListNode(BagHandle* handle, uint32_t row, uint32_t col, BagTrackingItem** items, uint32_t* numItems);
+BAG_EXTERNAL BagError bagReadTrackingListCode(BagHandle* handle, uint8_t code, BagTrackingItem** items, uint32_t* length);
+BAG_EXTERNAL BagError bagReadTrackingListSeries(BagHandle* handle, uint16_t series, BagTrackingItem** items, uint32_t* length);
+BAG_EXTERNAL BagError bagWriteTrackingListItem(BagHandle* handle, BagTrackingItem* item);
+BAG_EXTERNAL BagError bagSortTrackingListByNode(BagHandle* handle);
+BAG_EXTERNAL BagError bagSortTrackingListBySeries(BagHandle* handle);
+BAG_EXTERNAL BagError bagSortTrackingListByCode(BagHandle* handle);
 
 /* Metadata */
-/*BAG_EXTERNAL BagError bagInitMetadata(BagMetadata* metadata);
-BAG_EXTERNAL void bagFreeMetadata(BagMetadata* metadata);
-BAG_EXTERNAL void bagSetHomeFolder(const char* metadataFolder);*/
+//BAG_EXTERNAL BagError bagInitMetadata(BagHandle* handle, BagMetadata* metadata);
+//BAG_EXTERNAL BagError bagFreeMetadata(BagHandle* handle, BagMetadata* metadata);
+BAG_EXTERNAL const BagMetadata* bagGetMetaData(BagHandle* handle);
+BAG_EXTERNAL BagError bagSetHomeFolder(const char* metadataFolder);
+
+/* CompoundLayer */
+BAG_EXTERNAL BagError bagCreateCompoundLayer(BagHandle* handle, BAG_DATA_TYPE indexType, const char* layerName, const FieldDefinition* definition, uint32_t numFields);
+BAG_EXTERNAL BagError bagGetCompoundLayerDefinition(BagHandle* handle, const char* layerName, FieldDefinition** definition, uint32_t* numDefinitions);
+BAG_EXTERNAL BagError bagGetCompoundLayerRecords(BagHandle* handle, const char* layerName, BagCompoundDataType*** records, uint32_t* numRecords, uint32_t* numFields);
+BAG_EXTERNAL BagError bagGetCompoundLayerValueByName(BagHandle* handle, const char* layerName, uint32_t recordIndex, const char* fieldName, BagCompoundDataType* value);
+BAG_EXTERNAL BagError bagGetCompoundLayerValueByIndex(BagHandle* handle, const char* layerName, uint32_t recordIndex, uint32_t fieldIndex, BagCompoundDataType* value);
+BAG_EXTERNAL BagError bagGetCompoundLayerFieldIndex(BagHandle* handle, const char* layerName, const char* fieldName, uint32_t* fieldIndex);
+BAG_EXTERNAL BagError bagGetCompoundLayerFieldName(BagHandle* handle, const char* layerName, uint32_t fieldIndex, const char** fieldName);
+BAG_EXTERNAL BagError bagAddCompoundLayerRecord(BagHandle* handle, const char* layerName, const BagCompoundDataType* record, uint32_t numFields, uint32_t* recordIndex);
+BAG_EXTERNAL BagError bagAddCompoundLayerRecords(BagHandle* handle, const char* layerName, const BagCompoundDataType** records, uint32_t numRecords, uint32_t numFields);
+BAG_EXTERNAL BagError bagCompoundLayerSetValueByName(BagHandle* handle, const char* layerName, uint32_t recordIndex, const char* fieldName, const BagCompoundDataType* value);
+BAG_EXTERNAL BagError bagCompoundLayerSetValueByIndex(BagHandle* handle, const char* layerName, uint32_t recordIndex, uint32_t fieldIndex, const BagCompoundDataType* value);
+
+
+/* Variable Resolution */
+BAG_EXTERNAL BagError bagCreateVRLayers(BagHandle* handle, bool makeNode);
+
+/* Variable Resolution Metadata */
+BAG_EXTERNAL BagError bagVRMetadataGetMinDimensions(BagHandle* handle, uint32_t* minX, uint32_t* minY);
+BAG_EXTERNAL BagError bagVRMetadataGetMaxDimensions(BagHandle* handle, uint32_t* maxX, uint32_t* maxY);
+BAG_EXTERNAL BagError bagVRMetadataGetMinResolution(BagHandle* handle, float* minX, float* minY);
+BAG_EXTERNAL BagError bagVRMetadataGetMaxResolution(BagHandle* handle, float* maxX, float* maxY);
+BAG_EXTERNAL BagError bagVRMetadataSetMinDimensions(BagHandle* handle, uint32_t minX, uint32_t minY);
+BAG_EXTERNAL BagError bagVRMetadataSetMaxDimensions(BagHandle* handle, uint32_t maxX, uint32_t maxY);
+BAG_EXTERNAL BagError bagVRMetadataSetMinResolution(BagHandle* handle, float minX, float minY);
+BAG_EXTERNAL BagError bagVRMetadataSetMaxResolution(BagHandle* handle, float maxX, float maxY);
+
+/* Variable Resolution Node */
+BAG_EXTERNAL BagError bagVRNodeGetMinMaxHypStrength(BagHandle* handle, float* minHypStr, float* maxHypStr);
+BAG_EXTERNAL BagError bagVRNodeGetMinMaxNumHypotheses(BagHandle* handle, uint32_t* minNumHyp, uint32_t* maxNumHyp);
+BAG_EXTERNAL BagError bagVRNodeGetMinMaxNSamples(BagHandle* handle, uint32_t* minNSamples, uint32_t* maxNSamples);
+BAG_EXTERNAL BagError bagVRNodeSetMinMaxHypStrength(BagHandle* handle, float minHypStr, float maxHypStr);
+BAG_EXTERNAL BagError bagVRNodeSetMinMaxNumHypotheses(BagHandle* handle, uint32_t minNumHyp, uint32_t maxNumHyp);
+BAG_EXTERNAL BagError bagVRNodeSetMinMaxNSamples(BagHandle* handle, uint32_t minNSamples, uint32_t maxNSamples);
+
+/* Variable Resolution Refinement */
+BAG_EXTERNAL BagError bagVRRefinementGetMinMaxDepth(BagHandle* handle, float* minDepth, float* maxDepth);
+BAG_EXTERNAL BagError bagVRRefinementGetMinMaxUncertainty(BagHandle* handle, float* minUncert, float* maxUncert);
+BAG_EXTERNAL BagError bagVRRefinementSetMinMaxDepth(BagHandle* handle, float minDepth, float maxDepth);
+BAG_EXTERNAL BagError bagVRRefinementSetMinMaxUncertainty(BagHandle* handle, float minUncert, float maxUncert);
+
+/* Variable Resolution Tracking List */
+BAG_EXTERNAL BagError bagVRTrackingListLength(BagHandle* handle, uint32_t* numItems);
+BAG_EXTERNAL BagError bagReadVRTrackingListNode(BagHandle* handle, uint32_t row, uint32_t col, BagVRTrackingItem** items, uint32_t* numItems);
+BAG_EXTERNAL BagError bagReadVRTrackingListSubNode(BagHandle* handle, uint32_t row, uint32_t col, BagVRTrackingItem** items, uint32_t* numItems);
+BAG_EXTERNAL BagError bagReadVRTrackingListCode(BagHandle* handle, uint8_t code, BagVRTrackingItem** items, uint32_t* numItems);
+BAG_EXTERNAL BagError bagReadVRTrackingListSeries(BagHandle* handle, uint16_t series, BagVRTrackingItem** items, uint32_t* numItems);
+BAG_EXTERNAL BagError bagWriteVRTrackingListItem(BagHandle* handle, BagVRTrackingItem* item);
+BAG_EXTERNAL BagError bagSortVRTrackingListByNode(BagHandle* handle);
+BAG_EXTERNAL BagError bagSortVRTrackingListBySubNode(BagHandle* handle);
+BAG_EXTERNAL BagError bagSortVRTrackingListBySeries(BagHandle* handle);
+BAG_EXTERNAL BagError bagSortVRTrackingListByCode(BagHandle* handle);
 
 
 #endif // BAG_H

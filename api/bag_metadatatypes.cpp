@@ -3,29 +3,26 @@
 //      Open Navigation Surface Working Group, 2013
 //
 //************************************************************************
-#include "bag.h"
-#include "bag_metadata.h"
 #include "bag_metadatatypes.h"
-#include "bag_trackinglist.h"
-#include "bag_layer.h"
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
-
-#include <h5cpp.h>
-
-#ifdef _MSC_VER
-#pragma warning(pop)
-#endif
+#include <cstring>
+#include <H5Cpp.h>
+#include <string>
 
 
 namespace {
 
+//! Make a copy of the input string.
+/*!
+\param source
+    The source string to copy.
+
+\return
+    A copy of the input string.
+*/
 char* copyString(const char* source)
 {
-    if (!source || strlen(source) == 0)
+    if (!source || source[0] == '\0')
         return nullptr;
 
     char* result = new char[strlen(source) + 1];
@@ -426,7 +423,7 @@ void bagInitMetadata(BagMetadata& metadata)
     metadata.fileIdentifier = nullptr;
     metadata.dateStamp = nullptr;
     metadata.language = copyString("en");
-    metadata.characterSet = "utf8";
+    metadata.characterSet = copyString("utf8");
     metadata.hierarchyLevel = copyString("dataset");
     metadata.metadataStandardName = copyString("ISO 19115");
     metadata.metadataStandardVersion = copyString("2003/Cor.1:2006");

@@ -5,37 +5,70 @@
 #include "bag_surfacecorrectionsdescriptor.h"
 
 #include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
 
 namespace {
+
+//! Retrieve the size of a node of the specified topography.
+/*!
+\param type
+    The topography type.
+\param numCorrectors
+    The number of correctors.
+    Valid values are 1-10.
+
+\return
+    The size of a node in the specified topography.
+*/
 uint8_t getElementSize(
-    BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
-    uint8_t numCorrectors) noexcept
+    BAG_SURFACE_CORRECTION_TOPOGRAPHY type) noexcept
 {
-    return (type == BAG_SURFACE_IRREGULARLY_SPACED ? 2 * sizeof(double) : 0)
-        + numCorrectors * sizeof(float);
+    return (type == BAG_SURFACE_IRREGULARLY_SPACED)
+        ? sizeof(BAG::VerticalDatumCorrections)
+        : sizeof(BAG::VerticalDatumCorrectionsGridded);
 }
 
 }  // namespace
 
+//! Constructor.
+/*!
+\param id
+    The unique layer id.
+\param type
+    The type of surface corrections.
+\param numCorrectors
+    The number of correctors.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+*/
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
+    uint32_t id,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
-    : LayerDescriptor(Surface_Correction, chunkSize, compressionLevel)
+    int compressionLevel)
+    : LayerDescriptor(id, Layer::getInternalPath(Surface_Correction),
+        kLayerTypeMapString.at(Surface_Correction), Surface_Correction,
+        chunkSize, compressionLevel)
     , m_surfaceType(type)
-    , m_elementSize(BAG::getElementSize(type, numCorrectors))
+    , m_elementSize(BAG::getElementSize(type))
     , m_numCorrectors(numCorrectors)
 {
 }
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+*/
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     const Dataset& dataset)
-    : LayerDescriptor(Surface_Correction, dataset)
+    : LayerDescriptor(dataset, Surface_Correction)
 {
     const auto h5dataSet = dataset.getH5file().openDataSet(
         Layer::getInternalPath(Surface_Correction));
@@ -87,7 +120,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     // Read the number of Z corrections.
     const int zRank = h5zDataType.getArrayDims(zDims.data());
     if (zRank == 2)
-        if (zDims[1] > 10)
+        if (zDims[1] > BAG_SURFACE_CORRECTOR_LIMIT)
             throw TooManyCorrections{};
         else
             m_numCorrectors = static_cast<uint8_t>(zDims[1]);
@@ -95,30 +128,58 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
         throw CannotReadNumCorrections{};
 
     // Element size.
-    m_elementSize = BAG::getElementSize(m_surfaceType, m_numCorrectors);
+    m_elementSize = BAG::getElementSize(m_surfaceType);
+
+    // Number of rows & columns.
+    const auto h5Space = h5dataSet.getSpace();
+
+    std::array<hsize_t, kRank> dims{};
+    h5Space.getSimpleExtentDims(dims.data());
+
+    this->setDims(static_cast<uint32_t>(dims[0]),
+        static_cast<uint32_t>(dims[1]));
 }
 
+//! Create a surface corrections layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param type
+    The type of surface corrections.
+\param numCorrectors
+    The number of correctors.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+*/
 std::shared_ptr<SurfaceCorrectionsDescriptor>
 SurfaceCorrectionsDescriptor::create(
+    const Dataset& dataset,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
+    int compressionLevel)
 {
     if (type != BAG_SURFACE_GRID_EXTENTS &&
         type != BAG_SURFACE_IRREGULARLY_SPACED)
         throw UnknownSurfaceType{};
 
-    if (numCorrectors > 10)
+    if (numCorrectors > BAG_SURFACE_CORRECTOR_LIMIT)
         throw TooManyCorrections{};
 
     return std::shared_ptr<SurfaceCorrectionsDescriptor>(
-        new SurfaceCorrectionsDescriptor{type, numCorrectors, chunkSize,
-        compressionLevel});
+        new SurfaceCorrectionsDescriptor{dataset.getNextId(), type,
+            numCorrectors, chunkSize, compressionLevel});
 }
 
+//! Open an existing surface corrections layer.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+*/
 std::shared_ptr<SurfaceCorrectionsDescriptor>
-SurfaceCorrectionsDescriptor::create(
+SurfaceCorrectionsDescriptor::open(
     const Dataset& dataset)
 {
     return std::shared_ptr<SurfaceCorrectionsDescriptor>(
@@ -126,62 +187,153 @@ SurfaceCorrectionsDescriptor::create(
 }
 
 
+//! \copydoc LayerDescriptor::getDataType
+DataType SurfaceCorrectionsDescriptor::getDataTypeProxy() const noexcept
+{
+    return Layer::getDataType(Surface_Correction);
+}
+
+//! Retrieve the dimensions of the surface corrections layer.
+/*!
+\return
+    The dimensions of the surface corrections layer.
+*/
+std::tuple<uint32_t, uint32_t> SurfaceCorrectionsDescriptor::getDims() const noexcept
+{
+    return {m_numRows, m_numColumns};
+}
+
+//! \copydoc LayerDescriptor::getElementSize
 uint8_t SurfaceCorrectionsDescriptor::getElementSizeProxy() const noexcept
 {
     return m_elementSize;
 }
 
+//! Retrieve the number of correctors.
+/*!
+\return
+    The number of correctors.
+*/
 uint8_t SurfaceCorrectionsDescriptor::getNumCorrectors() const noexcept
 {
     return m_numCorrectors;
 }
 
+//! Retrieve the south west corner of the surface corrections layer.
+/*!
+\return
+    The south west corner of the surface corrections layer.
+*/
 std::tuple<double, double>
 SurfaceCorrectionsDescriptor::getOrigin() const noexcept
 {
-    return std::make_tuple(m_swX, m_swY);
+    return {m_swX, m_swY};
 }
 
+//! Retrieve the X and Y spacing/resolution of the surface corrections layer.
+/*!
+\return
+    The X and Y spacing/resolution of the surface corrections layer.
+*/
 std::tuple<double, double>
 SurfaceCorrectionsDescriptor::getSpacing() const noexcept
 {
-    return std::make_tuple(m_xSpacing, m_ySpacing);
+    return {m_xSpacing, m_ySpacing};
 }
 
+//! Retrieve surface correction topography.
+/*!
+\return
+    The surface correction topography.
+*/
 BAG_SURFACE_CORRECTION_TOPOGRAPHY
 SurfaceCorrectionsDescriptor::getSurfaceType() const noexcept
 {
     return m_surfaceType;
 }
 
+//! Retrieve the vertical datums.
+/*!
+\return
+    The vertical datums.
+*/
 const std::string&
 SurfaceCorrectionsDescriptor::getVerticalDatums() const & noexcept
 {
     return m_verticalDatums;
 }
 
-SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setVerticalDatum(
-    std::string verticalDatums) & noexcept
+//! Set the grid dimensions.
+/*!
+\param numRows
+    The new number of rows.
+\param numColumns
+    The new number of columns.
+
+\return
+    The surface corrections descriptor.
+*/
+SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setDims(
+    uint32_t numRows,
+    uint32_t numColumns) & noexcept
 {
-    m_verticalDatums = verticalDatums;
+    m_numRows = numRows;
+    m_numColumns = numColumns;
     return *this;
 }
 
+//! Set the south west corner.
+/*!
+\param swX
+    The X value of the south west corner.
+    Geographic location.
+\param swY
+    The Y value of the south west corner.
+    Geographic location.
+
+\return
+    The surface corrections descriptor.
+*/
 SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setOrigin(
     double swX,
-    double swY) noexcept
+    double swY) & noexcept
 {
     m_swX = swX;
     m_swY = swY;
     return *this;
 }
 
+//! Set the X and Y spacing/resolution.
+/*!
+\param xSpacing
+    The X spacing/resolution.
+\param ySpacing
+    The Y spacing/resolution.
+
+\return
+    The surface corrections descriptor.
+*/
 SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setSpacing(
     double xSpacing,
-    double ySpacing) noexcept
+    double ySpacing) & noexcept
 {
     m_xSpacing = xSpacing;
     m_ySpacing = ySpacing;
+    return *this;
+}
+
+//! Set the vertical datums.
+/*!
+\param verticalDatums
+    The vertical datums.
+
+\return
+    The surface corrections descriptor.
+*/
+SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setVerticalDatums(
+    std::string verticalDatums) & noexcept
+{
+    m_verticalDatums = std::move(verticalDatums);
     return *this;
 }
 

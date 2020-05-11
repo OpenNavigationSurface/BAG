@@ -11,6 +11,7 @@
 #define BAG_METADATATYPES_H
 
 #include "bag_c_types.h"
+#include "bag_config.h"
 
 #include <stdint.h>
 
@@ -19,7 +20,7 @@
 extern "C" {
 #endif
 
-/* Value to which floats and ints will be initialized. */
+//! Value to which floats and ints will be initialized.
 #define INIT_VALUE -999
 
 //! This structure contains the contents of the gmd:CI_ResponsibleParty node.
@@ -261,7 +262,7 @@ struct BagMetadata
     //! Contents of the gmd:characterSet node.
     //! See codelist for appropriate values. (http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode)
     //! Required
-    const char* characterSet;
+    char* characterSet;
     //! Contents of the gmd:hierarchyLevel node.
     //! See codelist for appropriate values. (http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode)
     //! Required
@@ -307,12 +308,12 @@ struct BagMetadata
 }  // extern "C"
 #endif
 
-void bagInitMetadata(BagMetadata& metadata);
-void bagFreeMetadata(BagMetadata& metadata) noexcept;
+BAG_EXTERNAL void bagInitMetadata(BagMetadata& metadata);
+BAG_EXTERNAL void bagFreeMetadata(BagMetadata& metadata) noexcept;
 
-void initResponsibleParty(BagResponsibleParty& responsibleParty) noexcept;
-void initSourceInfo(BagSource& sourceInfo) noexcept;
-void initProcessStep(BagProcessStep& processStep) noexcept;
+BAG_EXTERNAL void initResponsibleParty(BagResponsibleParty& responsibleParty) noexcept;
+BAG_EXTERNAL void initSourceInfo(BagSource& sourceInfo) noexcept;
+BAG_EXTERNAL void initProcessStep(BagProcessStep& processStep) noexcept;
 
-#endif  //BAG_METADATATYPES_H
+#endif  // BAG_METADATATYPES_H
 

@@ -2,20 +2,32 @@
 #define BAG_EXCEPTIONS_H
 
 #include "bag_config.h"
+#include "bag_errors.h"
+#include "bag_types.h"
 
 #include <exception>
+#include <sstream>
 
+
+namespace BAG {
 
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4275)
 #endif
 
-
-namespace BAG {
+// General
+//! Compression was requested, but no chunking was specified.
+struct BAG_API CompressionNeedsChunkingSet final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "If compression is desired, a chunk positive chunk size must be set.";
+    }
+};
 
 // Attribute related.
-//! Attribute type not supported (yet)  //TODO temp exception
+//! Attribute type not supported (yet)
 struct BAG_API UnsupportedAttributeType final : virtual std::exception
 {
     const char* what() const noexcept override
@@ -24,6 +36,45 @@ struct BAG_API UnsupportedAttributeType final : virtual std::exception
     }
 };
 
+
+// CompoundDataType related.
+//! Layer not found.
+struct BAG_API InvalidType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The type specified does not match what is stored.";
+    }
+};
+
+//! Invalid descriptor found.
+struct BAG_API InvalidDescriptor final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The descriptor is not a CompoundDataDescriptor.";
+    }
+};
+
+//! Invalid index type specified.
+struct BAG_API InvalidIndexType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The type specified for the index type is not valid.";
+    }
+};
+
+//! A name is required to find a unique compound layer.
+struct BAG_API NameRequired final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "A name is required to find a unique compound layer.";
+    }
+};
+
+
 // Dataset related.
 //! Layer not found.
 struct BAG_API DatasetNotFound final : virtual std::exception
@@ -31,6 +82,15 @@ struct BAG_API DatasetNotFound final : virtual std::exception
     const char* what() const noexcept override
     {
         return "There is no dataset to work with.";
+    }
+};
+
+//! Invalid layer id.
+struct BAG_API InvalidLayerId final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid layer id specified.";
     }
 };
 
@@ -120,7 +180,7 @@ struct BAG_API UnsupportedLayerType final : virtual std::exception
 };
 
 //! Attempt to use an incorrect layer type.
-struct BAG_API UnknownSimpleLayerType final : virtual std::exception
+struct BAG_API UnsupportedSimpleLayerType final : virtual std::exception
 {
     const char* what() const noexcept override
     {
@@ -141,14 +201,42 @@ struct BAG_API UnsupportedInterleavedLayer final : virtual std::exception
 
 
 // LayerDescriptor related.
-//! Attempt to make an unsupported interleaved layer.
-struct BAG_API UnexpectedLayerDescriptorType final : virtual std::exception
+//! The layer descriptor is not valid.
+struct BAG_API InvalidLayerDescriptor final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "An unexpected layer descriptor type was encountered.";
+        return "The specified layer descriptor is not valid.";
     }
 };
+
+
+// LayerItems related.
+//! The type cannot be cast to the specified type.
+struct BAG_API InvalidCast final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The LayerItems cannot be cast to the specified type.";
+    }
+};
+
+
+//! Legacy CRS related.
+//! Ran into a problem (internal).
+struct CoordSysError : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Conversion Error";
+    };
+};
+
+//! Can not convert the datum.
+struct InvalidDatumError final : virtual CoordSysError {};
+
+//! Can not convert the ellipsoid.
+struct InvalidEllipsoidError final : virtual CoordSysError {};
 
 
 // Metadata related.
@@ -159,6 +247,25 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     {
         return "The mandatory Metadata dataset was not found.";
     }
+};
+
+//! An error occurred loading metadata.
+struct BAG_API ErrorLoadingMetadata final : virtual std::exception
+{
+    ErrorLoadingMetadata(BagError bagError) : m_error(bagError)
+    {}
+
+    const char* what() const noexcept override
+    {
+        std::stringstream ss;
+
+        ss << "While importing metadata as XML, an error value " <<
+            m_error << " was returned.";
+
+        return ss.str().c_str();
+    }
+
+    BagError m_error = BAG_SUCCESS;
 };
 
 
@@ -197,15 +304,97 @@ struct BAG_API CannotReadNumCorrections final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "Cannot read the number of corrections from the surface corrections dataset.";
+        return "Cannot read the number of corrections from the surface "
+            "corrections dataset.";
     }
 };
 
-}  // namespace BAG
+//! Invalid corrector specified (1-10).
+struct BAG_API InvalidCorrector final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid corrector specified.  The range is 1-10, but a Surface "
+            "Corrections layer may contain less.";
+    }
+};
+
+//! The surface type is not supported for this operation.
+struct BAG_API UnsupportedSurfaceType final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The type of Surface Correction layer (gridded or sparse) is not"
+            " support for this operation.";
+    }
+};
+
+
+// Value Table related.
+//! The specified field does not exist.
+struct BAG_API FieldNotFound final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The specified field does not exist.";
+    }
+};
+
+//! Attempt to use an invalid record.
+struct BAG_API InvalidRecord final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record encountered.  Either an unknown type is present "
+            "or it does not match the definition";
+    }
+};
+
+//! The dimensions of the Records in the CompoundLayer are invalid.
+struct BAG_API InvalidCompoundRecordsSize final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record encountered.  Either an unknown type is present "
+            "or it does not match the definition";
+    }
+};
+
+//! Attempt to write a record to an invalid index.
+struct BAG_API InvalidRecordsIndex final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record index specified while writing a record.";
+    }
+};
+
+//! Attempt to use an invalid record index.
+struct BAG_API RecordNotFound final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid record index specified.  Record index must be greater "
+            "than 0, and less than the number of records present.";
+    }
+};
+
+
+// VRRefinement related.
+//! VR Refinements are the wrong dimensions.
+struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "The variable resolution refinement layer is not 1 dimensional.";
+    }
+};
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
+
+}  // namespace BAG
 
 #endif  // BAG_EXCEPTIONS_H
 

@@ -2,20 +2,28 @@
 #define BAG_TRACKINGLIST_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_types.h"
 
 #include <memory>
 #include <vector>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 
+namespace H5 {
+
+class DataSet;
+
+}  // namespace H5
 
 namespace BAG {
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#endif
+
+//! The interface for a tracking list.
 class BAG_API TrackingList final
 {
 public:
@@ -24,6 +32,12 @@ public:
     using const_iterator = std::vector<value_type>::const_iterator;
     using reference = value_type&;
     using const_reference = const value_type&;
+
+    TrackingList(const TrackingList&) = delete;
+    TrackingList(TrackingList&&) = delete;
+
+    TrackingList& operator=(const TrackingList&) = delete;
+    TrackingList& operator=(TrackingList&&) = delete;
 
     iterator begin() & noexcept;
     const_iterator begin() const & noexcept;
@@ -55,42 +69,40 @@ public:
 
 protected:
     explicit TrackingList(const Dataset& dataset);
-    TrackingList(const Dataset& dataset, unsigned int compressionLevel);
+    TrackingList(const Dataset& dataset, int compressionLevel);
 
 private:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
 
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> createH5dataSet(
-        unsigned int compressionLevel);
+        int compressionLevel);
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> openH5dataSet();
 
-    //! The associated dataset.
+    //! The associated BAG Dataset.
     std::weak_ptr<const Dataset> m_pBagDataset;
-    //! The items making up the tracking list.
+    //! The items in the tracking list.
     std::vector<value_type> m_items;
-    //! The length attribute in the tracking list DataSet.
-    uint32_t m_length = 0;
-    //! The HDF5 DataSet this class relates to.
+    //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
 
     friend Dataset;
 };
 
+//! Add an item to the end of the tracking list.
+/*!
+\param args
+    One or more parameters to hand to the constructor of TrackingItem.
+*/
 template <typename... Args>
 void TrackingList::emplace_back(Args&&... args) &
 {
     m_items.emplace_back(std::forward<Args>(args)...);
 }
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#endif  //BAG_TRACKINGLIST_H
+}  // namespace BAG
+
+#endif  // BAG_TRACKINGLIST_H
 

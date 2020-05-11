@@ -1,23 +1,19 @@
-cmake_minimum_required(VERSION 3.0...3.15)
+cmake_minimum_required(VERSION 3.0...3.16)
 project(OpenNS_Examples LANGUAGES C CXX)
 
 #-----------------------------------------------------------------------------
 # Define Sources
 #-----------------------------------------------------------------------------
 set(examples
-#    bag_create
-#    bag_vr_create
-#    bag_gencert
+    bag_compound_layer
+    bag_create
     bag_read
-#    bag_vr_read
-#    bag_signcert
-#    bag_signfile
-#    bag_verifycert
-#    bag_verifyfile
+    bag_vr_create
+    bag_vr_read
 )
 
 foreach(example ${examples})
-    add_executable(${example} ${example}.cpp)
+    add_executable(${example} ${example}.cpp getopt.c getopt.h)
 
     target_compile_definitions(${example}
         PRIVATE
@@ -27,17 +23,19 @@ foreach(example ${examples})
             $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BUILD_SHARED_LIBS>>:BAG_DLL>
     )
 
-    target_compile_options(bag
+    target_compile_options(baglib
         PRIVATE
-            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/permissive- /W4 /WX /Zc:__cplusplus>
-            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/experimental:external /external:W0 /external:templates->
-            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:I ${HDF5_INCLUDE_DIRS} >
+            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.10>>:/permissive- /W4 /WX>
+            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.13>>:/experimental:external /external:W0 /external:templates->
+            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.13>>:/external:anglebrackets>
+            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
     )
 
-    #Link with the bag library.
-    target_link_libraries(${example} bag)
+    target_link_libraries(${example}
+        PRIVATE
+        baglib
+    )
 
-    #Add the '_debug' postfix to the samples.
     set_target_properties(${example}
         PROPERTIES
             CXX_STANDARD 14
@@ -48,11 +46,7 @@ foreach(example ${examples})
             RELEASE_OUTPUT_NAME ${example}
     )
 
-#    if(NOT MSVC)
-#        set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++")
-#    endif()
-
-
+    # Install
     install(TARGETS ${example} RUNTIME DESTINATION bin)
 endforeach()
 

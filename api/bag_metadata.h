@@ -2,39 +2,43 @@
 #define BAG_METADATA_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_metadatatypes.h"
 
 #include <memory>
 #include <string>
 
-#ifdef _MSC_VER
-#pragma warning(push)
-#pragma warning(disable: 4251)
-#endif
 
-namespace H5
-{
+namespace H5 {
 
 class DataSet;
 
-}
+}  // namespace H5
 
-namespace BAG
-{
+namespace BAG {
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#endif
+
+//! The interface for the metadata.
 class BAG_API Metadata final
 {
 public:
     Metadata() noexcept;
     explicit Metadata(Dataset& dataset);
-    Metadata(const Metadata& other) = delete;
-    Metadata(Metadata&& other) = default;
-    Metadata& operator=(const Metadata&) = delete;
-    Metadata& operator=(Metadata&&) = delete;
+    explicit Metadata(std::shared_ptr<Dataset> pDataset);
     ~Metadata() noexcept;
 
-    const BagMetadata& getStruct() const noexcept;
+    Metadata(const Metadata& other) = delete;
+    Metadata(Metadata&& other) = default;
+
+    Metadata& operator=(const Metadata&) = delete;
+    Metadata& operator=(Metadata&&) = delete;
+
+    const BagMetadata& getStruct() const & noexcept;
 
     uint32_t columns() const noexcept;
     double columnResolution() const noexcept;
@@ -53,19 +57,13 @@ public:
     size_t getXMLlength() const noexcept;
 
 private:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
-
     void createH5dataSet(const Dataset& inDataSet);
 
     void write() const;
 
-    //! The dataset the metadata is part of.
+    //! The BAG Dataset the metadata is part of.
     std::weak_ptr<const Dataset> m_pBagDataset;
-    //! The C structs behind this class.
+    //! The C struct behind this class.
     std::unique_ptr<BagMetadata> m_pMetaStruct;
     //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
@@ -75,12 +73,12 @@ private:
     friend Dataset;
 };
 
-}   //namespace BAG
-
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-#endif  //BAG_METADATA_H
+}  // namespace BAG
+
+#endif  // BAG_METADATA_H
 
 

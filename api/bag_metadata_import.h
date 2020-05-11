@@ -5,6 +5,8 @@
 #include "bag_metadatatypes.h"
 
 
+namespace BAG {
+
 BagError bagImportMetadataFromXmlFile(const char* fileName,
     BagMetadata& metadata, bool doValidation);
 BagError bagImportMetadataFromXmlBuffer(const char* xmlBuffer, int bufferSize,
@@ -12,5 +14,7 @@ BagError bagImportMetadataFromXmlBuffer(const char* xmlBuffer, int bufferSize,
 
 void bagSetHomeFolder(const char* homeFolder);
 
-#endif  //BAG_METADATAIMPORT_H
+}  // namespace BAG
+
+#endif  // BAG_METADATAIMPORT_H
 

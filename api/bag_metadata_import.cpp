@@ -8,10 +8,11 @@
 #include "bag_metadata_import.h"
 #include "bag_metadatatypes.h"
 
+#include <cstring>
+#include <iostream>
 #include <libxml/xmlschemas.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
-#include <iostream>
 #include <sstream>
 #include <string>
 #include <sys/stat.h>
@@ -19,8 +20,7 @@
 #include <vector>
 
 
-namespace
-{
+namespace {
 
 //! The location of the BAG home folder.
 static std::string bagHomeFolder;
@@ -310,6 +310,7 @@ char* getPropertyAsString(
 
     char* result = new char[value.size() + 1];
     strcpy(result, value.c_str());
+    result[value.size()] = '\0';
 
     return result;
 
@@ -435,7 +436,9 @@ bool getContentsAsBool(
     return (value != kZero && value != kFalse);
 }
 
-}   //namespace
+}  // namespace
+
+namespace BAG {
 
 //************************************************************************
 //! Get the current setting for the BAG_HOME directory.
@@ -479,7 +482,7 @@ void bagSetHomeFolder(const char* homeFolder)
     \li The XML node containing the responsible party information.
 \param responsibleParty
     \li Modified to contain the responsible party information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -538,7 +541,7 @@ bool decodeResponsibleParty(
     \li The XML node containing the legal constraints information.
 \param legalConstraints
     \li Modified to contain the legal constraints information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -581,7 +584,7 @@ bool decodeLegalConstraints(
     \li The XML node containing the security constraints information.
 \param securityConstraints
     \li Modified to contain the security constraints information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -624,7 +627,7 @@ bool decodeSecurityConstraints(
     \li The XML node containing the source information.
 \param sourceInfo
     \li Modified to contain the source information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -689,7 +692,7 @@ bool decodeSourceInfo(
     \li The XML node containing the process information.
 \param processStep
     \li Modified to contain the process information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -815,7 +818,7 @@ bool decodeProcessStep(
     \li The XML node containing the data quality information.
 \param dataQualityInfo
     \li Modified to contain the data quality information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -888,7 +891,7 @@ bool decodeDataQualityInfo(
     \li The XML node containing the spatial representation information.
 \param spatialRepresentationInfo
     \li Modified to contain the spatial representation information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -1022,7 +1025,7 @@ bool decodeSpatialRepresentationInfo(
     \li The XML node containing the data identification information.
 \param dataIdentificationInfo
     \li Modified to contain the data identification information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -1264,7 +1267,7 @@ bool decodeReferenceSystemInfoFromSpatial(
     \li The XML node containing the reference system information.
 \param referenceSystemInfo
     \li Modified to contain the reference system information from \e node.
-\parma schemaVersion
+\param schemaVersion
     \li The version of the schema stored in \e node.
 \return
     \li True if the information was found and decoded properly, False if
@@ -1476,7 +1479,7 @@ BagError bagImportMetadataFromXmlV1(
     metadata.language = getContentsAsCharStar(*pRoot, "/smXML:MD_Metadata/language");
 
     //gmd:characterSet
-    metadata.characterSet = "eng";
+    metadata.characterSet = copyString("eng");
 
     //gmd:hierarchyLevel
     metadata.hierarchyLevel = copyString("dataset");
@@ -1878,4 +1881,6 @@ BagError bagImportMetadataFromXmlFile(
 
     return bagImportMetadataFromXml(*pDocument, metadata, doValidation);
 }
+
+}  // namespace BAG
 

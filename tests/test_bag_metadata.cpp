@@ -330,13 +330,34 @@ TEST_CASE("test metadata construction and destruction", "[metadata][constructor]
         const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        Metadata metadata{*pDataset};
+        Metadata metadata(*pDataset);
+        CHECK(metadata.llCornerX() == Approx{687910.0});
+        auto wkt = metadata.horizontalReferenceSystemAsWKT();
+        CHECK(!wkt.empty());
     }
 }
 
 //  const BagMetadata& getStruct() const;
 TEST_CASE("test get struct",
     "[metadata][getStruct][horizontalReferenceSystemAsWKT]")
+{
+    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+        "/sample.bag"};
+
+    const auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+
+    REQUIRE(pDataset);
+    REQUIRE_NOTHROW(pDataset->getMetadata());
+
+    const auto& metadata = pDataset->getMetadata();
+    auto bagStruct = metadata.getStruct();
+    REQUIRE(bagStruct.fileIdentifier);
+    REQUIRE(bagStruct.spatialRepresentationInfo);
+}
+
+// std::string horizontalReferenceSystemAsWKT() const;
+TEST_CASE("test horizontal reference system as WKT",
+    "[metadata][horizontalReferenceSystemAsWKT]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"};
@@ -368,7 +389,7 @@ TEST_CASE("test load from file",
     REQUIRE_NOTHROW(metadata.loadFromFile(tmpFileName));
 
     CHECK(metadata.columnResolution() == Approx{10.0});
-    //CHECK(std::string{metadata.horizontalReferenceSystemAsWKT()}.empty() == false);
+    CHECK(std::string{metadata.horizontalReferenceSystemAsWKT()}.empty() == false);
     CHECK(metadata.llCornerX() == Approx{687910.000000});
     CHECK(metadata.llCornerY() == Approx{5554620.000000});
     CHECK(metadata.rowResolution() == Approx{10.0});

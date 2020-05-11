@@ -11,11 +11,10 @@
 
 
 using BAG::Dataset;
-using BAG::Layer;
 
-//  virtual std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
+//  virtual UInt8Array read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
-TEST_CASE("test interleaved layer read", "[interleavedlayer][read]")
+TEST_CASE("test interleaved layer read", "[.][interleavedlayer][read]")  //TODO Hidden because micro151 is not in git.
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/micro151.bag"};
@@ -29,7 +28,7 @@ TEST_CASE("test interleaved layer read", "[interleavedlayer][read]")
     REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
     const auto& layer = dataset->getLayer(kLayerType);
 
-    auto buffer = layer.read(1, 2, 2, 4); // 2x3
+    const auto buffer = layer.read(1, 2, 2, 4); // 2x3
     REQUIRE(buffer);
 
     constexpr size_t kExpectedNumNodes = 6;
@@ -37,7 +36,7 @@ TEST_CASE("test interleaved layer read", "[interleavedlayer][read]")
         -32.40f, -32.38f, -32.38f,
         -32.33f, -31.89f, -31.98f};
 
-    const float* floats = reinterpret_cast<const float*>(buffer.get());
+    const float* floats = reinterpret_cast<const float*>(buffer.data());
 
     for (size_t i=0; i<kExpectedNumNodes; ++i)
         CHECK(kExpectedBuffer[i] == Approx(floats[i]));

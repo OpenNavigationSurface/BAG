@@ -5,11 +5,16 @@
 #include "bag_trackinglist.h"
 
 #include <array>
-#include <h5cpp.h>
-
 
 namespace BAG {
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+*/
 Layer::Layer(
     Dataset& dataset,
     LayerDescriptor& descriptor)
@@ -18,50 +23,31 @@ Layer::Layer(
 {
 }
 
-
-Layer::AttributeInfo Layer::getAttributeInfo(LayerType layerType)
-{
-    switch (layerType)
-    {
-    case Elevation:
-        return {MIN_ELEVATION_NAME, MAX_ELEVATION_NAME, ELEVATION_PATH,
-            ::H5::PredType::NATIVE_FLOAT};
-    case Uncertainty:
-        return {MIN_UNCERTAINTY_NAME, MAX_UNCERTAINTY_NAME, UNCERTAINTY_PATH,
-            ::H5::PredType::NATIVE_FLOAT};
-    case Hypothesis_Strength:
-        return{MIN_HYPOTHESIS_STRENGTH, MAX_HYPOTHESIS_STRENGTH,
-            HYPOTHESIS_STRENGTH_PATH, ::H5::PredType::NATIVE_FLOAT};
-    case Num_Hypotheses:
-        return {MIN_NUM_HYPOTHESES, MAX_NUM_HYPOTHESES, NUM_HYPOTHESES_PATH,
-            ::H5::PredType::NATIVE_UINT32};
-    case Shoal_Elevation:
-        return {MIN_SHOAL_ELEVATION, MAX_SHOAL_ELEVATION, SHOAL_ELEVATION_PATH,
-            ::H5::PredType::NATIVE_FLOAT};
-    case Std_Dev:
-        return {MIN_STANDARD_DEV_NAME, MAX_STANDARD_DEV_NAME, STANDARD_DEV_PATH,
-            ::H5::PredType::NATIVE_FLOAT};
-    case Num_Soundings:
-        return {MIN_NUM_SOUNDINGS, MAX_NUM_SOUNDINGS, NUM_SOUNDINGS_PATH,
-            ::H5::PredType::NATIVE_UINT32};
-    case Average_Elevation:
-        return {MIN_AVERAGE, MAX_AVERAGE, AVERAGE_PATH,
-            ::H5::PredType::NATIVE_FLOAT};
-    case Nominal_Elevation:
-        return {MIN_NOMINAL_ELEVATION, MAX_NOMINAL_ELEVATION,
-            NOMINAL_ELEVATION_PATH, ::H5::PredType::NATIVE_FLOAT};
-    case Surface_Correction:  //[[fallthrough]];
-    case Compound:  //[[fallthrough]];
-    default:
-        throw UnknownSimpleLayerType{};
-    }
-}
-
+//! Retrieve the BAG Dataset this layer belongs to.
+/*!
+\return
+    The BAG Dataset this layer belongs to.
+*/
 std::weak_ptr<Dataset> Layer::getDataset() & noexcept
 {
     return m_pBagDataset;
 }
 
+//! Retrieve the BAG Dataset this layer belongs to.
+/*!
+\return
+    The BAG Dataset this layer belongs to.
+*/
+std::weak_ptr<const Dataset> Layer::getDataset() const & noexcept
+{
+    return m_pBagDataset;
+}
+
+//! Determine the type of data stored in the specified layer type.
+/*!
+\return
+    The type of data stored in the specified layer type.
+*/
 DataType Layer::getDataType(LayerType layerType) noexcept
 {
     switch (layerType)
@@ -73,52 +59,95 @@ DataType Layer::getDataType(LayerType layerType) noexcept
     case Std_Dev:  //[[fallthrough]];
     case Average_Elevation:  //[[fallthrough]];
     case Nominal_Elevation:
-        return FLOAT32;
+        return DT_FLOAT32;
     case Num_Hypotheses:  //[[fallthrough]];
     case Num_Soundings:
-        return UINT32;
+        return DT_UINT32;
     case Surface_Correction:
     case Compound:  //[[fallthrough]];
-        return COMPOUND;
+        return DT_COMPOUND;
     default:
-        return UNKNOWN_DATA_TYPE;
+        return DT_UNKNOWN_DATA_TYPE;
     }
 }
 
-LayerDescriptor& Layer::getDescriptor() & noexcept
+//! Retrieve the layer's descriptor.
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<LayerDescriptor> Layer::getDescriptor() & noexcept
 {
-    return *m_pLayerDescriptor;
+    return m_pLayerDescriptor;
 }
 
-const LayerDescriptor& Layer::getDescriptor() const & noexcept
+//! Retrieve the layer's descriptor.
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<const LayerDescriptor> Layer::getDescriptor() const & noexcept
 {
-    return *m_pLayerDescriptor;
+    return m_pLayerDescriptor;
 }
 
+//! Retrieve the size of the specified data type.
+/*!
+\param
+    The type of data.
+
+\return
+    The size of the specified data type.
+*/
 uint8_t Layer::getElementSize(DataType type)
 {
     switch (type)
     {
-    case FLOAT32:
+    case DT_FLOAT32:
         return sizeof(float);
-    case UINT32:
+    case DT_UINT32:
         return sizeof(uint32_t);
-    case COMPOUND:
-        throw UnsupportedElementSize{};
+    case DT_UINT8:
+        return sizeof(uint8_t);
+    case DT_UINT16:
+        return sizeof(uint16_t);
+    case DT_UINT64:
+        return sizeof(uint64_t);
+    case DT_BOOLEAN:
+        return sizeof(bool);
+    case DT_STRING:
+        return sizeof(char*);
+    case DT_COMPOUND:  //[[fallthrough]]
+    case DT_UNKNOWN_DATA_TYPE:  //[[fallthrough]]
     default:
-        return 0;
+        throw UnsupportedElementSize{};
     }
 }
 
+//! Retrieve the HDF5 path of the specified layer.
+/*!
+\param layerType
+    The type of layer.
+\param groupType
+    The type of group.
+    NODE or ELEVATION.
+
+\return
+    The HDF5 path to the specified layer and group types.
+*/
 std::string Layer::getInternalPath(
     LayerType layerType,
     GroupType groupType)
 {
     if (groupType == NODE)
         return NODE_GROUP_PATH;
-    else if (groupType == ELEVATION)
+
+    if (groupType == ELEVATION)
         return ELEVATION_SOLUTION_GROUP_PATH;
-    else if (groupType != UNKNOWN_GROUP_TYPE)
+
+    if (groupType != UNKNOWN_GROUP_TYPE)
         throw UnsupportedGroupType{};
 
     switch (layerType)
@@ -128,15 +157,15 @@ std::string Layer::getInternalPath(
     case Uncertainty:
         return UNCERTAINTY_PATH;
     case Hypothesis_Strength:
-        return HYPOTHESIS_STRENGTH_PATH;  // Also part of the NODE (NODE_GROUP_PATH).
+        return HYPOTHESIS_STRENGTH_PATH;
     case Num_Hypotheses:
-        return NUM_HYPOTHESES_PATH;  // Also part of the NODE group (NODE_GROUP_PATH).
+        return NUM_HYPOTHESES_PATH;
     case Shoal_Elevation:
-        return SHOAL_ELEVATION_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return SHOAL_ELEVATION_PATH;
     case Std_Dev:
-        return STANDARD_DEV_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return STANDARD_DEV_PATH;
     case Num_Soundings:
-        return NUM_SOUNDINGS_PATH;  // Also part of the ELEVATION group (ELEVATION_SOLUTION_GROUP_PATH).
+        return NUM_SOUNDINGS_PATH;
     case Average_Elevation:
         return AVERAGE_PATH;
     case Nominal_Elevation:
@@ -144,25 +173,43 @@ std::string Layer::getInternalPath(
     case Surface_Correction:
         return VERT_DATUM_CORR_PATH;
     case Compound:  // [[fallthrough]];
+    case UNKNOWN_LAYER_TYPE:  // [[fallthrough]];
     default:
         throw UnsupportedLayerType{};
     }
 }
 
-std::unique_ptr<uint8_t[]> Layer::read(
+//! Read a section of data from this layer.
+/*!
+    Read data from this layer starting at rowStart, columnStart, and continue
+    until rowEnd, columnEnd (inclusive).
+
+\param rowStart
+    The starting row.
+\param columnStart
+    The starting column.
+\param rowEnd
+    The ending row (inclusive).
+\param columnEnd
+    The ending column (inclusive).
+
+\return
+    The section of data specified by the rows and columns.
+*/
+UInt8Array Layer::read(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
     uint32_t columnEnd) const
 {
     if (rowStart > rowEnd || columnStart > columnEnd)
-        InvalidReadSize{};
+        throw InvalidReadSize{};
 
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};
 
-    uint32_t numRows = 0, numColumns = 0;
     const auto pDataset = m_pBagDataset.lock();
+    uint32_t numRows = 0, numColumns = 0;
     std::tie(numRows, numColumns) = pDataset->getDescriptor().getDims();
 
     if (columnEnd >= numColumns || rowEnd >= numRows)
@@ -171,6 +218,25 @@ std::unique_ptr<uint8_t[]> Layer::read(
     return this->readProxy(rowStart, columnStart, rowEnd, columnEnd);
 }
 
+//! Write a section of data to this layer.
+/*!
+    Write data to this layer starting at rowStart, columnStart, and continue
+    until rowEnd, columnEnd (inclusive).
+
+    After writing the data, write the attributes.
+
+\param rowStart
+    The starting row.
+\param columnStart
+    The starting column.
+\param rowEnd
+    The ending row (inclusive).
+\param columnEnd
+    The ending column (inclusive).
+\param buffer
+    The data to be written.
+    It must contain at least (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1) elements!
+*/
 void Layer::write(
     uint32_t rowStart,
     uint32_t columnStart,
@@ -191,6 +257,7 @@ void Layer::write(
     this->writeAttributesProxy();
 }
 
+//! Write the attributes this layer contains to disk.
 void Layer::writeAttributes() const
 {
     if (m_pBagDataset.expired())
@@ -199,5 +266,5 @@ void Layer::writeAttributes() const
     this->writeAttributesProxy();
 }
 
-}   //namespace BAG
+}  // namespace BAG
 

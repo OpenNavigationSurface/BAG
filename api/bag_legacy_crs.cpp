@@ -1,9 +1,12 @@
+
 #include "bag_errors.h"
+#include "bag_exceptions.h"
 #include "bag_legacy_crs.h"
 
 #include <algorithm>  // std::transform
 #include <cctype>  // std::tolower
 #include <cmath>  // M_PI
+#include <cstring>
 #include <exception>  // std::exception
 #include <fstream>  // std::ifstream
 #include <iomanip>
@@ -13,8 +16,7 @@
 #include <vector>
 
 
-namespace
-{
+namespace {
 
 //! Projection parameters WKT names.
 const char k_latitude_of_origin[] = "latitude_of_origin";
@@ -55,32 +57,26 @@ const char k_wgs84[] = "wgs_1984";
 const char k_wgs72[] = "wgs_1972";
 const char k_nad83[] = "north_american_datum_1983";
 
-//! Simple exception thrown internally when we run into a problem.
-struct CoordSysError : virtual std::exception
-{
-    const char* what() const noexcept override
-    {
-        return "Conversion Error";
-    };
-};
+//! Split a string by the specified separator.
+/*!
+\param str
+    The string to split.
+\param separator
+    The separator to split the string by.
+    Defaults to space.
 
-//! Simple exception thrown when we can not convert the datum.
-struct InvalidDatumError final : virtual CoordSysError {};
-
-//! Simple exception thrown when we can not convert the ellipsoid.
-struct InvalidEllipsoidError final : virtual CoordSysError {};
-
-constexpr double PI_OVER_180 = M_PI / 180.0;
-
+\return
+    A list of words split by separator.
+*/
 std::vector<std::string> split(
     const std::string& str,
     const char separator = ' ')
 {
     std::vector<std::string> tokens;
 
-    auto p1 = cbegin(str);
-    auto p2 = cend(str);
     const auto end = cend(str);
+    auto p1 = cbegin(str);
+    auto p2 = end;
 
     do
     {
@@ -115,6 +111,7 @@ decimal separator.
 double toDouble(const std::string& value)
 {
     std::stringstream lineStream;
+
     (void)lineStream.imbue(std::locale::classic());
     lineStream << value;
 
@@ -141,7 +138,7 @@ std::string ellipsoidToWkt(const char* ellipsoid)
 {
     const char* onsHome = getenv("BAG_HOME");
     if (!onsHome)
-        throw InvalidEllipsoidError();
+        throw BAG::InvalidEllipsoidError();
 
     //Make the ellipsoid name all lower case so we can find it.
     std::string ellipsoidName{ellipsoid};
@@ -157,7 +154,7 @@ std::string ellipsoidToWkt(const char* ellipsoid)
 
     std::ifstream file{ellipFile.c_str()};
     if (!file.is_open())
-        throw InvalidEllipsoidError();
+        throw BAG::InvalidEllipsoidError();
 
     while (file.good())
     {
@@ -179,7 +176,7 @@ std::string ellipsoidToWkt(const char* ellipsoid)
 
         //We MUST have at least 5 elements (name, id, a, b, if)
         if (numItems < 5)
-            throw InvalidEllipsoidError();
+            throw BAG::InvalidEllipsoidError();
 
         //The last item will be the inverse flattening.
         const double invFlat = atof(elements[numItems - 1].c_str());
@@ -197,7 +194,7 @@ std::string ellipsoidToWkt(const char* ellipsoid)
     }
 
     //Couldn't find it :(
-    throw InvalidEllipsoidError();
+    throw BAG::InvalidEllipsoidError();
 }
 
 //************************************************************************
@@ -216,7 +213,7 @@ a good default for the datum type.
 */
 //************************************************************************
 std::string datumToWkt(
-    const BagDatum datum,
+    const BAG::BagDatum datum,
     const char* ellipsoid)
 {
     std::string ellipWkt;
@@ -231,15 +228,15 @@ std::string datumToWkt(
     {
         switch (datum)
         {
-        case BagDatum::wgs84:
+        case BAG::BagDatum::wgs84:
             ellipWkt = R"(SPHEROID["WGS 84",6378137,298.257223563])";
             break;
 
-        case BagDatum::wgs72:
+        case BAG::BagDatum::wgs72:
             ellipWkt = R"(SPHEROID["WGS 72",6378135,298.26])";
             break;
 
-        case BagDatum::nad83:
+        case BAG::BagDatum::nad83:
             ellipWkt = R"(SPHEROID["GRS 1980",6378137,298.257222101])";
         }
     };
@@ -249,7 +246,7 @@ std::string datumToWkt(
 
     switch (datum)
     {
-    case BagDatum::wgs84:
+    case BAG::BagDatum::wgs84:
     {
         wktStream << R"(GEOGCS["WGS 84", )"
             << R"(DATUM["WGS_1984", )"
@@ -262,7 +259,7 @@ std::string datumToWkt(
     }
     break;
 
-    case BagDatum::wgs72:
+    case BAG::BagDatum::wgs72:
     {
         wktStream << R"(GEOGCS["WGS 72", )"
             << R"(DATUM["WGS_1972", )"
@@ -275,7 +272,7 @@ std::string datumToWkt(
     }
     break;
 
-    case BagDatum::nad83:
+    case BAG::BagDatum::nad83:
     {
         wktStream << R"(GEOGCS["NAD83", )"
             << R"(DATUM["North_American_Datum_1983", )"
@@ -290,7 +287,7 @@ std::string datumToWkt(
     }
 
     //If we got here then we don't know what type of datum we have.
-    throw InvalidDatumError();
+    throw BAG::InvalidDatumError();
 }
 
 //************************************************************************
@@ -312,15 +309,15 @@ double getProjectionParam(
     //Find the projection node in the wkt string.
     const size_t startIndex = wkt.find(paramName);
     if (startIndex == std::string::npos)
-        throw CoordSysError();
+        throw BAG::CoordSysError();
 
     const size_t valueStartIndex = wkt.find(",", startIndex);
     if (valueStartIndex == std::string::npos)
-        throw CoordSysError();
+        throw BAG::CoordSysError();
 
     const size_t valueEndIndex = wkt.find("]", valueStartIndex);
     if (valueEndIndex == std::string::npos)
-        throw CoordSysError();
+        throw BAG::CoordSysError();
 
     //Extract the value
     const size_t startPos = valueStartIndex + 1;
@@ -340,18 +337,18 @@ double getProjectionParam(
     \li The BAG coordiante system type.
 */
 //************************************************************************
-CoordinateType getCoordinateType(const std::string& wkt)
+BAG::CoordinateType getCoordinateType(const std::string& wkt)
 {
     //Find the projection node in the wkt string.
     const size_t startIndex = wkt.find("projection[");
 
     //If no projection node, then we must have a Geographic system.
     if (startIndex == std::string::npos)
-        return CoordinateType::Geodetic;
+        return BAG::CoordinateType::Geodetic;
 
     const size_t endIndex = wkt.find(R"("])", startIndex);
     if (endIndex == std::string::npos)
-        throw CoordSysError();
+        throw BAG::CoordSysError();
 
     //Extract the projection name.
     const size_t startPos = startIndex + 12;
@@ -359,50 +356,50 @@ CoordinateType getCoordinateType(const std::string& wkt)
     const std::string projName = wkt.substr(startPos, length);
 
     if (projName == k_albers_conic_equal_area)
-        return CoordinateType::Albers_Equal_Area_Conic;
+        return BAG::CoordinateType::Albers_Equal_Area_Conic;
     else if (projName == k_azimuthal_equidistant)
-        return CoordinateType::Azimuthal_Equidistant;
+        return BAG::CoordinateType::Azimuthal_Equidistant;
     else if (projName == k_bonne)
-        return CoordinateType::Bonne;
+        return BAG::CoordinateType::Bonne;
     else if (projName == k_cassini_soldner)
-        return CoordinateType::Cassini;
+        return BAG::CoordinateType::Cassini;
     else if (projName == k_cylindrical_equal_area)
-        return CoordinateType::Cylindrical_Equal_Area;
+        return BAG::CoordinateType::Cylindrical_Equal_Area;
     else if (projName == k_eckert_iv)
-        return CoordinateType::Eckert4;
+        return BAG::CoordinateType::Eckert4;
     else if (projName == k_eckert_vi)
-        return CoordinateType::Eckert6;
+        return BAG::CoordinateType::Eckert6;
     else if (projName == k_equirectangular)
-        return CoordinateType::Equidistant_Cylindrical;
+        return BAG::CoordinateType::Equidistant_Cylindrical;
     else if (projName == k_gnomonic)
-        return CoordinateType::Gnomonic;
+        return BAG::CoordinateType::Gnomonic;
     else if (projName == k_lambert_conformal_conic)
-        return CoordinateType::Lambert_Conformal_Conic;
+        return BAG::CoordinateType::Lambert_Conformal_Conic;
     else if (projName == k_mercator)
-        return CoordinateType::Mercator;
+        return BAG::CoordinateType::Mercator;
     else if (projName == k_miller_cylindrical)
-        return CoordinateType::Miller_Cylindrical;
+        return BAG::CoordinateType::Miller_Cylindrical;
     else if (projName == k_mollweide)
-        return CoordinateType::Mollweide;
+        return BAG::CoordinateType::Mollweide;
     else if (projName == k_new_zealand_map_grid)
-        return CoordinateType::NZMG;
+        return BAG::CoordinateType::NZMG;
     else if (projName == k_orthographic)
-        return CoordinateType::Orthographic;
+        return BAG::CoordinateType::Orthographic;
     else if (projName == k_polar_stereographic)
-        return CoordinateType::Polar_Stereo;
+        return BAG::CoordinateType::Polar_Stereo;
     else if (projName == k_polyconic)
-        return CoordinateType::Polyconic;
+        return BAG::CoordinateType::Polyconic;
     else if (projName == k_sinusoidal)
-        return CoordinateType::Sinusoidal;
+        return BAG::CoordinateType::Sinusoidal;
     else if (projName == k_oblique_stereographic)
-        return CoordinateType::Stereographic;
+        return BAG::CoordinateType::Stereographic;
     else if (projName == k_transverse_mercator)
-        return CoordinateType::Transverse_Mercator;
+        return BAG::CoordinateType::Transverse_Mercator;
     else if (projName == k_vandergrinten)
-        return CoordinateType::Van_der_Grinten;
+        return BAG::CoordinateType::Van_der_Grinten;
 
     //No idea...
-    throw CoordSysError();
+    throw BAG::CoordSysError();
 }
 
 //************************************************************************
@@ -415,16 +412,16 @@ CoordinateType getCoordinateType(const std::string& wkt)
     \li The BAG datum type.
 */
 //************************************************************************
-BagDatum getDatumType(const std::string &wkt)
+BAG::BagDatum getDatumType(const std::string &wkt)
 {
     //Find the horizontal datum node in the wkt string.
     const size_t startIndex = wkt.find("datum[");
     if (startIndex == std::string::npos)
-        throw InvalidDatumError();
+        throw BAG::InvalidDatumError();
 
     const size_t endIndex = wkt.find(",", startIndex);
     if (endIndex == std::string::npos)
-        throw InvalidDatumError();
+        throw BAG::InvalidDatumError();
 
     //Extract the horizontal datum name.
     const size_t startPos = startIndex + 7;
@@ -432,14 +429,14 @@ BagDatum getDatumType(const std::string &wkt)
     const std::string hDatumName = wkt.substr(startPos, length);
 
     if (hDatumName == k_wgs84)
-        return BagDatum::wgs84;
+        return BAG::BagDatum::wgs84;
     else if (hDatumName == k_wgs72)
-        return BagDatum::wgs72;
+        return BAG::BagDatum::wgs72;
     else if (hDatumName == k_nad83)
-        return BagDatum::nad83;
+        return BAG::BagDatum::nad83;
 
     //Unknown, so we can not convert this coordinate system.
-    throw InvalidDatumError();
+    throw BAG::InvalidDatumError();
 }
 
 //************************************************************************
@@ -457,11 +454,11 @@ std::string getEllipsoid(const std::string& wkt)
     //Find the ellipsoid node in the wkt string.
     const size_t startIndex = wkt.find("spheroid[");
     if (startIndex == std::string::npos)
-        throw InvalidDatumError();
+        throw BAG::InvalidDatumError();
 
     const size_t endIndex = wkt.find(",", startIndex);
     if (endIndex == std::string::npos)
-        throw InvalidDatumError();
+        throw BAG::InvalidDatumError();
 
     //Extract the ellipsoid name.
     const size_t startPos = startIndex + 10;
@@ -485,11 +482,11 @@ std::string getVDatum(const std::string& wkt)
     //Find the vertical datum node in the wkt string.
     const size_t startIndex = wkt.find("vert_datum[");
     if (startIndex == std::string::npos)
-        throw InvalidDatumError();
+        throw BAG::InvalidDatumError();
 
     const size_t endIndex = wkt.find(",", startIndex);
     if (endIndex == std::string::npos)
-        throw InvalidDatumError();
+        throw BAG::InvalidDatumError();
 
     //Extract the vertical datum name.
     const size_t startPos = startIndex + 12;
@@ -498,7 +495,9 @@ std::string getVDatum(const std::string& wkt)
     return wkt.substr(startPos, length);
 }
 
-}   //namespace
+}  // namespace
+
+namespace BAG {
 
 //************************************************************************
 //      Method name:    bagLegacyToWkt()
@@ -952,52 +951,48 @@ catch (const std::exception &/*e*/)
 
     author:  dave fabre, us naval oceanographic office, jul 2005
 */
-struct CoordinateSysType
-{
-    const char* name = nullptr;
-};
 
-static struct CoordinateSysType COORDINATE_SYS_LIST[]=
+static const char* COORDINATE_SYS_LIST[]=
 {
-    {"Geodetic"},
-    {"GEOREF"},
-    {"Geocentric"},
-    {"Local_Cartesian"},
-    {"MGRS"},
-    {"UTM"},
-    {"UPS"},
-    {"Albers_Equal_Area_Conic"},
-    {"Azimuthal_Equidistant"},
-    {"BNG"},
-    {"Bonne"},
-    {"Cassini"},
-    {"Cylindrical_Equal_Area"},
-    {"Eckert4"},
-    {"Eckert6"},
-    {"Equidistant_Cylindrical"},
-    {"Gnomonic"},
-    {"Lambert_Conformal_Conic"},
-    {"Mercator"},
-    {"Miller_Cylindrical"},
-    {"Mollweide"},
-    {"Neys"},
-    {"NZMG"},
-    {"Oblique_Mercator"},
-    {"Orthographic"},
-    {"Polar_Stereo"},
-    {"Polyconic"},
-    {"Sinusoidal"},
-    {"Stereographic"},
-    {"Transverse_Cylindrical_Equal_Area"},
-    {"Transverse_Mercator"},
-    {"Van_der_Grinten"}
+    "Geodetic",
+    "GEOREF",
+    "Geocentric",
+    "Local_Cartesian",
+    "MGRS",
+    "UTM",
+    "UPS",
+    "Albers_Equal_Area_Conic",
+    "Azimuthal_Equidistant",
+    "BNG",
+    "Bonne",
+    "Cassini",
+    "Cylindrical_Equal_Area",
+    "Eckert4",
+    "Eckert6",
+    "Equidistant_Cylindrical",
+    "Gnomonic",
+    "Lambert_Conformal_Conic",
+    "Mercator",
+    "Miller_Cylindrical",
+    "Mollweide",
+    "Neys",
+    "NZMG",
+    "Oblique_Mercator",
+    "Orthographic",
+    "Polar_Stereo",
+    "Polyconic",
+    "Sinusoidal",
+    "Stereographic",
+    "Transverse_Cylindrical_Equal_Area",
+    "Transverse_Mercator",
+    "Van_der_Grinten"
 };
 
 /******************************************************************************/
 CoordinateType bagCoordsys(const char* str) noexcept
 {
     constexpr auto MAX_NCOORD_SYS = 32;
-    #define COORD_SYS_NAME(k) COORDINATE_SYS_LIST[k].name
+    #define COORD_SYS_NAME(k) COORDINATE_SYS_LIST[k]
 
     for (size_t i = 0; i < MAX_NCOORD_SYS; i++)
         if (strncmp(str, COORD_SYS_NAME(i), strlen(COORD_SYS_NAME(i))) == 0 )
@@ -1009,23 +1004,18 @@ CoordinateType bagCoordsys(const char* str) noexcept
 
 
 
-struct DatumNameType
+static const char* DATUM_NAME_LIST[] =
 {
-    const char *name = nullptr;
-};
-
-static DatumNameType DATUM_NAME_LIST[] =
-{
-    { "WGS84" },
-    { "WGS72" },
-    { "NAD83" }
+    "WGS84",
+    "WGS72",
+    "NAD83"
 };
 
 /******************************************************************************/
 BagDatum bagDatumID(const char* str) noexcept
 {
     constexpr auto MAX_DATUMS = 3;
-    #define DATUM_NAME(k) DATUM_NAME_LIST[k].name
+    #define DATUM_NAME(k) DATUM_NAME_LIST[k]
 
     for (uint32_t i = 0; i < MAX_DATUMS; i++)
         if (strncmp(str, DATUM_NAME(i), strlen(DATUM_NAME(i))) == 0)
@@ -1033,4 +1023,6 @@ BagDatum bagDatumID(const char* str) noexcept
 
     return BagDatum::unknown;
 }
+
+}  // namespace BAG
 

@@ -3,13 +3,13 @@
 //      Open Navigation Surface Working Group, 2013
 //
 //************************************************************************
-#include "bag_metadata.h"
+#include "bag_metadata_export.h"
 
+#include <cstring>
 #include <iostream>
 #include <libxml/parser.h>
 #include <sstream>
 #include <string>
-#include <string.h>
 
 
 namespace BAG {
@@ -31,7 +31,8 @@ public:
     //************************************************************************
     EncodedString(xmlDoc &doc, const char *string)
     {
-        this->m_pEncodedString = xmlEncodeEntitiesReentrant(&doc, (const xmlChar *)string);
+        this->m_pEncodedString = xmlEncodeEntitiesReentrant(&doc,
+            reinterpret_cast<const xmlChar*>(string));
     }
 
     //************************************************************************
@@ -56,31 +57,10 @@ public:
 
 private:
     //! The encoded string.
-    xmlChar* m_pEncodedString;
+    xmlChar* m_pEncodedString = nullptr;
 };
 
-#define XMLCast(__value__) (const xmlChar *)(__value__)
-
-//************************************************************************
-//! Convert a string to a double value.
-/*!
-\param value
-    \li The input string to be converted.
-\return
-    \li The double value.
-*/
-//************************************************************************
-double toDouble(const char *value)
-{
-    std::stringstream lineStream;
-    lineStream.imbue(std::locale::classic());
-    lineStream << value;
-
-    double dblValue = 0.0;
-    lineStream >> dblValue;
-
-    return dblValue;
-}
+#define XMLCast(value) reinterpret_cast<const xmlChar*>(value)
 
 //************************************************************************
 //! Add a CharacterString node to the supplied parent XML node.
@@ -93,7 +73,7 @@ double toDouble(const char *value)
 //************************************************************************
 xmlNode* addCharacterNode(xmlNode &parentNode, const char *content)
 {
-    const xmlNsPtr pGcoNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gco"));
+    const auto pGcoNamespace = xmlSearchNs(parentNode.doc, &parentNode, XMLCast("gco"));
 
     //Create the CharacterString node.
     xmlNode *pCharacterNode = xmlNewChild(&parentNode, pGcoNamespace, XMLCast("CharacterString"), EncodedString(*parentNode.doc, content));
@@ -310,7 +290,7 @@ xmlNode* addBooleanNode(xmlNode &parentNode, bool value)
     return pBoolNode;
 }
 
-}   //namespace
+}  // namespace
 
 
 //************************************************************************

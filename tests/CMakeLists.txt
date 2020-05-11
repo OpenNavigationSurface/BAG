@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0...3.15)
+cmake_minimum_required(VERSION 3.0...3.16)
 project(OpenNS_Tests LANGUAGES CXX)
 
 enable_testing()
@@ -8,6 +8,7 @@ set(CMAKE_DEBUG_POSTFIX "d")
 
 set(TEST_SOURCE_FILES
     test_main.cpp
+    test_bag_compounddatatype.cpp
     test_bag_dataset.cpp
     test_bag_descriptor.cpp
     test_bag_interleavedlayer.cpp
@@ -18,8 +19,16 @@ set(TEST_SOURCE_FILES
     test_bag_surfacecorrectionsdescriptor.cpp
     test_bag_surfacecorrections.cpp
     test_bag_trackinglist.cpp
+    test_bag_valuetable.cpp
     test_utils.cpp
     test_utils.h
+    test_bag_vrmetadata.cpp
+    test_bag_vrmetadatadescriptor.cpp
+    test_bag_vrnode.cpp
+    test_bag_vrnodedescriptor.cpp
+    test_bag_vrrefinements.cpp
+    test_bag_vrrefinementsdescriptor.cpp
+    test_bag_vrtrackinglist.cpp
 )
 
 source_group("Source Files" FILES ${TEST_SOURCE_FILES})
@@ -43,27 +52,26 @@ target_compile_definitions(bag_tests
         CATCH_CONFIG_DISABLE_MATCHERS
         CATCH_CONFIG_ENABLE_TUPLE_STRINGMAKER
 )
-        #GTEST_LINKED_AS_SHARED_LIBRARY=1
 
 target_compile_options(bag_tests
     PRIVATE
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/permissive- /W4 /WX /Zc:__cplusplus>
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/experimental:external /external:W0 /external:templates->
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>>:/external:I ${HDF5_INCLUDE_DIRS} >
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.10>>:/permissive- /W4 /WX>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.13>>:/experimental:external /external:W0 /external:templates->
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.13>>:/external:anglebrackets>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
 )
 
-find_package(HDF5 REQUIRED)
+find_package(HDF5 COMPONENTS CXX REQUIRED)
 find_package(Catch2 REQUIRED)
 
 target_link_libraries(bag_tests
     PRIVATE
-        bag
+        baglib
         Catch2::Catch2
-        debug ${HDF5_hdf5_LIBRARY_DEBUG} ${HDF5_hdf5_cpp_LIBRARY_DEBUG}
-        optimized ${HDF5_hdf5_LIBRARY_RELEASE} ${HDF5_hdf5_cpp_LIBRARY_RELEASE}
 )
 
 include(CTest)
 include(Catch)
-catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "D:/caris_work/BAG/BAG2/examples/sample-data")
+
+catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "${CMAKE_SOURCE_DIR}/examples/sample-data")
 

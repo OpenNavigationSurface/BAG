@@ -1,29 +1,35 @@
-# The name of our project is "openns". CMakeLists files in this project can
-# refer to the root source directory of the project as ${OPENNS_SOURCE_DIR} and
-# to the root binary directory of the project as ${OPENNS_BINARY_DIR}.
-cmake_minimum_required(VERSION 3.0...3.15)
+cmake_minimum_required(VERSION 3.0...3.16)
 project(OPENNS LANGUAGES C CXX VERSION 2.0.0)
 
-# Add comment
+
+#needed when CMakeSettings.json is not available
+#list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../third_party/build;${CMAKE_SOURCE_DIR}/../third_party/build/lib" )
+
+# Disable addition of warning flags to the CMAKE_<LANG>_FLAGS by default for MSVC.
+
 if(POLICY CMP0092)
     cmake_policy(SET CMP0092 NEW)
 endif()
 
+# SWIG: use standard target name.
+if(POLICY CMP0078)
+  cmake_policy(SET CMP0078 NEW)
+endif()
+
+# SWIG: use SWIG_MODULE_NAME property.
+#if(POLICY CMP0086)
+#  cmake_policy(SET CMP0086 NEW)
+#endif()
+
+
 #-----------------------------------------------------------------------------
 # Option to Build Shared/Static libs, default is shared
 #-----------------------------------------------------------------------------
-# check whether we can remove the MACROs
+
+# Python bindings
+option(BUILD_PYTHON "Build Python bindings" OFF)
 option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 
-#-----------------------------------------------------------------------------
-# Option to Build against Shared/Static version of HDF5, default is shared
-#-----------------------------------------------------------------------------
-# this should be based on BUILD_SHARED_LIBS
-option(BUILD_WITH_SHARED_HDF5 "Build with HDF5 as a shared library" ON)
-
-# Recurse into the "api" and "examples" subdirectories. This does not actually
-# cause another cmake executable to run. The same process will walk through
-# the project's entire directory structure.
 add_subdirectory(api)
 add_subdirectory(examples)
 

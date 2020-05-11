@@ -6,35 +6,46 @@
 #include <memory>
 
 
-struct BagHandle {
-    std::shared_ptr<BAG::Dataset> pDataset;
+//! The "bucket" used by the C interface.
+struct BagHandle
+{
+    //! The BAG Dataset that holds all the BAG information.
+    std::shared_ptr<BAG::Dataset> dataset;
 };
 
 namespace BAG
 {
 
-constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
+//! The maximum compression level supported by HDF5.
+constexpr int kMaxCompressionLevel = 9;
 
-/*! Path names for BAG entities */
+//! Path names for BAG entities
 #define ROOT_PATH                       "/BAG_root"
 #define METADATA_PATH                   ROOT_PATH "/metadata"
 #define ELEVATION_PATH                  ROOT_PATH "/elevation"
 #define UNCERTAINTY_PATH                ROOT_PATH "/uncertainty"
 #define TRACKING_LIST_PATH              ROOT_PATH "/tracking_list"
 
-/*! Path names for optional BAG entities */
+//! Path names for optional BAG entities
 #define NOMINAL_ELEVATION_PATH          ROOT_PATH "/nominal_elevation"
 #define VERT_DATUM_CORR_PATH            ROOT_PATH "/vertical_datum_corrections"
-#define HYPOTHESIS_STRENGTH_PATH        ROOT_PATH "/hypotheses_strength"  //TODO Discuss this.
+#define HYPOTHESIS_STRENGTH_PATH        ROOT_PATH "/hypotheses_strength"
 #define NUM_HYPOTHESES_PATH             ROOT_PATH "/num_hypotheses"
 #define AVERAGE_PATH			        ROOT_PATH "/average"
 #define NODE_GROUP_PATH			        ROOT_PATH "/node"
 #define ELEVATION_SOLUTION_GROUP_PATH   ROOT_PATH "/elevation_solution"
-#define SHOAL_ELEVATION_PATH            ROOT_PATH "/shoal_elevation"  //TODO Discuss this.
+#define SHOAL_ELEVATION_PATH            ROOT_PATH "/shoal_elevation"
 #define STANDARD_DEV_PATH	            ROOT_PATH "/standard_dev"
-#define NUM_SOUNDINGS_PATH              ROOT_PATH "/num_soundings"  //TODO Discuss this.
+#define NUM_SOUNDINGS_PATH              ROOT_PATH "/num_soundings"
+#define COMPOUND_PATH                   ROOT_PATH "/Georef_metadata/"
 
-/*! Names for BAG Attributes */
+//! Path names for optional VR BAG entities
+#define VR_TRACKING_LIST_PATH           ROOT_PATH "/varres_tracking_list"
+#define VR_METADATA_PATH                ROOT_PATH "/varres_metadata"
+#define VR_REFINEMENT_PATH              ROOT_PATH "/varres_refinements"
+#define VR_NODE_PATH                    ROOT_PATH "/varres_nodes"
+
+//! Names for BAG Attributes
 #define BAG_VERSION_NAME                "Bag Version"                /*!< Name for version attribute, value set in bag.h */
 
 #define	MIN_ELEVATION_NAME              "Minimum Elevation Value"    /*!< Name for min elevation attribute, value stored in bagData */
@@ -65,7 +76,33 @@ constexpr auto TRACKING_LIST_BLOCK_SIZE = 10;
 #define VERT_DATUM_CORR_SURFACE_TYPE    "surface_type"               /*!<Name for the surface type */
 #define VERT_DATUM_CORR_VERTICAL_DATUM  "vertical_datum"             /*!<Name for the vertical datum */
 
-}   //namespace BAG
+#define COMPOUND_RECORD_DEFINITION      "Record Definition"          /*<Name for the record definition attribute */
+#define COMPOUND_RECORDS                "_records"                   /*<Name for the records attribute */
 
-#endif  //BAG_PRIVATE_H
+#define VR_METADATA_MIN_DIMS_X          "min_dimensions_x"
+#define VR_METADATA_MIN_DIMS_Y          "min_dimensions_y"
+#define VR_METADATA_MAX_DIMS_X          "max_dimensions_x"
+#define VR_METADATA_MAX_DIMS_Y          "max_dimensions_y"
+#define VR_METADATA_MIN_RES_X           "min_resolution_x"
+#define VR_METADATA_MIN_RES_Y           "min_resolution_y"
+#define VR_METADATA_MAX_RES_X           "max_resolution_x"
+#define VR_METADATA_MAX_RES_Y           "max_resolution_y"
+
+#define VR_REFINEMENT_MIN_DEPTH         "min_depth"
+#define VR_REFINEMENT_MAX_DEPTH         "max_depth"
+#define VR_REFINEMENT_MIN_UNCERTAINTY   "min_uncrt"
+#define VR_REFINEMENT_MAX_UNCERTAINTY   "max_uncrt"
+
+#define VR_NODE_MIN_HYP_STRENGTH        "min_hyp_strength"
+#define VR_NODE_MAX_HYP_STRENGTH        "max_hyp_strength"
+#define VR_NODE_MIN_NUM_HYPOTHESES      "min_num_hypotheses"
+#define VR_NODE_MAX_NUM_HYPOTHESES      "max_num_hypotheses"
+#define VR_NODE_MIN_N_SAMPLES           "min_n_samples"
+#define VR_NODE_MAX_N_SAMPLES           "max_n_samples"
+
+#define VR_TRACKING_LIST_LENGTH_NAME    "VR Tracking List Length"
+
+}  // namespace BAG
+
+#endif  // BAG_PRIVATE_H
 

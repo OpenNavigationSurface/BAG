@@ -39,29 +39,25 @@ install:
   - conda config --add channels conda-forge
   - conda create -q -n test-environment python=%PYTHON_VERSION%
   - activate test-environment
-  - conda install cmake hdf5 libxml2
+  - conda install cmake ninja hdf5 libxml2 catch2 swig
   - conda list --show-channel-urls
   # Check that we have the expected version of Python
   - python --version
   - if %VS%==2015 call "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64
-  - if %VS%==2015 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64;
-  - if %VS%==2017 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat";
+  - if %VS%==2015 call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" x86_amd64
+  - if %VS%==2017 call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvars64.bat"
 
 build: off
+
 build_script:
+  - set CC=cl.exe
+  - set CXX=cl.exe
   - cd
-  - cd extlibs
-  - tar -xzf beecrypt-4.1.2.tar.gz
-  - rename beecrypt-4.1.2 beecrypt
-  - cd beecrypt
-  - nmake -f Makefile_bag X64=TRUE DEBUG=FALSE
-  - nmake -f Makefile_bag clean
-  - nmake -f Makefile_bag X64=TRUE DEBUG=TRUE  
-  - cd ..
-  - cd ..
-  - mkdir -p build
-  - cd build
-  - if %VS%==2015 cmake -G "Visual Studio 14 2015 Win64" ..
-  - if %VS%==2017 cmake -G "Visual Studio 15 2017 Win64" ..  
-  
+  - cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install -DBUILD_PYTHON:BOOL=ON
+  - cmake --build build
+  - set PATH=C:\projects\bag\build\api;%PATH%
+  - build\tests\bag_tests.exe --samples-path "C:\projects\bag\examples\sample-data"
+  - python python\test_all.py
+
 deploy: off
+

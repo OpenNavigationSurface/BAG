@@ -1,92 +1,74 @@
 
 #include "bag_dataset.h"
+#include "bag_hdfhelper.h"
 #include "bag_layer.h"
 #include "bag_layerdescriptor.h"
 #include "bag_private.h"
 
-#include <array>
-#include <h5cpp.h>
+#include <H5Cpp.h>
 
 
 namespace BAG {
 
-namespace {
-
-unsigned int getCompressionLevel(
-    const ::H5::H5File& h5file,
-    const std::string& path)
-{
-    //Get the elevation HD5 dataset.
-    const auto h5dataset = h5file.openDataSet(path);
-    const auto h5pList = h5dataset.getCreatePlist();
-
-    for (int i=0; i<h5pList.getNfilters(); ++i)
-    {
-        unsigned int flags = 0;
-        size_t cdNelmts = 10;
-        constexpr size_t nameLen = 64;
-        std::array<unsigned int, 10> cdValues{};
-        std::array<char, 64> name{};
-        unsigned int filterConfig = 0;
-
-        const auto filter = h5pList.getFilter(i, flags, cdNelmts,
-            cdValues.data(), nameLen, name.data(), filterConfig);
-        if (filter == H5Z_FILTER_DEFLATE)
-            if (cdNelmts >= 1)
-                return cdValues.front();
-    }
-
-    return 0;
-}
-
-uint64_t getChunkSize(
-    const ::H5::H5File& h5file,
-    const std::string& path)
-{
-    //Get the elevation HD5 dataset.
-    const auto h5dataset = h5file.openDataSet(path);
-    const auto h5pList = h5dataset.getCreatePlist();
-
-    if (h5pList.getLayout() == H5D_CHUNKED)
-    {
-        std::array<hsize_t, RANK> maxDims{};
-
-        const int rankChunk = h5pList.getChunk(RANK, maxDims.data());
-        if (rankChunk == RANK)
-            return {maxDims[0]};  // Using {} to prevent narrowing.
-    }
-
-    return 0;
-}
-
-}  // namespace
-
+//! Constructor.
+/*!
+\parm id
+    The unique identifier of the layer.
+\parm internalPath
+    The HDF5 path of the layer.
+\parm name
+    The name of the layer.
+\parm type
+    The type of layer.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+*/
 LayerDescriptor::LayerDescriptor(
+    uint32_t id,
+    std::string internalPath,
+    std::string name,
     LayerType type,
     uint64_t chunkSize,
-    unsigned int compressionLevel)
-    : m_layerType(type)
-    , m_dataType(Layer::getDataType(type))
-    , m_internalPath(Layer::getInternalPath(type))
-    , m_name(kLayerTypeMapString.at(type))
+    int compressionLevel)
+    : m_id(id)
+    , m_layerType(type)
+    , m_internalPath(std::move(internalPath))
+    , m_name(std::move(name))
     , m_compressionLevel(compressionLevel)
     , m_chunkSize(chunkSize)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
 {
 }
 
+//! Constructor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\parm type
+    The type of layer.
+\parm internalPath
+    The HDF5 path of the layer.
+\parm name
+    The name of the layer.
+*/
 LayerDescriptor::LayerDescriptor(
-    LayerType type,
     const Dataset& dataset,
-    std::string internalPath)
-    : m_layerType(type)
-    , m_dataType(Layer::getDataType(type))
-    , m_name(kLayerTypeMapString.at(type))
+    LayerType type,
+    std::string internalPath,
+    std::string name)
+    : m_id(dataset.getNextId())
+    , m_layerType(type)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
 {
     m_internalPath = internalPath.empty()
         ? Layer::getInternalPath(type)
         : std::move(internalPath);
+
+    m_name = name.empty()
+        ? kLayerTypeMapString.at(type)
+        : std::move(name);
 
     const auto& h5file = dataset.getH5file();
 
@@ -95,32 +77,123 @@ LayerDescriptor::LayerDescriptor(
 }
 
 
-const std::string& LayerDescriptor::getName() const & noexcept
+//! Retrieve the chunk size.
+/*!
+\return
+    The chunk size.
+*/
+uint64_t LayerDescriptor::getChunkSize() const noexcept
 {
-    return m_name;
+    return m_chunkSize;
 }
 
-LayerDescriptor& LayerDescriptor::setName(std::string inName) & noexcept
+//! Retrieve the compression level.
+/*!
+\return
+    The compression level of the layer.
+*/
+int LayerDescriptor::getCompressionLevel() const noexcept
 {
-    m_name = std::move(inName);
-    return *this;
+    return m_compressionLevel;
 }
 
+//! Retrieve the data type.
+/*!
+\return
+    The data type the layer contains.
+*/
 DataType LayerDescriptor::getDataType() const noexcept
 {
-    return m_dataType;
+    return this->getDataTypeProxy();
 }
 
+//! Retrieve the element size.
+/*!
+\return
+    The element size of the layer.
+*/
+uint8_t LayerDescriptor::getElementSize() const noexcept
+{
+    return this->getElementSizeProxy();
+}
+
+//! Retrieve the unique id.
+/*!
+\return
+    The id of the layer.
+*/
+uint32_t LayerDescriptor::getId() const noexcept
+{
+    return m_id;
+}
+
+//! Retrieve the HDF5 path.
+/*!
+\return
+    The HDF5 path of the layer.
+*/
+const std::string& LayerDescriptor::getInternalPath() const & noexcept
+{
+    return m_internalPath;
+}
+
+//! Retrieve the type this layer contains.
+/*!
+\return
+    The type this layer contains.
+*/
 LayerType LayerDescriptor::getLayerType() const noexcept
 {
     return m_layerType;
 }
 
+//! Retrieve the minimum and maximum values.
+/*!
+\return
+    The minimum and maximum values this layer contains.
+*/
 std::tuple<float, float> LayerDescriptor::getMinMax() const noexcept
 {
     return m_minMax;
 }
 
+//! Retrieve the name.
+/*!
+\return
+    The name of the layer.
+*/
+const std::string& LayerDescriptor::getName() const & noexcept
+{
+    return m_name;
+}
+
+//! Get the size of a buffer for reading a specified number rows and columns.
+/*!
+\param rows
+    The number of rows that will be allocated for.
+\param columns
+    The number of columns that will be allocated for.
+
+\return
+    A buffer that can hold rows x columns of values of this layer.
+*/
+size_t LayerDescriptor::getReadBufferSize(
+    uint32_t rows,
+    uint32_t columns) const noexcept
+{
+    return rows * columns * this->getElementSize();
+}
+
+//! Set the minimum and maximum values that are found in the layer.
+/*!
+\param min
+    The minimum value that is stored in this layer.
+\param max
+    The maximum value that is stored in this layer.
+
+\return
+    The descriptor.  Useful for chaining set calls.
+*/
 LayerDescriptor& LayerDescriptor::setMinMax(
     float min,
     float max) & noexcept
@@ -129,37 +202,32 @@ LayerDescriptor& LayerDescriptor::setMinMax(
     return *this;
 }
 
-const std::string& LayerDescriptor::getInternalPath() const & noexcept
-{
-    return m_internalPath;
-}
+//! Set the HDF5 path of the layer.
+/*!
+\param inPath
+    The new HDF5 path of the layer.
 
+\return
+    The descriptor.  Useful for chaining set calls.
+*/
 LayerDescriptor& LayerDescriptor::setInternalPath(std::string inPath) & noexcept
 {
     m_internalPath = std::move(inPath);
     return *this;
 }
 
-uint8_t LayerDescriptor::getElementSize() const noexcept
-{
-    return this->getElementSizeProxy();
-}
+//! Set the name of the layer.
+/*!
+\param inName
+    The new name of the layer.
 
-size_t LayerDescriptor::getReadBufferSize(
-    uint32_t rows,
-    uint32_t columns) const noexcept
+\return
+    The descriptor.  Useful for chaining set calls.
+*/
+LayerDescriptor& LayerDescriptor::setName(std::string inName) & noexcept
 {
-    return rows * columns * this->getElementSize();
-}
-
-uint64_t LayerDescriptor::getChunkSize() const noexcept
-{
-    return m_chunkSize;
-}
-
-unsigned int LayerDescriptor::getCompressionLevel() const noexcept
-{
-    return m_compressionLevel;
+    m_name = std::move(inName);
+    return *this;
 }
 
 }  // namespace BAG
