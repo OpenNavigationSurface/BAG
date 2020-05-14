@@ -42,5 +42,8 @@ script:
   # C++ tests.
   - build/tests/bag_tests --samples-path examples/sample-data
   # Python tests.
-  - LD_LIBRARY_PATH=/home/travis/build/jice73/BAG/build/api PYTHONPATH=/home/travis/build/jice73/BAG/build/api/swig_i python python/test_all.py
+  # HOME == /home/travis
+  # ? == build/jice73 (some kind of git/checkout/github variable?)
+  - env
+  #- LD_LIBRARY_PATH=/home/travis/build/jice73/BAG/build/api PYTHONPATH=/home/travis/build/jice73/BAG/build/api/swig_i python python/test_all.py
 
