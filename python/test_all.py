@@ -3,8 +3,8 @@ import testUtils
 import test_compounddatatype
 import test_dataset
 import test_descriptor
-import test_interleavedlayer
-import test_interleavedlayerdescriptor
+import test_interleavedlegacylayer
+import test_interleavedlegacylayerdescriptor
 import test_metadata
 import test_simplelayer
 import test_simplelayerdescriptor

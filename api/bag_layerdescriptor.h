@@ -73,7 +73,7 @@ private:
     std::tuple<float, float> m_minMax{};
 
     friend class CompoundLayer;
-    friend class InterleavedLayer;
+    friend class InterleavedLegacyLayer;
     friend class SurfaceCorrections;
     friend class SimpleLayer;
     friend class VRMetadata;

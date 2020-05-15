@@ -11,8 +11,8 @@ set(BAG_SOURCE_FILES
     bag_deleteh5dataset.cpp
     bag_descriptor.cpp
     bag_hdfhelper.cpp
-    bag_interleavedlayer.cpp
-    bag_interleavedlayerdescriptor.cpp
+    bag_interleavedlegacylayer.cpp
+    bag_interleavedlegacylayerdescriptor.cpp
     bag_layer.cpp
     bag_layerdescriptor.cpp
     bag_legacy_crs.cpp
@@ -55,8 +55,8 @@ set(BAG_HEADER_FILES
     bag_exceptions.h
     bag_fordec.h
     bag_hdfhelper.h
-    bag_interleavedlayer.h
-    bag_interleavedlayerdescriptor.h
+    bag_interleavedlegacylayer.h
+    bag_interleavedlegacylayerdescriptor.h
     bag_layer.h
     bag_layerdescriptor.h
     bag_layeritems.h
@@ -84,9 +84,16 @@ set(BAG_HEADER_FILES
 )
 source_group("Header Files" FILES ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES})
 
-add_library(baglib
-    ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES}
-)
+# Allow for inserting BAG as a nested library (not tested)
+if(BAG_BUILD_SHARED_LIBS)
+    add_library(baglib SHARED
+        ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES}
+    )
+else()
+    add_library(baglib STATIC
+        ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES}
+    )
+endif()
 
 set_target_properties(baglib
     PROPERTIES
@@ -100,9 +107,9 @@ target_compile_definitions(baglib
         $<$<CXX_COMPILER_ID:MSVC>:_USE_MATH_DEFINES>
         $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
         $<$<CXX_COMPILER_ID:MSVC>:_CRT_NONSTDC_NO_DEPRECATE>
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BUILD_SHARED_LIBS>>:BAG_DLL>
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BUILD_SHARED_LIBS>>:BAG_EXPORTS>
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BUILD_SHARED_LIBS>>:H5_BUILT_AS_DYNAMIC_LIB>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:BAG_DLL>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:BAG_EXPORTS>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:H5_BUILT_AS_DYNAMIC_LIB>
 )
 
 # MSVC compiler versions.
@@ -141,6 +148,44 @@ if(MSVC)
         PRIVATE
             LibXml2::LibXml2
     )
+
+    # Copy DLLs into the runtime output directory so running C++ tests is smooth.
+    # Find Zlib to copy the DLLs.
+    find_package(zlib REQUIRED)
+
+    # Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
+
+    set(THIRD_PARTY_LIBS
+        ${HDF5_hdf5_LIBRARY_DEBUG}
+        ${HDF5_hdf5_LIBRARY_RELEASE}
+        ${LIBXML2_LIBRARIES}
+        ${ZLIB_LIBRARY_DEBUG}
+        ${ZLIB_LIBRARY_RELEASE}
+    )
+
+    # Trim the path down to just the file name.
+    foreach(LIB ${THIRD_PARTY_LIBS})
+        get_filename_component(FILENAME ${LIB} NAME_WLE)
+        list(APPEND THIRD_PARTY_DLLS ${FILENAME}*.dll)
+    endforeach()
+
+    # Search through CMAKE_PREFIX_PATH for each DLL glob.
+    foreach(CPPATH ${CMAKE_PREFIX_PATH})
+        foreach(DLL ${THIRD_PARTY_DLLS})
+            set(PATH_DLL ${CPPATH}/**/${DLL})
+
+            file(GLOB FOUND_DLL LIST_DIRECTORIES false ${PATH_DLL})
+
+            list(LENGTH FOUND_DLL NUM_DLLS_FOUND)
+            if(${NUM_DLLS_FOUND} GREATER 0)
+                list(APPEND FOUND_DLLS ${FOUND_DLL})
+            endif()
+        endforeach()
+    endforeach()
+
+    add_custom_command(TARGET baglib POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+    )
 else()
     target_link_libraries(baglib
         PUBLIC
@@ -150,16 +195,9 @@ else()
     )
 endif()
 
-if(BUILD_PYTHON)
+if(BAG_BUILD_PYTHON)
     # Build Python bindings
     add_subdirectory(swig_i)
-
-    # Make a link to the DLL that was built.
-    if(BUILD_SHARED_LIBS)
-        add_custom_command(TARGET baglib POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E create_symlink $<TARGET_FILE:baglib> "${CMAKE_HOME_DIRECTORY}/python/$<TARGET_FILE_NAME:baglib>"
-        )
-    endif()
 endif()
 
 
@@ -169,9 +207,9 @@ install(FILES
 )
 
 install(TARGETS baglib
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib/static
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib/static
 )
 
 install(DIRECTORY

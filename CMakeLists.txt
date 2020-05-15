@@ -1,42 +1,45 @@
-cmake_minimum_required(VERSION 3.0...3.16)
-project(OPENNS LANGUAGES C CXX VERSION 2.0.0)
+cmake_minimum_required(VERSION 3.15)
 
+# SWIG: use standard target name.
+if(POLICY CMP0078)
+    cmake_policy(SET CMP0078 NEW)
+endif()
 
-#needed when CMakeSettings.json is not available
-#list(APPEND CMAKE_PREFIX_PATH "${CMAKE_SOURCE_DIR}/../third_party/build;${CMAKE_SOURCE_DIR}/../third_party/build/lib" )
+# SWIG: use SWIG_MODULE_NAME property.
+if(POLICY CMP0086)
+    cmake_policy(SET CMP0086 NEW)
+endif()
 
 # Disable addition of warning flags to the CMAKE_<LANG>_FLAGS by default for MSVC.
-
 if(POLICY CMP0092)
     cmake_policy(SET CMP0092 NEW)
 endif()
 
-# SWIG: use standard target name.
-if(POLICY CMP0078)
-  cmake_policy(SET CMP0078 NEW)
+project(OPENNS LANGUAGES C CXX VERSION 2.0.0)
+
+# Options
+option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+option(BAG_BUILD_PYTHON "Build Python bindings" OFF)
+
+# Put the artifacts into a single directory so running tests is easier.
+if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stage/${CMAKE_INSTALL_BINDIR})
 endif()
 
-# SWIG: use SWIG_MODULE_NAME property.
-#if(POLICY CMP0086)
-#  cmake_policy(SET CMP0086 NEW)
-#endif()
+if(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
+    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stage/${CMAKE_INSTALL_LIBDIR})
+endif()
 
-
-#-----------------------------------------------------------------------------
-# Option to Build Shared/Static libs, default is shared
-#-----------------------------------------------------------------------------
-
-# Python bindings
-option(BUILD_PYTHON "Build Python bindings" OFF)
-option(BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+if(NOT CMAKE_ARCHIVE_OUTPUT_DIRECTORY)
+    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stage/${CMAKE_INSTALL_LIBDIR})
+endif()
 
 add_subdirectory(api)
 add_subdirectory(examples)
 
-# Testing
-option(BUILD_TESTS "Build Tests" ON)
+option(BAG_BUILD_TESTS "Build Tests" ON)
 
-if(BUILD_TESTS)
+if(BAG_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
