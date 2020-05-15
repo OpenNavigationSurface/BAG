@@ -151,7 +151,7 @@ if(MSVC)
 
     # Copy DLLs into the runtime output directory so running C++ tests is smooth.
     # Find Zlib to copy the DLLs.
-    find_package(zlib REQUIRED)
+    find_package(ZLIB REQUIRED)
 
     # Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
 

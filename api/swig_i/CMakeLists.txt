@@ -37,7 +37,7 @@ add_custom_command(TARGET bagPy POST_BUILD
 
 # Copy DLLs into the python directory so running Python tests is smooth.
 # Find Zlib to copy the DLLs.
-find_package(zlib REQUIRED)
+find_package(ZLIB REQUIRED)
 
 # Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
 

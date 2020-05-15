@@ -36,7 +36,7 @@ install:
   - conda list --show-channel-urls
 
 script:
-  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/install -DBUILD_PYTHON:BOOL=ON -B build -S .
+  - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=$HOME/install -DBAG_BUILD_PYTHON:BOOL=ON -B build -S .
   - cmake --build build
   - cmake --install build
   # C++ tests.
