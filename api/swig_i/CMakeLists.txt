@@ -31,7 +31,7 @@ add_custom_command(TARGET bagPy POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/api/swig_i/bagPy.py "${CMAKE_HOME_DIRECTORY}/python"
 )
 
-if(MSVC)
+if(MSVC AND NOT BAG_CI)
     # Copy DLLs into the python directory so running Python tests is smooth.
     # Find Zlib to copy the DLLs.
     find_package(ZLIB REQUIRED)
