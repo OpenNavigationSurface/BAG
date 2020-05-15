@@ -149,43 +149,48 @@ if(MSVC)
             LibXml2::LibXml2
     )
 
-    # Copy DLLs into the runtime output directory so running C++ tests is smooth.
-    # Find Zlib to copy the DLLs.
-    find_package(ZLIB REQUIRED)
+    if(NOT BAG_CI)
+        # Copy DLLs into the runtime output directory so running C++ tests is smooth.
+        # Find Zlib to copy the DLLs.
+        find_package(ZLIB REQUIRED)
 
-    # Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
+        # Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
 
-    set(THIRD_PARTY_LIBS
-        ${HDF5_hdf5_LIBRARY_DEBUG}
-        ${HDF5_hdf5_LIBRARY_RELEASE}
-        ${LIBXML2_LIBRARIES}
-        ${ZLIB_LIBRARY_DEBUG}
-        ${ZLIB_LIBRARY_RELEASE}
-    )
+        set(THIRD_PARTY_LIBS
+            ${HDF5_hdf5_LIBRARY_DEBUG}
+            ${HDF5_hdf5_LIBRARY_RELEASE}
+            ${LIBXML2_LIBRARIES}
+            ${ZLIB_LIBRARY_DEBUG}
+            ${ZLIB_LIBRARY_RELEASE}
+        )
 
-    # Trim the path down to just the file name.
-    foreach(LIB ${THIRD_PARTY_LIBS})
-        get_filename_component(FILENAME ${LIB} NAME_WLE)
-        list(APPEND THIRD_PARTY_DLLS ${FILENAME}*.dll)
-    endforeach()
-
-    # Search through CMAKE_PREFIX_PATH for each DLL glob.
-    foreach(CPPATH ${CMAKE_PREFIX_PATH})
-        foreach(DLL ${THIRD_PARTY_DLLS})
-            set(PATH_DLL ${CPPATH}/**/${DLL})
-
-            file(GLOB FOUND_DLL LIST_DIRECTORIES false ${PATH_DLL})
-
-            list(LENGTH FOUND_DLL NUM_DLLS_FOUND)
-            if(${NUM_DLLS_FOUND} GREATER 0)
-                list(APPEND FOUND_DLLS ${FOUND_DLL})
-            endif()
+        # Trim the path down to just the file name.
+        foreach(LIB ${THIRD_PARTY_LIBS})
+            get_filename_component(FILENAME ${LIB} NAME_WLE)
+            list(APPEND THIRD_PARTY_DLLS ${FILENAME}*.dll)
         endforeach()
-    endforeach()
 
-    add_custom_command(TARGET baglib POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
-    )
+        # Search through CMAKE_PREFIX_PATH for each DLL glob.
+        foreach(CPPATH ${CMAKE_PREFIX_PATH})
+            foreach(DLL ${THIRD_PARTY_DLLS})
+                set(PATH_DLL ${CPPATH}/**/${DLL})
+
+                file(GLOB FOUND_DLL LIST_DIRECTORIES false ${PATH_DLL})
+
+                list(LENGTH FOUND_DLL NUM_DLLS_FOUND)
+                if(${NUM_DLLS_FOUND} GREATER 0)
+                    list(APPEND FOUND_DLLS ${FOUND_DLL})
+                endif()
+            endforeach()
+        endforeach()
+
+        list(LENGTH FOUND_DLLS NUM_FOUND_DLLS)
+        if(${NUM_FOUND_DLLS} GREATER 0)
+            add_custom_command(TARGET baglib POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            )
+        endif()
+    endif()
 else()
     target_link_libraries(baglib
         PUBLIC

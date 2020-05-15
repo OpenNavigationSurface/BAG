@@ -66,8 +66,11 @@ if(MSVC AND NOT BAG_CI)
         endforeach()
     endforeach()
 
-    add_custom_command(TARGET bagPy POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_HOME_DIRECTORY}/python"
-    )
+    list(LENGTH FOUND_DLLS NUM_FOUND_DLLS)
+    if(${NUM_FOUND_DLLS} GREATER 0)
+        add_custom_command(TARGET bagPy POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_HOME_DIRECTORY}/python"
+        )
+    endif()
 endif()
 
