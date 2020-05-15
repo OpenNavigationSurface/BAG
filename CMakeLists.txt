@@ -20,9 +20,10 @@ project(OPENNS LANGUAGES C CXX VERSION 2.0.0)
 # Options
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 option(BAG_BUILD_PYTHON "Build Python bindings" OFF)
+option(BAG_CI "The build is on the CI (Travis/Appveyor)." OFF)
 
 # Put the artifacts into a single directory for MSVC so running tests is easier.
-if(MSVC)
+if(MSVC AND NOT BAG_CI)
     if(NOT CMAKE_RUNTIME_OUTPUT_DIRECTORY)
         set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/stage/${CMAKE_INSTALL_BINDIR})
     endif()

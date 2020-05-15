@@ -16,11 +16,7 @@ set_source_files_properties("bagpy.i" PROPERTIES
     COMPILE_FLAGS "--std=c++14"
 )
 
-# OUTFILE_DIR   the directory of the generated wrapper file
-# OUTPUT_DIR    the directory of the output .py file
 swig_add_library(bagPy TYPE SHARED LANGUAGE python
-    #OUTFILE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../swig_wrapper"
-    #OUTPUT_DIR "${CMAKE_HOME_DIRECTORY}/python"
     SOURCES "bagpy.i"
 )
 
@@ -35,41 +31,43 @@ add_custom_command(TARGET bagPy POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/api/swig_i/bagPy.py "${CMAKE_HOME_DIRECTORY}/python"
 )
 
-# Copy DLLs into the python directory so running Python tests is smooth.
-# Find Zlib to copy the DLLs.
-find_package(ZLIB REQUIRED)
+if(MSVC)
+    # Copy DLLs into the python directory so running Python tests is smooth.
+    # Find Zlib to copy the DLLs.
+    find_package(ZLIB REQUIRED)
 
-# Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
+    # Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
 
-set(THIRD_PARTY_LIBS
-    ${HDF5_hdf5_LIBRARY_DEBUG}
-    ${HDF5_hdf5_LIBRARY_RELEASE}
-    ${LIBXML2_LIBRARIES}
-    ${ZLIB_LIBRARY_DEBUG}
-    ${ZLIB_LIBRARY_RELEASE}
-)
+    set(THIRD_PARTY_LIBS
+        ${HDF5_hdf5_LIBRARY_DEBUG}
+        ${HDF5_hdf5_LIBRARY_RELEASE}
+        ${LIBXML2_LIBRARIES}
+        ${ZLIB_LIBRARY_DEBUG}
+        ${ZLIB_LIBRARY_RELEASE}
+    )
 
-# Trim the path down to just the file name.
-foreach(LIB ${THIRD_PARTY_LIBS})
-    get_filename_component(FILENAME ${LIB} NAME_WLE)
-    list(APPEND THIRD_PARTY_DLLS ${FILENAME}*.dll)
-endforeach()
-
-# Search through CMAKE_PREFIX_PATH for each DLL glob.
-foreach(CPPATH ${CMAKE_PREFIX_PATH})
-    foreach(DLL ${THIRD_PARTY_DLLS})
-        set(PATH_DLL ${CPPATH}/**/${DLL})
-
-        file(GLOB FOUND_DLL LIST_DIRECTORIES false ${PATH_DLL})
-
-        list(LENGTH FOUND_DLL NUM_DLLS_FOUND)
-        if(${NUM_DLLS_FOUND} GREATER 0)
-            list(APPEND FOUND_DLLS ${FOUND_DLL})
-        endif()
+    # Trim the path down to just the file name.
+    foreach(LIB ${THIRD_PARTY_LIBS})
+        get_filename_component(FILENAME ${LIB} NAME_WLE)
+        list(APPEND THIRD_PARTY_DLLS ${FILENAME}*.dll)
     endforeach()
-endforeach()
 
-add_custom_command(TARGET bagPy POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_HOME_DIRECTORY}/python"
-)
+    # Search through CMAKE_PREFIX_PATH for each DLL glob.
+    foreach(CPPATH ${CMAKE_PREFIX_PATH})
+        foreach(DLL ${THIRD_PARTY_DLLS})
+            set(PATH_DLL ${CPPATH}/**/${DLL})
+
+            file(GLOB FOUND_DLL LIST_DIRECTORIES false ${PATH_DLL})
+
+            list(LENGTH FOUND_DLL NUM_DLLS_FOUND)
+            if(${NUM_DLLS_FOUND} GREATER 0)
+                list(APPEND FOUND_DLLS ${FOUND_DLL})
+            endif()
+        endforeach()
+    endforeach()
+
+    add_custom_command(TARGET bagPy POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_HOME_DIRECTORY}/python"
+    )
+endif()
 
