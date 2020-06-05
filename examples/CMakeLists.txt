@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0...3.16)
-project(OpenNS_Examples LANGUAGES C CXX)
+cmake_minimum_required(VERSION 3.15)
+project(OPENNS_Examples LANGUAGES C CXX)
 
 #-----------------------------------------------------------------------------
 # Define Sources
@@ -20,7 +20,7 @@ foreach(example ${examples})
             $<$<CXX_COMPILER_ID:MSVC>:_USE_MATH_DEFINES>
             $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
             $<$<CXX_COMPILER_ID:MSVC>:_CRT_NONSTDC_NO_DEPRECATE>
-            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BUILD_SHARED_LIBS>>:BAG_DLL>
+            $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:BAG_DLL>
     )
 
     target_compile_options(baglib
@@ -42,7 +42,7 @@ foreach(example ${examples})
             CMAKE_CXX_STANDARD_REQUIRED ON
             CMAKE_CXX_EXTENSIONS OFF
             FOLDER examples
-            DEBUG_OUTPUT_NAME ${example}_debug
+            DEBUG_OUTPUT_NAME ${example}_d
             RELEASE_OUTPUT_NAME ${example}
     )
 

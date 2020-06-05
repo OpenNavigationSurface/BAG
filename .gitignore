@@ -16,7 +16,7 @@
 # Library building folders
 *.build
 *.xcodeproj
-build*/
+/build*/
 bin/
 docs/api/html/
 lib/
@@ -30,6 +30,7 @@ examples/Release
 /python/*.pyd
 /python/bagPy.py
 /python/bagTestPy.py
+/stage/
 swig_wrapper/
 
 # Visual Studio session files.

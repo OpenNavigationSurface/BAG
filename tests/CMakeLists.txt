@@ -1,5 +1,5 @@
-cmake_minimum_required(VERSION 3.0...3.16)
-project(OpenNS_Tests LANGUAGES CXX)
+cmake_minimum_required(VERSION 3.15)
+project(OPENNS_Tests LANGUAGES CXX)
 
 enable_testing()
 
@@ -11,8 +11,8 @@ set(TEST_SOURCE_FILES
     test_bag_compounddatatype.cpp
     test_bag_dataset.cpp
     test_bag_descriptor.cpp
-    test_bag_interleavedlayer.cpp
-    test_bag_interleavedlayerdescriptor.cpp
+    test_bag_interleavedlegacylayer.cpp
+    test_bag_interleavedlegacylayerdescriptor.cpp
     test_bag_metadata.cpp
     test_bag_simplelayer.cpp
     test_bag_simplelayerdescriptor.cpp
@@ -40,6 +40,7 @@ set_target_properties(bag_tests
         CXX_STANDARD 14
         CMAKE_CXX_STANDARD_REQUIRED ON
         CMAKE_CXX_EXTENSIONS OFF
+        DEBUG_OUTPUT_NAME bag_tests_d
 )
 
 target_compile_definitions(bag_tests
@@ -47,7 +48,7 @@ target_compile_definitions(bag_tests
         $<$<CXX_COMPILER_ID:MSVC>:_USE_MATH_DEFINES>
         $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
         $<$<CXX_COMPILER_ID:MSVC>:_CRT_NONSTDC_NO_DEPRECATE>
-        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BUILD_SHARED_LIBS>>:BAG_DLL>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:BAG_DLL>
         CATCH_CONFIG_FAST_COMPILE
         CATCH_CONFIG_DISABLE_MATCHERS
         CATCH_CONFIG_ENABLE_TUPLE_STRINGMAKER

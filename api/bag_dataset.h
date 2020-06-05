@@ -143,8 +143,8 @@ private:
 
     friend class CompoundLayer;
     friend class CompoundLayerDescriptor;
-    friend class InterleavedLayer;
-    friend class InterleavedLayerDescriptor;
+    friend class InterleavedLegacyLayer;
+    friend class InterleavedLegacyLayerDescriptor;
     friend class LayerDescriptor;
     friend class Metadata;
     friend class SimpleLayer;

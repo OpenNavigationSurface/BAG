@@ -1,5 +1,23 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<html><head><meta content="text/html; charset=ISO-8859-1" http-equiv="content-type"><title>linux</title></head><body><h1>Building with Linux gcc</h1>Note:
-These instructions assume that the openns source code is located at
-'/home/mduzee/work/bag/1.5.0'.<br><br><h2>Configure and build bag</h2>In the CMake GUI select the bag folder and specify the location of the binary files. Next click the 'Configure' button.<br><img style="width: 632px; height: 485px;" alt="" src="images/openns_cmake_initial_lx.png"><br><br>Click the 'Configure' button. You will be prompted to create the output folder. Select Yes.<br><img style="width: 301px; height: 101px;" alt="" src="images/openns_cmake_create_lx.png"><br><br>You will then be prompted to select the appropriate generate.<br><img style="width: 362px; height: 264px;" alt="" src="images/cmake_generator_lx.png"><br><br>Finally click the 'Configure' and then 'Generate' buttons. The makefile is now
-available in the bag/build folder. From the console browse to the bag/build folder and run the following command.<br><br><span style="color: red;">make</span></body></html>
+<html>
+<head>
+    <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+    <title>linux</title>
+</head>
+<body>
+    <h1>Building with Linux gcc</h1>
+    <h2>Configure and build bag</h2>To generate the Makefiles, simply go to the directory you untarred the tarball into, and type:<br>
+    <br>
+    <span style="color: red;">cmake -G "Unix Makefiles" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_INSTALL_PREFIX=/usr/local</span><br>
+    <br>
+    To add support for Python, SWIG 4.0.1 or newer is needed.  Add <span style="color: red;">-DBAG_BUILD_PYTHON=ON</span> to the above command.<br>
+    <br>
+    The makefile is now available in the bag/build folder. To build, simply type:<br>
+    <br>
+    <span style="color: red;">cmake --build build</span><br>
+    <br>
+    To install, simply type:<br>
+    <br>
+    <span style="color: red;">sudo cmake --install build</span><br>
+</body>
+</html>

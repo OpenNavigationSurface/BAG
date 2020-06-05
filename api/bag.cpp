@@ -946,27 +946,6 @@ BagError bagGetErrorString(
     case BAG_HDF_INVALID_COMPRESSION_LEVEL:
         strncpy(str, "HDF compression level not in acceptable range of 0 to 9", MAX_STR-1);
         break;
-    case BAG_CRYPTO_SIGNATURE_OK:
-        strncpy(str, "Crypto Signature is OK", MAX_STR-1);
-        break;
-    case BAG_CRYPTO_NO_SIGNATURE_FOUND:
-        strncpy(str, "Crypto No signature was found", MAX_STR-1);
-        break;
-    case BAG_CRYPTO_BAD_SIGNATURE_BLOCK:
-        strncpy(str, "Crypto Bad signature block", MAX_STR-1);
-        break;
-    case BAG_CRYPTO_BAD_KEY:
-        strncpy(str, "Crypto Bad Key", MAX_STR-1);
-        break;
-    case BAG_CRYPTO_WRONG_KEY:
-        strncpy(str, "Crypto Wrong key", MAX_STR-1);
-        break;
-    case BAG_CRYPTO_GENERAL_ERROR:
-        strncpy(str, "Crypto General error was detected", MAX_STR-1);
-        break;
-    case BAG_CRYPTO_INTERNAL_ERROR:
-        strncpy(str, "Crypto Internal error was detected", MAX_STR-1);
-        break;
     case BAG_INVALID_ERROR_CODE:
     default:
         strncpy(str, "An undefined bagError code was encountered", MAX_STR-1);
