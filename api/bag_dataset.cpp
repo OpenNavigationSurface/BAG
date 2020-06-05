@@ -3,8 +3,8 @@
 #include "bag_compoundlayer.h"
 #include "bag_compoundlayerdescriptor.h"
 #include "bag_dataset.h"
-#include "bag_interleavedlayer.h"
-#include "bag_interleavedlayerdescriptor.h"
+#include "bag_interleavedlegacylayer.h"
+#include "bag_interleavedlegacylayerdescriptor.h"
 #include "bag_metadata_export.h"
 #include "bag_private.h"
 #include "bag_simplelayer.h"
@@ -1051,14 +1051,14 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Hypothesis_Strength
-            auto layerDesc = InterleavedLayerDescriptor::open(*this,
+            auto layerDesc = InterleavedLegacyLayerDescriptor::open(*this,
                 Hypothesis_Strength, NODE);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLegacyLayer::open(*this, *layerDesc));
 
             // Num_Hypotheses
-            layerDesc = InterleavedLayerDescriptor::open(*this, Num_Hypotheses,
+            layerDesc = InterleavedLegacyLayerDescriptor::open(*this, Num_Hypotheses,
                 NODE);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLegacyLayer::open(*this, *layerDesc));
         }
 
         id = H5Dopen2(bagGroup.getLocId(), ELEVATION_SOLUTION_GROUP_PATH,
@@ -1068,20 +1068,20 @@ void Dataset::readDataset(
             H5Dclose(id);
 
             // Shoal_Elevation
-            auto layerDesc = InterleavedLayerDescriptor::open(*this,
+            auto layerDesc = InterleavedLegacyLayerDescriptor::open(*this,
                 Shoal_Elevation, ELEVATION);
 
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLegacyLayer::open(*this, *layerDesc));
 
             // Std_Dev
-            layerDesc = InterleavedLayerDescriptor::open(*this, Std_Dev,
+            layerDesc = InterleavedLegacyLayerDescriptor::open(*this, Std_Dev,
                 ELEVATION);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLegacyLayer::open(*this, *layerDesc));
 
             // Num_Soundings
-            layerDesc = InterleavedLayerDescriptor::open(*this, Num_Soundings,
+            layerDesc = InterleavedLegacyLayerDescriptor::open(*this, Num_Soundings,
                 ELEVATION);
-            this->addLayer(InterleavedLayer::open(*this, *layerDesc));
+            this->addLayer(InterleavedLegacyLayer::open(*this, *layerDesc));
         }
     }
 

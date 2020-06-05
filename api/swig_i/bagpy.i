@@ -42,7 +42,7 @@ namespace std
 %include "bag_layeritems.i"
 %include "bag_layer.i"
 %include "bag_simplelayer.i"
-%include "bag_interleavedlayer.i"
+%include "bag_interleavedlegacylayer.i"
 %include "bag_surfacecorrections.i"
 %include "bag_compoundlayer.i"
 %include "bag_vrmetadata.i"
@@ -57,7 +57,7 @@ namespace std
 %include "bag_metadata.i"
 
 %include "bag_compoundlayerdescriptor.i"
-%include "bag_interleavedlayerdescriptor.i"
+%include "bag_interleavedlegacylayerdescriptor.i"
 %include "bag_simplelayerdescriptor.i"
 %include "bag_surfacecorrectionsdescriptor.i"
 

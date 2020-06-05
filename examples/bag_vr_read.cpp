@@ -45,12 +45,6 @@ int main(
 
     using BAG::Dataset;
 
-#if 0
-PATH == D:/caris_work/BAG/BAG2/examples/sample-data
-"2801_4NodeSubset.bag"
-"CARIS_Density_20.bag"
-"DARIS_A_Density_20.bag"
-#endif
     const std::string bagFileName = argv[1];
 
     auto pDataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);

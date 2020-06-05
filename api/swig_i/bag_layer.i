@@ -24,7 +24,7 @@
 %shared_ptr(BAG::LayerDescriptor)
 
 %downcast_shared(std::shared_ptr<BAG::LayerDescriptor> BAG::Layer::getDescriptor,
-    BAG::CompoundLayerDescriptor, BAG::InterleavedLayerDescriptor,
+    BAG::CompoundLayerDescriptor, BAG::InterleavedLegacyLayerDescriptor,
     BAG::SimpleLayerDescriptor, BAG::SurfaceCorrectionsDescriptor,
     BAG::VRMetadataDescriptor, BAG::VRNodeDescriptor,
     BAG::VRRefinementsDescriptor, BAG::LayerDescriptor)
