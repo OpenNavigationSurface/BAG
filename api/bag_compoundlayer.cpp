@@ -98,6 +98,11 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
 
     auto pDescriptor = CompoundLayerDescriptor::create(dataset, name, indexType,
         definition, chunkSize, compressionLevel);
+
+    // Create the H5 Group to hold keys & values.
+    const auto& h5file = dataset.getH5file();
+    h5file.createGroup(COMPOUND_PATH + name);
+
     auto h5indexDataSet = CompoundLayer::createH5indexDataSet(dataset, *pDescriptor);
     auto h5recordDataSet = CompoundLayer::createH5recordDataSet(dataset, *pDescriptor);
 
@@ -129,8 +134,7 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
         DeleteH5dataSet{});
 
     auto h5recordDataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-        new ::H5::DataSet{h5file.openDataSet(
-            descriptor.getInternalPath() + COMPOUND_RECORDS)},
+        new ::H5::DataSet{h5file.openDataSet(descriptor.getValuesPath())},
         DeleteH5dataSet{});
 
     auto layer = std::unique_ptr<CompoundLayer>(new CompoundLayer{dataset,
@@ -265,9 +269,8 @@ CompoundLayer::createH5recordDataSet(
     const auto& h5file = dataset.getH5file();
 
     auto pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-        new ::H5::DataSet{h5file.createDataSet(
-            descriptor.getInternalPath() + COMPOUND_RECORDS, fileDataType,
-            fileDataSpace, h5createPropList)},
+        new ::H5::DataSet{h5file.createDataSet(descriptor.getValuesPath(),
+            fileDataType, fileDataSpace, h5createPropList)},
         DeleteH5dataSet{});
 
     return pH5dataSet;
