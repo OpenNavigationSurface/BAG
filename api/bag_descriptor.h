@@ -82,7 +82,7 @@ private:
     //! The grid spacing of the bag.
     std::tuple<double, double> m_gridSpacing{};
 
-    friend class Dataset;
+    friend Dataset;
 };
 
 #ifdef _MSC_VER

@@ -155,7 +155,7 @@ int main(
     }
 
 
-    // Add a compound layer (additional metadata) for ?
+    // Add a compound layer (additional metadata) for elevation.
 
     // Using Figure 4 from the specification as an example
     // see https://github.com/OpenNavigationSurface/BAG/issues/2

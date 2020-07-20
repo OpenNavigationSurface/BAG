@@ -1094,23 +1094,15 @@ void Dataset::readDataset(
         {
             H5Gclose(id);
 
-            // Look for all ::H5::DataSets in the Group COMPOUND_PATH that don't end with "_records"
+            // Look for any subgroups of the Georef_metadata group.
             const auto group = m_pH5file->openGroup(COMPOUND_PATH);
-
             const hsize_t numObjects = group.getNumObjs();
-            constexpr size_t kRecordsLen = 8;  // length of "_records".
 
             for (auto i=0; i<numObjects; ++i)
             {
                 try
                 {
                     const auto name = group.getObjnameByIdx(i);
-
-                    // Skip any x_records DataSets.
-                    const auto foundPos = name.rfind(COMPOUND_RECORDS);
-                    if ((foundPos != std::string::npos) &&
-                        (foundPos == (name.length() - kRecordsLen)))
-                        continue;
 
                     auto descriptor = CompoundLayerDescriptor::open(*this, name);
                     this->addLayer(CompoundLayer::open(*this, *descriptor));

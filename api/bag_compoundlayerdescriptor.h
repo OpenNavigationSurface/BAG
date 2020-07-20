@@ -46,6 +46,8 @@ private:
     DataType getDataTypeProxy() const noexcept override;
     uint8_t getElementSizeProxy() const noexcept override;
 
+    const std::string& getValuesPath() const & noexcept;
+
     //! The dataset this layer is from.
     std::weak_ptr<Dataset> m_pBagDataset;
     //! The data type (depends on layer type).
@@ -54,6 +56,10 @@ private:
     uint8_t m_elementSize = 0;
     //! The list of fields making up the record.
     RecordDefinition m_definition;
+    //! The path to the values.
+    std::string m_valuesPath;
+
+    friend CompoundLayer;
 };
 
 }  // namespace BAG
