@@ -141,25 +141,25 @@ private:
     //! The optional VR tracking list.
     std::unique_ptr<VRTrackingList> m_pVRTrackingList;
 
-    friend class CompoundLayer;
-    friend class CompoundLayerDescriptor;
-    friend class InterleavedLegacyLayer;
-    friend class InterleavedLegacyLayerDescriptor;
-    friend class LayerDescriptor;
-    friend class Metadata;
-    friend class SimpleLayer;
-    friend class TrackingList;
-    friend class SimpleLayerDescriptor;
-    friend class SurfaceCorrections;
-    friend class SurfaceCorrectionsDescriptor;
-    friend class ValueTable;
-    friend class VRMetadata;
-    friend class VRMetadataDescriptor;
-    friend class VRNode;
-    friend class VRNodeDescriptor;
-    friend class VRRefinements;
-    friend class VRRefinementsDescriptor;
-    friend class VRTrackingList;
+    friend CompoundLayer;
+    friend CompoundLayerDescriptor;
+    friend InterleavedLegacyLayer;
+    friend InterleavedLegacyLayerDescriptor;
+    friend LayerDescriptor;
+    friend Metadata;
+    friend SimpleLayer;
+    friend TrackingList;
+    friend SimpleLayerDescriptor;
+    friend SurfaceCorrections;
+    friend SurfaceCorrectionsDescriptor;
+    friend ValueTable;
+    friend VRMetadata;
+    friend VRMetadataDescriptor;
+    friend VRNode;
+    friend VRNodeDescriptor;
+    friend VRRefinements;
+    friend VRRefinementsDescriptor;
+    friend VRTrackingList;
 };
 
 #ifdef _MSC_VER

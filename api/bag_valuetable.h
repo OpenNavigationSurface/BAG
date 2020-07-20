@@ -60,7 +60,7 @@ private:
     //! The stored values.
     Records m_records;
 
-    friend class CompoundLayer;
+    friend CompoundLayer;
 };
 
 #ifdef _MSC_VER

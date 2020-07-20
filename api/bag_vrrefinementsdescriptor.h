@@ -49,8 +49,8 @@ private:
     //! The maximum uncertainty.
     float m_maxUncertainty = std::numeric_limits<float>::lowest();
 
-    friend class Dataset;
-    friend class VRRefinements;
+    friend Dataset;
+    friend VRRefinements;
 };
 
 }  // namespace BAG

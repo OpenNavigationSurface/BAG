@@ -64,8 +64,8 @@ private:
     //! The layer's descriptor (owned).
     std::shared_ptr<LayerDescriptor> m_pLayerDescriptor;
 
-    friend class Dataset;
-    friend class ValueTable;
+    friend Dataset;
+    friend ValueTable;
 };
 
 #ifdef _MSC_VER
