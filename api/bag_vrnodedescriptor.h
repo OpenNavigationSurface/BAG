@@ -56,8 +56,8 @@ private:
     //! The maximum number of samples.
     uint32_t m_maxNSamples = std::numeric_limits<uint32_t>::lowest();
 
-    friend class Dataset;
-    friend class VRNode;
+    friend Dataset;
+    friend VRNode;
 };
 
 }  // namespace BAG

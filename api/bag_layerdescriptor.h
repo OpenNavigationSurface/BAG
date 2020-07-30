@@ -72,11 +72,11 @@ private:
     //! The minimum and maximum value of this dataset.
     std::tuple<float, float> m_minMax{};
 
-    friend class CompoundLayer;
-    friend class InterleavedLegacyLayer;
-    friend class SurfaceCorrections;
-    friend class SimpleLayer;
-    friend class VRMetadata;
+    friend CompoundLayer;
+    friend InterleavedLegacyLayer;
+    friend SurfaceCorrections;
+    friend SimpleLayer;
+    friend VRMetadata;
 };
 
 #ifdef _MSC_VER

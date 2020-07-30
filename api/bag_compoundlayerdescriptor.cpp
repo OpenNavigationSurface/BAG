@@ -35,12 +35,14 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
     RecordDefinition definition,
     uint64_t chunkSize,
     int compressionLevel)
-    : LayerDescriptor(dataset.getNextId(), COMPOUND_PATH + name, name, Compound,
-        chunkSize, compressionLevel)
+    : LayerDescriptor(dataset.getNextId(),
+        COMPOUND_PATH + name + COMPOUND_KEYS, name, Compound, chunkSize,
+        compressionLevel)
     , m_pBagDataset(dataset.shared_from_this())
     , m_dataType(indexType)
     , m_elementSize(Layer::getElementSize(indexType))
     , m_definition(std::move(definition))
+    , m_valuesPath(COMPOUND_PATH + name + COMPOUND_VALUES)
 {
 }
 
@@ -92,7 +94,7 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
 {
     const auto& h5file = dataset.getH5file();
 
-    const std::string internalPath{COMPOUND_PATH + name};
+    const std::string internalPath{COMPOUND_PATH + name + COMPOUND_KEYS};
     const auto h5dataSet = ::H5::DataSet{h5file.openDataSet(internalPath)};
 
     // Determine indexType.
@@ -174,6 +176,16 @@ const RecordDefinition&
 CompoundLayerDescriptor::getDefinition() const & noexcept
 {
     return m_definition;
+}
+
+//! Retrieve the values path (internal detail).
+/*!
+\return
+    The values path.
+*/
+const std::string& CompoundLayerDescriptor::getValuesPath() const & noexcept
+{
+    return m_valuesPath;
 }
 
 }  // namespace BAG

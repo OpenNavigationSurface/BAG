@@ -59,8 +59,8 @@ private:
     //! The maximum Y resolution.
     float m_maxResY = std::numeric_limits<float>::lowest();;
 
-    friend class Dataset;
-    friend class VRMetadata;
+    friend Dataset;
+    friend VRMetadata;
 };
 
 }  // namespace BAG
