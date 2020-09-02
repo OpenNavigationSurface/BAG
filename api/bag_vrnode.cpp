@@ -186,6 +186,8 @@ VRNode::createH5dataSet(
     }
     else if (compressionLevel > 0)
         throw CompressionNeedsChunkingSet{};
+    else
+        throw LayerRequiresChunkingSet{};
 
     h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
 

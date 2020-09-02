@@ -360,6 +360,16 @@ struct BAG_API InvalidCompoundRecordsSize final : virtual std::exception
     }
 };
 
+//! Layer requires chunking set because it is dynamically sized.
+struct BAG_API LayerRequiresChunkingSet final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "This layer requires a chunk size because it is dynamically "
+            "sized.";
+    }
+};
+
 //! Attempt to write a record to an invalid index.
 struct BAG_API InvalidRecordsIndex final : virtual std::exception
 {
