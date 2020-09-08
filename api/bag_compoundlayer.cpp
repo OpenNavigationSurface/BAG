@@ -289,7 +289,8 @@ CompoundLayer::createH5vrKeyDataSet(
         const auto chunkSize = descriptor.getChunkSize();
         if (chunkSize > 0)
         {
-            h5createPropList.setChunk(1, static_cast<const hsize_t*>(&chunkSize));
+            const auto chunk = static_cast<hsize_t>(chunkSize);
+            h5createPropList.setChunk(1, &chunk);
 
             if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
                 h5createPropList.setDeflate(compressionLevel);
