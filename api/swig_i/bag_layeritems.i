@@ -37,6 +37,9 @@ public:
     template <typename T>
     explicit LayerItems(const std::vector<T>& items);
 
+    template <typename OldType, typename NewType>
+    LayerItems convert() const;
+
     const uint8_t* data() const &;
     bool empty() const noexcept;
     template <typename T>
@@ -45,22 +48,27 @@ public:
 };
 
 %template(FloatLayerItems) LayerItems::LayerItems<float>;
-%template(UInt32LayerItems) LayerItems::LayerItems<uint32_t>;
 %template(SurfaceCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
 %template(SurfaceCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
+%template(UInt32LayerItems) LayerItems::LayerItems<uint32_t>;
 %template(VRMetadataLayerItems) LayerItems::LayerItems<BagVRMetadataItem>;
 %template(VRNodeLayerItems) LayerItems::LayerItems<BagVRNodeItem>;
 %template(VRRefinementsLayerItems) LayerItems::LayerItems<BagVRRefinementsItem>;
 %template(VerticalDatumCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
 %template(VerticalDatumCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
 
-%template(asUInt32Items) LayerItems::getAs<uint32_t>;
 %template(asFloatItems) LayerItems::getAs<float>;
+%template(asUInt32Items) LayerItems::getAs<uint32_t>;
 %template(asVerticalDatumCorrections) LayerItems::getAs<BagVerticalDatumCorrections>;
 %template(asVerticalDatumCorrectionsGridded) LayerItems::getAs<BagVerticalDatumCorrectionsGridded>;
 %template(asVRMetadataItems) LayerItems::getAs<BagVRMetadataItem>;
 %template(asVRRefinementsItems) LayerItems::getAs<BagVRRefinementsItem>;
 %template(asVRNodeItems) LayerItems::getAs<BagVRNodeItem>;
+
+%template(fromUInt16ToUInt32) LayerItems::convert<uint16_t, uint32_t>;
+%template(fromUInt32ToUInt16) LayerItems::convert<uint32_t, uint16_t>;
+%template(fromUInt32ToUInt8) LayerItems::convert<uint32_t, uint8_t>;
+%template(fromUInt8ToUInt32) LayerItems::convert<uint8_t, uint32_t>;
 
 }  // namespace BAG
 

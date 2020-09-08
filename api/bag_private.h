@@ -78,6 +78,7 @@ constexpr int kMaxCompressionLevel = 9;
 
 #define COMPOUND_RECORD_DEFINITION      "Record Definition"          /*!<Name for the record definition attribute */
 #define COMPOUND_KEYS                   "/keys"                      /*!<Name of the compound layer keys dataset */
+#define COMPOUND_VR_KEYS                "/varres_keys"               /*!<Name of the compound layer variable resolution keys dataset */
 #define COMPOUND_VALUES                 "/values"                    /*!<Name of the compound layer values dataset */
 
 #define VR_METADATA_MIN_DIMS_X          "min_dimensions_x"

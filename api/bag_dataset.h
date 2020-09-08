@@ -71,7 +71,7 @@ public:
 
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
         int compressionLevel) &;
-    CompoundLayer& createCompoundLayer(DataType indexType,
+    CompoundLayer& createCompoundLayer(DataType keyType,
         const std::string& name, const RecordDefinition& definition,
         uint64_t chunkSize, int compressionLevel) &;
     SurfaceCorrections& createSurfaceCorrections(

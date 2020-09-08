@@ -399,8 +399,118 @@ def testAddRecords():
 
     del dataset #ensure dataset is deleted before tmpFile
 
+def testVRMetadata():
+    tmpFile = testUtils.RandomFileGuard("name")
+
+    # Create a dataset, enable VR, and write then read some spatial metadata.
+    metadata = Metadata()
+    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+    assert(metadata)
+
+    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+    assert(dataset)
+
+    # Enable variable resolution for the dataset.
+    kMakeNode = False
+    dataset.createVR(chunkSize, compressionLevel, kMakeNode)
+
+    # Make a new compound layer using the elevation layer.
+    # Index type is an 8 bit integer.  Valid values are 1-255.  0 is a no value.
+    indexType = DT_UINT8
+
+    kExpectedLayerName = "elevation"
+
+    # The metadata definition is:
+    #      field name      field type
+    #      "bool1"         boolean
+    #      "string"        string
+    #      "bool2"         boolean
+    definition = RecordDefinition(3)
+    definition[0].name = "bool1"
+    definition[0].type = DT_BOOLEAN
+    definition[1].name = "string"
+    definition[1].type = DT_STRING
+    definition[2].name = "bool2"
+    definition[2].type = DT_BOOLEAN
+
+    layer = dataset.createCompoundLayer(indexType, kExpectedLayerName,
+        definition, chunkSize, compressionLevel)
+
+    # Write some single resolution metadata.
+    # Expected keys in the single resolution DataSet.
+    kExpectedSingleResolutionKeys = (1, 2, 3)
+    buffer = UInt32LayerItems(kExpectedSingleResolutionKeys)
+
+    # Specify row 0, columns 0-2 (inclusive).
+    rowStart = 0
+    columnStart = 0
+    rowEnd = 0
+    columnEnd = 2
+
+    # Write keys 1, 2, 3 to row 0, columns 0-2 (inclusive).
+    layer.write(rowStart, columnStart, rowEnd, columnEnd, buffer.fromUInt32ToUInt8())
+
+    # Write some variable resolution metadata.
+    # Expected keys in the variable resolution DataSet.
+    kExpectedVariableResolutionKeys = (3, 3, 2, 1, 1)
+    buffer = UInt32LayerItems(kExpectedVariableResolutionKeys)
+
+    # Specify a start index of 100 and an ending index of 104 (inclusive).
+    indexStart = 100
+    indexEnd = 104
+
+    # Write keys 3, 3, 2, 1, 1 to indices 100-104.
+    layer.writeVR(indexStart, indexEnd, buffer.fromUInt32ToUInt8())
+
+    del dataset  # close the dataset
+
+
+    # Load the dataset, and Read keys from the single and variable resolution
+    # DataSets in the elevation compound layer.
+    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
+    assert(dataset)
+
+    layer = dataset.getCompoundLayer(kExpectedLayerName)
+    assert(layer)
+
+    # Read single resolution metadata keys.
+    # Specify row 0, columns 0-2 (inclusive).
+    rowStart = 0
+    columnStart = 0
+    rowEnd = 0
+    columnEnd = 2
+
+    # Read 3 values from row 0, column 0-2 (inclusive).
+    buffer = layer.read(rowStart, columnStart, rowEnd, columnEnd)
+    assert(buffer.size() > 0)
+    buffer = buffer.fromUInt8ToUInt32()  # Make the numbers something Python can read.
+    singleResolutionBuffer = buffer.asUInt32Items()
+
+    # Check the single resolution metadata keys are expected.
+    kExpectedNumKeys = len(kExpectedSingleResolutionKeys)
+    assert(len(singleResolutionBuffer) == kExpectedNumKeys)
+    assert(singleResolutionBuffer == kExpectedSingleResolutionKeys)
+
+    # Read variable resolution read metadata keys.
+    # Read from index 100 to 104 (inclusive, so 5 values).
+    indexStart = 100
+    indexEnd = 104
+
+    buffer = layer.readVR(indexStart, indexEnd)
+    assert(buffer.size() > 0)
+    buffer = buffer.fromUInt8ToUInt32()  # Make the numbers something Python can read.
+    variableResolutionBuffer = buffer.asUInt32Items()
+
+    # Check the variable resolution metadata keys are expected.
+    kExpectedNumKeys = len(kExpectedVariableResolutionKeys)
+    assert(len(variableResolutionBuffer) == kExpectedNumKeys)
+    assert(variableResolutionBuffer == kExpectedVariableResolutionKeys)
+
+    del dataset #ensure dataset is deleted before tmpFile
+
 
 testReadEmpty()
 testAddRecord()
 testAddRecords()
+testVRMetadata()
 

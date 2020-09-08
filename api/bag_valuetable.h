@@ -15,7 +15,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
-//! The interface for a list of populated records in the compound layer.
+//! The interface for the values of the spatial metadata in the compound layer.
 class BAG_API ValueTable final
 {
 public:
@@ -27,9 +27,9 @@ public:
 
     const Records& getRecords() const & noexcept;
     const RecordDefinition& getDefinition() const & noexcept;
-    const CompoundDataType& getValue(size_t recordIndex,
+    const CompoundDataType& getValue(size_t key,
         const std::string& name) const &;
-    const CompoundDataType& getValue(size_t recordIndex,
+    const CompoundDataType& getValue(size_t key,
         size_t fieldIndex) const &;
 
     size_t getFieldIndex(const std::string& name) const;
@@ -37,9 +37,9 @@ public:
 
     size_t addRecord(const Record& record);
     void addRecords(const Records& records);
-    void setValue(size_t recordIndex, const std::string& name,
+    void setValue(size_t key, const std::string& name,
         const CompoundDataType& value);
-    void setValue(size_t recordIndex, size_t fieldIndex,
+    void setValue(size_t key, size_t fieldIndex,
         const CompoundDataType& value);
 
 protected:
@@ -52,7 +52,7 @@ private:
 
     bool validateRecord(const Record& record) const;
 
-    void writeRecord(size_t recordIndex, const Record& record);
+    void writeRecord(size_t key, const Record& record);
     void writeRecords(const std::vector<Record>& records);
 
     //! The layer these records pertain to.

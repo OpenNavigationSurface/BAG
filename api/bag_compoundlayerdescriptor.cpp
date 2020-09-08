@@ -18,11 +18,11 @@ namespace BAG {
     The BAG Dataset this layer belongs to.
 \param name
     The name of the simple layer this layer has metadata for.
-\param indexType
-    The type of index in the indices.
+\param keyType
+    The type of the key.
     Must be DT_UINT8, DT_UINT16, DT_UINT32, or DT_UINT64.
 \param definition
-    The list of fields describing a record this layer contains for each node.
+    The list of fields describing a record/value.
 \param chunkSize
     The chunk size the HDF5 DataSet will use.
 \param compressionLevel
@@ -31,18 +31,16 @@ namespace BAG {
 CompoundLayerDescriptor::CompoundLayerDescriptor(
     Dataset& dataset,
     const std::string& name,
-    DataType indexType,
+    DataType keyType,
     RecordDefinition definition,
     uint64_t chunkSize,
     int compressionLevel)
-    : LayerDescriptor(dataset.getNextId(),
-        COMPOUND_PATH + name + COMPOUND_KEYS, name, Compound, chunkSize,
-        compressionLevel)
+    : LayerDescriptor(dataset.getNextId(), COMPOUND_PATH + name, name,
+        Compound, chunkSize, compressionLevel)
     , m_pBagDataset(dataset.shared_from_this())
-    , m_dataType(indexType)
-    , m_elementSize(Layer::getElementSize(indexType))
+    , m_keyType(keyType)
+    , m_elementSize(Layer::getElementSize(keyType))
     , m_definition(std::move(definition))
-    , m_valuesPath(COMPOUND_PATH + name + COMPOUND_VALUES)
 {
 }
 
@@ -52,11 +50,11 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
     The BAG Dataset this layer belongs to.
 \param name
     The name of the simple layer this layer has metadata for.
-\param indexType
-    The type of index in the indices.
+\param keyType
+    The type of the key.
     Must be DT_UINT8, DT_UINT16, DT_UINT32, or DT_UINT64.
 \param definition
-    The list of fields describing a record this layer contains for each node.
+    The list of fields describing a record/value this layer contains for each node.
 \param chunkSize
     The chunk size the HDF5 DataSet will use.
 \param compressionLevel
@@ -68,13 +66,13 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
 std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
     Dataset& dataset,
     const std::string& name,
-    DataType indexType,
+    DataType keyType,
     RecordDefinition definition,
     uint64_t chunkSize,
     int compressionLevel)
 {
     return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{dataset, name, indexType,
+        new CompoundLayerDescriptor{dataset, name, keyType,
             std::move(definition), chunkSize, compressionLevel});
 }
 
@@ -97,26 +95,26 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     const std::string internalPath{COMPOUND_PATH + name + COMPOUND_KEYS};
     const auto h5dataSet = ::H5::DataSet{h5file.openDataSet(internalPath)};
 
-    // Determine indexType.
+    // Determine keyType.
     const auto fileDataType = h5dataSet.getDataType();
 
-    DataType indexType = DT_UNKNOWN_DATA_TYPE;
+    DataType keyType = DT_UNKNOWN_DATA_TYPE;
     switch(fileDataType.getSize())
     {
     case 1:
-        indexType = DT_UINT8;
+        keyType = DT_UINT8;
         break;
     case 2:
-        indexType = DT_UINT16;
+        keyType = DT_UINT16;
         break;
     case 4:
-        indexType = DT_UINT32;
+        keyType = DT_UINT32;
         break;
     case 8:
-        indexType = DT_UINT64;
+        keyType = DT_UINT64;
         break;
     default:
-        throw InvalidIndexType{};
+        throw InvalidKeyType{};
     }
 
     // Determine Record Definition.
@@ -126,7 +124,7 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
 
     const auto numDims = fileDataSpace.getSimpleExtentNdims();
     if (numDims != 1)
-        throw InvalidCompoundRecordsSize{};
+        throw InvalidValueSize{};
 
     hsize_t numFields = 0;
     fileDataSpace.getSimpleExtentDims(&numFields, nullptr);
@@ -140,7 +138,7 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     const auto compressionLevel = BAG::getCompressionLevel(h5file, internalPath);
 
     return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{dataset, name, indexType, definition,
+        new CompoundLayerDescriptor{dataset, name, keyType, definition,
             chunkSize, compressionLevel});
 }
 
@@ -148,7 +146,7 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
 //! \copydoc LayerDescriptor::getDataType
 DataType CompoundLayerDescriptor::getDataTypeProxy() const noexcept
 {
-    return m_dataType;
+    return m_keyType;
 }
 
 //! Retrieve the BAG Dataset this layer belongs to.
@@ -167,25 +165,15 @@ uint8_t CompoundLayerDescriptor::getElementSizeProxy() const noexcept
     return m_elementSize;
 }
 
-//! Retrieve the definition of a record in this layer.
+//! Retrieve the definition of a record/value.
 /*!
 \return
-    The definition of a record in this layer.
+    The definition of a record/value.
 */
 const RecordDefinition&
 CompoundLayerDescriptor::getDefinition() const & noexcept
 {
     return m_definition;
-}
-
-//! Retrieve the values path (internal detail).
-/*!
-\return
-    The values path.
-*/
-const std::string& CompoundLayerDescriptor::getValuesPath() const & noexcept
-{
-    return m_valuesPath;
 }
 
 }  // namespace BAG

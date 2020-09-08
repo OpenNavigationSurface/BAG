@@ -31,6 +31,31 @@ public:
         std::memcpy(m_data.data(), items.data(), numBytes);
     }
 
+    //! Convert the item(s) from OldType into NewType.
+    template <typename OldType, typename NewType>
+    LayerItems convert() const
+    {
+        const auto dataSize = m_data.size();
+        const auto oldTypeSize = sizeof(OldType);
+
+        // Make sure the data's size is an exact multiple of the old type's size.
+        if ((dataSize % oldTypeSize) > 0)
+            throw InvalidCast{};
+
+        const auto numItems = dataSize / oldTypeSize;
+
+        // Turn the current data into an array of NewType.
+        std::vector<OldType> oldType(numItems);
+        std::memcpy(oldType.data(), m_data.data(), dataSize);
+
+        std::vector<NewType> result(numItems);
+
+        // Use the assignment operator to convert from OldType to NewType.
+        std::copy(begin(oldType), end(oldType), begin(result));
+
+        return LayerItems{result};
+    }
+
     const uint8_t* data() const & noexcept
     {
         return m_data.data();

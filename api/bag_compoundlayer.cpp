@@ -1,6 +1,7 @@
 
 #include "bag_compoundlayer.h"
 #include "bag_compoundlayerdescriptor.h"
+#include "bag_exceptions.h"
 #include "bag_hdfhelper.h"
 #include "bag_private.h"
 
@@ -49,33 +50,37 @@ hsize_t getDataTypeMax(
     The BAG Dataset this layer belongs to.
 \param descriptor
     The descriptor of this layer.
-\param pH5indexDataSet
-    The HDF5 DataSet that will hold the index values.
-\param pH5recordDataSet
-    The HDF5 DataSet that will hold the records.
+\param pH5keyDataSet
+    The HDF5 DataSet that will hold the single resolution keys.
+\param pH5vrKeyDataSet
+    The HDF5 DataSet that will hold the variable resolution keys.
+\param pH5valueDataSet
+    The HDF5 DataSet that will hold the spatial metadata values.
 */
 CompoundLayer::CompoundLayer(
     Dataset& dataset,
     CompoundLayerDescriptor& descriptor,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5indexDataSet,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5recordDataSet)
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5keyDataSet,
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5vrKeyDataSet,
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5valueDataSet)
     : Layer(dataset, descriptor)
-    , m_pH5indexDataSet(std::move(pH5indexDataSet))
-    , m_pH5recordDataSet(std::move(pH5recordDataSet))
+    , m_pH5keyDataSet(std::move(pH5keyDataSet))
+    , m_pH5vrKeyDataSet(std::move(pH5vrKeyDataSet))
+    , m_pH5valueDataSet(std::move(pH5valueDataSet))
 {
 }
 
 //! Create a compound layer.
 /*!
-\param indexType
-    The type of index this layer will use.
+\param keyType
+    The type of key this layer will use.
 \param name
     The name of this compound layer.
     Must be a unique name among all compound layers in this BAG Dataset.
 \param dataset
     The BAG Dataset this compound layer will belong to.
 \param definition
-    The list of fields describing a single record.
+    The list of fields describing a single record/value.
 \param chunkSize
     The chunk size the HDF5 DataSet will use.
 \param compressionLevel
@@ -85,29 +90,37 @@ CompoundLayer::CompoundLayer(
     The new compound layer.
 */
 std::unique_ptr<CompoundLayer> CompoundLayer::create(
-    DataType indexType,
+    DataType keyType,
     const std::string& name,
     Dataset& dataset,
     const RecordDefinition& definition,
     uint64_t chunkSize,
     int compressionLevel)
 {
-    if (indexType != DT_UINT8 && indexType != DT_UINT16 && indexType != DT_UINT32 &&
-        indexType != DT_UINT64)
-        throw InvalidIndexType{};
+    if (keyType != DT_UINT8 && keyType != DT_UINT16 && keyType != DT_UINT32 &&
+        keyType != DT_UINT64)
+        throw InvalidKeyType{};
 
-    auto pDescriptor = CompoundLayerDescriptor::create(dataset, name, indexType,
+    auto pDescriptor = CompoundLayerDescriptor::create(dataset, name, keyType,
         definition, chunkSize, compressionLevel);
 
     // Create the H5 Group to hold keys & values.
     const auto& h5file = dataset.getH5file();
     h5file.createGroup(COMPOUND_PATH + name);
 
-    auto h5indexDataSet = CompoundLayer::createH5indexDataSet(dataset, *pDescriptor);
-    auto h5recordDataSet = CompoundLayer::createH5recordDataSet(dataset, *pDescriptor);
+    auto h5keyDataSet = CompoundLayer::createH5keyDataSet(dataset, *pDescriptor);
+
+    // create optional variable resolution keys.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5vrKeyDataSet{};
+
+    if (dataset.getVRMetadata())
+        h5vrKeyDataSet = CompoundLayer::createH5vrKeyDataSet(dataset, *pDescriptor);
+
+    auto h5valueDataSet = CompoundLayer::createH5valueDataSet(dataset, *pDescriptor);
 
     auto layer = std::unique_ptr<CompoundLayer>(new CompoundLayer{dataset,
-        *pDescriptor, std::move(h5indexDataSet), std::move(h5recordDataSet)});
+        *pDescriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
+        std::move(h5valueDataSet)});
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
 
@@ -129,16 +142,24 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
     CompoundLayerDescriptor& descriptor)
 {
     const auto& h5file = dataset.getH5file();
-    auto h5indexDataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-        new ::H5::DataSet{h5file.openDataSet(descriptor.getInternalPath())},
+    const std::string& internalPath = descriptor.getInternalPath();
+    auto h5keyDataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+        new ::H5::DataSet{h5file.openDataSet(internalPath + COMPOUND_KEYS)},
         DeleteH5dataSet{});
 
-    auto h5recordDataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-        new ::H5::DataSet{h5file.openDataSet(descriptor.getValuesPath())},
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5vrKeyDataSet{};
+    if (dataset.getVRMetadata())
+        h5vrKeyDataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+            new ::H5::DataSet{h5file.openDataSet(internalPath + COMPOUND_VR_KEYS)},
+            DeleteH5dataSet{});
+
+    auto h5valueDataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+        new ::H5::DataSet{h5file.openDataSet(internalPath + COMPOUND_VALUES)},
         DeleteH5dataSet{});
 
     auto layer = std::unique_ptr<CompoundLayer>(new CompoundLayer{dataset,
-        descriptor, std::move(h5indexDataSet), std::move(h5recordDataSet)});
+        descriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
+        std::move(h5valueDataSet)});
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
 
@@ -146,7 +167,7 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
 }
 
 
-//! Create an HDF5 DataSet for the indices of a compound layer with details in from the descriptor.
+//! Create an HDF5 DataSet for the keys of a single resolution compound layer with details from the descriptor.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -154,10 +175,10 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
     The descriptor of this layer.
 
 \return
-    The HDF5 DataSet containing the indices of a new compound layer.
+    The HDF5 DataSet containing the single resolution keys of a new compound layer.
 */
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-CompoundLayer::createH5indexDataSet(
+CompoundLayer::createH5keyDataSet(
     const Dataset& dataset,
     const CompoundLayerDescriptor& descriptor)
 {
@@ -201,12 +222,13 @@ CompoundLayer::createH5indexDataSet(
         const auto& h5file = dataset.getH5file();
 
         pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-            new ::H5::DataSet{h5file.createDataSet(descriptor.getInternalPath(),
-                fileDataType, fileDataSpace, h5createPropList)},
+            new ::H5::DataSet{h5file.createDataSet(
+                descriptor.getInternalPath() + COMPOUND_KEYS, fileDataType,
+                fileDataSpace, h5createPropList)},
             DeleteH5dataSet{});
     }
 
-    // Create the Record Definition attribute.
+    // Create the Record (value) Definition attribute.
     {
         const auto& definition = descriptor.getDefinition();
         const hsize_t dims = definition.size();
@@ -231,7 +253,64 @@ CompoundLayer::createH5indexDataSet(
     return pH5dataSet;
 }
 
-//! Create an HDF5 DataSet for the records of a compound layer with details from the descriptor.
+//! Create an HDF5 DataSet for the keys of a variable resolution compound layer with details from the descriptor.
+/*!
+\param dataset
+    The BAG Dataset this layer belongs to.
+\param descriptor
+    The descriptor of this layer.
+
+\return
+    The HDF5 DataSet containing the variable resolution keys of a new compound layer.
+*/
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
+CompoundLayer::createH5vrKeyDataSet(
+    const Dataset& dataset,
+    const CompoundLayerDescriptor& descriptor)
+{
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet;
+
+    {
+        const auto& h5file = dataset.getH5file();
+
+        const auto dataType = descriptor.getDataType();
+        const auto& fileDataType = BAG::getH5fileType(dataType);
+
+        constexpr hsize_t kFileLength = 0;
+        constexpr hsize_t kMaxFileLength = H5S_UNLIMITED;
+        const ::H5::DataSpace fileDataSpace{1, &kFileLength, &kMaxFileLength};
+
+        // Create the creation property list.
+        const ::H5::DSetCreatPropList h5createPropList{};
+        h5createPropList.setFillTime(H5D_FILL_TIME_ALLOC);
+
+        // Use chunk size and compression level from the layer descriptor.
+        const auto compressionLevel = descriptor.getCompressionLevel();
+        const auto chunkSize = descriptor.getChunkSize();
+        if (chunkSize > 0)
+        {
+            h5createPropList.setChunk(1, &chunkSize);
+
+            if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
+                h5createPropList.setDeflate(compressionLevel);
+        }
+        else if (compressionLevel > 0)
+            throw CompressionNeedsChunkingSet{};
+        else
+            throw LayerRequiresChunkingSet{};
+
+        // Create the DataSet using the above.
+        pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
+            new ::H5::DataSet{h5file.createDataSet(
+                descriptor.getInternalPath() + COMPOUND_VR_KEYS, fileDataType,
+                fileDataSpace, h5createPropList)},
+            DeleteH5dataSet{});
+    }
+
+    return pH5dataSet;
+}
+
+//! Create an HDF5 DataSet for the values of a compound layer with details from the descriptor.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -242,15 +321,15 @@ CompoundLayer::createH5indexDataSet(
     The HDF5 DataSet.
 */
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-CompoundLayer::createH5recordDataSet(
+CompoundLayer::createH5valueDataSet(
     const Dataset& dataset,
     const CompoundLayerDescriptor& descriptor)
 {
-    constexpr hsize_t numRecords = 1;
-    const auto dataType = descriptor.getDataType();
-    const hsize_t maxNumRecords = getDataTypeMax(dataType);
+    constexpr hsize_t numValues = 1;
+    const auto keyType = descriptor.getDataType();
+    const hsize_t maxNumValues = getDataTypeMax(keyType);
 
-    const ::H5::DataSpace fileDataSpace{1, &numRecords, &maxNumRecords};
+    const ::H5::DataSpace fileDataSpace{1, &numValues, &maxNumValues};
 
     const auto& definition = descriptor.getDefinition();
     const auto fileDataType = BAG::createH5fileCompType(definition);
@@ -269,21 +348,22 @@ CompoundLayer::createH5recordDataSet(
     const auto& h5file = dataset.getH5file();
 
     auto pH5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-        new ::H5::DataSet{h5file.createDataSet(descriptor.getValuesPath(),
-            fileDataType, fileDataSpace, h5createPropList)},
+        new ::H5::DataSet{h5file.createDataSet(
+            descriptor.getInternalPath() + COMPOUND_VALUES, fileDataType,
+            fileDataSpace, h5createPropList)},
         DeleteH5dataSet{});
 
     return pH5dataSet;
 }
 
-//! Retrieve the HDF5 DataSet containing the records.
+//! Retrieve the HDF5 DataSet containing the values.
 /*!
 \return
-    The HDF5 DataSet containing the records.
+    The HDF5 DataSet containing the values.
 */
-const ::H5::DataSet& CompoundLayer::getRecordDataSet() const &
+const ::H5::DataSet& CompoundLayer::getValueDataSet() const &
 {
-    return *m_pH5recordDataSet;
+    return *m_pH5valueDataSet;
 }
 
 //! Retrieve the value table.
@@ -314,7 +394,7 @@ UInt8Array CompoundLayer::readProxy(
     uint32_t columnEnd) const
 {
     // Query the file for the specified rows and columns.
-    const auto h5fileDataSpace = m_pH5indexDataSet->getSpace();
+    const auto h5fileDataSpace = m_pH5keyDataSet->getSpace();
 
     // Make sure the area being read from does not exceed the file dimensions.
     const auto numDims = h5fileDataSpace.getSimpleExtentNdims();
@@ -343,8 +423,67 @@ UInt8Array CompoundLayer::readProxy(
     // Prepare the memory space.
     const ::H5::DataSpace h5memSpace{kRank, count.data(), count.data()};
 
-    m_pH5indexDataSet->read(buffer.data(), H5Dget_type(m_pH5indexDataSet->getId()),
+    m_pH5keyDataSet->read(buffer.data(), H5Dget_type(m_pH5keyDataSet->getId()),
         h5memSpace, h5fileDataSpace);
+
+    return buffer;
+}
+
+//! Read the variable resolution metadata keys.
+/*!
+\param indexStart
+    The starting index to read.
+    Must be less than or equal to indexEnd.
+\param indexEnd
+    The ending index to read.  (inclusive)
+
+\return
+    The specified keys.
+*/
+UInt8Array CompoundLayer::readVR(
+    uint32_t indexStart,
+    uint32_t indexEnd) const
+{
+    // Make sure the variable resolution key dataset is present.
+    if (!m_pH5vrKeyDataSet)
+        throw DatasetRequiresVariableResolution{};
+
+    auto pDescriptor = std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
+
+    // Query the file for the specified rows and columns.
+    const auto h5fileDataSpace = m_pH5vrKeyDataSet->getSpace();
+
+    // Make sure the area being read from does not exceed the file dimensions.
+    const auto numDims = h5fileDataSpace.getSimpleExtentNdims();
+    if (numDims != 1)
+        throw InvalidReadSize{};
+
+    hsize_t fileLength = 0;
+    h5fileDataSpace.getSimpleExtentDims(&fileLength);
+
+    if ((indexStart > indexEnd) || (indexEnd >= fileLength))
+        throw InvalidReadSize{};
+
+    // Query the file.
+    const hsize_t count = (indexEnd - indexStart) + 1;
+    const hsize_t offset = indexStart;
+
+    const auto fileDataSpace = m_pH5vrKeyDataSet->getSpace();
+    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
+
+    // Initialize the output buffer.
+    const auto bufferSize = pDescriptor->getReadBufferSize(1,
+        static_cast<uint32_t>(count));
+    UInt8Array buffer{bufferSize};
+
+    // Prepare the memory space.
+    const ::H5::DataSpace memDataSpace{1, &count, &count};
+
+    m_pH5vrKeyDataSet->read(buffer.data(),
+        H5Dget_type(m_pH5vrKeyDataSet->getId()), memDataSpace, fileDataSpace);
 
     return buffer;
 }
@@ -368,7 +507,7 @@ void CompoundLayer::writeProxy(
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
-    const auto h5fileDataSpace = m_pH5indexDataSet->getSpace();
+    const auto h5fileDataSpace = m_pH5keyDataSet->getSpace();
 
     // Make sure the area being written to does not exceed the file dimensions.
     const auto numDims = h5fileDataSpace.getSimpleExtentNdims();
@@ -391,7 +530,7 @@ void CompoundLayer::writeProxy(
     // Prepare the memory space.
     const ::H5::DataSpace h5memDataSpace{kRank, count.data(), count.data()};
 
-    m_pH5indexDataSet->write(buffer, H5Dget_type(m_pH5indexDataSet->getId()),
+    m_pH5keyDataSet->write(buffer, H5Dget_type(m_pH5keyDataSet->getId()),
         h5memDataSpace, h5fileDataSpace);
 }
 
@@ -399,6 +538,72 @@ void CompoundLayer::writeProxy(
 void CompoundLayer::writeAttributesProxy() const
 {
     // Nothing to be done.  Attributes are not modified.
+}
+
+//! Write the variable resolution metadata keys.
+/*!
+\param indexStart
+    The starting index to write.
+    Must be less than or equal to indexEnd.
+\param indexEnd
+    The ending index to write.  (inclusive)
+\param buffer
+    The keys to be written.
+    Must contain at least indexEnd - indexStart + 1 keys!
+*/
+void CompoundLayer::writeVR(
+    uint32_t indexStart,
+    uint32_t indexEnd,
+    const uint8_t* buffer)
+{
+    // Make sure the dataset is available.
+    if (this->getDataset().expired())
+        throw DatasetNotFound{};
+
+    // Make sure the variable resolution key dataset is present.
+    if (!m_pH5vrKeyDataSet)
+        throw DatasetRequiresVariableResolution{};
+
+    // Query the file for the specified rows and columns.
+    auto h5fileDataSpace = m_pH5vrKeyDataSet->getSpace();
+
+    // Make sure the area being read from does not exceed the file dimensions.
+    hsize_t fileLength = 0;
+    const auto numDims = h5fileDataSpace.getSimpleExtentDims(&fileLength);
+    if (numDims != 1)
+        throw InvalidWriteSize{};
+
+    if (indexStart > indexEnd)
+        throw InvalidWriteSize{};
+
+    auto pDescriptor = std::dynamic_pointer_cast<CompoundLayerDescriptor>(
+        this->getDescriptor());
+    if (!pDescriptor)
+        throw InvalidLayerDescriptor{};
+
+    const hsize_t count = (indexEnd - indexStart) + 1;
+    const hsize_t offset = indexStart;
+    const ::H5::DataSpace memDataSpace{1, &count, &count};
+
+    // Expand the file data space if needed.
+    if (fileLength < (indexEnd + 1))
+    {
+        const auto newMaxLength = std::max<hsize_t>(fileLength, indexEnd + 1);
+
+        m_pH5vrKeyDataSet->extend(&newMaxLength);
+
+        h5fileDataSpace = m_pH5vrKeyDataSet->getSpace();
+
+        // Update the dataset's dimensions.
+        auto pDataset = this->getDataset().lock();
+        pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
+    }
+
+    // Write the specified data.
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, &count, &offset);
+
+    m_pH5vrKeyDataSet->write(buffer, H5Dget_type(m_pH5vrKeyDataSet->getId()),
+        memDataSpace, h5fileDataSpace);
 }
 
 }  // namespace BAG
