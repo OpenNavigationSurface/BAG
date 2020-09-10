@@ -2271,7 +2271,7 @@ BagError bagGetCompoundLayerValueByName(
 
         *value = getValue(val);
     }
-    catch(const BAG::RecordNotFound& /*e*/)
+    catch(const BAG::ValueNotFound& /*e*/)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
@@ -2333,7 +2333,7 @@ BagError bagGetCompoundLayerValueByIndex(
 
         *value = getValue(val);
     }
-    catch(const BAG::RecordNotFound& /*e*/)
+    catch(const BAG::ValueNotFound& /*e*/)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
@@ -2493,11 +2493,11 @@ BagError bagAddCompoundLayerRecord(
         *recordIndex = static_cast<uint32_t>(
             compoundLayer->getValueTable().addRecord(rec));
     }
-    catch(const BAG::InvalidRecord& /*e*/)
+    catch(const BAG::InvalidValue& /*e*/)
     {
         return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
-    catch(const BAG::InvalidRecordsIndex&)
+    catch(const BAG::InvalidValueKey&)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
@@ -2565,11 +2565,11 @@ BagError bagAddCompoundLayerRecords(
     {
         compoundLayer->getValueTable().addRecords(recs);
     }
-    catch(const BAG::InvalidRecord& /*e*/)
+    catch(const BAG::InvalidValue& /*e*/)
     {
         return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
-    catch(const BAG::InvalidRecordsIndex&)
+    catch(const BAG::InvalidValueKey&)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
@@ -2626,15 +2626,15 @@ BagError bagCompoundLayerSetValueByName(
     {
         compoundLayer->getValueTable().setValue(recordIndex, fieldName, val);
     }
-    catch(const BAG::RecordNotFound& /*e*/)
+    catch(const BAG::ValueNotFound& /*e*/)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
-    catch(const BAG::InvalidRecord& /*e*/)
+    catch(const BAG::InvalidValue& /*e*/)
     {
         return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
-    catch(const BAG::InvalidRecordsIndex&)
+    catch(const BAG::InvalidValueKey&)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
@@ -2690,15 +2690,15 @@ BagError bagCompoundLayerSetValueByIndex(
     {
         compoundLayer->getValueTable().setValue(recordIndex, fieldIndex, val);
     }
-    catch(const BAG::RecordNotFound& /*e*/)
+    catch(const BAG::ValueNotFound& /*e*/)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }
-    catch(const BAG::InvalidRecord& /*e*/)
+    catch(const BAG::InvalidValue& /*e*/)
     {
         return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
     }
-    catch(const BAG::InvalidRecordsIndex&)
+    catch(const BAG::InvalidValueKey&)
     {
         return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
     }

@@ -56,12 +56,12 @@ struct BAG_API InvalidDescriptor final : virtual std::exception
     }
 };
 
-//! Invalid index type specified.
-struct BAG_API InvalidIndexType final : virtual std::exception
+//! Invalid key type specified.
+struct BAG_API InvalidKeyType final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "The type specified for the index type is not valid.";
+        return "The type specified for the key type is not valid.";
     }
 };
 
@@ -340,42 +340,62 @@ struct BAG_API FieldNotFound final : virtual std::exception
     }
 };
 
-//! Attempt to use an invalid record.
-struct BAG_API InvalidRecord final : virtual std::exception
+//! Attempt to use an invalid value.
+struct BAG_API InvalidValue final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "Invalid record encountered.  Either an unknown type is present "
+        return "Invalid value encountered.  Either an unknown type is present "
             "or it does not match the definition";
     }
 };
 
-//! The dimensions of the Records in the CompoundLayer are invalid.
-struct BAG_API InvalidCompoundRecordsSize final : virtual std::exception
+//! The dimensions of the values in the CompoundLayer are invalid.
+struct BAG_API InvalidValueSize final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "Invalid record encountered.  Either an unknown type is present "
-            "or it does not match the definition";
+        return "Invalid dimensions of the values in the spatial data has been "
+            "encountered.";
     }
 };
 
-//! Attempt to write a record to an invalid index.
-struct BAG_API InvalidRecordsIndex final : virtual std::exception
+//! Layer requires chunking set because it is dynamically sized.
+struct BAG_API LayerRequiresChunkingSet final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "Invalid record index specified while writing a record.";
+        return "This layer requires a chunk size because it is dynamically "
+            "sized.";
     }
 };
 
-//! Attempt to use an invalid record index.
-struct BAG_API RecordNotFound final : virtual std::exception
+//! The dataset must use variable resolution to read or write variable resolution metadata using the CompoundLayer.
+struct BAG_API DatasetRequiresVariableResolution final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "Invalid record index specified.  Record index must be greater "
-            "than 0, and less than the number of records present.";
+        return "The dataset must use variable resolution to read or write "
+            "variable resolution metadata using the CompoundLayer.";
+    }
+};
+
+//! Attempt to write a value to an invalid key.
+struct BAG_API InvalidValueKey final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid key specified while writing a spatial metadata value.";
+    }
+};
+
+//! Attempt to use an invalid key.
+struct BAG_API ValueNotFound final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid key specified.  The key must be greater "
+            "than 0, and less than the number of existing values.";
     }
 };
 

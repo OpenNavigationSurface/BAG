@@ -25,7 +25,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
-//! The interface for a compound layer.
+//! The interface for a compound layer (spatial metadata).
 class BAG_API CompoundLayer final : public Layer
 {
 public:
@@ -38,12 +38,16 @@ public:
     ValueTable& getValueTable() & noexcept;
     const ValueTable& getValueTable() const & noexcept;
 
+    UInt8Array readVR(uint32_t indexStart, uint32_t indexEnd) const;
+    void writeVR(uint32_t indexStart, uint32_t indexEnd, const uint8_t* buffer);
+
 protected:
     CompoundLayer(Dataset& dataset, CompoundLayerDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5indexDataSet,
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5keyDataSet,
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5vrKeyDataSet,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5recordDataSet);
 
-    static std::unique_ptr<CompoundLayer> create(DataType indexType,
+    static std::unique_ptr<CompoundLayer> create(DataType keyType,
         const std::string& name, Dataset& dataset,
         const RecordDefinition& definition, uint64_t chunkSize,
         int compressionLevel);
@@ -52,14 +56,18 @@ protected:
 
 private:
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-        createH5indexDataSet(const Dataset& inDataSet,
+        createH5keyDataSet(const Dataset& inDataSet,
             const CompoundLayerDescriptor& descriptor);
 
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-        createH5recordDataSet(const Dataset& inDataSet,
+        createH5vrKeyDataSet(const Dataset& inDataSet,
             const CompoundLayerDescriptor& descriptor);
 
-    const ::H5::DataSet& getRecordDataSet() const &;
+    static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
+        createH5valueDataSet(const Dataset& inDataSet,
+            const CompoundLayerDescriptor& descriptor);
+
+    const ::H5::DataSet& getValueDataSet() const &;
 
     void setValueTable(std::unique_ptr<ValueTable> table) noexcept;
 
@@ -71,10 +79,12 @@ private:
 
     void writeAttributesProxy() const override;
 
-    //! The HDF5 DataSet containing the indices.
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5indexDataSet;
-    //! The HDF5 DataSet containing the records.
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5recordDataSet;
+    //! The HDF5 DataSet containing the single resolution keys.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5keyDataSet;
+    //! The HDF5 DataSet containing the variable resolution keys.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5vrKeyDataSet;
+    //! The HDF5 DataSet containing the values of the spatial metadata.
+    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5valueDataSet;
     //! The records in memory.
     std::unique_ptr<ValueTable> m_pValueTable;
 

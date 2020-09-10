@@ -7,13 +7,13 @@
 #include <bag_types.h>
 #include <bag_valuetable.h>
 
+#include <array>
 #include <catch2/catch.hpp>
 #include <cstring>  //strcmp
 #include <string>
 
 
 using BAG::Dataset;
-using BAG::ValueTable;
 
 namespace {
 
@@ -349,7 +349,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     REQUIRE(pDataset);
 
     // Make a new Value Table.
-    constexpr BAG::DataType indexType = DT_UINT8;
+    constexpr BAG::DataType keyType = DT_UINT8;
     const std::string layerName{"elevation"};
     constexpr size_t kExpectedDefinitionSize = 4;
 
@@ -368,7 +368,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     kExpectredDefinition[3].name = kFieldName3;
     kExpectredDefinition[3].type = DT_STRING;
 
-    auto& pLayer = pDataset->createCompoundLayer(indexType, layerName,
+    auto& pLayer = pDataset->createCompoundLayer(keyType, layerName,
         kExpectredDefinition, chunkSize, compressionLevel);
 
     const auto& valueTable = pLayer.getValueTable();
@@ -381,7 +381,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     CHECK(definition[2] == kExpectredDefinition[2]);
     CHECK(definition[3] == kExpectredDefinition[3]);
 
-    UNSCOPED_INFO("Check dataset has no user defined records.");
+    UNSCOPED_INFO("Check that there are no user defined records are in the value table (just the no data value record).");
     CHECK(valueTable.getRecords().size() == 1);
 
     UNSCOPED_INFO("Check getting the field index returns the expected result.");
@@ -430,7 +430,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         REQUIRE(pDataset);
 
         // Make a new Value Table.
-        constexpr BAG::DataType indexType = DT_UINT16;
+        constexpr BAG::DataType keyType = DT_UINT16;
 
         BAG::RecordDefinition definition(7);
         definition[0].name = "first name";
@@ -448,7 +448,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         definition[6].name = "address";
         definition[6].type = DT_STRING;
 
-        auto& pLayer = pDataset->createCompoundLayer(indexType,
+        auto& pLayer = pDataset->createCompoundLayer(keyType,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         auto& valueTable = pLayer.getValueTable();
@@ -482,38 +482,38 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 1;
+        constexpr size_t kKey = 1;
         size_t fieldIndex = 0;
 
-        const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field0value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field0value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field1value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field1value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field2value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field2value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field3value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field3value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field4value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field4value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field5value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field5value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field5value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field6value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field6value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field6value == kExpectedNewRecord0[fieldIndex]);
         ++fieldIndex;
 
-        REQUIRE_THROWS(valueTable.getValue(kRecordIndex, fieldIndex));
+        REQUIRE_THROWS(valueTable.getValue(kKey, fieldIndex));
     }
 
     BAG::Record kExpectedNewRecord1 {
@@ -539,49 +539,49 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 1;
+        constexpr size_t kKey = 1;
         size_t fieldIndex = 0;
 
         // Read values back from memory.
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+        valueTable.setValue(kKey, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
-        const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field0value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field0value == kExpectedNewRecord1[fieldIndex]);
 
         ++fieldIndex;
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+        valueTable.setValue(kKey, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
-        const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field1value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field1value == kExpectedNewRecord1[fieldIndex]);
 
         ++fieldIndex;
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+        valueTable.setValue(kKey, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
-        const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field2value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field2value == kExpectedNewRecord1[fieldIndex]);
 
         ++fieldIndex;
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+        valueTable.setValue(kKey, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
-        const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field3value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
 
         ++fieldIndex;
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+        valueTable.setValue(kKey, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
-        const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field4value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field4value == kExpectedNewRecord1[fieldIndex]);
 
         ++fieldIndex;
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+        valueTable.setValue(kKey, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
-        const auto& field5value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field5value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field5value == kExpectedNewRecord1[fieldIndex]);
 
         ++fieldIndex;
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex]);
+        valueTable.setValue(kKey, fieldIndex, kExpectedNewRecord1[fieldIndex]);
 
-        const auto& field6value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field6value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field6value == kExpectedNewRecord1[fieldIndex]);
     }
 
@@ -598,38 +598,38 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto& records = valueTable.getRecords();
         CHECK(records.size() == kExpectedNumRecords);
 
-        constexpr size_t kRecordIndex = 1;
+        constexpr size_t kKey = 1;
         size_t fieldIndex = 0;
 
-        const auto& field0value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field0value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field0value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field1value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field1value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field1value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field2value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field2value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field2value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field3value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field3value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field3value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field4value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field4value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field4value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field5value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field5value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field5value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-        const auto& field6value = valueTable.getValue(kRecordIndex, fieldIndex);
+        const auto& field6value = valueTable.getValue(kKey, fieldIndex);
         CHECK(field6value == kExpectedNewRecord1[fieldIndex]);
         ++fieldIndex;
 
-        REQUIRE_THROWS(valueTable.getValue(kRecordIndex, fieldIndex));
+        REQUIRE_THROWS(valueTable.getValue(kKey, fieldIndex));
     }
 }
 
@@ -670,7 +670,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         REQUIRE(pDataset);
 
         // Make a new Value Table.
-        constexpr BAG::DataType indexType = DT_UINT16;
+        constexpr BAG::DataType keyType = DT_UINT16;
 
         BAG::RecordDefinition definition;
         definition.resize(3);
@@ -681,12 +681,18 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         definition[2].name = "bool2";
         definition[2].type = DT_BOOLEAN;
 
-        auto& pLayer = pDataset->createCompoundLayer(indexType,
+        auto& layer = pDataset->createCompoundLayer(keyType,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
-        auto& valueTable = pLayer.getValueTable();
+        UNSCOPED_INFO("Check writing to variable resolution metadata fails because the dataset does not have variable resolution.");
+        const uint32_t indexStart = 0;
+        const uint32_t indexEnd = 0;
+        const uint8_t buffer = 42;
+        REQUIRE_THROWS(layer.writeVR(indexStart, indexEnd, &buffer));
 
-        UNSCOPED_INFO("Check there are no user defined records in the value table.");
+        auto& valueTable = layer.getValueTable();
+
+        UNSCOPED_INFO("Check that there are no user defined records are in the value table (just the no data value record).");
         CHECK(valueTable.getRecords().size() == 1);
 
         UNSCOPED_INFO("Adding a valid record to the value table does not throw.");
@@ -701,22 +707,27 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        auto const* layer = pDataset->getCompoundLayer(kExpectedLayerName);
-        REQUIRE(layer);
+        auto const* pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
+        REQUIRE(pLayer);
 
-        const auto& valueTable = layer->getValueTable();
+        UNSCOPED_INFO("Check reading from variable resolution metadata fails because the dataset does not have variable resolution.");
+        const uint32_t indexStart = 0;
+        const uint32_t indexEnd = 0;
+        REQUIRE_THROWS(pLayer->readVR(indexStart, indexEnd));
+
+        const auto& valueTable = pLayer->getValueTable();
         const auto& records = valueTable.getRecords();  // Contains the no data value record.
         CHECK(records.size() == kExpectedNumRecords);
 
         // Read a record and make sure the values are expected.
-        constexpr size_t kRecordIndex = 2;  // Get the second record value.
+        constexpr size_t kKey = 2;  // Get the second record value.
 
         {
             constexpr size_t fieldIndex = 1;  // Second field (string).
 
-            const auto& value = valueTable.getValue(kRecordIndex, fieldIndex);
-            CHECK(value == kExpectedRecords[kRecordIndex - 1][fieldIndex]);
-            CHECK(value == records[kRecordIndex][fieldIndex]);
+            const auto& value = valueTable.getValue(kKey, fieldIndex);
+            CHECK(value == kExpectedRecords[kKey - 1][fieldIndex]);
+            CHECK(value == records[kKey][fieldIndex]);
         }
 
         {
@@ -726,10 +737,116 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
             const auto fieldIndex = valueTable.getFieldIndex(fieldName);
             CHECK(fieldIndex == kExpectedFieldIndex);
 
-            const auto& value = valueTable.getValue(kRecordIndex, fieldName);
-            CHECK(value == kExpectedRecords[kRecordIndex - 1][fieldIndex]);
-            CHECK(value == records[kRecordIndex][fieldIndex]);
+            const auto& value = valueTable.getValue(kKey, fieldName);
+            CHECK(value == kExpectedRecords[kKey - 1][fieldIndex]);
+            CHECK(value == records[kKey][fieldIndex]);
         }
+    }
+}
+
+//  UInt8Array readVR(uint32_t indexStart, uint32_t indexEnd) const;
+//  void writeVR(uint32_t indexStart, uint32_t indexEnd, const uint8_t* buffer);
+TEST_CASE("test compound layer readVR/writeVR", "[compoundlayer][readvr][writevr]")
+{
+    const TestUtils::RandomFileGuard tmpFileName;
+    const std::string kExpectedLayerName = "elevation";
+
+    // Expected keys in the single resolution DataSet.
+    const size_t kExpectedNumSRKeys = 3;
+    std::array<uint8_t, kExpectedNumSRKeys> kExpectedSingleResolutionKeys{1, 2, 3};
+
+    // Expected keys in the variable resolution DataSet.
+    const size_t kExpectedNumVRKeys = 5;
+    std::array<uint8_t, kExpectedNumVRKeys> kExpectedVariableResolutionKeys{3, 3, 2, 1, 1};
+
+    // Create a dataset, enable VR, write then read some variable resolution spatial metadata.
+    {
+        BAG::Metadata metadata;
+        metadata.loadFromBuffer(kMetadataXML);
+
+        constexpr uint64_t chunkSize = 100;
+        constexpr int compressionLevel = 6;
+
+        auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
+            chunkSize, compressionLevel);
+        REQUIRE(pDataset);
+
+        // Enable variable resolution for the dataset.
+        constexpr bool kMakeNode = false;
+        pDataset->createVR(chunkSize, compressionLevel, kMakeNode);
+
+        // Make a new compound layer using the elevation layer.
+        // Key type is an 8 bit integer.  Valid values are 1-255.  0 is "no value".
+        constexpr BAG::DataType keyType = DT_UINT8;
+
+        // The metadata definition is:
+        //      field name      field type
+        //      "bool1"         boolean
+        //      "string"        string
+        //      "bool2"         boolean
+        BAG::RecordDefinition definition;
+        definition.resize(3);
+        definition[0].name = "bool1";
+        definition[0].type = DT_BOOLEAN;
+        definition[1].name = "string";
+        definition[1].type = DT_STRING;
+        definition[2].name = "bool2";
+        definition[2].type = DT_BOOLEAN;
+
+        auto& layer = pDataset->createCompoundLayer(keyType,
+            kExpectedLayerName, definition, chunkSize, compressionLevel);
+
+        // Write some single resolution metadata.
+        // Write keys 1, 2, 3 to row 0, column 0-2 (inclusive).
+        constexpr uint32_t rowStart = 0;
+        constexpr uint32_t columnStart = 0;
+        constexpr uint32_t rowEnd = 0;
+        constexpr uint32_t columnEnd = 2;
+        layer.write(rowStart, columnStart, rowEnd, columnEnd, kExpectedSingleResolutionKeys.data());
+
+        // Write some variable resolution metadata.
+        // Write keys 3, 3, 2, 1, 1 to indices 100-104 (inclusive).
+        constexpr uint32_t indexStart = 100;
+        constexpr uint32_t indexEnd = 104;
+        layer.writeVR(indexStart, indexEnd, kExpectedVariableResolutionKeys.data());
+    }
+
+    // Load the dataset, and Read keys from the single and variable resolution
+    // DataSets in the elevation compound layer.
+    const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
+    REQUIRE(pDataset);
+
+    auto const* pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
+    REQUIRE(pLayer);
+
+    // Read single resolution metadata keys.
+    {
+        // Select row 0, and columns 0-2 (3 values total).
+        constexpr uint32_t rowStart = 0;
+        constexpr uint32_t columnStart = 0;
+        constexpr uint32_t rowEnd = 0;
+        constexpr uint32_t columnEnd = 2;
+        const auto buffer = pLayer->read(rowStart, columnStart, rowEnd, columnEnd);
+
+        UNSCOPED_INFO("Check the single resolution metadata keys are expected.");
+        CHECK(buffer.size() == kExpectedNumSRKeys);
+
+        for (size_t i=0; i<kExpectedNumSRKeys; ++i)
+            CHECK(buffer[i] == kExpectedSingleResolutionKeys[i]);
+    }
+
+    // Read variable resolution metadata keys.
+    {
+        // Read from index 100-104 (5 values total).
+        constexpr uint32_t indexStart = 100;
+        constexpr uint32_t indexEnd = 104;
+        const auto buffer = pLayer->readVR(indexStart, indexEnd);
+
+        UNSCOPED_INFO("Check the variable resolution metadata keys are expected.");
+        CHECK(buffer.size() == kExpectedNumVRKeys);
+
+        for (size_t i=0; i<kExpectedNumVRKeys; ++i)
+            CHECK(buffer[i] == kExpectedVariableResolutionKeys[i]);
     }
 }
 

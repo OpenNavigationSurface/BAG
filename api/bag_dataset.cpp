@@ -315,9 +315,9 @@ Layer& Dataset::addLayer(
 
 //! Create a compound layer.
 /*!
-\param indexType
-    The type of index the compound layer will use.
-    Valid values are: ???
+\param keyType
+    The type of key the compound layer will use.
+    Valid values are: DT_UINT8, DT_UINT16, DT_UINT32 or DT_UINT64
 \param name
     The name of the simple layer this compound layer has metadata for.
 \param definition
@@ -331,7 +331,7 @@ Layer& Dataset::addLayer(
     The new compound layer.
 */
 CompoundLayer& Dataset::createCompoundLayer(
-    DataType indexType,
+    DataType keyType,
     const std::string& name,
     const RecordDefinition& definition,
     uint64_t chunkSize,
@@ -381,7 +381,7 @@ CompoundLayer& Dataset::createCompoundLayer(
         H5Gclose(id);
 
     return dynamic_cast<CompoundLayer&>(this->addLayer(CompoundLayer::create(
-        indexType, name, *this, definition, chunkSize, compressionLevel)));
+        keyType, name, *this, definition, chunkSize, compressionLevel)));
 }
 
 //! Create a new Dataset.
@@ -1085,48 +1085,8 @@ void Dataset::readDataset(
         }
     }
 
-    // If the BAG is version 2.0+ ...
-    if (bagVersion >= 2'000'000)
-    {
-        // Add all existing CompoundLayers
-        hid_t id = H5Gopen2(bagGroup.getLocId(), COMPOUND_PATH, H5P_DEFAULT);
-        if (id >= 0)
-        {
-            H5Gclose(id);
-
-            // Look for any subgroups of the Georef_metadata group.
-            const auto group = m_pH5file->openGroup(COMPOUND_PATH);
-            const hsize_t numObjects = group.getNumObjs();
-
-            for (auto i=0; i<numObjects; ++i)
-            {
-                try
-                {
-                    const auto name = group.getObjnameByIdx(i);
-
-                    auto descriptor = CompoundLayerDescriptor::open(*this, name);
-                    this->addLayer(CompoundLayer::open(*this, *descriptor));
-                }
-                catch(...)
-                {}
-            }
-        }
-    }
-
-    m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this});
-
-    // Read optional Surface Corrections
-    hid_t id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH, H5P_DEFAULT);
-    if (id >= 0)
-    {
-        H5Dclose(id);
-
-        auto descriptor = SurfaceCorrectionsDescriptor::open(*this);
-        this->addLayer(SurfaceCorrections::open(*this, *descriptor));
-    }
-
     // Read optional VR
-    id = H5Dopen2(bagGroup.getLocId(), VR_TRACKING_LIST_PATH, H5P_DEFAULT);
+    hid_t id = H5Dopen2(bagGroup.getLocId(), VR_TRACKING_LIST_PATH, H5P_DEFAULT);
     if (id >= 0)
     {
         H5Dclose(id);
@@ -1152,6 +1112,46 @@ void Dataset::readDataset(
 
             auto descriptor = VRNodeDescriptor::open(*this);
             this->addLayer(VRNode::open(*this, *descriptor));
+        }
+    }
+
+    m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this});
+
+    // Read optional Surface Corrections
+    id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH, H5P_DEFAULT);
+    if (id >= 0)
+    {
+        H5Dclose(id);
+
+        auto descriptor = SurfaceCorrectionsDescriptor::open(*this);
+        this->addLayer(SurfaceCorrections::open(*this, *descriptor));
+    }
+
+    // If the BAG is version 2.0+ ...
+    if (bagVersion >= 2'000'000)
+    {
+        // Add all existing CompoundLayers
+        id = H5Gopen2(bagGroup.getLocId(), COMPOUND_PATH, H5P_DEFAULT);
+        if (id >= 0)
+        {
+            H5Gclose(id);
+
+            // Look for any subgroups of the Georef_metadata group.
+            const auto group = m_pH5file->openGroup(COMPOUND_PATH);
+            const hsize_t numObjects = group.getNumObjs();
+
+            for (auto i=0; i<numObjects; ++i)
+            {
+                try
+                {
+                    const auto name = group.getObjnameByIdx(i);
+
+                    auto descriptor = CompoundLayerDescriptor::open(*this, name);
+                    this->addLayer(CompoundLayer::open(*this, *descriptor));
+                }
+                catch(...)
+                {}
+            }
         }
     }
 }

@@ -132,22 +132,20 @@ void convertRecordToMemory(
 //! Constructor.
 /*!
 \param layer
-    The layer the value table holds records for.
+    The layer the value table holds records/values for.
 */
 ValueTable::ValueTable(
     const CompoundLayer& layer)
     : m_layer(layer)
 {
     // Read the Records DataSet.
-    const auto& h5recordDataSet = m_layer.getRecordDataSet();
+    const auto& h5valueDataSet = m_layer.getValueDataSet();
 
-    const auto fileDataSpace = h5recordDataSet.getSpace();
-    const auto numDims = fileDataSpace.getSimpleExtentNdims();
-    if (numDims != 1)
-        throw InvalidCompoundRecordsSize{};
-
+    const auto fileDataSpace = h5valueDataSet.getSpace();
     hsize_t numRecords = 0;
-    fileDataSpace.getSimpleExtentDims(&numRecords);
+    const auto numDims = fileDataSpace.getSimpleExtentDims(&numRecords);
+    if (numDims != 1)
+        throw InvalidValueSize{};
 
     m_records.resize(numRecords);
 
@@ -168,7 +166,7 @@ ValueTable::ValueTable(
     const ::H5::DataSpace memDataSpace;
     memDataSpace.setExtentSimple(1, &numRecords);
 
-    h5recordDataSet.read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
+    h5valueDataSet.read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
 
     // Convert the raw memory into Records.
     size_t rawIndex = 0;
@@ -181,10 +179,10 @@ ValueTable::ValueTable(
     }
 }
 
-//! Add a record to the end of the list.
+//! Add a record/value to the end of the list.
 /*!
 \param record
-    The record.
+    The record/value.
 
 \return
     The index of the added record.
@@ -193,19 +191,20 @@ size_t ValueTable::addRecord(
     const Record& record)
 {
     if (!this->validateRecord(record))
-        throw InvalidRecord{};
+        throw InvalidValue{};
 
-    this->writeRecord(m_records.size(), record);
+    const auto newKey = m_records.size();
+    this->writeRecord(newKey, record);
 
     m_records.emplace_back(record);
 
-    return m_records.size() - 1;
+    return newKey;
 }
 
-//! Add multiple records to the end of the list.
+//! Add multiple records/values to the end of the list.
 /*!
 \param records
-    The records.
+    The records/values.
 */
 void ValueTable::addRecords(
     const Records& records)
@@ -218,20 +217,20 @@ void ValueTable::addRecords(
             return this->validateRecord(record);
         });
     if (!allValid)
-        throw InvalidRecord{};
+        throw InvalidValue{};
 
     this->writeRecords(records);
 
     m_records.insert(end(m_records), cbegin(records), cend(records));
 }
 
-//! Convert a record to a chunk of memory.
+//! Convert a record/value to a chunk of memory.
 /*!
 \param record
-    The record to convert.
+    The record/value to convert.
 
 \return
-    A copy of the record as a chunk of memory.
+    A copy of the record/value as a chunk of memory.
 */
 std::vector<uint8_t> ValueTable::convertRecordToRaw(
     const Record& record) const
@@ -247,13 +246,13 @@ std::vector<uint8_t> ValueTable::convertRecordToRaw(
     return buffer;
 }
 
-//! Convert multiple records to a chunk of memory.
+//! Convert multiple records/values to a chunk of memory.
 /*!
 \param records
-    The record to convert.
+    The records/values to convert.
 
 \return
-    A copy of the records as a chunk of memory.
+    A copy of the records/values as a chunk of memory.
 */
 std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     const std::vector<Record>& records) const
@@ -280,10 +279,10 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
     return buffer;
 }
 
-//! Retrieve the record definition.
+//! Retrieve the record/value definition.
 /*!
 \return
-    The list of fields that define the record.
+    The list of fields that define the record/value.
 */
 const RecordDefinition& ValueTable::getDefinition() const & noexcept
 {
@@ -293,32 +292,32 @@ const RecordDefinition& ValueTable::getDefinition() const & noexcept
 
 //! Retrieve the value of a specific field in a specific record.
 /*!
-\param recordIndex
-    The index of the record.
-    Value must be greater than 0.
+\param key
+    The key of the record/value.
+    Must be greater than 0.
 \param name
     The name of the field.
 
 \return
     The value specified.
-    An exception is thrown if the record index or field name are invalid.
+    An exception is thrown if the key or field name is invalid.
 */
 const CompoundDataType& ValueTable::getValue(
-    size_t recordIndex,
+    size_t key,
     const std::string& name) const &
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
-        throw RecordNotFound{};
+    if (key == 0 || key >= m_records.size())
+        throw ValueNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
 
-    return this->getValue(recordIndex, fieldIndex);
+    return this->getValue(key, fieldIndex);
 }
 
-//! Retrieve the value of a specific field in a specific record.
+//! Retrieve the value of a specific field in a specific record/value.
 /*!
-\param recordIndex
-    The index of the record.
+\param key
+    The key of the record/value.
     Must be greater than 0.
 \param fieldIndex
     The index of the field.
@@ -328,17 +327,17 @@ const CompoundDataType& ValueTable::getValue(
     An exception is thrown if the record index or field index are invalid.
 */
 const CompoundDataType& ValueTable::getValue(
-    size_t recordIndex,
+    size_t key,
     size_t fieldIndex) const &
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
-        throw RecordNotFound{};
+    if (key == 0 || key >= m_records.size())
+        throw ValueNotFound{};
 
     const auto& definition = this->getDefinition();
     if (fieldIndex >= definition.size())
         throw FieldNotFound{};
 
-    const auto& record = m_records[recordIndex];
+    const auto& record = m_records[key];
 
     return record[fieldIndex];
 }
@@ -386,10 +385,10 @@ const char* ValueTable::getFieldName(
     return definition[index].name;
 }
 
-//! Retrieve all the records.
+//! Retrieve all the records/values.
 /*!
 \return
-    All the records.
+    All the records/values.
     NOTE!  This includes the no data value record at index 0.
 */
 const Records& ValueTable::getRecords() const & noexcept
@@ -399,8 +398,8 @@ const Records& ValueTable::getRecords() const & noexcept
 
 //! Set a value in a specific field in a specific record.
 /*!
-\param recordIndex
-    The record index.
+\param key
+    The record/value key.
     Must be greater than 0.
 \param name
     The name of the field.
@@ -408,22 +407,22 @@ const Records& ValueTable::getRecords() const & noexcept
     The value to put into the field.
 */
 void ValueTable::setValue(
-    size_t recordIndex,
+    size_t key,
     const std::string& name,
     const CompoundDataType& value)
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
-        throw RecordNotFound{};
+    if (key == 0 || key >= m_records.size())
+        throw ValueNotFound{};
 
     const size_t fieldIndex = this->getFieldIndex(name);
 
-    this->setValue(recordIndex, fieldIndex, value);
+    this->setValue(key, fieldIndex, value);
 }
 
 //! Set a value in a specific field in a specific record.
 /*!
-\param recordIndex
-    The record index.
+\param key
+    The record key.
     Must be greater than 0.
 \param fieldIndex
     The index of the field.
@@ -431,26 +430,26 @@ void ValueTable::setValue(
     The value to put into the field.
 */
 void ValueTable::setValue(
-    size_t recordIndex,
+    size_t key,
     size_t fieldIndex,
     const CompoundDataType& value)
 {
-    if (recordIndex == 0 || recordIndex >= m_records.size())
-        throw RecordNotFound{};
+    if (key == 0 || key >= m_records.size())
+        throw ValueNotFound{};
 
-    auto& record = m_records[recordIndex];
+    auto& record = m_records[key];
     record[fieldIndex] = value;
 
-    this->writeRecord(recordIndex, record);
+    this->writeRecord(key, record);
 }
 
-//! Determine if the specified record matches the definition used by the value table.
+//! Determine if the specified record/value matches the definition used by the value table.
 /*!
 \param record
-    The record.
+    The record/value.
 
 \return
-    \e true if the record matches the definition.
+    \e true if the record/value matches the definition.
     \e false otherwise
 */
 bool ValueTable::validateRecord(
@@ -485,22 +484,22 @@ bool ValueTable::validateRecord(
     return true;
 }
 
-//! Write a record to the HDF5 DataSet at the specified recordIndex.
+//! Write a record/value to the HDF5 DataSet at the specified key.
 /*!
-\param recordIndex
-    The index to write the record to.
+\param key
+    The record key.
     Must be greater than 0.
 \param record
-    The record to write.
+    The record/value to write.
 */
 void ValueTable::writeRecord(
-    size_t recordIndex,
+    size_t key,
     const Record& record)
 {
-    if (recordIndex == 0 || recordIndex > m_records.size())
-        throw InvalidRecordsIndex{};
+    if (key == 0 || key > m_records.size())
+        throw InvalidValueKey{};
 
-    const hsize_t fileRecordIndex = recordIndex;
+    const hsize_t fileRecordIndex = key;
 
     // Prepare the memory details.
     const auto rawMemory = this->convertRecordToRaw(record);
@@ -515,28 +514,28 @@ void ValueTable::writeRecord(
     ::H5::DataSpace memDataSpace(1, &one, &one);
 
     // Prepare the file details.
-    const auto& h5recordDataSet = m_layer.getRecordDataSet();
+    const auto& h5valueDataSet = m_layer.getValueDataSet();
 
-    if (recordIndex == m_records.size())
+    if (key == m_records.size())
     {
         // Make room for a new record.
         const hsize_t newNumRecords = fileRecordIndex + 1;
-        h5recordDataSet.extend(&newNumRecords);
+        h5valueDataSet.extend(&newNumRecords);
     }
 
-    const auto fileDataSpace = h5recordDataSet.getSpace();
+    const auto fileDataSpace = h5valueDataSet.getSpace();
 
     // select the record to write
     fileDataSpace.selectElements(H5S_SELECT_SET, 1, &fileRecordIndex);
 
-    h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,
+    h5valueDataSet.write(rawMemory.data(), memDataType, memDataSpace,
         fileDataSpace);
 }
 
-//! Write multiple records at the end of the list to the HDF5 DataSet.
+//! Write multiple records/values at the end of the list to the HDF5 DataSet.
 /*!
 \param records
-    The records.
+    The records/values.
 */
 void ValueTable::writeRecords(
     const std::vector<Record>& records)
@@ -557,19 +556,19 @@ void ValueTable::writeRecords(
     ::H5::DataSpace memDataSpace(1, &numRecords, &numRecords);
 
     // Prepare the file details.
-    const auto& h5recordDataSet = m_layer.getRecordDataSet();
+    const auto& h5valueDataSet = m_layer.getValueDataSet();
 
     // Make room for the new records.
     const hsize_t newNumRecords = m_records.size() + numRecords;
-    h5recordDataSet.extend(&newNumRecords);
+    h5valueDataSet.extend(&newNumRecords);
 
-    const auto fileDataSpace = h5recordDataSet.getSpace();
+    const auto fileDataSpace = h5valueDataSet.getSpace();
 
-    // Specify the index to begin writing to.
-    const hsize_t indexToModify = m_records.size();
-    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &indexToModify);
+    // Specify the key to begin writing to.
+    const hsize_t keyToModify = m_records.size();
+    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &keyToModify);
 
-    h5recordDataSet.write(rawMemory.data(), memDataType, memDataSpace,
+    h5valueDataSet.write(rawMemory.data(), memDataType, memDataSpace,
         fileDataSpace);
 }
 
