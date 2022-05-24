@@ -90,18 +90,19 @@ CompoundLayer::CompoundLayer(
     The new compound layer.
 */
 std::unique_ptr<CompoundLayer> CompoundLayer::create(
-    DataType keyType,
-    const std::string& name,
-    Dataset& dataset,
-    const RecordDefinition& definition,
-    uint64_t chunkSize,
-    int compressionLevel)
+            DataType keyType,
+            const std::string& name,
+            GeorefMetadataProfile profile,
+            Dataset& dataset,
+            const RecordDefinition& definition,
+            uint64_t chunkSize,
+            int compressionLevel)
 {
     if (keyType != DT_UINT8 && keyType != DT_UINT16 && keyType != DT_UINT32 &&
         keyType != DT_UINT64)
         throw InvalidKeyType{};
 
-    auto pDescriptor = CompoundLayerDescriptor::create(dataset, name, keyType,
+    auto pDescriptor = CompoundLayerDescriptor::create(dataset, name, profile, keyType,
         definition, chunkSize, compressionLevel);
 
     // Create the H5 Group to hold keys & values.
@@ -248,6 +249,13 @@ CompoundLayer::createH5keyDataSet(
 
         // Write the value.
         att.write(fileDataType, definition.data());
+
+        // Specify a string attribute to indicate the metadata profile type
+        const auto profileAttType = ::H5::StrType{0, METADATA_PROFILE_LEN};
+        const ::H5::DataSpace profileAttSpace{};
+        const auto profileAttr = pH5dataSet->createAttribute(METADATA_PROFILE_TYPE,
+                                                             profileAttType, profileAttSpace);
+        profileAttr.write(profileAttType, kGeorefMetadataProfileMapString.at(descriptor.m_profile).data());
     }
 
     return pH5dataSet;

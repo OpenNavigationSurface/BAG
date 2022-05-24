@@ -29,15 +29,17 @@ namespace BAG {
     The compression level the HDF5 DataSet will use.
 */
 CompoundLayerDescriptor::CompoundLayerDescriptor(
-    Dataset& dataset,
-    const std::string& name,
-    DataType keyType,
-    RecordDefinition definition,
-    uint64_t chunkSize,
-    int compressionLevel)
+        Dataset& dataset,
+        const std::string& name,
+        GeorefMetadataProfile profile,
+        DataType keyType,
+        RecordDefinition definition,
+        uint64_t chunkSize,
+        int compressionLevel)
     : LayerDescriptor(dataset.getNextId(), COMPOUND_PATH + name, name,
         Compound, chunkSize, compressionLevel)
     , m_pBagDataset(dataset.shared_from_this())
+    , m_profile(profile)
     , m_keyType(keyType)
     , m_elementSize(Layer::getElementSize(keyType))
     , m_definition(std::move(definition))
@@ -64,15 +66,16 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
     The new compound layer.
 */
 std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
-    Dataset& dataset,
-    const std::string& name,
-    DataType keyType,
-    RecordDefinition definition,
-    uint64_t chunkSize,
-    int compressionLevel)
+            Dataset& dataset,
+            const std::string& name,
+            GeorefMetadataProfile profile,
+            DataType keyType,
+            RecordDefinition definition,
+            uint64_t chunkSize,
+            int compressionLevel)
 {
     return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{dataset, name, keyType,
+        new CompoundLayerDescriptor{dataset, name, profile, keyType,
             std::move(definition), chunkSize, compressionLevel});
 }
 
@@ -137,8 +140,11 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     const auto chunkSize = BAG::getChunkSize(h5file, internalPath);
     const auto compressionLevel = BAG::getCompressionLevel(h5file, internalPath);
 
+    // TODO: Read GeorefMetadataProfile from HDF5 file and pass to CompoundLayerDescriptor
+    GeorefMetadataProfile profile = UNKNOWN_METADATA_PROFILE;
+
     return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{dataset, name, keyType, definition,
+        new CompoundLayerDescriptor{dataset, name, profile, keyType, definition,
             chunkSize, compressionLevel});
 }
 

@@ -1,8 +1,10 @@
 
 #include <bag_compoundlayer.h>
+#include <bag_metadataprofiles.h>
 #include <bag_dataset.h>
 #include <bag_metadata.h>
 #include <bag_simplelayer.h>
+#include <bag_compounddatatype.h>
 #include <bag_surfacecorrections.h>
 #include <bag_surfacecorrectionsdescriptor.h>
 #include <bag_types.h>
@@ -165,36 +167,12 @@ int main(
         const BAG::DataType indexType = DT_UINT16;  // Not expecting more than 65535 possible records.  (1 record is reserved)
         const auto& simpleLayerName = elevationLayer->getDescriptor()->getName();
 
-        BAG::RecordDefinition definition(12);
-        definition[0].name = "temporal_variability";
-        definition[0].type = DT_UINT32;
-        definition[1].name = "data_assessment";
-        definition[1].type = DT_UINT32;
-        definition[2].name = "feature_least_depth";
-        definition[2].type = DT_BOOLEAN;
-        definition[3].name = "significant_features";
-        definition[3].type = DT_BOOLEAN;
-        definition[4].name = "feature_size";
-        definition[4].type = DT_FLOAT32;
-        definition[5].name = "feature_size_var";
-        definition[5].type = DT_FLOAT32;
-        definition[6].name = "full_coverage";
-        definition[6].type = DT_BOOLEAN;
-        definition[7].name = "bathy_coverage";
-        definition[7].type = DT_BOOLEAN;
-        definition[8].name = "horizontal_uncert_fixed";
-        definition[8].type = DT_FLOAT32;
-        definition[9].name = "horizontal_uncert_var";
-        definition[9].type = DT_FLOAT32;
-        definition[10].name = "survey_date_start";
-        definition[10].type = DT_STRING;
-        definition[11].name = "survey_date_end";
-        definition[11].type = DT_STRING;
+        BAG::RecordDefinition definition = BAG::METADATA_DEFINITION_S101;
 
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
 
-        auto& compoundLayer = dataset->createCompoundLayer(indexType,
+        auto& compoundLayer = dataset->createCompoundLayer(indexType, BAG::GeorefMetadataProfile::S101_METADATA_PROFILE,
             simpleLayerName, definition, chunkSize, compressionLevel);
 
         // At this point, all entries in the compound layer point to index 0,
@@ -204,40 +182,48 @@ int main(
 
         using BAG::CompoundDataType;
 
-        BAG::Record record {
-            CompoundDataType{1u},  // temporal_variability
-            CompoundDataType{3u},  // data_assessment
-            CompoundDataType{true},  // feature_least_depth
-            CompoundDataType{false},  // significant_features
-            CompoundDataType{1234.567f},  // feature_size
-            CompoundDataType{56.987f},  // feature_size_var
-            CompoundDataType{true},  // full_coverage
-            CompoundDataType{false},  //bathy_coverage
-            CompoundDataType{9.87f},  //horizontal_uncert_fixed
-            CompoundDataType{1.23f},  //horizontal_uncert_var
-            CompoundDataType{std::string{"2019-04-01 00:00:00.0Z"}},  //survey_date_start
-            CompoundDataType{std::string{"2019-04-01 12:00:00.0Z"}},  //survey_date_end
-        };
+        BAG::Record record = BAG::CreateRecordS101(
+                3u,         // data_assessment
+                false,      // significant_features
+                true,       // feature_least_depth
+                1234.567f,  // feature_size
+                true,       // coverage
+                false,      // bathy_coverage
+                9.87f,      // horizontal_uncert_fixed
+                1.23f,      // horizontal_uncert_var
+                0.98f,      // vertical_uncert_fixed
+                0.12f,      // vertical_uncert_var
+                std::string("Creative Commons Zero Public Domain Dedication (CC0)"),         // license_Name
+                std::string("https://creativecommons.org/publicdomain/zero/1.0/"),         // license_URL
+                std::string("CD71EB77-5812-4735-B728-0DC1AE2A2F3B"),         // source_Survey_ID
+                std::string("NOAA"),         // source_Institution
+                std::string{"2019-04-01 00:00:00.0Z"},         // survey_data_start
+                std::string{"2019-04-01 12:00:00.0Z"}         // survey_date_end
+                );
 
         auto& valueTable = compoundLayer.getValueTable();
 
         // Store the new record in memory and in the BAG.
         const auto firstRecordIndex = valueTable.addRecord(record);
 
-        record = BAG::Record {
-            CompoundDataType{6u},  // temporal_variability
-            CompoundDataType{1u},  // data_assessment
-            CompoundDataType{false},  // feature_least_depth
-            CompoundDataType{true},  // significant_features
-            CompoundDataType{987.6f},  // feature_size
-            CompoundDataType{5.432f},  // feature_size_var
-            CompoundDataType{false},  // full_coverage
-            CompoundDataType{true},  // bathy_coverage
-            CompoundDataType{12345.67f},  // horizontal_uncert_fixed
-            CompoundDataType{89.0f},  // horizontal_uncert_var
-            CompoundDataType{std::string{"2019-04-02 00:00:00.0Z"}},  // survey_date_start
-            CompoundDataType{std::string{"2019-04-02 12:00:00.0Z"}},  // survey_date_end
-        };
+        record = BAG::CreateRecordS101(
+                1u,         // data_assessment
+                true,      // significant_features
+                false,       // feature_least_depth
+                987.6f,  // feature_size
+                false,       // coverage
+                true,      // bathy_coverage
+                12345.67f,      // horizontal_uncert_fixed
+                89.0f,      // horizontal_uncert_var
+                0.12f,      // vertical_uncert_fixed
+                0.89f,      // vertical_uncert_var
+                std::string("Open Data Commons Public Domain Dedication and Licence (PDDL)"),         // license_Name
+                std::string("http://opendatacommons.org/licenses/pddl/1.0/"),         // license_URL
+                std::string("15B46F99-1D94-4669-92D8-AA86F533B097"),         // source_Survey_ID
+                std::string("NOAA"),         // source_Institution
+                std::string{"2019-04-02 00:00:00.0Z"},         // survey_data_start
+                std::string{"2019-04-02 12:00:00.0Z"}         // survey_date_end
+        );
 
         // Store the new record in memory and in the BAG.
         const auto secondRecordIndex = valueTable.addRecord(record);

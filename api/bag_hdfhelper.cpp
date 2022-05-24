@@ -231,7 +231,7 @@ const ::H5::AtomType& getH5fileType(
     switch(type)
     {
     case DT_UINT32:
-        return H5::PredType::NATIVE_UINT32;
+        return ::H5::PredType::NATIVE_UINT32;
     case DT_FLOAT32:
         return ::H5::PredType::NATIVE_FLOAT;
     case DT_UINT8:

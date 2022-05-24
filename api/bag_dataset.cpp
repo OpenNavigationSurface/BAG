@@ -331,11 +331,12 @@ Layer& Dataset::addLayer(
     The new compound layer.
 */
 CompoundLayer& Dataset::createCompoundLayer(
-    DataType keyType,
-    const std::string& name,
-    const RecordDefinition& definition,
-    uint64_t chunkSize,
-    int compressionLevel) &
+            DataType keyType,
+            GeorefMetadataProfile profile,
+            const std::string& name,
+            const RecordDefinition& definition,
+            uint64_t chunkSize,
+            int compressionLevel) &
 {
     if (m_descriptor.isReadOnly())
         throw ReadOnlyError{};
@@ -381,7 +382,7 @@ CompoundLayer& Dataset::createCompoundLayer(
         H5Gclose(id);
 
     return dynamic_cast<CompoundLayer&>(this->addLayer(CompoundLayer::create(
-        keyType, name, *this, definition, chunkSize, compressionLevel)));
+        keyType, name, profile, *this, definition, chunkSize, compressionLevel)));
 }
 
 //! Create a new Dataset.

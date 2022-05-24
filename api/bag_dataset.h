@@ -2,6 +2,7 @@
 #define BAG_DATASET_H
 
 #include "bag_compounddatatype.h"
+#include "bag_compoundlayerdescriptor.h"
 #include "bag_config.h"
 #include "bag_descriptor.h"
 #include "bag_exceptions.h"
@@ -71,9 +72,9 @@ public:
 
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
         int compressionLevel) &;
-    CompoundLayer& createCompoundLayer(DataType keyType,
-        const std::string& name, const RecordDefinition& definition,
-        uint64_t chunkSize, int compressionLevel) &;
+    CompoundLayer& createCompoundLayer(DataType keyType, GeorefMetadataProfile profile,
+                                       const std::string& name, const RecordDefinition& definition,
+                                       uint64_t chunkSize, int compressionLevel) &;
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, int compressionLevel) &;

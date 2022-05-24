@@ -81,6 +81,9 @@ constexpr int kMaxCompressionLevel = 9;
 #define COMPOUND_VR_KEYS                "/varres_keys"               /*!<Name of the compound layer variable resolution keys dataset */
 #define COMPOUND_VALUES                 "/values"                    /*!<Name of the compound layer values dataset */
 
+#define METADATA_PROFILE_TYPE           "Metadata Profile Type"
+#define METADATA_PROFILE_LEN            32
+
 #define VR_METADATA_MIN_DIMS_X          "min_dimensions_x"
 #define VR_METADATA_MIN_DIMS_Y          "min_dimensions_y"
 #define VR_METADATA_MAX_DIMS_X          "max_dimensions_x"

@@ -52,6 +52,11 @@ enum BAG_DATA_TYPE
     DT_UNKNOWN_DATA_TYPE,
 };
 
+enum GEOREF_METADATA_PROFILE {
+    UNKNOWN_METADATA_PROFILE = 0,
+    S101_METADATA_PROFILE
+};
+
 //! The type of interleaved group.
 enum BAG_GROUP_TYPE
 {

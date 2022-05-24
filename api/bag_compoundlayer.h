@@ -2,6 +2,7 @@
 #define BAG_COMPOUNDLAYER
 
 #include "bag_compounddatatype.h"
+#include "bag_compoundlayerdescriptor.h"
 #include "bag_config.h"
 #include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
@@ -48,9 +49,9 @@ protected:
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5recordDataSet);
 
     static std::unique_ptr<CompoundLayer> create(DataType keyType,
-        const std::string& name, Dataset& dataset,
-        const RecordDefinition& definition, uint64_t chunkSize,
-        int compressionLevel);
+                                                 const std::string& name, GeorefMetadataProfile profile, Dataset& dataset,
+                                                 const RecordDefinition& definition, uint64_t chunkSize,
+                                                 int compressionLevel);
     static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
         CompoundLayerDescriptor& descriptor);
 

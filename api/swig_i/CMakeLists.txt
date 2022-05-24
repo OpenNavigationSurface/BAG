@@ -1,5 +1,7 @@
 # Build Python bindings
 
+set(CMAKE_CXX_STANDARD 14)
+
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 find_package(SWIG 4.0.1 REQUIRED COMPONENTS python)
 

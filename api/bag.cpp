@@ -2057,11 +2057,12 @@ BagError bagSetHomeFolder(const char* metadataFolder)
     An error code otherwise.
 */
 BagError bagCreateCompoundLayer(
-    BagHandle* handle,
-    BAG_DATA_TYPE indexType,
-    const char* layerName,
-    const FieldDefinition* definition,
-    uint32_t numFields)
+        BagHandle* handle,
+        BAG_DATA_TYPE indexType,
+        GEOREF_METADATA_PROFILE profile,
+        const char* layerName,
+        const FieldDefinition* definition,
+        uint32_t numFields)
 {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
@@ -2083,7 +2084,7 @@ BagError bagCreateCompoundLayer(
 
     try
     {
-        handle->dataset->createCompoundLayer(indexType, layerName, recordDef,
+        handle->dataset->createCompoundLayer(indexType, profile, layerName, recordDef,
             chunkSize, compressionLevel);
     }
     catch(const std::exception& /*e*/)

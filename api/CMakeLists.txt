@@ -19,6 +19,7 @@ set(BAG_SOURCE_FILES
     bag_metadata.cpp
     bag_metadata_export.cpp
     bag_metadata_import.cpp
+    bag_metadataprofiles.cpp
     bag_metadatatypes.cpp
     bag_simplelayer.cpp
     bag_simplelayerdescriptor.cpp
@@ -64,6 +65,7 @@ set(BAG_HEADER_FILES
     bag_metadata.h
     bag_metadata_export.h
     bag_metadata_import.h
+    bag_metadataprofiles.h
     bag_metadatatypes.h
     bag_simplelayer.h
     bag_simplelayerdescriptor.h
