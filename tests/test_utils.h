@@ -1,7 +1,10 @@
 
 #include <cstdio>  // std::remove
 #include <string>
+#include <utility>
 #include <sys/stat.h>  // stat
+
+#include <bag_dataset.h>
 
 
 namespace TestUtils {
@@ -37,6 +40,13 @@ struct RandomFileGuard final {
 };
 
 void copyFile(const std::string& source, const std::string& dest);
+
+// Outputs needed to create compound layer:
+//  const string & elevationLayerName
+//  std::shared_ptr<BAG::Dataset> dataset
+std::pair<std::shared_ptr<BAG::Dataset>, std::string>
+        createBag(const std::string metadataFileName,
+                  const std::string bagFileName);
 
 }  // namespace TestUtils
 

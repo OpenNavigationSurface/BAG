@@ -268,6 +268,25 @@ struct BAG_API UknownMetadataProfile final : virtual std::exception
     std::string m_profile;
 };
 
+//! An unrecognized metadata profile was specified.
+struct BAG_API UnrecognizedMetadataProfile final : virtual std::exception
+{
+    UnrecognizedMetadataProfile(std::string profile) : m_profile(profile)
+    {}
+
+    const char* what() const noexcept override
+    {
+        std::stringstream ss;
+
+        ss << "Metadata profile '" << m_profile <<
+           "' is not recognized.";
+
+        return ss.str().c_str();
+    }
+
+    std::string m_profile;
+};
+
 //! An error occurred loading metadata.
 struct BAG_API ErrorLoadingMetadata final : virtual std::exception
 {

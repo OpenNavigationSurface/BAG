@@ -248,7 +248,7 @@ CompoundLayer::createH5keyDataSet(
         const auto att = pH5dataSet->createAttribute(COMPOUND_RECORD_DEFINITION,
             fileDataType, fileDataSpace);
 
-        // Write the value.
+        // Write metadata field definitions to the attribute.
         att.write(fileDataType, definition.data());
 
         // Specify a string attribute to indicate the metadata profile type

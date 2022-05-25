@@ -14,6 +14,11 @@ namespace BAG {
             {S101_METADATA_PROFILE, "S-101 metadata profile"}
     };
 
+    const std::unordered_map<std::string, GeorefMetadataProfile> kStringMapGeorefMetadataProfile {
+            {"Unknown metadata profile", UNKNOWN_METADATA_PROFILE},
+            {"S-101 metadata profile", S101_METADATA_PROFILE}
+    };
+
     const Record CreateRecordS101(uint32_t dataAssessment,
                                   bool significantFeatures,
                                   bool featureLeastDepth,

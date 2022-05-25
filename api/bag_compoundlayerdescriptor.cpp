@@ -1,7 +1,7 @@
 
 #include "bag_dataset.h"
 #include "bag_compoundlayerdescriptor.h"
-#include "bag_dataset.h"
+#include "bag_metadataprofiles.h"
 #include "bag_hdfhelper.h"
 #include "bag_private.h"
 #include "bag_valuetable.h"
@@ -140,8 +140,17 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     const auto chunkSize = BAG::getChunkSize(h5file, internalPath);
     const auto compressionLevel = BAG::getCompressionLevel(h5file, internalPath);
 
-    // TODO: Read GeorefMetadataProfile from HDF5 file and pass to CompoundLayerDescriptor
+    // Read metadata profile as string from HDF5 file attribute and convert to GeorefMetadataProfile enum value.
+    std::string profileString;
+    const auto metadataProfileAtt = h5dataSet.openAttribute(METADATA_PROFILE_TYPE);
+    metadataProfileAtt.read(metadataProfileAtt.getDataType(), profileString);
+    // TODO: Check for empty value and proceed with UNKNOWN_METADATA_PROFILE
     GeorefMetadataProfile profile = UNKNOWN_METADATA_PROFILE;
+    try {
+        profile = BAG::kStringMapGeorefMetadataProfile.at(profileString);
+    } catch (const std::out_of_range& e) {
+        throw UnrecognizedMetadataProfile{profileString};
+    }
 
     return std::shared_ptr<CompoundLayerDescriptor>(
         new CompoundLayerDescriptor{dataset, name, profile, keyType, definition,

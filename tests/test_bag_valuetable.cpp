@@ -368,7 +368,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     kExpectredDefinition[3].name = kFieldName3;
     kExpectredDefinition[3].type = DT_STRING;
 
-    auto& pLayer = pDataset->createCompoundLayer(keyType, layerName,
+    auto& pLayer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE, layerName,
         kExpectredDefinition, chunkSize, compressionLevel);
 
     const auto& valueTable = pLayer.getValueTable();
@@ -448,7 +448,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         definition[6].name = "address";
         definition[6].type = DT_STRING;
 
-        auto& pLayer = pDataset->createCompoundLayer(keyType,
+        auto& pLayer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         auto& valueTable = pLayer.getValueTable();
@@ -681,7 +681,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         definition[2].name = "bool2";
         definition[2].type = DT_BOOLEAN;
 
-        auto& layer = pDataset->createCompoundLayer(keyType,
+        auto& layer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         UNSCOPED_INFO("Check writing to variable resolution metadata fails because the dataset does not have variable resolution.");
@@ -793,7 +793,7 @@ TEST_CASE("test compound layer readVR/writeVR", "[compoundlayer][readvr][writevr
         definition[2].name = "bool2";
         definition[2].type = DT_BOOLEAN;
 
-        auto& layer = pDataset->createCompoundLayer(keyType,
+        auto& layer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         // Write some single resolution metadata.
