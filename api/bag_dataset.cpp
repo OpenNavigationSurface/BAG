@@ -3,8 +3,10 @@
 #include "bag_compoundlayer.h"
 #include "bag_compoundlayerdescriptor.h"
 #include "bag_dataset.h"
+#include "bag_exceptions.h"
 #include "bag_interleavedlegacylayer.h"
 #include "bag_interleavedlegacylayerdescriptor.h"
+#include "bag_metadataprofiles.h"
 #include "bag_metadata_export.h"
 #include "bag_private.h"
 #include "bag_simplelayer.h"
@@ -383,6 +385,45 @@ CompoundLayer& Dataset::createCompoundLayer(
 
     return dynamic_cast<CompoundLayer&>(this->addLayer(CompoundLayer::create(
         keyType, name, profile, *this, definition, chunkSize, compressionLevel)));
+}
+
+//! Convenience method for creating a compound layer with a known metadata profile.
+//! Will use the RecordDefinition appropriate to the known profile.
+/*!
+\param name
+    The name of the simple layer this compound layer has metadata for.
+\param chunkSize
+    The chunk size the HDF5 DataSet will use.
+\param compressionLevel
+    The compression level the HDF5 DataSet will use.
+\param keyType
+    The type of key the compound layer will use.
+    Valid values are: DT_UINT8, DT_UINT16, DT_UINT32 or DT_UINT64
+    Default value: DT_UINT16
+
+\return
+    The new compound layer.
+
+\throws
+    UknownMetadataProfile if profile is not a known metadata profile
+*/
+CompoundLayer& Dataset::createCompoundLayer(
+        GeorefMetadataProfile profile,
+        const std::string& name,
+        uint64_t chunkSize,
+        int compressionLevel,
+        DataType keyType) &
+{
+    BAG::RecordDefinition definition = METADATA_DEFINITION_UNKNOWN;
+
+    try {
+        definition = kGeorefMetadataProfileMapKnownRecordDefinition.at(profile);
+    } catch (const std::out_of_range& e) {
+        throw UknownMetadataProfile{kGeorefMetadataProfileMapString.at(profile)};
+    }
+
+    return createCompoundLayer(keyType, profile,
+                               name, definition, chunkSize, compressionLevel);
 }
 
 //! Create a new Dataset.

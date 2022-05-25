@@ -47,11 +47,6 @@ using RecordDefinition = std::vector<FieldDefinition>;
 
 using GeorefMetadataProfile = GEOREF_METADATA_PROFILE;
 
-const std::unordered_map<GeorefMetadataProfile, std::string> kGeorefMetadataProfileMapString {
-        {UNKNOWN_METADATA_PROFILE, "Unknown metadata profile"},
-        {S101_METADATA_PROFILE, "S-101 metadata profile"}
-};
-
 //! A default layer name for each layer.
 const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {Elevation, "Elevation"},

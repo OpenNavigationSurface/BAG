@@ -249,6 +249,25 @@ struct BAG_API MetadataNotFound final : virtual std::exception
     }
 };
 
+//! An unknown metadata profile was specified when a known profile was expected.
+struct BAG_API UknownMetadataProfile final : virtual std::exception
+{
+    UknownMetadataProfile(std::string profile) : m_profile(profile)
+    {}
+
+    const char* what() const noexcept override
+    {
+        std::stringstream ss;
+
+        ss << "Metadata profile '" << m_profile <<
+            "' is unknown, but a known profile was expected.";
+
+        return ss.str().c_str();
+    }
+
+    std::string m_profile;
+};
+
 //! An error occurred loading metadata.
 struct BAG_API ErrorLoadingMetadata final : virtual std::exception
 {

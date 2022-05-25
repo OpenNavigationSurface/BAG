@@ -9,6 +9,11 @@
 
 namespace BAG {
 
+    const std::unordered_map<GeorefMetadataProfile, std::string> kGeorefMetadataProfileMapString {
+            {UNKNOWN_METADATA_PROFILE, "Unknown metadata profile"},
+            {S101_METADATA_PROFILE, "S-101 metadata profile"}
+    };
+
     const Record CreateRecordS101(uint32_t dataAssessment,
                                   bool significantFeatures,
                                   bool featureLeastDepth,
@@ -25,6 +30,8 @@ namespace BAG {
                                   std::string sourceInstitution,
                                   std::string surveyDataStart,
                                   std::string surveyDateEnd);
+
+    const RecordDefinition METADATA_DEFINITION_UNKNOWN = RecordDefinition();
 
     const RecordDefinition METADATA_DEFINITION_S101 = {
             {"data_assessment", DT_UINT32},
@@ -44,6 +51,10 @@ namespace BAG {
             {"source_Institution", DT_STRING},
             {"survey_data_start", DT_STRING},
             {"survey_date_end", DT_STRING}
+    };
+
+    const std::unordered_map<GeorefMetadataProfile, RecordDefinition> kGeorefMetadataProfileMapKnownRecordDefinition {
+            {S101_METADATA_PROFILE, METADATA_DEFINITION_S101}
     };
 
 }

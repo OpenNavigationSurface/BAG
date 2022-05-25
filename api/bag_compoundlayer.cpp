@@ -1,5 +1,6 @@
 
 #include "bag_compoundlayer.h"
+#include "bag_metadataprofiles.h"
 #include "bag_compoundlayerdescriptor.h"
 #include "bag_exceptions.h"
 #include "bag_hdfhelper.h"

@@ -164,16 +164,11 @@ int main(
 
     try
     {
-        const BAG::DataType indexType = DT_UINT16;  // Not expecting more than 65535 possible records.  (1 record is reserved)
         const auto& simpleLayerName = elevationLayer->getDescriptor()->getName();
-
-        BAG::RecordDefinition definition = BAG::METADATA_DEFINITION_S101;
-
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
-
-        auto& compoundLayer = dataset->createCompoundLayer(indexType, BAG::GeorefMetadataProfile::S101_METADATA_PROFILE,
-            simpleLayerName, definition, chunkSize, compressionLevel);
+        auto& compoundLayer = dataset->createCompoundLayer(BAG::GeorefMetadataProfile::S101_METADATA_PROFILE,
+                                                           simpleLayerName, chunkSize, compressionLevel);
 
         // At this point, all entries in the compound layer point to index 0,
         // which is a no data value.
