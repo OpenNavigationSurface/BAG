@@ -56,6 +56,8 @@ public:
         Metadata&& metadata, uint64_t chunkSize = 100,
         int compressionLevel = 5);
 
+    void close();
+
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
 

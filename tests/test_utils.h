@@ -48,5 +48,8 @@ std::pair<std::shared_ptr<BAG::Dataset>, std::string>
         createBag(const std::string metadataFileName,
                   const std::string bagFileName);
 
+void createS101Metadata(const std::string& elevationLayerName,
+                        std::shared_ptr<BAG::Dataset> dataset);
+
 }  // namespace TestUtils
 

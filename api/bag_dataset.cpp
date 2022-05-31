@@ -294,6 +294,14 @@ std::shared_ptr<Dataset> Dataset::create(
     return pDataset;
 }
 
+//! Close a BAG dataset. Closes the underlying HDF5 file.
+void Dataset::close() {
+    if (m_pH5file) {
+        m_pH5file->close();
+        m_pH5file.reset(nullptr);
+    }
+}
+
 
 //! Add a layer to this dataset.
 /*!

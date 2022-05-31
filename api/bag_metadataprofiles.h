@@ -54,7 +54,7 @@ namespace BAG {
             {"license_URL", DT_STRING},
             {"source_Survey_ID", DT_STRING},
             {"source_Institution", DT_STRING},
-            {"survey_data_start", DT_STRING},
+            {"survey_date_start", DT_STRING},
             {"survey_date_end", DT_STRING}
     };
 
