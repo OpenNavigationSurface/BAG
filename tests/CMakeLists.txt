@@ -67,7 +67,7 @@ target_compile_options(bag_tests
 )
 
 find_package(HDF5 COMPONENTS CXX REQUIRED)
-find_package(Catch2 REQUIRED)
+find_package(Catch2 3 REQUIRED)
 
 target_link_libraries(bag_tests
     PRIVATE
@@ -78,5 +78,5 @@ target_link_libraries(bag_tests
 include(CTest)
 include(Catch)
 
-catch_discover_tests(bag_tests EXTRA_ARGS --samples-path "${CMAKE_SOURCE_DIR}/examples/sample-data")
-
+set(BAG_SAMPLES_PATH "${CMAKE_SOURCE_DIR}/examples/sample-data")
+catch_discover_tests(bag_tests)
