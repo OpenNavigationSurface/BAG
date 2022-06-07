@@ -2,11 +2,12 @@
 #include "test_utils.h"
 #include <bag_dataset.h>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <cstdlib>  // std::getenv
 #include <string>
 
 
+using Catch::Approx;
 using BAG::Dataset;
 
 namespace {

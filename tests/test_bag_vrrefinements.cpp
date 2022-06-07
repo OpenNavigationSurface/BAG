@@ -5,7 +5,7 @@
 #include <bag_vrrefinements.h>
 #include <bag_vrrefinementsdescriptor.h>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <string>
 
 

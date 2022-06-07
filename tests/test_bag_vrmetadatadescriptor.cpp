@@ -5,7 +5,7 @@
 #include <bag_vrmetadata.h>
 #include <bag_vrmetadatadescriptor.h>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 
 using BAG::Dataset;

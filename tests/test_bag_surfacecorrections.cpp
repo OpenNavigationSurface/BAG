@@ -5,7 +5,7 @@
 #include <bag_surfacecorrectionsdescriptor.h>
 
 #include <array>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <cstdlib>  // std::getenv
 #include <string>
 

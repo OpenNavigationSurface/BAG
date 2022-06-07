@@ -1,7 +1,9 @@
 #define CATCH_CONFIG_RUNNER
 
-#include <catch2/catch.hpp>
-#include <cstdlib>  // putenv, setenv
+#include <cstdlib>
+#include <iostream>
+
+#include <catch2/catch_all.hpp>
 #include <H5Cpp.h>
 
 
@@ -13,7 +15,7 @@ int main(int argc, const char** argv)
 
     std::string samplesPath;
 
-    using namespace Catch::clara;
+    using namespace Catch::Clara;
     auto cli = session.cli() |  // Get Catch's composite command line parser.
         Opt(samplesPath, "samples path")  // bind variable to a new option, with hint string
         ["-p"]["--samples-path"]  // short and long option name

@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.15)
 project(OPENNS_Examples LANGUAGES C CXX)
 
+# Needed to build on Linux (to prevent H5Cpp.h not being found)
+SET(CMAKE_CXX_COMPILER h5c++)
+
 #-----------------------------------------------------------------------------
 # Define Sources
 #-----------------------------------------------------------------------------

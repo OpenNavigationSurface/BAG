@@ -5,11 +5,12 @@
 #include <bag_types.h>
 
 #include <array>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <cstdlib>  // std::getenv
 #include <string>
 
 
+using Catch::Approx;
 using BAG::Dataset;
 
 //  virtual UInt8Array read(uint32_t rowStart,

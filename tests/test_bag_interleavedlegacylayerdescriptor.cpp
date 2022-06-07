@@ -5,7 +5,7 @@
 #include <bag_interleavedlegacylayerdescriptor.h>
 #include <bag_metadata.h>
 
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 
 
 using BAG::Dataset;

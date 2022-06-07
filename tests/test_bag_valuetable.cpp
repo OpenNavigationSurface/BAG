@@ -8,7 +8,7 @@
 #include <bag_valuetable.h>
 
 #include <array>
-#include <catch2/catch.hpp>
+#include <catch2/catch_all.hpp>
 #include <cstring>  //strcmp
 #include <string>
 
