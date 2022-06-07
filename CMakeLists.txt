@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
+# Needed to build on Linux (to prevent H5Cpp.h not being found)
+SET(CMAKE_CXX_COMPILER h5c++)
+
 # SWIG: use standard target name.
 if(POLICY CMP0078)
     cmake_policy(SET CMP0078 NEW)

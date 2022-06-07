@@ -1,4 +1,7 @@
 
+# Needed to build on Linux (to prevent H5Cpp.h not being found)
+SET(CMAKE_CXX_COMPILER h5c++)
+
 # The debug build will have a 'd' postfix
 set(CMAKE_DEBUG_POSTFIX "d")
 

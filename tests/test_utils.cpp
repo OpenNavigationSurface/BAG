@@ -275,9 +275,6 @@ void createS101Metadata(const std::string& simpleLayerName,
         std::cerr << e.what() << '\n';
         FAIL(e.what());
     }
-
-    std::cout << "BAG with compound layer created\n";
-
 }
 
 }  // namespace TestUtils
