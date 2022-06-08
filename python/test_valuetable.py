@@ -48,7 +48,7 @@ def testReadEmpty():
     kExpectedDefinition = RecordDefinition(
         (kExpFieldDef0, kExpFieldDef1, kExpFieldDef2, kExpFieldDef3))
 
-    compoundLayer = dataset.createCompoundLayer(indexType, layerName,
+    compoundLayer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE, layerName,
         kExpectedDefinition, chunkSize, compressionLevel)
     assert(compoundLayer)
 
@@ -117,7 +117,7 @@ def testAddRecord():
     definition[6].name = "address"
     definition[6].type = DT_STRING
 
-    layer = dataset.createCompoundLayer(indexType,
+    layer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
         kExpectedLayerName, definition, chunkSize, compressionLevel)
 
     # There is one No Data Value record at index 0.
@@ -353,7 +353,7 @@ def testAddRecords():
     definition[2].name = "bool2"
     definition[2].type = DT_BOOLEAN
 
-    layer = dataset.createCompoundLayer(indexType,
+    layer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
         kExpectedLayerName, definition, chunkSize, compressionLevel)
 
     valueTable = layer.getValueTable()
@@ -433,8 +433,8 @@ def testVRMetadata():
     definition[2].name = "bool2"
     definition[2].type = DT_BOOLEAN
 
-    layer = dataset.createCompoundLayer(indexType, kExpectedLayerName,
-        definition, chunkSize, compressionLevel)
+    layer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
+        kExpectedLayerName, definition, chunkSize, compressionLevel)
 
     # Write some single resolution metadata.
     # Expected keys in the single resolution DataSet.
