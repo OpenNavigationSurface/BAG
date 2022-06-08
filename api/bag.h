@@ -115,7 +115,8 @@ BAG_EXTERNAL const BagMetadata* bagGetMetaData(BagHandle* handle);
 BAG_EXTERNAL BagError bagSetHomeFolder(const char* metadataFolder);
 
 /* CompoundLayer */
-BAG_EXTERNAL BagError bagCreateCompoundLayer(BagHandle* handle, BAG_DATA_TYPE indexType, const char* layerName, const FieldDefinition* definition, uint32_t numFields);
+BAG_EXTERNAL BagError bagCreateCompoundLayer(BagHandle* handle, BAG_DATA_TYPE indexType, GEOREF_METADATA_PROFILE profile, const char* layerName, const FieldDefinition* definition, uint32_t numFields);
+BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle, BAG_DATA_TYPE indexType, GEOREF_METADATA_PROFILE profile, const char* layerName);
 BAG_EXTERNAL BagError bagGetCompoundLayerDefinition(BagHandle* handle, const char* layerName, FieldDefinition** definition, uint32_t* numDefinitions);
 BAG_EXTERNAL BagError bagGetCompoundLayerRecords(BagHandle* handle, const char* layerName, BagCompoundDataType*** records, uint32_t* numRecords, uint32_t* numFields);
 BAG_EXTERNAL BagError bagGetCompoundLayerValueByName(BagHandle* handle, const char* layerName, uint32_t recordIndex, const char* fieldName, BagCompoundDataType* value);

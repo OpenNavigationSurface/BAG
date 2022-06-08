@@ -55,6 +55,7 @@ namespace std
 
 %include "bag_dataset.i"
 %include "bag_metadata.i"
+%include "bag_metadataprofiles.i"
 
 %include "bag_compoundlayerdescriptor.i"
 %include "bag_interleavedlegacylayerdescriptor.i"

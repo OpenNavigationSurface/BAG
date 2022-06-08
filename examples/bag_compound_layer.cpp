@@ -167,8 +167,9 @@ int main(
         const auto& simpleLayerName = elevationLayer->getDescriptor()->getName();
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
-        auto& compoundLayer = dataset->createCompoundLayer(BAG::GeorefMetadataProfile::S101_METADATA_PROFILE,
-                                                           simpleLayerName, chunkSize, compressionLevel);
+        auto& compoundLayer = dataset->createMetadataProfileCompoundLayer(
+                BAG::GeorefMetadataProfile::S101_METADATA_PROFILE,
+                simpleLayerName, chunkSize, compressionLevel);
 
         // At this point, all entries in the compound layer point to index 0,
         // which is a no data value.

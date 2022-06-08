@@ -32,7 +32,7 @@ class CompoundLayerDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<CompoundLayerDescriptor> create(Dataset& dataset,
-        const std::string& name, DataType indexType,
+        const std::string& name, GeorefMetadataProfile profile, DataType indexType,
         RecordDefinition definition, uint64_t chunkSize,
         int compressionLevel);
     %rename(openDataset) open(Dataset& dataset, const std::string& name);

@@ -398,6 +398,8 @@ CompoundLayer& Dataset::createCompoundLayer(
 //! Convenience method for creating a compound layer with a known metadata profile.
 //! Will use the RecordDefinition appropriate to the known profile.
 /*!
+\param profile
+    The metadata profile to assign to the compound layer.
 \param name
     The name of the simple layer this compound layer has metadata for.
 \param chunkSize
@@ -415,7 +417,7 @@ CompoundLayer& Dataset::createCompoundLayer(
 \throws
     UknownMetadataProfile if profile is not a known metadata profile
 */
-CompoundLayer& Dataset::createCompoundLayer(
+CompoundLayer& Dataset::createMetadataProfileCompoundLayer(
         GeorefMetadataProfile profile,
         const std::string& name,
         uint64_t chunkSize,

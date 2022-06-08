@@ -2043,6 +2043,8 @@ BagError bagSetHomeFolder(const char* metadataFolder)
 \param indexType
     The type of index the compound layer will use to index the record.
     Valid types are: DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64
+\param profile
+    The metadata profile to assign to the compound layer.
 \param layerName
     The case-insensitive name of the simple layer this compound layer contains metadata about.
     Cannot be NULL.
@@ -2086,6 +2088,57 @@ BagError bagCreateCompoundLayer(
     {
         handle->dataset->createCompoundLayer(indexType, profile, layerName, recordDef,
             chunkSize, compressionLevel);
+    }
+    catch(const std::exception& /*e*/)
+    {
+        return BAG_HDF_CREATE_DATASET_FAILURE;
+    }
+
+    return BAG_SUCCESS;
+}
+
+//! Convenience method for creating a compound layer with a known metadata profile.
+//! Will use the RecordDefinition appropriate to the known profile.
+/*!
+\param handle
+    A handle to the BAG.
+    Cannot be NULL.
+\param indexType
+    The type of index the compound layer will use to index the record.
+    Valid types are: DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64
+\param profile
+    The metadata profile to assign to the compound layer.
+\param layerName
+    The case-insensitive name of the simple layer this compound layer contains metadata about.
+    Cannot be NULL.
+
+\return
+    0 if successful.
+    An error code otherwise.
+ */
+BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle,
+                                                            BAG_DATA_TYPE indexType,
+                                                            GEOREF_METADATA_PROFILE profile,
+                                                            const char* layerName) {
+    if (!handle)
+        return BAG_INVALID_BAG_HANDLE;
+
+    // Get the chunkSize & compressionLevel from the elevation layer.
+    const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
+    if (!elevationLayer)
+        return BAG_SIMPLE_LAYER_MISSING;
+
+    auto pDescriptor = elevationLayer->getDescriptor();
+    const auto chunkSize = pDescriptor->getChunkSize();
+    const auto compressionLevel = pDescriptor->getCompressionLevel();
+
+    try
+    {
+        handle->dataset->createMetadataProfileCompoundLayer(profile,
+                                                            layerName,
+                                                            chunkSize,
+                                                            compressionLevel,
+                                                            indexType);
     }
     catch(const std::exception& /*e*/)
     {

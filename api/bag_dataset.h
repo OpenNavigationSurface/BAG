@@ -77,10 +77,10 @@ public:
     CompoundLayer& createCompoundLayer(DataType keyType, GeorefMetadataProfile profile,
                                        const std::string& name, const RecordDefinition& definition,
                                        uint64_t chunkSize, int compressionLevel) &;
-    CompoundLayer& createCompoundLayer(GeorefMetadataProfile profile,
-                                       const std::string& name,
-                                       uint64_t chunkSize, int compressionLevel,
-                                       DataType keyType = DT_UINT16) &;
+    CompoundLayer& createMetadataProfileCompoundLayer(GeorefMetadataProfile profile,
+                                                      const std::string& name,
+                                                      uint64_t chunkSize, int compressionLevel,
+                                                      DataType keyType = DT_UINT16) &;
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, int compressionLevel) &;
