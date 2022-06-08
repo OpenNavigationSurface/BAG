@@ -32,7 +32,7 @@ install:
   - conda create -q -n test-environment python=$PYTHON_VERSION
   - conda activate test-environment
   # Install dependencies.
-  - conda install cmake ninja hdf5 libxml2 swig catch2
+  - conda install clang gxx_linux-64 cmake ninja hdf5 libxml2 swig catch2
   - conda list --show-channel-urls
 
 script:
