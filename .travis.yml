@@ -32,7 +32,7 @@ install:
   - conda create -q -n test-environment python=$PYTHON_VERSION
   - conda activate test-environment
   # Install dependencies.
-  - conda install clang gxx_linux-64 cmake ninja hdf5 libxml2 swig catch2
+  - conda install clang gxx_linux-64 cmake ninja hdf5-static libxml2 swig catch2
   - conda list --show-channel-urls
 
 script:
@@ -40,7 +40,7 @@ script:
   - cmake --build build
   - cmake --install build
   # C++ tests.
-  - build/tests/bag_tests --samples-path examples/sample-data
+  - BAG_SAMPLES_PATH=examples/sample-data build/tests/bag_tests
   # Python tests.
   - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build/api PYTHONPATH=$TRAVIS_BUILD_DIR/BAG/build/api/swig_i python python/test_all.py
 
