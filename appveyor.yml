@@ -30,7 +30,7 @@ install:
   - conda config --add channels conda-forge
   - conda create -q -n test-environment python=%PYTHON_VERSION%
   - activate test-environment
-  - conda install cmake ninja hdf5-static libxml2 swig catch2
+  - conda install cmake ninja hdf5 libxml2 swig catch2
   - conda list --show-channel-urls
   # Check that we have the expected version of Python
   - python --version
