@@ -428,7 +428,7 @@ CompoundLayer& Dataset::createMetadataProfileCompoundLayer(
 
     try {
         definition = kGeorefMetadataProfileMapKnownRecordDefinition.at(profile);
-    } catch (const std::out_of_range& e) {
+    } catch (const std::out_of_range&) {
         throw UknownMetadataProfile{kGeorefMetadataProfileMapString.at(profile)};
     }
 

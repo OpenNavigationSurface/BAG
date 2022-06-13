@@ -14,6 +14,7 @@ namespace BAG {
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4275)
+#pragma warning(disable: 4251) // class 'std::basic_string<char,std::char_traits<char>,std::allocator<char>>' needs to have dll-interface to be used by clients of struct 'BAG::UknownMetadataProfile'
 #endif
 
 // General
