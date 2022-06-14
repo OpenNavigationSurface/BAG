@@ -148,7 +148,7 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
     GeorefMetadataProfile profile = UNKNOWN_METADATA_PROFILE;
     try {
         profile = BAG::kStringMapGeorefMetadataProfile.at(profileString);
-    } catch (const std::out_of_range& e) {
+    } catch (const std::out_of_range&) {
         throw UnrecognizedMetadataProfile{profileString};
     }
 
