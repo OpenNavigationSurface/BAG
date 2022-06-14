@@ -19,7 +19,7 @@ namespace BAG {
             {"S-101 metadata profile", S101_METADATA_PROFILE}
     };
 
-    const Record CreateRecordS101(uint32_t dataAssessment,
+    BAG_API const Record CreateRecordS101(uint32_t dataAssessment,
                                   bool significantFeatures,
                                   bool featureLeastDepth,
                                   float featureSize,

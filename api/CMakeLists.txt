@@ -148,6 +148,7 @@ if(MSVC)
             ${HDF5_hdf5_cpp_LIBRARY}
         PRIVATE
             LibXml2::LibXml2
+            HDF5::HDF5
     )
 
     if(NOT BAG_CI)

@@ -248,7 +248,7 @@ void createS101Metadata(const std::string& simpleLayerName,
         // The buffer contains the first record's index covering the first four
         // rows (across all the columns).
         size_t numElements = (rowEnd - rowStart + 1) * numColumns;
-        const std::vector<uint16_t> firstBuffer(numElements, firstRecordIndex);
+        const std::vector<size_t> firstBuffer(numElements, firstRecordIndex);
 
         compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             reinterpret_cast<const uint8_t*>(firstBuffer.data()));
@@ -265,7 +265,7 @@ void createS101Metadata(const std::string& simpleLayerName,
         // The buffer contains the second record's index covering the first four
         // rows (across all the columns).
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1);
-        const std::vector<uint16_t> secondBuffer(numElements, secondRecordIndex);
+        const std::vector<size_t> secondBuffer(numElements, secondRecordIndex);
 
         compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             reinterpret_cast<const uint8_t*>(secondBuffer.data()));
