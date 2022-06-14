@@ -2,12 +2,45 @@
 
 ## Windows: Visual Studio 2022/2019
 
-### Setup output directory for build artifacts
+### Dependencies from Miniconda
+
+#### Install miniconda & BAG dependencies
+Download the latest version of miniconda from [here](https://docs.conda.io/en/latest/miniconda.html#windows-installers) and install to \miniconda (i.e., C:\miniconda).
+
+Next, to install configure miniconda open an Developer Command Prompt in Visual Studio:
+```
+set PATH=\miniconda;\miniconda\Scripts;\miniconda\Library\bin;%PATH%
+conda init # Restart your shell
+conda update conda
+conda config --add channels conda-forge
+conda create -n bag-dev-env python=3.9
+conda activate bag-dev-env
+conda install cmake ninja hdf5 libxml2 swig catch2
+```
+
+> Note: if usnig a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
+
+#### Configure and build BAG
+```
+set CC=cl.exe
+set CXX=cl.exe
+cmake -Bbuild -S. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\miniconda\envs\bag-dev-env\Library -DBAG_BUILD_PYTHON=ON
+cmake --build build
+set PATH=build\api;%PATH%
+set BAG_SAMPLES_PATH=examples\sample-data
+build\tests\bag_tests.exe
+python python\test_all.py
+```
+
+
+### Dependencies from source
+
+> Note: We recommend using Dependencies from Miniconda as per above.
+
+#### Setup output directory for build artifacts
 ```
 mkdir \BAG
 ```
-
-### Dependencies
 
 #### zlib
 
@@ -72,11 +105,11 @@ mkdir \BAG
  ### Configure BAG project for developing
  Without Python bindings:
  ```
- cmake -G "Visual Studio 17 2022" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG
+ cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG
  ```
  
  With Python bindings:
  ```
- cmake -G "Visual Studio 17 2022" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG -DBAG_BUILD_PYTHON=ON
+ cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG -DBAG_BUILD_PYTHON=ON
  ```
  
