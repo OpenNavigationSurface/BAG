@@ -19,6 +19,7 @@ project(OPENNS LANGUAGES C CXX VERSION 2.0.0)
 
 # Options
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
+option(BAG_BUILD_SWIG "Build SWIG interface" OFF)
 option(BAG_BUILD_PYTHON "Build Python bindings" OFF)
 option(BAG_CI "The build is on the CI (Travis/Appveyor)." OFF)
 
