@@ -43,5 +43,6 @@ script:
   # C++ tests.
   - BAG_SAMPLES_PATH=examples/sample-data build/tests/bag_tests
   # Python tests.
-  - LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/build/api PYTHONPATH=$TRAVIS_BUILD_DIR/BAG/build/api/swig_i python python/test_all.py
+  - python build/api/swig/python/setup.py install
+  - python python/test_all.py
 

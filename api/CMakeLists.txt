@@ -205,7 +205,7 @@ endif()
 
 if(BAG_BUILD_SWIG)
     # Build SWIG bindings
-    add_subdirectory(swig_i)
+    add_subdirectory(swig)
 endif()
 
 

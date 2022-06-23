@@ -48,6 +48,7 @@ build_script:
   - set PATH=C:\projects\bag\build\api;%PATH%
   - set BAG_SAMPLES_PATH=C:\projects\bag\examples\sample-data
   - build\tests\bag_tests.exe
+  - python build\api\swig\python\setup.py install
   - python python\test_all.py
 
 deploy: off
