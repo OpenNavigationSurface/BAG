@@ -49,6 +49,7 @@ build_script:
   - set BAG_SAMPLES_PATH=C:\projects\bag\examples\sample-data
   - build\tests\bag_tests.exe
   - python build\api\swig\python\setup.py install
+  - copy build\api\baglib.dll "%MINICONDA%"\envs\test-environment\baglib.dll
   - python python\test_all.py
 
 deploy: off
