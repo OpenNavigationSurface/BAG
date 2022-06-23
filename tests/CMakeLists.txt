@@ -75,6 +75,3 @@ target_link_libraries(bag_tests
 
 include(CTest)
 include(Catch)
-
-set(BAG_SAMPLES_PATH "${CMAKE_SOURCE_DIR}/examples/sample-data")
-catch_discover_tests(bag_tests)
