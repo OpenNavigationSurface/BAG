@@ -43,7 +43,7 @@ build_script:
   - set CC=cl.exe
   - set CXX=cl.exe
   - cd
-  - cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install -DHDF5_ROOT=%CONDA_PREFIX%\Library -DBAG_BUILD_PYTHON=ON -DBAG_CI=ON
+  - cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\install -DHDF5_ROOT=%CONDA_PREFIX%\Library -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON=ON -DBAG_CI=ON
   - cmake --build build
   - set PATH=C:\projects\bag\build\api;%PATH%
   - set BAG_SAMPLES_PATH=C:\projects\bag\examples\sample-data
