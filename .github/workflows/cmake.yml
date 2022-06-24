@@ -17,6 +17,8 @@ on:
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
   BUILD_TYPE: Release
+  CC: gcc
+  CXX: g++
 
 jobs:
   build:
@@ -60,10 +62,13 @@ jobs:
 
     - name: Build
       # Build your program with the given configuration
-      source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-      hash -r
-      conda activate test-environment
-      run: cmake --build build
+      run: |
+        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
+        hash -r
+        conda activate test-environment
+        export CC=${{env.CC}}
+        export CXX=${{env.CXX}}
+        cmake --build build
     
     - name: Install
       # Install into conda environment
