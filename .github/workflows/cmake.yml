@@ -76,7 +76,7 @@ jobs:
         source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
         hash -r
         conda activate test-environment
-        cmake --install ${{github.workspace}}/build
+        cmake --install build
         python ./build/api/swig/python/setup.py install
 
     - name: Tests
@@ -87,5 +87,7 @@ jobs:
         hash -r
         conda activate test-environment
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
+        pwd
+        ls -la
         python ./python/test_all.py
       
