@@ -86,6 +86,8 @@ jobs:
         source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
         hash -r
         conda activate test-environment
+        pwd
+        ls -la
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
         pwd
         ls -la
