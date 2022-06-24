@@ -38,7 +38,7 @@ jobs:
     - name: Install dependencies
       run: |
         sudo apt-get update
-        wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+        wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
         bash miniconda.sh -b -p ${{github.workspace}}/miniconda
         source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
         hash -r
@@ -85,11 +85,5 @@ jobs:
         source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
         hash -r
         conda activate test-environment
-        pwd
-        ls -la
-        ls -la ${{github.workspace}}
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
-        pwd
-        ls -la ${{github.workspace}}
         python ./python/test_all.py
-      
