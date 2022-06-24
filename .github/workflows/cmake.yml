@@ -80,7 +80,6 @@ jobs:
         python ./build/api/swig/python/setup.py install
 
     - name: Tests
-      working-directory: ${{github.workspace}}/build
       # Execute C++ tests
       run: |
         source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
@@ -88,8 +87,9 @@ jobs:
         conda activate test-environment
         pwd
         ls -la
+        ls -la ${{github.workspace}}
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
         pwd
-        ls -la
+        ls -la ${{github.workspace}}
         python ./python/test_all.py
       
