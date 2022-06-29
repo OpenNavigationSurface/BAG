@@ -3,7 +3,7 @@
 
 namespace BAG {
 
-    const Record CreateRecordS101(uint32_t dataAssessment,
+    const Record CreateRecordV201(uint32_t dataAssessment,
                                   bool significantFeatures,
                                   bool featureLeastDepth,
                                   float featureSize,

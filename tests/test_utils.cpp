@@ -172,7 +172,7 @@ void createS101Metadata(const std::string& simpleLayerName,
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
         auto& compoundLayer = dataset->createMetadataProfileCompoundLayer(
-                BAG::GeorefMetadataProfile::S101_METADATA_PROFILE,
+                BAG::GeorefMetadataProfile::V201_METADATA_PROFILE,
                 simpleLayerName, chunkSize, compressionLevel);
 
         // At this point, all entries in the compound layer point to index 0,
@@ -182,7 +182,7 @@ void createS101Metadata(const std::string& simpleLayerName,
 
         using BAG::CompoundDataType;
 
-        BAG::Record record = BAG::CreateRecordS101(
+        BAG::Record record = BAG::CreateRecordV201(
                 3u,         // data_assessment
                 false,      // significant_features
                 true,       // feature_least_depth
@@ -206,7 +206,7 @@ void createS101Metadata(const std::string& simpleLayerName,
         // Store the new record in memory and in the BAG.
         const auto firstRecordIndex = valueTable.addRecord(record);
 
-        record = BAG::CreateRecordS101(
+        record = BAG::CreateRecordV201(
                 1u,         // data_assessment
                 true,      // significant_features
                 false,       // feature_least_depth
