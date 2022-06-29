@@ -52,12 +52,12 @@ enum BAG_DATA_TYPE
     DT_UNKNOWN_DATA_TYPE,
 };
 
-#define V201_METADATA_PROFILE_NAME "Version 2.0.1 metadata profile"
-#define UNKOWN__METADATA_PROFILE_NAME "Unknown metadata profile"
+#define NOAA_NBS_2022_06_METADATA_PROFILE_NAME "NOAA-NBS-2022.06"
+#define UNKOWN_METADATA_PROFILE_NAME "Unknown metadata profile"
 
 enum GEOREF_METADATA_PROFILE {
     UNKNOWN_METADATA_PROFILE = 0,
-    V201_METADATA_PROFILE
+    NOAA_NBS_2022_06_METADATA_PROFILE
 };
 
 //! The type of interleaved group.

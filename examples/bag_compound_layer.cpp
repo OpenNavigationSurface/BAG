@@ -168,7 +168,7 @@ int main(
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
         auto& compoundLayer = dataset->createMetadataProfileCompoundLayer(
-                BAG::GeorefMetadataProfile::V201_METADATA_PROFILE,
+                BAG::GeorefMetadataProfile::NOAA_NBS_2022_06_METADATA_PROFILE,
                 simpleLayerName, chunkSize, compressionLevel);
 
         // At this point, all entries in the compound layer point to index 0,
@@ -178,7 +178,7 @@ int main(
 
         using BAG::CompoundDataType;
 
-        BAG::Record record = BAG::CreateRecordV201(
+        BAG::Record record = BAG::CreateRecord_NOAA_NBS_2022_06(
                 3u,         // data_assessment
                 false,      // significant_features
                 true,       // feature_least_depth
@@ -195,14 +195,14 @@ int main(
                 std::string("NOAA"),         // source_Institution
                 std::string{"2019-04-01 00:00:00.0Z"},         // survey_data_start
                 std::string{"2019-04-01 12:00:00.0Z"}         // survey_date_end
-                );
+        );
 
         auto& valueTable = compoundLayer.getValueTable();
 
         // Store the new record in memory and in the BAG.
         const auto firstRecordIndex = valueTable.addRecord(record);
 
-        record = BAG::CreateRecordV201(
+        record = BAG::CreateRecord_NOAA_NBS_2022_06(
                 1u,         // data_assessment
                 true,      // significant_features
                 false,       // feature_least_depth
