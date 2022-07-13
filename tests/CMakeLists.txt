@@ -75,3 +75,7 @@ target_link_libraries(bag_tests
 
 include(CTest)
 include(Catch)
+
+if(CODE_COVERAGE)
+    target_code_coverage(bag_tests AUTO EXCLUDE tests/*)
+endif()

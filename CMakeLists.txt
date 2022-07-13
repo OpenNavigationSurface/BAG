@@ -38,6 +38,10 @@ if(MSVC AND NOT BAG_CI)
     endif()
 endif()
 
+if(CODE_COVERAGE)
+    include(CMakeModules/code-coverage.cmake)
+endif()
+
 add_subdirectory(api)
 add_subdirectory(examples)
 

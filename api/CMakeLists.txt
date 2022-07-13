@@ -208,6 +208,9 @@ if(BAG_BUILD_SWIG)
     add_subdirectory(swig)
 endif()
 
+if(CODE_COVERAGE)
+    target_code_coverage(baglib AUTO ALL)
+endif()
 
 # Install
 install(FILES
