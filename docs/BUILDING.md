@@ -7,13 +7,17 @@
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local \
  -DBAG_BUILD_TESTS:BOOL=ON -DCODE_COVERAGE:BOOL=ON \
  -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON
-BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data; ninja -C build ccov
+BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data; ninja -C build ccov-all
 ```
 
 Where `/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data` should be replaced by the absolute path
 to the `examples/sample-data` directory within the BAG repo.
 
+This will generate an HTML coverage report in `build/ccov/all-merged/index.html`.
+
 > Note: This will build with code coverage report generation for bag_tests when compiled with LLVM or GCC.
+
+> Note: The above will probably also work in Linux, but hasn't been tested yet.
 
 ## Windows: Visual Studio 2022/2019
 

@@ -77,5 +77,5 @@ include(CTest)
 include(Catch)
 
 if(CODE_COVERAGE)
-    target_code_coverage(bag_tests AUTO EXCLUDE tests/*)
+    target_code_coverage(bag_tests AUTO ALL EXCLUDE tests/*)
 endif()

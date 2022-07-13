@@ -40,6 +40,8 @@ endif()
 
 if(CODE_COVERAGE)
     include(CMakeModules/code-coverage.cmake)
+    # Exclude C wrapper for now since our tests only target C++ code currently
+    add_code_coverage_all_targets(EXCLUDE test/* api/bag.cpp api/bag.h)
 endif()
 
 add_subdirectory(api)
