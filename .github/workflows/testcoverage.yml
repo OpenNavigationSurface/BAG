@@ -40,6 +40,8 @@ jobs:
         source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
         hash -r
         conda activate test-environment
+        export CC=${{env.CC}}
+        export CXX=${{env.CXX}}
         cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/miniconda/envs/test-environment -DBAG_BUILD_TESTS:BOOL=ON -DCODE_COVERAGE:BOOL=ON -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON
 
     - name: Build
