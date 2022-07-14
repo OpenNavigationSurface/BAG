@@ -14,5 +14,5 @@ conda update -q conda
 conda info -a
 conda create -q -n test-environment python=${PYTHON_VERSION}
 conda activate test-environment
-conda install clang gxx_linux-64 cmake ninja hdf5-static libxml2 swig catch2 llvm-tools lcov
+conda install clang clangxx gxx_linux-64 cmake ninja hdf5-static libxml2 swig catch2 llvm-tools lcov
 conda list --show-channel-urls
