@@ -1,6 +1,6 @@
 # Build instructions
 
-## macOS
+## Linux / macOS
 
 ### Configure and build BAG
 ```shell
@@ -17,7 +17,10 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 
 > Note: This will build with code coverage report generation for bag_tests when compiled with LLVM or GCC.
 
-> Note: The above will probably also work in Linux, but hasn't been tested yet.
+> Note: On Linux, make sure to set `CC=clang` and `CXX=clang++` to compile with clang and
+> use llvm-cov. GCC and lcov will work, but the coverage exclusion configuration in the BAG project CMake
+> configuration only works properly with LLVM, meaning that lcov coverage will include things like the C++ standard
+> library, which will lead to inaccurate coverage percentages for the BAG tests.
 
 ## Windows: Visual Studio 2022/2019
 
