@@ -1,4 +1,4 @@
-name: CMake
+name: Test Matrix
 
 on:
   push:
