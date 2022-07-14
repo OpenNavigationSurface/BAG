@@ -1,6 +1,8 @@
-#!/bin/sh
+#!/bin/bash
 GITHUB_WORKSPACE=$1
 PYTHON_VERSION=$2
+echo "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
+echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 sudo apt-get update
 wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
 bash miniconda.sh -b -p ${GITHUB_WORKSPACE}/miniconda
