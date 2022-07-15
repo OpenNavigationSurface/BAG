@@ -47,7 +47,17 @@ jobs:
         export CXX=${{env.CXX}}
         cmake --build build
 
-    - name: Tests
+    - name: Run Tests
+      run: |
+        - BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests_d -r junit -o build/tests/bag_tests-testreport.xml
+
+    - name: Test Reporter
+      uses: mikepenz/action-junit-report@v3
+      if: always() # always run even if the previous step fails
+      with:
+        report_paths: './build/tests/*-testreport.xml'
+
+    - name: Run Test Coverage
       # Execute C++ tests
       run: |
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ninja -C build ccov-all-export-lcov
