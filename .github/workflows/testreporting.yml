@@ -6,6 +6,7 @@ on:
       - 'docs/**'
       - appveyor.yml
       - readme.*
+      - '*.md'
     branches: [ "master", "v2" ]
 
 env:

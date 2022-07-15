@@ -6,12 +6,14 @@ on:
       - 'docs/**'
       - appveyor.yml
       - readme.*
+      - '*.md'
     branches: [ "master" ]
   pull_request:
     paths-ignore:
       - 'docs/**'
       - appveyor.yml
       - readme.*
+      - '*.md'
     branches: [ "master", "v2" ]
 
 env:
