@@ -55,4 +55,5 @@ jobs:
     - name: Test Coverage Reporter
       uses: vebr/jest-lcov-reporter@v0.2.1
       with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         lcov-file: ./build/ccov/lcov.info
