@@ -1,4 +1,4 @@
-name: Test Coverage
+name: Test Reporting
 
 on:
   pull_request:
