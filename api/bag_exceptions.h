@@ -253,58 +253,53 @@ struct BAG_API MetadataNotFound final : virtual std::exception
 //! An unknown metadata profile was specified when a known profile was expected.
 struct BAG_API UknownMetadataProfile final : virtual std::exception
 {
-    UknownMetadataProfile(std::string profile) : m_profile(profile)
-    {}
+    UknownMetadataProfile(std::string profile)
+    {
+        m_message = "Metadata profile '" + profile +
+                "' is unknown, but a known profile was expected.";
+    }
 
     const char* what() const noexcept override
     {
-        std::stringstream ss;
-
-        ss << "Metadata profile '" << m_profile <<
-            "' is unknown, but a known profile was expected.";
-
-        return ss.str().c_str();
+        return m_message.c_str();
     }
 
-    std::string m_profile;
+    std::string m_message;
 };
 
 //! An unrecognized metadata profile was specified.
 struct BAG_API UnrecognizedMetadataProfile final : virtual std::exception
 {
-    UnrecognizedMetadataProfile(std::string profile) : m_profile(profile)
-    {}
+    UnrecognizedMetadataProfile(std::string profile)
+    {
+        m_message = "Metadata profile '" + profile +
+                "' is not recognized.";
+    }
 
     const char* what() const noexcept override
     {
-        std::stringstream ss;
-
-        ss << "Metadata profile '" << m_profile <<
-           "' is not recognized.";
-
-        return ss.str().c_str();
+        return m_message.c_str();
     }
 
-    std::string m_profile;
+    std::string m_message;
 };
 
 //! An error occurred loading metadata.
 struct BAG_API ErrorLoadingMetadata final : virtual std::exception
 {
     ErrorLoadingMetadata(BagError bagError) : m_error(bagError)
-    {}
+    {
+        m_message = "While importing metadata as XML, an error value " +
+                std::to_string(m_error) + " was returned.";
+    }
 
     const char* what() const noexcept override
     {
-        std::stringstream ss;
-
-        ss << "While importing metadata as XML, an error value " <<
-            m_error << " was returned.";
-
-        return ss.str().c_str();
+        return m_message.c_str();
     }
 
     BagError m_error = BAG_SUCCESS;
+    std::string m_message;
 };
 
 
