@@ -53,7 +53,7 @@ jobs:
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests_d -r junit -o build/tests/bag_tests-testreport.xml
 
     - name: Test Reporter
-      uses: romeovs/lcov-reporter-action@v0.2.11
+      uses: mikepenz/action-junit-report@v3
       if: always() # always run even if the previous step fails
       with:
         report_paths: './build/tests/*-testreport.xml'
