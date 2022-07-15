@@ -1,5 +1,9 @@
-.. image:: https://travis-ci.com/OpenNavigationSurface/BAG.svg?branch=master
-    :target: https://travis-ci.com/OpenNavigationSurface/BAG
+
+.. image:: https://github.com/OpenNavigationSurface/BAG/actions/workflows/testreporting.yml/badge.svg
+    :target: https://github.com/OpenNavigationSurface/BAG/actions/workflows/testreporting.yml
+
+.. image:: https://github.com/OpenNavigationSurface/BAG/actions/workflows/testmatrix.yml/badge.svg
+    :target: https://github.com/OpenNavigationSurface/BAG/actions/workflows/testmatrix.yml
 	
 .. image:: https://ci.appveyor.com/api/projects/status/b4y9lmrhvhlntgo2?svg=true
     :target: https://ci.appveyor.com/project/giumas/bag
