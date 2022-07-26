@@ -1,7 +1,6 @@
 
 #include <cstdio>  // std::remove
 #include <cstdlib>
-#include <filesystem>
 #include <string>
 #include <utility>
 #include <sys/stat.h>  // stat
