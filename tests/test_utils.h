@@ -1,8 +1,12 @@
 
 #include <cstdio>  // std::remove
+#include <cstdlib>
+#include <filesystem>
 #include <string>
 #include <utility>
 #include <sys/stat.h>  // stat
+#include <iostream>
+#include <random>
 
 #include <bag_dataset.h>
 
@@ -13,8 +17,22 @@ namespace TestUtils {
 //! instance leaves scope.
 struct RandomFileGuard final {
     RandomFileGuard() noexcept
-        : m_fileName(const_cast<const char*>(std::tmpnam(nullptr)))
-    {}
+    {
+        // Get random number
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        uint32_t randNum = gen();
+
+        // Generate temporary file path
+        std::ostringstream fnameStream;
+#ifdef _WIN32
+        fnameStream << std::getenv("TEMP") << "\\";
+#else
+        fnameStream << "/tmp/";
+#endif
+        fnameStream << "bagtempfile-" << randNum;
+        m_fileName = fnameStream.str();
+    }
 
     RandomFileGuard(const RandomFileGuard&) = delete;
     RandomFileGuard(RandomFileGuard&&) = delete;
