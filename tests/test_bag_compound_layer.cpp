@@ -18,18 +18,18 @@ using BAG::Dataset;
 
 namespace {
 
-    TEST_CASE("test dataset S101 metadata profile creation", "[dataset][create][S101][compoundLayer]")
+    TEST_CASE("test dataset NOAA NBS 2022-06 metadata profile creation", "[dataset][create][NOAA_NBS_2022_06][compoundLayer]")
     {
         const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
                                            "/sample.xml"};
         const TestUtils::RandomFileGuard tmpBagFileName;
 
-        // Create BAG with S101 metadata profile
+        // Create BAG with NOAA NBS 2022-06 metadata profile
         const auto result = TestUtils::createBag(metadataFileName,
                              tmpBagFileName);
         std::shared_ptr<BAG::Dataset> dataset = result.first;
         std::string elevationLayerName = result.second;
-        TestUtils::createS101Metadata(elevationLayerName, dataset);
+        TestUtils::create_NOAA_NBS_2022_06_Metadata(elevationLayerName, dataset);
         REQUIRE(dataset->getLayers().size() == 3);
         dataset->close();
 
@@ -38,7 +38,7 @@ namespace {
         REQUIRE(datasetRO);
         REQUIRE(datasetRO->getLayers().size() == 3);
 
-        // Read S101 compound layer and make sure metadata profile is properly declared and defined.
+        // Read NOAA NBS 2022-06 compound layer and make sure metadata profile is properly declared and defined.
         const auto& compoundLayer = datasetRO->getCompoundLayer(elevationLayerName);
         REQUIRE(compoundLayer);
 

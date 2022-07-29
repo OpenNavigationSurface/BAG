@@ -165,8 +165,8 @@ std::pair<std::shared_ptr<BAG::Dataset>, std::string>
     return std::pair<std::shared_ptr<BAG::Dataset>, std::string>{dataset, elevationLayerName};
 }
 
-void createS101Metadata(const std::string& simpleLayerName,
-                        std::shared_ptr<BAG::Dataset> dataset) {
+void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
+                                      std::shared_ptr<BAG::Dataset> dataset) {
     try
     {
         constexpr uint64_t chunkSize = 100;
