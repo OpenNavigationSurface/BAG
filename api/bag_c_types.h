@@ -194,15 +194,16 @@ struct FieldDefinition
 };
 
 //! The C version of the BAG::CompoundDataType class
+typedef union {
+    float f;
+    uint32_t ui32;
+    bool b;
+    char* c;
+} BAG_COMPOUND_DATA_PAYLOAD;
 struct BagCompoundDataType
 {
     BAG_DATA_TYPE type;
-    union Data {
-        float f;
-        uint32_t ui32;
-        bool b;
-        char* c;
-    } data;
+    BAG_COMPOUND_DATA_PAYLOAD data;
 };
 
 #define BAG_NULL_ELEVATION      1000000  // A "null" elevation value.
