@@ -2,7 +2,7 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 include_directories(../..)
 
-set(CMAKE_SWIG_FLAGS "-Wall" "-Wextra" "-v" "-builtin")
+set(CMAKE_SWIG_FLAGS "-Wextra" "-v" "-builtin")
 
 set_source_files_properties("bagpy.i" PROPERTIES
     SWIG_MODULE_NAME bagPy
@@ -20,7 +20,6 @@ swig_link_libraries(bagPy
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
-    #file(RENAME _bagPy.dylib _bagPy.so)
     add_custom_command(TARGET bagPy POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "_bagPy.so")
     set(BAGPY_LIB _bagPy.so)

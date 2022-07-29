@@ -304,7 +304,7 @@ int main(
 {
     bool generateHelp = false;
 
-    int c = getopt(argc, argv, "h");
+    int c = getopt(argc, argv, const_cast<char *>("h"));
 
     while (c != EOF)
     {
@@ -319,7 +319,7 @@ int main(
             break;
         }
 
-        c = getopt(argc, argv, "h");
+        c = getopt(argc, argv, const_cast<char *>("h"));
     }
 
     argc -= optind - 1;

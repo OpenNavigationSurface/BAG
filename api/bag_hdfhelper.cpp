@@ -155,7 +155,9 @@ uint64_t getChunkSize(
 
         const int rankChunk = h5pList.getChunk(kRank, maxDims.data());
         if (rankChunk == kRank)
-            return {maxDims[0]};  // Using {} to prevent narrowing.
+            // This cast probably only matters on 32-bit systems, but gets rid of a compiler warning from the
+            //  previous code, which was `return {maxDims[0]};
+            return (uint64_t) maxDims[0];
     }
 
     return 0;

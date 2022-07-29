@@ -5,6 +5,9 @@
 %}
 
 %module bag_c_types
+// This error (Warning 451: Setting a const char * variable may leak memory.) is safe to suppress for Python bindings
+//  because SWIG should de-allocate string members before updating.
+#pragma SWIG nowarn=451
 
 %{
 #include "bag_c_types.h"
@@ -15,7 +18,6 @@
 %include "bag_c_types.h"
 
 %include <std_vector.i>
-
 
 %extend FieldDefinition
 {

@@ -238,6 +238,11 @@ std::string datumToWkt(
 
         case BAG::BagDatum::nad83:
             ellipWkt = R"(SPHEROID["GRS 1980",6378137,298.257222101])";
+            break;
+
+        case BAG::BagDatum::unknown:
+            ellipWkt = R"(SPHEROID["UNKNOWN",0,0.0])";
+            break;
         }
     };
 
@@ -284,6 +289,13 @@ std::string datumToWkt(
         return wktStream.str();
     }
     break;
+
+    case BAG::BagDatum::unknown:
+    {
+        return wktStream.str();
+    }
+    break;
+
     }
 
     //If we got here then we don't know what type of datum we have.
