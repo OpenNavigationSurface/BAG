@@ -18,3 +18,7 @@
 %include "exception.i" // is this needed?
 %include "bag_exceptions.h"
 
+namespace BAG
+{
+
+} // namespace BAG

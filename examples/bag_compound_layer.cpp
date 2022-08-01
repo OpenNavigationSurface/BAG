@@ -1,5 +1,4 @@
 
-#include <bag_compoundlayer.h>
 #include <bag_metadataprofiles.h>
 #include <bag_dataset.h>
 #include <bag_metadata.h>
@@ -13,7 +12,6 @@
 #include <cstdlib>
 #include <iostream>
 #include <memory>
-#include <string>
 
 
 namespace {
@@ -43,8 +41,7 @@ int main(
      */
 
     // Initial construction from the XML metadata example file provided.
-
-    printf( "Creating the BAG from XML file metadata, " );
+    std::cout << "Creating the BAG from XML file metadata, ";
 
     BAG::Metadata metadata;
 

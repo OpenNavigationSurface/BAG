@@ -8,6 +8,7 @@
 
 %{
 #include "bag_metadata.h"
+#include "bag_exceptions.h"
 %}
 
 %import "bag_dataset.i"
@@ -17,6 +18,21 @@
 
 namespace BAG
 {
+
+#ifdef SWIGPYTHON
+%exceptionclass BAG::ErrorLoadingMetadata;
+
+%exception Metadata::loadFromFile {
+    try {
+        $action
+    } catch(BAG::ErrorLoadingMetadata &e) {
+        BAG::ErrorLoadingMetadata *ecopy = new BAG::ErrorLoadingMetadata(e);
+        PyObject *err = SWIG_NewPointerObj(ecopy, SWIGTYPE_p_BAG__ErrorLoadingMetadata, 1);
+        PyErr_SetObject(SWIG_Python_ExceptionType(SWIGTYPE_p_BAG__ErrorLoadingMetadata), err);
+        SWIG_fail;
+    }
+}
+#endif
 
 class Metadata final
 {

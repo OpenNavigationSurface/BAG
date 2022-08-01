@@ -21,8 +21,8 @@ swig_link_libraries(bagPy
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
     add_custom_command(TARGET bagPy POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "_bagPy.so")
-    set(BAGPY_LIB _bagPy.so)
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "_bagPyd.so")
+    set(BAGPY_LIB _bagPyd.so)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES Linux)
     set(BAGPY_LIB _bagPy.so)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES Windows)

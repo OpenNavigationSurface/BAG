@@ -298,6 +298,7 @@ struct BAG_API ErrorLoadingMetadata final : virtual std::exception
         return m_message.c_str();
     }
 
+    // TODO: Shouldn't this be non-zero?
     BagError m_error = BAG_SUCCESS;
     std::string m_message;
 };
