@@ -30,6 +30,9 @@ public:
     LayerDescriptor& operator=(const LayerDescriptor&) = delete;
     LayerDescriptor& operator=(LayerDescriptor&&) = delete;
 
+    bool operator==(const LayerDescriptor &rhs) const noexcept;
+    bool operator!=(const LayerDescriptor &rhs) const noexcept;
+
     uint64_t getChunkSize() const noexcept;
     int getCompressionLevel() const noexcept;
     DataType getDataType() const noexcept;

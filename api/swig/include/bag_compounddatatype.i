@@ -45,6 +45,7 @@ public:
     CompoundDataType& operator=(std::string rhs);
 
     bool operator==(const CompoundDataType& rhs) const noexcept;
+    bool operator!=(const CompoundDataType &rhs) const noexcept;
     float asFloat() const;
     uint32_t asUInt32() const;
     bool asBool() const;

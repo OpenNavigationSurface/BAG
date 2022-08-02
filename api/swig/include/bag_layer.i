@@ -42,6 +42,9 @@ public:
     Layer& operator=(const Layer&) = delete;
     Layer& operator=(Layer&&) = delete;
 
+    bool operator==(const Layer &rhs) const noexcept;
+    bool operator!=(const Layer &rhs) const noexcept;
+
     static DataType getDataType(LayerType layerType) noexcept;
     static uint8_t getElementSize(DataType type);
     static std::string getInternalPath(LayerType layerType,

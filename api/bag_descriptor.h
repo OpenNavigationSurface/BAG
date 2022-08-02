@@ -31,6 +31,22 @@ public:
     Descriptor& operator=(const Descriptor&) = delete;
     Descriptor& operator=(Descriptor&&) = default;
 
+    bool operator==(const Descriptor &rhs) const noexcept {
+        return m_version == rhs.m_version &&
+               m_isReadOnly == rhs.m_isReadOnly &&
+               layerDescriptorsEqual(rhs.m_layerDescriptors) &&
+               m_horizontalReferenceSystem == rhs.m_horizontalReferenceSystem &&
+               m_verticalReferenceSystem == rhs.m_verticalReferenceSystem &&
+               m_dims == rhs.m_dims &&
+               m_projectedCover == rhs.m_projectedCover &&
+               m_origin == rhs.m_origin &&
+               m_gridSpacing == rhs.m_gridSpacing;
+    }
+
+    bool operator!=(const Descriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     std::vector<LayerType> getLayerTypes() const;
     bool isReadOnly() const noexcept;
     std::vector<uint32_t> getLayerIds() const noexcept;
@@ -81,6 +97,23 @@ private:
     std::tuple<double, double> m_origin{};
     //! The grid spacing of the bag.
     std::tuple<double, double> m_gridSpacing{};
+
+    bool layerDescriptorsEqual(std::vector<std::weak_ptr<const LayerDescriptor>> other) const {
+        auto mLDSize = m_layerDescriptors.size();
+        bool areEqual = m_layerDescriptors.size() == other.size();
+        if (!areEqual) return areEqual;
+
+        for (size_t i = 0; i < mLDSize; i++) {
+            auto mine = m_layerDescriptors[i].lock();
+            auto theirs = other[i].lock();
+            if (mine != theirs) {
+                areEqual = false;
+                break;
+            }
+        }
+
+        return areEqual;
+    }
 
     friend Dataset;
 };

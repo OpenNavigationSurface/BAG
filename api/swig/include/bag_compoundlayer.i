@@ -26,6 +26,9 @@ public:
     CompoundLayer& operator=(const CompoundLayer&) = delete;
     CompoundLayer& operator=(CompoundLayer&&) = delete;
 
+    bool operator==(const CompoundLayer &rhs) const noexcept;
+    bool operator!=(const CompoundLayer &rhs) const noexcept;
+
     ValueTable& getValueTable() & noexcept;
     %ignore getValueTable() const& noexcept;
 

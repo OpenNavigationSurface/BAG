@@ -30,6 +30,20 @@ public:
     LayerDescriptor& operator=(const LayerDescriptor&) = delete;
     LayerDescriptor& operator=(LayerDescriptor&&) = delete;
 
+    bool operator==(const LayerDescriptor &rhs) const noexcept {
+        return m_id == rhs.m_id &&
+               m_layerType == rhs.m_layerType &&
+               m_internalPath == rhs.m_internalPath &&
+               m_name == rhs.m_name &&
+               m_compressionLevel == rhs.m_compressionLevel &&
+               m_chunkSize == rhs.m_chunkSize &&
+               m_minMax == rhs.m_minMax;
+    }
+
+    bool operator!=(const LayerDescriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     uint64_t getChunkSize() const noexcept;
     int getCompressionLevel() const noexcept;
     DataType getDataType() const noexcept;

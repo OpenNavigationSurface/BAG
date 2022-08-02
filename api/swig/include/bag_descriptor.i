@@ -46,6 +46,9 @@ namespace BAG {
         Descriptor& operator=(const Descriptor&) = delete;
         %ignore operator=(Descriptor&&);
 
+        bool operator==(const Descriptor &rhs) const noexcept;
+        bool operator!=(const Descriptor &rhs) const noexcept;
+
         std::vector<LayerType> getLayerTypes() const;
         bool isReadOnly() const noexcept;
         std::vector<uint32_t> getLayerIds() const noexcept;

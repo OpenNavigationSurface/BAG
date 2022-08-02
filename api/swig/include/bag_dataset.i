@@ -53,6 +53,9 @@ public:
     Dataset& operator=(const Dataset&) = delete;
     Dataset& operator=(Dataset&&) = delete;
 
+    bool operator==(const Dataset &rhs) const noexcept;
+    bool operator!=(const Dataset &rhs) const noexcept;
+
     Layer& getLayer(uint32_t id)&;
     %ignore getLayer(uint32_t id) const&;
     Layer* getLayer(LayerType type, const std::string& name) &;

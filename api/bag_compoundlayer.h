@@ -36,6 +36,17 @@ public:
     CompoundLayer& operator=(const CompoundLayer&) = delete;
     CompoundLayer& operator=(CompoundLayer&&) = delete;
 
+    bool operator==(const CompoundLayer &rhs) const noexcept {
+        return m_pH5keyDataSet == rhs.m_pH5keyDataSet &&
+               m_pH5vrKeyDataSet == rhs.m_pH5vrKeyDataSet &&
+               m_pH5valueDataSet == rhs.m_pH5valueDataSet &&
+               m_pValueTable == rhs.m_pValueTable;
+    }
+
+    bool operator!=(const CompoundLayer &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     ValueTable& getValueTable() & noexcept;
     const ValueTable& getValueTable() const & noexcept;
 

@@ -28,6 +28,28 @@ public:
     Layer& operator=(const Layer&) = delete;
     Layer& operator=(Layer&&) = delete;
 
+    bool operator==(const Layer &rhs) const noexcept {
+        bool bagDatasetEq = false;
+        auto p = m_pBagDataset.lock();
+        if (p) {
+            auto otherP = rhs.m_pBagDataset.lock();
+            if (otherP) {
+                // rhs.m_pBagDataset is also not null, compare objects pointed to by the
+                // weak references to determine equality
+                bagDatasetEq = p == otherP;
+            }
+        } else {
+            // m_pBagDataset is null, if rhs.m_pBagDataset is also null, then they are equal
+            bagDatasetEq = !rhs.m_pBagDataset.lock();
+        }
+        return bagDatasetEq &&
+               m_pLayerDescriptor == rhs.m_pLayerDescriptor;
+    }
+
+    bool operator!=(const Layer &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     static DataType getDataType(LayerType layerType) noexcept;
     static uint8_t getElementSize(DataType type);
     static std::string getInternalPath(LayerType layerType,

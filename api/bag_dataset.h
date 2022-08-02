@@ -64,6 +64,19 @@ public:
     Dataset& operator=(const Dataset&) = delete;
     Dataset& operator=(Dataset&&) = delete;
 
+    bool operator==(const Dataset &rhs) const noexcept {
+        return m_pH5file == rhs.m_pH5file &&
+               m_layers == rhs.m_layers &&
+               m_pMetadata == rhs.m_pMetadata &&
+               m_pTrackingList == rhs.m_pTrackingList &&
+               m_descriptor == rhs.m_descriptor &&
+               m_pVRTrackingList == rhs.m_pVRTrackingList;
+    }
+
+    bool operator!=(const Dataset &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     Layer& getLayer(uint32_t id) &;
     const Layer& getLayer(uint32_t id) const &;
     Layer* getLayer(LayerType type, const std::string& name) &;

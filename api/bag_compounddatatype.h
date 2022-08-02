@@ -304,6 +304,10 @@ public:
         }
     }
 
+    bool operator!=(const CompoundDataType &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     //! Retrieve the value as a float point.
     /*!
         Retrieve the value as a floating point.  Throw an exception if it is not
