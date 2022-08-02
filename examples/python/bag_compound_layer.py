@@ -26,7 +26,7 @@ def main():
     try:
         metadata.loadFromFile(args.xml_file_name)
     except BAG.ErrorLoadingMetadata as e:
-        logger.info(type(e))
+        logger.info(e.what())
 
     return os.EX_OK
 
