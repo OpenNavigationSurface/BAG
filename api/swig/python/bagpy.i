@@ -11,6 +11,10 @@
 */
 %module bagpy
 
+%{
+#define SWIG_FILE_WITH_INIT
+%}
+
 //! Common templates used by multiple interfaces
 %include <stdint.i>
 %include <std_pair.i>
