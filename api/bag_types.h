@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <vector>
 #include <string>
+#include <cstring>
 
 
 namespace BAG
