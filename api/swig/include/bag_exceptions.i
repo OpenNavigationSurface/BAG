@@ -26,7 +26,48 @@
 
 // should be in "derived first" order
 #define FOR_EACH_EXCEPTION(ACTION) \
+   ACTION(BAG,CompressionNeedsChunkingSet) \
+   ACTION(BAG,UnsupportedAttributeType) \
+   ACTION(BAG,InvalidType) \
+   ACTION(BAG,InvalidDescriptor) \
+   ACTION(BAG,InvalidKeyType) \
+   ACTION(BAG,NameRequired) \
+   ACTION(BAG,DatasetNotFound) \
+   ACTION(BAG,InvalidLayerId) \
+   ACTION(BAG,UnsupportedGroupType) \
+   ACTION(BAG,InvalidBuffer) \
+   ACTION(BAG,InvalidReadSize) \
+   ACTION(BAG,InvalidWriteSize) \
+   ACTION(BAG,LayerExists) \
+   ACTION(BAG,LayerNotFound) \
+   ACTION(BAG,ReadOnlyError) \
+   ACTION(BAG,UnsupportedElementSize) \
+   ACTION(BAG,UnsupportedLayerType) \
+   ACTION(BAG,UnsupportedSimpleLayerType) \
+   ACTION(BAG,UnsupportedInterleavedLayer) \
+   ACTION(BAG,InvalidLayerDescriptor) \
+   ACTION(BAG,InvalidCast) \
+   ACTION(BAG,CoordSysError) \
+   ACTION(BAG,InvalidDatumError) \
+   ACTION(BAG,InvalidEllipsoidError) \
+   ACTION(BAG,MetadataNotFound) \
+   ACTION(BAG,UknownMetadataProfile) \
+   ACTION(BAG,UnrecognizedMetadataProfile) \
    ACTION(BAG,ErrorLoadingMetadata) \
+   ACTION(BAG,UnsupportedDataType) \
+   ACTION(BAG,TooManyCorrections) \
+   ACTION(BAG,UnknownSurfaceType) \
+   ACTION(BAG,CannotReadNumCorrections) \
+   ACTION(BAG,InvalidCorrector) \
+   ACTION(BAG,UnsupportedSurfaceType) \
+   ACTION(BAG,FieldNotFound) \
+   ACTION(BAG,InvalidValue) \
+   ACTION(BAG,InvalidValueSize) \
+   ACTION(BAG,LayerRequiresChunkingSet) \
+   ACTION(BAG,DatasetRequiresVariableResolution) \
+   ACTION(BAG,InvalidValueKey) \
+   ACTION(BAG,ValueNotFound) \
+   ACTION(BAG,InvalidVRRefinementDimensions) \
 /**/
 %}
 

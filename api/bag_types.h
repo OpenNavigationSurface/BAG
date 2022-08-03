@@ -3,6 +3,7 @@
 
 #include "bag_c_types.h"
 
+#include <memory>
 #include <limits>
 #include <unordered_map>
 #include <vector>
