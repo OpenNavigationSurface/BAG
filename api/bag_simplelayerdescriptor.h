@@ -27,6 +27,14 @@ public:
     SimpleLayerDescriptor& operator=(const SimpleLayerDescriptor&) = delete;
     SimpleLayerDescriptor& operator=(SimpleLayerDescriptor&&) = delete;
 
+    bool operator==(const SimpleLayerDescriptor &rhs) const noexcept {
+        return m_elementSize == rhs.m_elementSize;
+    }
+
+    bool operator!=(const SimpleLayerDescriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
 protected:
     SimpleLayerDescriptor(uint32_t id, LayerType type, uint64_t chunkSize,
         int compressionLevel);

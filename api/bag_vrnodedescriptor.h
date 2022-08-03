@@ -18,6 +18,19 @@ public:
     VRNodeDescriptor& operator=(const VRNodeDescriptor&) = delete;
     VRNodeDescriptor& operator=(VRNodeDescriptor&&) = delete;
 
+    bool operator==(const VRNodeDescriptor &rhs) const noexcept {
+        return m_minHypStrength == rhs.m_minHypStrength &&
+               m_maxHypStrength == rhs.m_maxHypStrength &&
+               m_minNumHypotheses == rhs.m_minNumHypotheses &&
+               m_maxNumHypotheses == rhs.m_maxNumHypotheses &&
+               m_minNSamples == rhs.m_minNSamples &&
+               m_maxNSamples == rhs.m_maxNSamples;
+    }
+
+    bool operator!=(const VRNodeDescriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     std::tuple<float, float> getMinMaxHypStrength() const noexcept;
     std::tuple<uint32_t, uint32_t> getMinMaxNSamples() const noexcept;
     std::tuple<uint32_t, uint32_t> getMinMaxNumHypotheses() const noexcept;

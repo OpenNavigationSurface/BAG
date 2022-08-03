@@ -27,6 +27,9 @@ public:
 
     VRMetadata& operator=(const VRMetadata&) = delete;
     VRMetadata& operator=(VRMetadata&&) = delete;
+
+    bool operator==(const VRMetadata &rhs) const noexcept;
+    bool operator!=(const VRMetadata &rhs) const noexcept;
 };
 
 }  // namespace BAG

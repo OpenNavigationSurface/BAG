@@ -23,5 +23,7 @@ namespace BAG {
         SimpleLayer(SimpleLayer&&) = delete;
         SimpleLayer& operator=(const SimpleLayer&) = delete;
         SimpleLayer& operator=(SimpleLayer&&) = delete;
+        bool operator==(const SimpleLayer &rhs) const noexcept;
+        bool operator!=(const SimpleLayer &rhs) const noexcept;
     };
 }

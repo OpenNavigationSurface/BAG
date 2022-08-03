@@ -25,6 +25,14 @@ public:
     VRMetadata& operator=(const VRMetadata&) = delete;
     VRMetadata& operator=(VRMetadata&&) = delete;
 
+    bool operator==(const VRMetadata &rhs) const noexcept {
+        return m_pH5dataSet == rhs.m_pH5dataSet;
+    }
+
+    bool operator!=(const VRMetadata &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
 protected:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
     struct BAG_API DeleteH5dataSet final

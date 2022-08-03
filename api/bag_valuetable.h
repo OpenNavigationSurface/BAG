@@ -25,6 +25,9 @@ public:
     ValueTable& operator=(const ValueTable&) = delete;
     ValueTable& operator=(ValueTable&&) = delete;
 
+    // Don't overload == because there is a circular reference between CompoundLayer
+    //   ValueTable and implementing == on ValueTable causes compilers problems.
+
     const Records& getRecords() const & noexcept;
     const RecordDefinition& getDefinition() const & noexcept;
     const CompoundDataType& getValue(size_t key,

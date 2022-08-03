@@ -30,6 +30,9 @@ public:
     UInt8Array& operator=(const UInt8Array&) = delete;
     //UInt8Array& operator=(UInt8Array&& rhs) noexcept;
 
+    bool operator==(const UInt8Array &rhs) const noexcept;
+    bool operator!=(const UInt8Array &rhs) const noexcept;
+
     %rename(at) operator[](size_t index) &;
     uint8_t& operator[](size_t index) &;
     //const uint8_t& operator[](size_t index) const &

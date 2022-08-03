@@ -24,5 +24,8 @@ namespace BAG {
 
         InterleavedLegacyLayer& operator=(const InterleavedLegacyLayer&) = delete;
         InterleavedLegacyLayer& operator=(InterleavedLegacyLayer&&) = delete;
+
+        bool operator==(const InterleavedLegacyLayer &rhs) const noexcept;
+        bool operator!=(const InterleavedLegacyLayer &rhs) const noexcept;
     };
 }

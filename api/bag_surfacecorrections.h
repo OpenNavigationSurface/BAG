@@ -27,6 +27,14 @@ public:
     SurfaceCorrections& operator=(const SurfaceCorrections&) = delete;
     SurfaceCorrections& operator=(SurfaceCorrections&&) = delete;
 
+    bool operator==(const SurfaceCorrections &rhs) const noexcept {
+        return m_pH5dataSet == rhs.m_pH5dataSet;
+    }
+
+    bool operator!=(const SurfaceCorrections &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     UInt8Array readCorrected(uint32_t rowStart, uint32_t columnStart,
         uint32_t rowEnd, uint32_t columnEnd, uint8_t corrector,
         const SimpleLayer& layer) const;

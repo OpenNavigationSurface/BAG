@@ -38,6 +38,9 @@ public:
     InterleavedLegacyLayerDescriptor& operator=(const InterleavedLegacyLayerDescriptor&) = delete;
     InterleavedLegacyLayerDescriptor& operator=(InterleavedLegacyLayerDescriptor&&) = delete;
 
+    bool operator==(const InterleavedLegacyLayerDescriptor &rhs) const noexcept;
+    bool operator!=(const InterleavedLegacyLayerDescriptor &rhs) const noexcept;
+
     GroupType getGroupType() const noexcept;
 };
 

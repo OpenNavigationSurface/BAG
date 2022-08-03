@@ -32,6 +32,9 @@ public:
     VRMetadataDescriptor& operator=(const VRMetadataDescriptor&) = delete;
     VRMetadataDescriptor& operator=(VRMetadataDescriptor&&) = delete;
 
+    bool operator==(const VRMetadataDescriptor &rhs) const noexcept;
+    bool operator!=(const VRMetadataDescriptor &rhs) const noexcept;
+
     // Converted to std::pair<T, T> below.
     //std::tuple<uint32_t, uint32_t> getMaxDimensions() const noexcept;
     //std::tuple<float, float> getMaxResolution() const noexcept;

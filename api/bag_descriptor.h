@@ -99,17 +99,12 @@ private:
     std::tuple<double, double> m_gridSpacing{};
 
     bool layerDescriptorsEqual(std::vector<std::weak_ptr<const LayerDescriptor>> other) const {
-        auto mLDSize = m_layerDescriptors.size();
-        bool areEqual = m_layerDescriptors.size() == other.size();
+        auto size = m_layerDescriptors.size();
+        bool areEqual = size == other.size();
         if (!areEqual) return areEqual;
 
-        for (size_t i = 0; i < mLDSize; i++) {
-            auto mine = m_layerDescriptors[i].lock();
-            auto theirs = other[i].lock();
-            if (mine != theirs) {
-                areEqual = false;
-                break;
-            }
+        for (size_t i = 0; i < size; i++) {
+            if (!weak_ptr_equals(m_layerDescriptors[i], other[i])) return false;
         }
 
         return areEqual;

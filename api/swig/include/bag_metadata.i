@@ -30,6 +30,9 @@ public:
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
 
+    bool operator==(const Metadata &rhs) const noexcept;
+    bool operator!=(const Metadata &rhs) const noexcept;
+
     const BagMetadata& getStruct() const & noexcept;
 
     uint32_t columns() const noexcept;

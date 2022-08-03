@@ -29,21 +29,8 @@ public:
     Layer& operator=(Layer&&) = delete;
 
     bool operator==(const Layer &rhs) const noexcept {
-        bool bagDatasetEq = false;
-        auto p = m_pBagDataset.lock();
-        if (p) {
-            auto otherP = rhs.m_pBagDataset.lock();
-            if (otherP) {
-                // rhs.m_pBagDataset is also not null, compare objects pointed to by the
-                // weak references to determine equality
-                bagDatasetEq = p == otherP;
-            }
-        } else {
-            // m_pBagDataset is null, if rhs.m_pBagDataset is also null, then they are equal
-            bagDatasetEq = !rhs.m_pBagDataset.lock();
-        }
-        return bagDatasetEq &&
-               m_pLayerDescriptor == rhs.m_pLayerDescriptor;
+        return m_pLayerDescriptor == rhs.m_pLayerDescriptor &&
+            weak_ptr_equals(m_pBagDataset, rhs.m_pBagDataset);
     }
 
     bool operator!=(const Layer &rhs) const noexcept {

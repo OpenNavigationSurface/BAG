@@ -18,6 +18,17 @@ public:
     VRRefinementsDescriptor& operator=(const VRRefinementsDescriptor&) = delete;
     VRRefinementsDescriptor& operator=(VRRefinementsDescriptor&&) = delete;
 
+    bool operator==(const VRRefinementsDescriptor &rhs) const noexcept {
+        return m_minDepth == rhs.m_minDepth &&
+               m_maxDepth == rhs.m_maxDepth &&
+               m_minUncertainty == rhs.m_minUncertainty &&
+               m_maxUncertainty == rhs.m_maxUncertainty;
+    }
+
+    bool operator!=(const VRRefinementsDescriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     std::tuple<float, float> getMinMaxDepth() const noexcept;
     std::tuple<float, float> getMinMaxUncertainty() const noexcept;
 

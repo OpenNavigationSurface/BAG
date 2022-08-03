@@ -33,6 +33,14 @@ public:
     SimpleLayer& operator=(const SimpleLayer&) = delete;
     SimpleLayer& operator=(SimpleLayer&&) = delete;
 
+    bool operator==(const SimpleLayer &rhs) const noexcept {
+        return m_pH5dataSet == rhs.m_pH5dataSet;
+    }
+
+    bool operator!=(const SimpleLayer &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
 protected:
     SimpleLayer(Dataset& dataset, SimpleLayerDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);

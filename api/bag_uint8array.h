@@ -35,6 +35,15 @@ public:
         return *this;
     }
 
+    bool operator==(const UInt8Array &rhs) const noexcept {
+        return m_array == rhs.m_array &&
+               m_len == rhs.m_len;
+    }
+
+    bool operator!=(const UInt8Array &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     uint8_t& operator[](size_t index) &
     {
         if (index >= m_len)

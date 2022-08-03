@@ -41,9 +41,37 @@ using VRNodeItem = BagVRNodeItem;
 using VRRefinementsItem = BagVRRefinementsItem;
 //! The type of item in a variable resolution tracking list.
 using VRTrackingItem = BagVRTrackingItem;
+inline bool operator==(const VRTrackingItem &lhs, const VRTrackingItem &rhs) noexcept {
+    return lhs.row == rhs.row &&
+        lhs.col == rhs.col &&
+        lhs.sub_row == rhs.sub_row &&
+        lhs.sub_col == rhs.sub_col &&
+        lhs.depth == rhs.depth &&
+        lhs.uncertainty == rhs.uncertainty &&
+        lhs.track_code == rhs.track_code &&
+        lhs.list_series == rhs.list_series;
+}
 
 //! The type of a record definition (used with Compound Layers).
+inline bool operator==(const FieldDefinition &lhs, const FieldDefinition &rhs) noexcept {
+    return lhs.type == rhs.type && (std::strcmp(lhs.name, rhs.name) == 0);
+}
+inline bool operator!=(const FieldDefinition &lhs, const FieldDefinition &rhs) noexcept {
+    return !(lhs == rhs);
+}
 using RecordDefinition = std::vector<FieldDefinition>;
+inline bool operator==(const RecordDefinition &lhs, const RecordDefinition &rhs) {
+    auto size = lhs.size();
+    bool areEqual = size == rhs.size();
+    if (!areEqual) return areEqual;
+
+    for (size_t i = 0; i < size; i++) {
+        if (lhs[i] != rhs[i]) return false;
+    }
+
+    return areEqual;
+}
+
 
 using GeorefMetadataProfile = GEOREF_METADATA_PROFILE;
 
@@ -64,6 +92,11 @@ const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {VarRes_Refinement, "Variable_Resolution_Refinement"},
     {VarRes_Node, "Variable_Resolution_Node"},
 };
+
+template <typename T, typename U>
+inline bool weak_ptr_equals(const std::weak_ptr<T> &t, const std::weak_ptr<U> &u) {
+    return !t.owner_before(u) && !u.owner_before(t);
+}
 
 }   //namespace BAG
 

@@ -45,6 +45,9 @@ public:
     template <typename T>
     std::vector<T> getAs() const;
     size_t size() const noexcept;
+
+    bool operator==(const LayerItems &rhs) const noexcept;
+    bool operator!=(const LayerItems &rhs) const noexcept;
 };
 
 %template(FloatLayerItems) LayerItems::LayerItems<float>;

@@ -42,6 +42,9 @@ public:
     CompoundLayerDescriptor(const CompoundLayerDescriptor&) = delete;
     CompoundLayerDescriptor(CompoundLayerDescriptor&&) = delete;
 
+    bool operator==(const CompoundLayerDescriptor &rhs) const noexcept;
+    bool operator!=(const CompoundLayerDescriptor &rhs) const noexcept;
+
     CompoundLayerDescriptor& operator=(const CompoundLayerDescriptor&) = delete;
     CompoundLayerDescriptor& operator=(CompoundLayerDescriptor&&) = delete;
 

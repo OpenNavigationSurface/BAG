@@ -39,6 +39,16 @@ public:
     TrackingList& operator=(const TrackingList&) = delete;
     TrackingList& operator=(TrackingList&&) = delete;
 
+    bool operator==(const TrackingList &rhs) const noexcept {
+        return m_pH5dataSet == rhs.m_pH5dataSet &&
+               weak_ptr_equals(m_pBagDataset, rhs.m_pBagDataset) &&
+               itemsEqual(rhs.m_items);
+    }
+
+    bool operator!=(const TrackingList &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     iterator begin() & noexcept;
     const_iterator begin() const & noexcept;
     iterator end() & noexcept;
@@ -83,6 +93,27 @@ private:
     std::vector<value_type> m_items;
     //! The HDF5 DataSet this class wraps.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> m_pH5dataSet;
+
+    bool itemsEqual(std::vector<value_type> other) const {
+        auto size = m_items.size();
+        bool areEqual = size == other.size();
+        if (!areEqual) return areEqual;
+
+        for (size_t i = 0; i < size; i++) {
+            auto ours = m_items[i];
+            auto theirs = other[i];
+            if (ours.row != theirs.row ||
+                ours.col != theirs.col ||
+                ours.depth != theirs.depth ||
+                ours.uncertainty != theirs.uncertainty ||
+                ours.track_code != theirs.track_code ||
+                ours.list_series != theirs.list_series) {
+                return false;
+            }
+        }
+
+        return areEqual;
+    }
 
     friend Dataset;
 };

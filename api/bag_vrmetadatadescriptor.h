@@ -18,6 +18,21 @@ public:
     VRMetadataDescriptor& operator=(const VRMetadataDescriptor&) = delete;
     VRMetadataDescriptor& operator=(VRMetadataDescriptor&&) = delete;
 
+    bool operator==(const VRMetadataDescriptor &rhs) const noexcept {
+        return m_minDimX == rhs.m_minDimX &&
+               m_minDimY == rhs.m_minDimY &&
+               m_maxDimX == rhs.m_maxDimX &&
+               m_maxDimY == rhs.m_maxDimY &&
+               m_minResX == rhs.m_minResX &&
+               m_minResY == rhs.m_minResY &&
+               m_maxResX == rhs.m_maxResX &&
+               m_maxResY == rhs.m_maxResY;
+    }
+
+    bool operator!=(const VRMetadataDescriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     std::tuple<uint32_t, uint32_t> getMaxDimensions() const noexcept;
     std::tuple<float, float> getMaxResolution() const noexcept;
     std::tuple<uint32_t, uint32_t> getMinDimensions() const noexcept;

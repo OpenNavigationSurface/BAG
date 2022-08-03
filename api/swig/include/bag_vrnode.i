@@ -23,6 +23,9 @@ public:
 
     VRNode& operator=(const VRNode&) = delete;
     VRNode& operator=(VRNode&&) = delete;
+
+    bool operator==(const VRNode &rhs) const noexcept;
+    bool operator!=(const VRNode &rhs) const noexcept;
 };
 
 }  // namespace BAG

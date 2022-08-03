@@ -40,6 +40,9 @@ public:
     SurfaceCorrectionsDescriptor& operator=(const SurfaceCorrectionsDescriptor&) = delete;
     SurfaceCorrectionsDescriptor& operator=(SurfaceCorrectionsDescriptor&&) = delete;
 
+    bool operator==(const SurfaceCorrectionsDescriptor &rhs) const noexcept;
+    bool operator!=(const SurfaceCorrectionsDescriptor &rhs) const noexcept;
+
     uint8_t getNumCorrectors() const noexcept;
 
 #if 0

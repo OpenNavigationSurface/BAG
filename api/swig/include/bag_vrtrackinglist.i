@@ -35,6 +35,9 @@ public:
     VRTrackingList& operator=(const VRTrackingList&) = delete;
     VRTrackingList& operator=(VRTrackingList&&) = delete;
 
+    bool operator==(const VRTrackingList &rhs) const noexcept;
+    bool operator!=(const VRTrackingList &rhs) const noexcept;
+
     iterator begin() & noexcept;
     //const_iterator begin() const & noexcept;
     const_iterator cbegin() const & noexcept;

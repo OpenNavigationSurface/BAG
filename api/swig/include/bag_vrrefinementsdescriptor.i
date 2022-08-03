@@ -29,6 +29,9 @@ public:
     VRRefinementsDescriptor& operator=(const VRRefinementsDescriptor&) = delete;
     VRRefinementsDescriptor& operator=(VRRefinementsDescriptor&&) = delete;
 
+    bool operator==(const VRRefinementsDescriptor &rhs) const noexcept;
+    bool operator!=(const VRRefinementsDescriptor &rhs) const noexcept;
+
     // Converted to std::pair<T, T> below.
     //std::tuple<float, float> getMinMaxDepth() const noexcept;
     //std::tuple<float, float> getMinMaxUncertainty() const noexcept;

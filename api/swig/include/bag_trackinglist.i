@@ -37,6 +37,9 @@ namespace BAG
         TrackingList& operator=(const TrackingList&) = delete;
         TrackingList& operator=(TrackingList&&) = delete;
 
+        bool operator==(const TrackingList &rhs) const noexcept;
+        bool operator!=(const TrackingList &rhs) const noexcept;
+
         iterator begin() & noexcept;
         %ignore begin() const &;
         iterator end() & noexcept;

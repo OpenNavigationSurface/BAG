@@ -41,6 +41,14 @@ public:
     InterleavedLegacyLayer& operator=(const InterleavedLegacyLayer&) = delete;
     InterleavedLegacyLayer& operator=(InterleavedLegacyLayer&&) = delete;
 
+    bool operator==(const InterleavedLegacyLayer &rhs) const noexcept {
+        return m_pH5dataSet == rhs.m_pH5dataSet;
+    }
+
+    bool operator!=(const InterleavedLegacyLayer &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
 protected:
     InterleavedLegacyLayer(Dataset& dataset,
         InterleavedLegacyLayerDescriptor& descriptor,

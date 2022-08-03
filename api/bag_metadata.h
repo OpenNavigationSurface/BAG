@@ -38,6 +38,17 @@ public:
     Metadata& operator=(const Metadata&) = delete;
     Metadata& operator=(Metadata&&) = delete;
 
+    bool operator==(const Metadata &rhs) const noexcept {
+        return m_pMetaStruct == rhs.m_pMetaStruct &&
+               m_pH5dataSet == rhs.m_pH5dataSet &&
+               m_xmlLength == rhs.m_xmlLength &&
+               weak_ptr_equals(m_pBagDataset, rhs.m_pBagDataset);
+    }
+
+    bool operator!=(const Metadata &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     const BagMetadata& getStruct() const & noexcept;
 
     uint32_t columns() const noexcept;

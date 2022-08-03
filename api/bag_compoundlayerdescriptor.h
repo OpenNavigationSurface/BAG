@@ -34,6 +34,18 @@ public:
     CompoundLayerDescriptor& operator=(const CompoundLayerDescriptor&) = delete;
     CompoundLayerDescriptor& operator=(CompoundLayerDescriptor&&) = delete;
 
+    bool operator==(const CompoundLayerDescriptor &rhs) const noexcept {
+        return m_profile == rhs.m_profile &&
+               m_keyType == rhs.m_keyType &&
+               m_elementSize == rhs.m_elementSize &&
+               m_definition == rhs.m_definition &&
+               weak_ptr_equals(m_pBagDataset, rhs.m_pBagDataset);
+    }
+
+    bool operator!=(const CompoundLayerDescriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     std::weak_ptr<Dataset> getDataset() const &;
     const RecordDefinition& getDefinition() const & noexcept;
 

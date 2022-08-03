@@ -30,6 +30,9 @@ public:
     VRNodeDescriptor& operator=(const VRNodeDescriptor&) = delete;
     VRNodeDescriptor& operator=(VRNodeDescriptor&&) = delete;
 
+    bool operator==(const VRNodeDescriptor &rhs) const noexcept;
+    bool operator!=(const VRNodeDescriptor &rhs) const noexcept;
+
     // Converted to std::pair<T, T> below.
     //std::tuple<float, float> getMinMaxHypStrength() const noexcept;
     //std::tuple<uint32_t, uint32_t> getMinMaxNSamples() const noexcept;

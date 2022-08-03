@@ -37,6 +37,9 @@ public:
 
     SimpleLayerDescriptor& operator=(const SimpleLayerDescriptor&) = delete;
     SimpleLayerDescriptor& operator=(SimpleLayerDescriptor&&) = delete;
+
+    bool operator==(const SimpleLayerDescriptor &rhs) const noexcept;
+    bool operator!=(const SimpleLayerDescriptor &rhs) const noexcept;
 };
 
 }  // namespace BAG

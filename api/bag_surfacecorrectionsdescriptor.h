@@ -33,6 +33,23 @@ public:
     SurfaceCorrectionsDescriptor& operator=(const SurfaceCorrectionsDescriptor&) = delete;
     SurfaceCorrectionsDescriptor& operator=(SurfaceCorrectionsDescriptor&&) = delete;
 
+    bool operator==(const SurfaceCorrectionsDescriptor &rhs) const noexcept {
+        return m_surfaceType == rhs.m_surfaceType &&
+               m_elementSize == rhs.m_elementSize &&
+               m_numCorrectors == rhs.m_numCorrectors &&
+               m_verticalDatums == rhs.m_verticalDatums &&
+               m_swX == rhs.m_swX &&
+               m_swY == rhs.m_swY &&
+               m_xSpacing == rhs.m_xSpacing &&
+               m_ySpacing == rhs.m_ySpacing &&
+               m_numRows == rhs.m_numRows &&
+               m_numColumns == rhs.m_numColumns;
+    }
+
+    bool operator!=(const SurfaceCorrectionsDescriptor &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
     std::tuple<uint32_t, uint32_t> getDims() const noexcept;
     uint8_t getNumCorrectors() const noexcept;
     std::tuple<double, double> getOrigin() const noexcept;

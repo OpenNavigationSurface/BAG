@@ -88,6 +88,14 @@ public:
         return m_data.size();
     }
 
+    bool operator==(const LayerItems &rhs) const noexcept {
+        return m_data == rhs.m_data;
+    }
+
+    bool operator!=(const LayerItems &rhs) const noexcept {
+        return !(rhs == *this);
+    }
+
 private:
     std::vector<uint8_t> m_data;
 };
