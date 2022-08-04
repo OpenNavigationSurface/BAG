@@ -26,7 +26,19 @@ def main():
     try:
         metadata.loadFromFile(args.xml_file_name)
     except BAG.ErrorLoadingMetadata as e:
-        logger.info(e.what())
+        return e.what()
+
+    # Create the dataset.
+    dataset: BAG.Dataset = None
+    try:
+        chunk_size: int = 100
+        compression_level: int = 1
+
+        dataset = BAG.Dataset.create(args.out_file_name, metadata, chunk_size, compression_level)
+    except FileExistsError as e:
+        mesg = f"Unable to create BAG '{args.out_file_name}'; file already exists."
+        logger.error(mesg)
+        return mesg
 
     return os.EX_OK
 

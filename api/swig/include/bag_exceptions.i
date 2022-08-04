@@ -82,7 +82,8 @@
     catch (const std::exception& e) {
         SWIG_exception(SWIG_RuntimeError, e.what());
     } catch (...) {
-        SWIG_exception(SWIG_UnknownError, "Unknown C++ exception");
+        PyErr_SetFromErrno(PyExc_OSError);
+        SWIG_fail;
     }
 }
 
