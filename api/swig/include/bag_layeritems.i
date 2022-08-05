@@ -53,6 +53,7 @@ public:
 %template(FloatLayerItems) LayerItems::LayerItems<float>;
 %template(SurfaceCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
 %template(SurfaceCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
+%template(UInt16LayerItems) LayerItems::LayerItems<uint16_t>;
 %template(UInt32LayerItems) LayerItems::LayerItems<uint32_t>;
 %template(VRMetadataLayerItems) LayerItems::LayerItems<BagVRMetadataItem>;
 %template(VRNodeLayerItems) LayerItems::LayerItems<BagVRNodeItem>;

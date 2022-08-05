@@ -11,6 +11,7 @@
 %}
 
 %import "bag_types.i"
+%import "bag_compounddatatype.i"
 
 %include <std_string.i>
 %include <std_vector.i>
@@ -63,8 +64,4 @@ template <typename T> T get(const CompoundDataType& v);
 %template(getBool) get<bool>;
 %template(getString) get<std::string>;
 
-}  // namespace BAG
-
-%template(Record) std::vector<BAG::CompoundDataType>;
-%template(Records) std::vector<std::vector<BAG::CompoundDataType>>;
-
+}; // namespace BAG

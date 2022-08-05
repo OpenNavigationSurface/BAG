@@ -10,7 +10,8 @@
 #include "bag_metadataprofiles.h"
 %}
 
-namespace BAG
-{
+%include "bag_metadataprofiles.h"
 
-} // namespace BAG
+namespace BAG {
+
+}

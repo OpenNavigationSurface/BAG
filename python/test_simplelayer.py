@@ -84,7 +84,7 @@ def testWrite():
     dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
     assert(dataset)
 
-    elevLayer = dataset.getLayer(kLayerType);
+    elevLayer = dataset.getLayer(kLayerType)
     assert(elevLayer)
 
     origBuffer = (kFloatValue,) * kExpectedNumNodes
