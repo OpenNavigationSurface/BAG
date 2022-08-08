@@ -8,9 +8,11 @@
 
 %{
 #include "bag_valuetable.h"
+#include "bag_compounddatatype.h"
 %}
 
-%import "bag_compounddatatype.i"
+%include "bag_compounddatatype.i"
+%include "bag_record.i"
 
 %include <std_string.i>
 %include <stdint.i>
@@ -37,23 +39,13 @@ public:
     size_t getFieldIndex(const std::string& name) const;
     const char* getFieldName(size_t index) const &;
 
-    //size_t addRecord(const Record& record);
-    //void addRecords(const Records& records);
+    size_t addRecord(const Record& record);
+    void addRecords(const Records& records);
 
     void setValue(size_t recordIndex, const std::string& name,
         const CompoundDataType& value);
     void setValue(size_t recordIndex, size_t fieldIndex,
         const CompoundDataType& value);
-};
-
-%extend ValueTable {
-    size_t addRecord(const Record& record) {
-        return $self->addRecord(record);
-    }
-
-    void addRecords(const Records& records) {
-        $self->addRecords(records);
-    }
 };
 
 }  // namespace BAG

@@ -5,7 +5,7 @@
 #ifndef OPENNS_BAG_METADATAPROFILE_H
 #define OPENNS_BAG_METADATAPROFILE_H
 
-#include "bag_compounddatatype.h"
+#include "bag_record.h"
 
 namespace BAG {
 

@@ -66,6 +66,7 @@ set(BAG_HEADER_FILES
     bag_metadata_import.h
     bag_metadataprofiles.h
     bag_metadatatypes.h
+    bag_record.h
     bag_simplelayer.h
     bag_simplelayerdescriptor.h
     bag_surfacecorrections.h

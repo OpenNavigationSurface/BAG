@@ -15,6 +15,7 @@ set(TEST_SOURCE_FILES
     test_bag_interleavedlegacylayer.cpp
     test_bag_interleavedlegacylayerdescriptor.cpp
     test_bag_metadata.cpp
+    test_bag_record.cpp
     test_bag_simplelayer.cpp
     test_bag_simplelayerdescriptor.cpp
     test_bag_surfacecorrectionsdescriptor.cpp

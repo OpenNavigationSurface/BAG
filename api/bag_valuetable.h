@@ -1,7 +1,6 @@
 #ifndef BAG_VALUE_TABLE_H
 #define BAG_VALUE_TABLE_H
 
-#include "bag_compounddatatype.h"
 #include "bag_config.h"
 #include "bag_fordec.h"
 

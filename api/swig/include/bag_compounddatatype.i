@@ -11,12 +11,10 @@
 %}
 
 %import "bag_types.i"
-%import "bag_compounddatatype.i"
 
 %include <std_string.i>
 %include <std_vector.i>
 %include <stdint.i>
-
 
 namespace BAG {
 
@@ -54,9 +52,6 @@ public:
     std::string asString();
     DataType getType() const noexcept;
 };
-
-using Record = std::vector<BAG::CompoundDataType>;
-using Records = std::vector<BAG::Record>;
 
 template <typename T> T get(const CompoundDataType& v);
 %template(getFloat) get<float>;

@@ -1,4 +1,6 @@
 
+#include "bag_record.h"
+#include "bag_compounddatatype.h"
 #include "bag_compoundlayerdescriptor.h"
 #include "bag_dataset.h"
 #include "bag_exceptions.h"
