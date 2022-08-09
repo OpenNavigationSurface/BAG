@@ -59,4 +59,6 @@ template <typename T> T get(const CompoundDataType& v);
 %template(getBool) get<bool>;
 %template(getString) get<std::string>;
 
+using CompoundDataTypeVector = std::vector<BAG::CompoundDataType>;
+
 }; // namespace BAG

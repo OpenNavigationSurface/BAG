@@ -89,6 +89,15 @@ public:
         return m_fields[pos];
     }
 
+    /**
+    * setitem implemented to make overloading __setitem__ in Python easier.
+    * @param pos
+    * @return
+    */
+    void setitem(size_t pos, CompoundDataType& value) {
+        m_fields[pos] = value;
+    }
+
     CompoundDataType& operator[](size_t pos) {
         return m_fields[pos];
     }
