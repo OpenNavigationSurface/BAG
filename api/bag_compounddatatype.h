@@ -451,6 +451,8 @@ T get(const CompoundDataType& v)
     return detail::GetFromCompoundDataType<T>::get(v);
 }
 
+using CompoundDataTypeVector = std::vector<BAG::CompoundDataType>;
+
 }  // namespace BAG
 
 #endif  // BAG_COMPOUNDDATATYPES_H

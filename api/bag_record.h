@@ -16,7 +16,6 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
-using CompoundDataTypeVector = std::vector<BAG::CompoundDataType>;
 
 class BAG_API Record {
 public:
@@ -79,6 +78,15 @@ public:
 
     bool operator!=(const Record &rhs) const {
         return !(rhs == *this);
+    }
+
+    /**
+     * getitem implemented to make overloading __getitem__ in Python easier.
+     * @param pos
+     * @return
+     */
+    CompoundDataType& getitem(size_t pos) {
+        return m_fields[pos];
     }
 
     CompoundDataType& operator[](size_t pos) {
