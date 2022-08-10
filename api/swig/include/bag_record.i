@@ -13,8 +13,7 @@
 
 %import "bag_compounddatatype.i"
 
-%include "typemaps.i"
-%include "std_vector.i"
+%include <std_vector.i>
 
 
 namespace BAG {
@@ -78,5 +77,15 @@ public:
 };
 
 using Records = std::vector<BAG::Record>;
+%extend Records {
+    /**
+     * Overload len() in Python
+     */
+    size_t __len__() {
+        return $self->size();
+    }
+}
 
 }; // namespace BAG
+
+%template(Records) std::vector<BAG::Record>;
