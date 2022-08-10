@@ -47,6 +47,15 @@ public:
     bool operator!=(const LayerItems &rhs) const noexcept;
 };
 
+%extend LayerItems {
+    /**
+     * Overload [] (read) in Python
+     */
+    uint8_t __getitem__(size_t pos) {
+        return $self->data()[pos];
+    }
+
+};
 
 %template(FloatLayerItems) LayerItems::LayerItems<float>;
 %template(SurfaceCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;

@@ -85,7 +85,6 @@ def main():
             # columnStart and columnEnd can be moved outside of the loop, but are here for simplicity
             columnStart: int = 0
             columnEnd: int = kGridSize - 1
-            # can we just pass a numpy array to a LayerItem?!?!
             buffer: BAG.FloatLayerItems = BAG.FloatLayerItems(uncert)
             uncertaintyLayer.write(row, columnStart, row, columnEnd, buffer)
     except Exception as e:
@@ -172,7 +171,6 @@ def main():
         numElements: int = (rowEnd - rowStart + 1) * numColumns
         firstBuffer: np.ndarray = np.full(numElements, firstRecordIndex, dtype=np.ushort)
 
-        # can we just pass a numpy array to a LayerItem?!?!
         buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(firstBuffer)
         compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             buffer)
@@ -191,7 +189,6 @@ def main():
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1)
         secondBuffer: np.ndarray = np.full(numElements, secondRecordIndex, dtype=np.ushort)
 
-        # can we just pass a numpy array to a LayerItem?!?!
         buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(secondBuffer)
         compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             buffer)
@@ -207,6 +204,26 @@ def main():
 
         buff = compoundLayer.read(rowStart, columnStart, rowEnd,
                                   columnEnd)
+        numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1)
+        records: BAG.Records = valueTable.getRecords()
+
+        for i in range(numElements):
+            recordIndex: int = buff[i]
+
+            # Retrieve values via the ValueTable::getValue().
+            # Get survey_date_start by field name
+            surveyDateStart: BAG.CompoundDataType = valueTable.getValue(recordIndex,
+                                                                        "survey_date_start")
+            logger.info(f"survey_date_start is {surveyDateStart.asString()} from record index: {recordIndex}")
+
+            # Get feature_size by field index.
+            fieldIndex: int = valueTable.getFieldIndex("feature_size")
+            featureSize: BAG.CompoundDataType = valueTable.getValue(recordIndex,
+                                                                    fieldIndex)
+            logger.info(f"feature_size is {featureSize.asFloat()} from record index: {recordIndex}")
+
+
+
         print(buff)
 
     except TypeError as e:
