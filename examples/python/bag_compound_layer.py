@@ -170,7 +170,7 @@ def main():
         # The buffer contains the first record's index covering the first four
         # rows (across all the columns).
         numElements: int = (rowEnd - rowStart + 1) * numColumns
-        firstBuffer: np.ndarray = np.full(numElements, firstRecordIndex)
+        firstBuffer: np.ndarray = np.full(numElements, firstRecordIndex, dtype=np.ushort)
 
         # can we just pass a numpy array to a LayerItem?!?!
         buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(firstBuffer)
@@ -189,7 +189,7 @@ def main():
         # The buffer contains the second record's index covering the first four
         # rows (across all the columns).
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1)
-        secondBuffer: np.ndarray = np.full(numElements, secondRecordIndex)
+        secondBuffer: np.ndarray = np.full(numElements, secondRecordIndex, dtype=np.ushort)
 
         # can we just pass a numpy array to a LayerItem?!?!
         buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(secondBuffer)
@@ -208,6 +208,9 @@ def main():
         buff = compoundLayer.read(rowStart, columnStart, rowEnd,
                                   columnEnd)
         print(buff)
+
+    except TypeError as e:
+        return f"TypeError: {str(e)}"
 
     except Exception as e:
         return str(e)

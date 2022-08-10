@@ -13,11 +13,13 @@
 
 %{
 #define SWIG_FILE_WITH_INIT
+#define SWIG_PYTHON_CAST_MODE
 %}
 
 //! Common templates used by multiple interfaces
 %include <stdint.i>
 %include <std_pair.i>
+%include <std_vector.i>
 %include <stl.i>
 
 namespace std
@@ -28,6 +30,7 @@ namespace std
     %template(Cover) pair<pair<double, double>, pair<double, double> >;
     %template(FloatVector) vector<float>;
     %template(UInt32Vector) vector<uint32_t>;
+    %template(UInt16Vector) vector<uint16_t>;
 }
 
 %include "../include/bag_c_types.i"

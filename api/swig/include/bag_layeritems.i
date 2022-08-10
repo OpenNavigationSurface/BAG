@@ -14,11 +14,8 @@
 %import "bag_c_types.i"
 %import "bag_uint8array.i"
 
-%include "std_vector.i"
-%include "stdint.i"
-
-//%template(FloatItems) std::vector<float>;
-//%template(UInt32Items) std::vector<uint32_t>;
+%include <std_vector.i>
+%include <stdint.i>
 
 %template(BagVerticalDatumCorrectionsItems) std::vector<BagVerticalDatumCorrections>;
 %template(BagVerticalDatumCorrectionsGriddedItems) std::vector<BagVerticalDatumCorrectionsGridded>;
@@ -50,9 +47,11 @@ public:
     bool operator!=(const LayerItems &rhs) const noexcept;
 };
 
+
 %template(FloatLayerItems) LayerItems::LayerItems<float>;
 %template(SurfaceCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
 %template(SurfaceCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
+
 %template(UInt16LayerItems) LayerItems::LayerItems<uint16_t>;
 %template(UInt32LayerItems) LayerItems::LayerItems<uint32_t>;
 %template(VRMetadataLayerItems) LayerItems::LayerItems<BagVRMetadataItem>;
