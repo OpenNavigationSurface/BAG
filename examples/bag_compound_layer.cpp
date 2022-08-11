@@ -41,7 +41,7 @@ int main(
      */
 
     // Initial construction from the XML metadata example file provided.
-    std::cout << "Creating the BAG from XML file metadata, ";
+    std::cout << "Creating the BAG from XML file metadata..." << std::endl;
 
     BAG::Metadata metadata;
 

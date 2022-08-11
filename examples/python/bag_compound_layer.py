@@ -1,14 +1,11 @@
 import os
 import sys
 import argparse
-import logging
+import struct
 
 import numpy as np
 
 import bagPy as BAG
-
-
-logger = logging.getLogger(__name__)
 
 
 kGridSize: int = 100
@@ -21,11 +18,8 @@ def main():
     parser.add_argument('outFileName', metavar='outFileName', help='File to write BAG to')
     args = parser.parse_args()
 
-    log_config = {'level': logging.INFO}
-    logging.basicConfig(**log_config)
-
     # Initial construction from the XML metadata example file provided.
-    logger.info("Creating the BAG from XML file metadata, ")
+    print("Creating the BAG from XML file metadata...")
 
     metadata: BAG.Metadata = BAG.Metadata()
 
@@ -204,27 +198,40 @@ def main():
 
         buff = compoundLayer.read(rowStart, columnStart, rowEnd,
                                   columnEnd)
+        # Cast from uint8_t into unint16_t
+        buffer_raw = bytes([b for b in buff])
+        buffer = struct.unpack_from(f"{len(buffer_raw)//2}H", buffer_raw)
+
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1)
         records: BAG.Records = valueTable.getRecords()
 
         for i in range(numElements):
-            recordIndex: int = buff[i]
+            recordIndex: int = buffer[i]
 
             # Retrieve values via the ValueTable::getValue().
             # Get survey_date_start by field name
             surveyDateStart: BAG.CompoundDataType = valueTable.getValue(recordIndex,
                                                                         "survey_date_start")
-            logger.info(f"survey_date_start is {surveyDateStart.asString()} from record index: {recordIndex}")
+            print(f"survey_date_start is {surveyDateStart.asString()} from record index: {recordIndex}")
 
             # Get feature_size by field index.
             fieldIndex: int = valueTable.getFieldIndex("feature_size")
             featureSize: BAG.CompoundDataType = valueTable.getValue(recordIndex,
                                                                     fieldIndex)
-            logger.info(f"feature_size is {featureSize.asFloat()} from record index: {recordIndex}")
+            print(f"feature_size is {featureSize.asFloat()} from record index: {recordIndex}")
 
+            # Another way to grab the values using the records directly.
+            # This only supports numerical indices.
 
+            # Get survey_date_start.
+            fieldIndex: int = valueTable.getFieldIndex("survey_date_start")
+            surveyDateStart: BAG.CompoundDataType = records[recordIndex][fieldIndex]
+            print(f"survey_date_start is {surveyDateStart.asString()} from record index: {recordIndex}")
 
-        print(buff)
+            # Get feature_size.
+            fieldIndex: int = valueTable.getFieldIndex("feature_size")
+            featureSize: BAG.CompoundDataType = records[recordIndex][fieldIndex]
+            print(f"feature_size is {featureSize.asFloat()} from record index: {recordIndex}")
 
     except TypeError as e:
         return f"TypeError: {str(e)}"
@@ -232,6 +239,7 @@ def main():
     except Exception as e:
         return str(e)
 
+    print("BAG with compound layer created")
 
     return os.EX_OK
 

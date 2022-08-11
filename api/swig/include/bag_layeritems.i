@@ -49,12 +49,28 @@ public:
 
 %extend LayerItems {
     /**
+     * Overload len() in Python
+     */
+    size_t __len__() {
+        return $self->size();
+    }
+
+    /**
      * Overload [] (read) in Python
      */
     uint8_t __getitem__(size_t pos) {
         return $self->data()[pos];
     }
 
+    %pythoncode %{
+
+    def __iter__(self):
+        """
+          Implement iterator using yield
+        """
+        for i in range(len(self)):
+            yield self[i]
+    %}
 };
 
 %template(FloatLayerItems) LayerItems::LayerItems<float>;
