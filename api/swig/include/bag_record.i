@@ -77,14 +77,6 @@ public:
 };
 
 using Records = std::vector<BAG::Record>;
-%extend Records {
-    /**
-     * Overload len() in Python
-     */
-    size_t __len__() {
-        return $self->size();
-    }
-}
 
 }; // namespace BAG
 
