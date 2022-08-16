@@ -38,6 +38,7 @@ public:
     size_t getFieldIndex(const std::string& name) const;
     const char* getFieldName(size_t index) const &;
 
+    %rename(_addRecord) addRecord;
     size_t addRecord(const Record& record);
     void addRecords(const Records& records);
 
@@ -47,7 +48,6 @@ public:
         const CompoundDataType& value);
 };
 
-%rename(_addRecord) addRecord;
 %extend ValueTable {
     %pythoncode %{
         def addRecord(self, record):
@@ -58,7 +58,7 @@ public:
             new_rec = Record()
             for r in record:
                 new_rec.append(r)
-            return _bagPyd.ValueTable_addRecord(self, new_rec)
+            return self._addRecord(new_rec)
     %}
 };
 
