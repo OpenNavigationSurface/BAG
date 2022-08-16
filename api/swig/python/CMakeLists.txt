@@ -10,6 +10,11 @@ set_source_files_properties("bagpy.i" PROPERTIES
     COMPILE_FLAGS "--std=c++14"
 )
 
+# Proper Python exception generation results in larger code, which MSVC can't handle by default 
+if (MSVC)
+    add_compile_options(/bigobj)
+endif()
+
 swig_add_library(bagPy TYPE SHARED LANGUAGE python
     SOURCES "bagpy.i"
 )
