@@ -53,12 +53,16 @@ public:
     DataType getType() const noexcept;
 };
 
+using Record = std::vector<BAG::CompoundDataType>;
+using Records = std::vector<BAG::Record>;
+
 template <typename T> T get(const CompoundDataType& v);
 %template(getFloat) get<float>;
 %template(getUInt32) get<uint32_t>;
 %template(getBool) get<bool>;
 %template(getString) get<std::string>;
 
-using CompoundDataTypeVector = std::vector<BAG::CompoundDataType>;
-
 }; // namespace BAG
+
+%template(Record) std::vector<BAG::CompoundDataType>;
+%template(Records) std::vector<BAG::Record>;

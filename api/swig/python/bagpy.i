@@ -43,7 +43,6 @@ namespace std
 
 %include "../include/bag_exceptions.i"
 %include "../include/bag_compounddatatype.i"
-%include "../include/bag_record.i"
 %include "../include/bag_layerdescriptor.i"
 %include "../include/bag_vrmetadatadescriptor.i"
 %include "../include/bag_vrnodedescriptor.i"

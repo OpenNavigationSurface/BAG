@@ -3,6 +3,7 @@
 
 #include "bag_config.h"
 #include "bag_fordec.h"
+#include "bag_compounddatatype.h"
 
 #include <memory>
 

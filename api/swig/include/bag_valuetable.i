@@ -12,7 +12,6 @@
 %}
 
 %include "bag_compounddatatype.i"
-%include "bag_record.i"
 
 %include <std_string.i>
 %include <stdint.i>
@@ -46,6 +45,21 @@ public:
         const CompoundDataType& value);
     void setValue(size_t recordIndex, size_t fieldIndex,
         const CompoundDataType& value);
+};
+
+%rename(_addRecord) addRecord;
+%extend ValueTable {
+    %pythoncode %{
+        def addRecord(self, record):
+            """
+              Override addRecord to get around SWIG mis-handling (which may be due to
+              mis-configuration) of std::vector boxing and unboxing.
+            """
+            new_rec = Record()
+            for r in record:
+                new_rec.append(r)
+            return _bagPyd.ValueTable_addRecord(self, new_rec)
+    %}
 };
 
 }  // namespace BAG

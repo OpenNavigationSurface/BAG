@@ -408,15 +408,13 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
     constexpr size_t kExpectedNumRecords = 2;
 
     BAG::Record kExpectedNewRecord0 {
-        BAG::CompoundDataTypeVector{
-                BAG::CompoundDataType{std::string{"Bob"}},
-                BAG::CompoundDataType{std::string{"Jones"}},
-                BAG::CompoundDataType{42.2f},
-                BAG::CompoundDataType{102u},
-                BAG::CompoundDataType{true},
-                BAG::CompoundDataType{1234.567f},
-                BAG::CompoundDataType{std::string{"101 Tape Drive"}}
-        }
+        BAG::CompoundDataType{std::string{"Bob"}},
+        BAG::CompoundDataType{std::string{"Jones"}},
+        BAG::CompoundDataType{42.2f},
+        BAG::CompoundDataType{102u},
+        BAG::CompoundDataType{true},
+        BAG::CompoundDataType{1234.567f},
+        BAG::CompoundDataType{std::string{"101 Tape Drive"}}
     };
 
     // Write a record.
@@ -519,15 +517,13 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
     }
 
     BAG::Record kExpectedNewRecord1 {
-        BAG::CompoundDataTypeVector{
-            BAG::CompoundDataType{std::string{"Ernie"}},
-            BAG::CompoundDataType{std::string{"Jones"}},
-            BAG::CompoundDataType{987.6543f},
-            BAG::CompoundDataType{1001u},
-            BAG::CompoundDataType{false},
-            BAG::CompoundDataType{0.08642f},
-            BAG::CompoundDataType{std::string{"404 Disk Drive"}}
-        }
+        BAG::CompoundDataType{std::string{"Ernie"}},
+        BAG::CompoundDataType{std::string{"Jones"}},
+        BAG::CompoundDataType{987.6543f},
+        BAG::CompoundDataType{1001u},
+        BAG::CompoundDataType{false},
+        BAG::CompoundDataType{0.08642f},
+        BAG::CompoundDataType{std::string{"404 Disk Drive"}}
     };
 
     // Set some new values an existing record.
@@ -645,28 +641,18 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
 
     // The Record definition.
     BAG::Record kExpectedNewRecord0 {
-        BAG::CompoundDataTypeVector{
-            BAG::CompoundDataType{false},
-            BAG::CompoundDataType{std::string{"string1"}},
-            BAG::CompoundDataType{true}
-        }
+        BAG::CompoundDataType{false},
+        BAG::CompoundDataType{std::string{"string1"}},
+        BAG::CompoundDataType{true}
     };
 
     // The expected Records.
     using BAG::CompoundDataType;
     const BAG::Records kExpectedRecords {
-        BAG::CompoundDataTypeVector{
-            {CompoundDataType{true}, CompoundDataType{std::string{"string 1"}}, CompoundDataType{true}}
-        },
-        BAG::CompoundDataTypeVector{
-            {CompoundDataType{true}, CompoundDataType{std::string{"string 2"}}, CompoundDataType{false}}
-        },
-        BAG::CompoundDataTypeVector{
-            {CompoundDataType{false}, CompoundDataType{std::string{"string 3"}}, CompoundDataType{true}}
-        },
-        BAG::CompoundDataTypeVector{
-            {CompoundDataType{false}, CompoundDataType{std::string{"string 4"}}, CompoundDataType{false}}
-        }
+        {CompoundDataType{true}, CompoundDataType{std::string{"string 1"}}, CompoundDataType{true}},
+        {CompoundDataType{true}, CompoundDataType{std::string{"string 2"}}, CompoundDataType{false}},
+        {CompoundDataType{false}, CompoundDataType{std::string{"string 3"}}, CompoundDataType{true}},
+        {CompoundDataType{false}, CompoundDataType{std::string{"string 4"}}, CompoundDataType{false}}
     };
 
     const size_t kExpectedNumRecords = kExpectedRecords.size() + 1;

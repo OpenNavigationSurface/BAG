@@ -1,7 +1,6 @@
 #ifndef BAG_COMPOUNDLAYER
 #define BAG_COMPOUNDLAYER
 
-#include "bag_record.h"
 #include "bag_compounddatatype.h"
 #include "bag_compoundlayerdescriptor.h"
 #include "bag_config.h"
