@@ -58,7 +58,7 @@ build_script:
   - build\tests\bag_tests.exe
   - python build\api\swig\python\setup.py install
   - copy build\api\baglib.dll "%MINICONDA%"\envs\test-environment\baglib.dll
-  - pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python\test_*.py
+  - pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python
 
 deploy: off
 
