@@ -37,7 +37,6 @@ def main():
         dataset = BAG.Dataset.create(args.outFileName, metadata, chunkSize, compressionLevel)
     except FileExistsError as e:
         mesg = f"Unable to create BAG '{args.outFileName}'; file already exists."
-        logger.error(mesg)
         return mesg
 
     # Write the elevation layer, constructing bogus data as we do so.
