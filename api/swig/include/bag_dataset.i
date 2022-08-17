@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -109,12 +111,11 @@ public:
     Descriptor& getDescriptor() & noexcept;
     //const Descriptor& getDescriptor() const & noexcept;
 
-#if 0
+    // Converted to std::pair<T, T> below.
     //! Intentionally omit exposing of std::tuple methods (unsupported by SWIG), 
     //! so they can be exposed with std::pair below.
-    std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept;
-    std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
-#endif
+    //std::tuple<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept;
+    //std::tuple<uint32_t, uint32_t> geoToGrid(double x, double y) const noexcept;
 };
 
 %extend Dataset

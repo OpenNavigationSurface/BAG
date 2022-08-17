@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -45,13 +47,12 @@ public:
 
     uint8_t getNumCorrectors() const noexcept;
 
-#if 0
-    //! Intentionally omit exposing of std::tuple method (unsupported by SWIG), 
+    // Converted to std::pair<T, T> below.
+    //! Intentionally omit exposing of std::tuple method (unsupported by SWIG),
     //! so it can be exposed with std::pair below.
-    std::tuple<uint32_t, uint32_t> getDims() const noexcept;
-    std::tuple<double, double> getOrigin() const noexcept;
-    std::tuple<double, double> getSpacing() const noexcept;
-#endif
+    //std::tuple<uint32_t, uint32_t> getDims() const noexcept;
+    //std::tuple<double, double> getOrigin() const noexcept;
+    //std::tuple<double, double> getSpacing() const noexcept;
 
     BAG_SURFACE_CORRECTION_TOPOGRAPHY getSurfaceType() const noexcept;
     const std::string& getVerticalDatums() const & noexcept;

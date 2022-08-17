@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -33,6 +35,8 @@ public:
     bool operator!=(const VRRefinementsDescriptor &rhs) const noexcept;
 
     // Converted to std::pair<T, T> below.
+    //! Intentionally omit exposing of std::tuple method (unsupported by SWIG),
+    //! so it can be exposed with std::pair below.
     //std::tuple<float, float> getMinMaxDepth() const noexcept;
     //std::tuple<float, float> getMinMaxUncertainty() const noexcept;
 

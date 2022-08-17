@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -62,15 +64,14 @@ namespace BAG {
         
         const std::string& getVerticalReferenceSystem() const & noexcept;
 
-#if 0
-        //! Intentionally omit exposing of std::tuple method (unsupported by SWIG), 
+        // Converted to std::pair<T, T> below.
+        //! Intentionally omit exposing of std::tuple method (unsupported by SWIG),
         //! so it can be exposed with std::pair below.
-        const std::tuple<uint32_t, uint32_t>& getDims() const & noexcept;
-        const std::tuple<double, double, double, double>&
-          getProjectedCover() const & noexcept;
-        const std::tuple<double, double>& getOrigin() const & noexcept;
-        const std::tuple<double, double>& getGridSpacing() const & noexcept;
-#endif
+        //const std::tuple<uint32_t, uint32_t>& getDims() const & noexcept;
+        //const std::tuple<double, double, double, double>&
+        //getProjectedCover() const & noexcept;
+        //const std::tuple<double, double>& getOrigin() const & noexcept;
+        //const std::tuple<double, double>& getGridSpacing() const & noexcept;
 
         Descriptor& setVerticalReferenceSystem(
             const std::string& verticalReferenceSystem) & noexcept;

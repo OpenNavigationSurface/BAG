@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -38,7 +40,9 @@ public:
     size_t getFieldIndex(const std::string& name) const;
     const char* getFieldName(size_t index) const &;
 
+#ifdef SWIGPYTHON
     %rename(_addRecord) addRecord;
+#endif
     size_t addRecord(const Record& record);
     void addRecords(const Records& records);
 
@@ -48,6 +52,7 @@ public:
         const CompoundDataType& value);
 };
 
+#ifdef SWIGPYTHON
 %extend ValueTable {
     %pythoncode %{
         def addRecord(self, record):
@@ -61,6 +66,7 @@ public:
             return self._addRecord(new_rec)
     %}
 };
+#endif
 
 }  // namespace BAG
 

@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -41,11 +43,10 @@ public:
     const std::string& getInternalPath() const & noexcept;
     LayerType getLayerType() const noexcept;
 
-#if 0
+    // Converted to std::pair<T, T> below.
     //! Intentionally omit exposing of std::tuple method (unsupported by SWIG),
     //! so it can be exposed with std::pair below.
-    std::tuple<float, float> getMinMax() const noexcept;
-#endif
+    //std::tuple<float, float> getMinMax() const noexcept;
 
     const std::string& getName() const & noexcept;
 

@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -13,6 +15,7 @@
 #define final
 #define BAG_API
 
+#ifdef SWIGPYTHON
 %{
 #define CATCH_PE(Namespace,Exception) \
     catch(const Namespace::Exception &e) \
@@ -70,7 +73,9 @@
    ACTION(BAG,InvalidVRRefinementDimensions) \
 /**/
 %}
+#endif
 
+#ifdef SWIGPYTHON
 %exceptionclass BAG::ErrorLoadingMetadata;
 // Delete any previous exception handlers.
 %exception;
@@ -86,9 +91,11 @@
         SWIG_fail;
     }
 }
+#endif
 
 %include "bag_exceptions.h"
 
+#ifdef SWIGPYTHON
 %inline %{
 // The -builtin SWIG option results in SWIGPYTHON_BUILTIN being defined
 #ifdef SWIGPYTHON_BUILTIN
@@ -97,3 +104,4 @@ bool is_python_builtin() { return true; }
 bool is_python_builtin() { return false; }
 #endif
 %}
+#endif

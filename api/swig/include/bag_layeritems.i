@@ -1,6 +1,8 @@
 %begin %{
 #ifdef _MSC_VER
+#ifdef SWIGPYTHON
 #define SWIG_PYTHON_INTERPRETER_NO_DEBUG
+#endif
 #endif
 %}
 
@@ -47,6 +49,7 @@ public:
     bool operator!=(const LayerItems &rhs) const noexcept;
 };
 
+#ifdef SWIGPYTHON
 %extend LayerItems {
     /**
      * Overload len() in Python
@@ -72,6 +75,7 @@ public:
             yield self[i]
     %}
 };
+#endif
 
 %template(FloatLayerItems) LayerItems::LayerItems<float>;
 %template(SurfaceCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
