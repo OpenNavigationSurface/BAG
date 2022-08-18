@@ -1,5 +1,10 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-import shutil, pathlib
+
 import bagMetadataSamples, testUtils
 
 
@@ -9,166 +14,156 @@ chunkSize = 100
 compressionLevel = 6
 
 
-# define the unit test methods:
-print("Testing Dataset")
+class TestDataset(unittest.TestCase):
+    def testReadOnly(self):
+        bagFileName = datapath + "/sample.bag"
 
-def testReadOnly():
-    bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
+        kNumExpectedLayers = 4
+        numLayerTypes = len(dataset.getLayerTypes())
 
-    kNumExpectedLayers = 4
-    numLayerTypes = len(dataset.getLayerTypes())
+        self.assertEqual(numLayerTypes, kNumExpectedLayers)
 
-    assert(numLayerTypes == kNumExpectedLayers)
+    def testReadWrite(self):
+        bagFileName = datapath + "/sample.bag"
+        tmpFile = testUtils.RandomFileGuard("file", bagFileName)
 
-def testReadWrite():
-    bagFileName = datapath + "/sample.bag"
-    tmpFile = testUtils.RandomFileGuard("file", bagFileName)
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
-    assert(dataset)
+        kNumExpectedLayers = 4
+        numLayerTypes = len(dataset.getLayerTypes())
+        self.assertEqual(numLayerTypes, kNumExpectedLayers)
 
-    kNumExpectedLayers = 4
-    numLayerTypes = len(dataset.getLayerTypes())
-    assert(numLayerTypes == kNumExpectedLayers)
+        simpleLayer = dataset.createSimpleLayer(Average_Elevation, chunkSize, compressionLevel)
+        self.assertIsNotNone(simpleLayer)
 
-    simpleLayer = dataset.createSimpleLayer(Average_Elevation, chunkSize, compressionLevel)
-    assert(simpleLayer)
+        numLayerTypes2 = len(dataset.getLayerTypes())
+        self.assertEqual(numLayerTypes2, (numLayerTypes + 1))
 
-    numLayerTypes2 = len(dataset.getLayerTypes())
-    assert(numLayerTypes2 == (numLayerTypes + 1))
+        del dataset #ensure dataset is deleted before tmpFile
 
-    del dataset #ensure dataset is deleted before tmpFile
+    def testCreation(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
 
-def testCreation():
-    tmpFile = testUtils.RandomFileGuard("name")
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML);
+        dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
-    assert(dataset)
+        numLayerTypes = len(dataset.getLayerTypes())
+        kNumExpectedLayers = 2
+        self.assertEqual(numLayerTypes, kNumExpectedLayers)
 
-    numLayerTypes = len(dataset.getLayerTypes())
-    kNumExpectedLayers = 2
-    assert(numLayerTypes == kNumExpectedLayers)
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
-    assert(dataset)
+        numLayerTypes = len(dataset.getLayerTypes())
+        self.assertEqual(numLayerTypes, kNumExpectedLayers)
 
-    numLayerTypes = len(dataset.getLayerTypes())
-    assert(numLayerTypes == kNumExpectedLayers)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    del dataset #ensure dataset is deleted before tmpFile
+    def testGetLayerTypes(self):
+        bagFileName = datapath + "/NAVO_data/JD211_Public_Release_1-5.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-def testGetLayerTypes():
-    bagFileName = datapath + "/NAVO_data/JD211_Public_Release_1-5.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
+        numLayerTypes = len(dataset.getLayerTypes())
+        self.assertEqual(numLayerTypes, 2)
 
-    numLayerTypes = len(dataset.getLayerTypes())
-    assert(numLayerTypes == 2)
+    def testAddLayer(self):
+        bagFileName = datapath + "/sample.bag"
+        tmpFile = testUtils.RandomFileGuard("file", bagFileName)
 
-def testAddLayer():
-    bagFileName = datapath + "/sample.bag"
-    tmpFile = testUtils.RandomFileGuard("file", bagFileName)
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
-    assert(dataset)
+        kNumExpectedLayers = 4
+        numLayerTypes = len(dataset.getLayerTypes())
+        self.assertEqual(numLayerTypes, kNumExpectedLayers)
 
-    kNumExpectedLayers = 4
-    numLayerTypes = len(dataset.getLayerTypes())
-    assert(numLayerTypes == kNumExpectedLayers)
+        simpleLayer = dataset.createSimpleLayer(Average_Elevation, chunkSize, compressionLevel)
+        self.assertIsNotNone(simpleLayer)
 
-    simpleLayer = dataset.createSimpleLayer(Average_Elevation, chunkSize, compressionLevel)
-    assert(simpleLayer)
+        numLayerTypes = len(dataset.getLayerTypes())
+        self.assertEqual(numLayerTypes, (kNumExpectedLayers + 1))
 
-    numLayerTypes = len(dataset.getLayerTypes())
-    assert(numLayerTypes == (kNumExpectedLayers + 1))
+        del dataset #ensure dataset is deleted before tmpFile
 
-    del dataset #ensure dataset is deleted before tmpFile
+    def testGetLayer(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-def testGetLayer():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
-    assert(dataset)
+        kNumExpectedLayers = 4
+        layers = dataset.getLayers()
+        numLayers = len(layers)
+        self.assertEqual(numLayers, kNumExpectedLayers)
 
-    kNumExpectedLayers = 4
-    layers = dataset.getLayers();
-    numLayers = len(layers)
-    assert(numLayers == kNumExpectedLayers)
+        for layer in layers:
+            layerFromId = dataset.getLayer(layer.getDescriptor().getId())
+            self.assertEqual(layerFromId.getDescriptor().getInternalPath(),
+                             layer.getDescriptor().getInternalPath())
 
-    for layer in layers:
-        layerFromId = dataset.getLayer(layer.getDescriptor().getId())
-        assert(layerFromId.getDescriptor().getInternalPath() 
-               == layer.getDescriptor().getInternalPath())
+    def testGetTrackingList(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-def testGetTrackingList():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
-    assert(dataset)
+        trackingList = dataset.getTrackingList()
+        self.assertIsNotNone(trackingList)
+        self.assertTrue(trackingList.empty())
+        self.assertEqual(trackingList.size(), 0)
 
-    trackingList = dataset.getTrackingList()
-    assert(trackingList)
-    assert(trackingList.empty())
-    assert(trackingList.size() == 0)
+    def testGetMetadata(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-def testGetMetadata():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
-    assert(dataset)
-    
-    metadata = dataset.getMetadata()
-    assert(metadata)
+        metadata = dataset.getMetadata()
+        self.assertIsNotNone(metadata)
 
-    kExpectedLLcornerX = 687910.0
-    kExpectedLLcornerY = 5554620.0
-    assert(metadata.llCornerX() == kExpectedLLcornerX)
-    assert(metadata.llCornerY() == kExpectedLLcornerY)
+        kExpectedLLcornerX = 687910.0
+        kExpectedLLcornerY = 5554620.0
+        self.assertEqual(metadata.llCornerX(), kExpectedLLcornerX)
+        self.assertEqual(metadata.llCornerY(), kExpectedLLcornerY)
 
-def testGridToGeo():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
-    assert(dataset)
+    def testGridToGeo(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-    x = 0.0
-    y = 0.0
-    xy = dataset.gridToGeo(0, 0)
-    assert(xy[0] == 687910.0);
-    assert(xy[1] == 5554620.0);
+        x = 0.0
+        y = 0.0
+        xy = dataset.gridToGeo(0, 0)
+        self.assertEqual(xy[0], 687910.0)
+        self.assertEqual(xy[1], 5554620.0)
 
-def testGeoToGrid():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
-    assert(dataset)
+    def testGeoToGrid(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-    row = 123
-    column = 456
-    rc = dataset.geoToGrid(687910.0, 5554620.0)
-    assert(rc[0] == 0)
-    assert(rc[1] == 0)
+        row = 123
+        column = 456
+        rc = dataset.geoToGrid(687910.0, 5554620.0)
+        self.assertEqual(rc[0], 0)
+        self.assertEqual(rc[1], 0)
 
-def testGetDescriptor():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
-    assert(dataset)
+    def testGetDescriptor(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-    descriptor = dataset.getDescriptor()
-    assert(descriptor)
-    assert(descriptor.isReadOnly() == False)
+        descriptor = dataset.getDescriptor()
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.isReadOnly(), False)
 
 
-
-# run the unit test methods
-testReadOnly()
-testReadWrite()
-testCreation()
-testGetLayerTypes()
-testAddLayer()
-testGetLayer()
-testGetTrackingList()
-testGetMetadata()
-testGridToGeo()
-testGeoToGrid();
-testGetDescriptor()
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

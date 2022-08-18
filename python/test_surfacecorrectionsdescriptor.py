@@ -1,7 +1,11 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-import shutil, pathlib, math
+
 import bagMetadataSamples, testUtils
-import sys
 
 
 # define constants used in multiple tests
@@ -10,216 +14,200 @@ kExpectedChunkSize = 100
 kExpectedCompressionLevel = 6
 
 
-# define the unit test methods:
-print("Testing SurfaceCorrectionsDescriptor")
+class TestSurfaceCorrectionsDescriptor(unittest.TestCase):
+    def testCreation(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        #print(tmpFile.getName())
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-def testCreation():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
+        self.assertEqual(descriptor.getLayerType(), Elevation)
+        self.assertEqual(descriptor.getChunkSize(), kExpectedChunkSize)
+        self.assertEqual(descriptor.getCompressionLevel(), kExpectedCompressionLevel)
 
-    assert(descriptor.getLayerType() == Elevation)
-    assert(descriptor.getChunkSize() == kExpectedChunkSize)
-    assert(descriptor.getCompressionLevel() == kExpectedCompressionLevel)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    del dataset #ensure dataset is deleted before tmpFile
+    def testGetSetName(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-def testGetSetName():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        kExpectedName = "Expected Name"
+        descriptor.setName(kExpectedName)
+        self.assertEqual(descriptor.getName(), kExpectedName)
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    kExpectedName = "Expected Name"
-    descriptor.setName(kExpectedName)
-    assert(descriptor.getName() == kExpectedName)
+    def testGetDataType(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-    del dataset #ensure dataset is deleted before tmpFile
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-def testGetDataType():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        self.assertEqual(descriptor.getDataType(), Layer.getDataType(Elevation))
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    assert(descriptor.getDataType() == Layer.getDataType(Elevation))
+    def testGetLayerType(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-    del dataset #ensure dataset is deleted before tmpFile
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-def testGetLayerType():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        self.assertEqual(descriptor.getLayerType(), Elevation)
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
+        descriptor = SimpleLayerDescriptor.create(dataset, Std_Dev,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
 
-    assert(descriptor.getLayerType() == Elevation)
+        self.assertEqual(descriptor.getDataType(), Layer.getDataType(Std_Dev))
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Std_Dev,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
-
-    assert(descriptor.getDataType() == Layer.getDataType(Std_Dev))
+        del dataset #ensure dataset is deleted before tmpFile
     
-    del dataset #ensure dataset is deleted before tmpFile
-    
-def testGetSetMinMax():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+    def testGetSetMinMax(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
 
-    kExpectedMin = 1.2345
-    kExpectedMax = 9876.54321
-    descriptor.setMinMax(kExpectedMin, kExpectedMax)
+        kExpectedMin = 1.2345
+        kExpectedMax = 9876.54321
+        descriptor.setMinMax(kExpectedMin, kExpectedMax)
 
-    actualMinMax = descriptor.getMinMax()
-    assert(math.isclose(actualMinMax[0], kExpectedMin, rel_tol=1e-7))
-    assert(math.isclose(actualMinMax[1], kExpectedMax, rel_tol=1e-7))
+        actualMinMax = descriptor.getMinMax()
+        self.assertAlmostEqual(actualMinMax[0], kExpectedMin, places=4)
+        self.assertAlmostEqual(actualMinMax[1], kExpectedMax, places=3)
 
-    del dataset #ensure dataset is deleted before tmpFile
+        del dataset #ensure dataset is deleted before tmpFile
   
-def testGetInternalPath():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+    def testGetInternalPath(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
-    assert(descriptor.getInternalPath() == Layer.getInternalPath(Elevation))
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getInternalPath(), Layer.getInternalPath(Elevation))
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Uncertainty,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
-    assert(descriptor.getInternalPath() == Layer.getInternalPath(Uncertainty))
-    
-    del dataset #ensure dataset is deleted before tmpFile
+        descriptor = SimpleLayerDescriptor.create(dataset, Uncertainty,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getInternalPath(), Layer.getInternalPath(Uncertainty))
 
-def testGetElementSize():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+    def testGetElementSize(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
-    assert(descriptor.getElementSize() ==
-        Layer.getElementSize(Layer.getDataType(Elevation)))
-    
-    del dataset #ensure dataset is deleted before tmpFile
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-def testGetChunkSize():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getElementSize(),
+                         Layer.getElementSize(Layer.getDataType(Elevation)))
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
-    assert(descriptor.getChunkSize() == kExpectedChunkSize)
-    
-    del dataset #ensure dataset is deleted before tmpFile
+    def testGetChunkSize(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-def testGetCompressionLevel():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(dataset)
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getChunkSize(), kExpectedChunkSize)
 
-    descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel)
-    assert(descriptor)
-    assert(descriptor.getCompressionLevel() == kExpectedCompressionLevel)
-    
-    del dataset #ensure dataset is deleted before tmpFile
+        del dataset #ensure dataset is deleted before tmpFile
+
+    def testGetCompressionLevel(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
+
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(dataset)
+
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+                                                  kExpectedChunkSize, kExpectedCompressionLevel)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getCompressionLevel(), kExpectedCompressionLevel)
+
+        del dataset #ensure dataset is deleted before tmpFile
 
 
-# run the unit test methods
-testCreation()
-testGetSetName()
-testGetDataType()
-testGetLayerType()
-testGetSetMinMax()
-testGetInternalPath()
-testGetElementSize()
-testGetChunkSize()
-testGetCompressionLevel()
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

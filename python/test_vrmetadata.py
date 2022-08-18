@@ -1,8 +1,12 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-from math import isclose
-import shutil, pathlib
+
 import bagMetadataSamples, testUtils
-import sys
+
 
 # define constants used in multiple tests
 datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
@@ -12,169 +16,167 @@ compressionLevel = 6
 
 print("Testing VRMetadata")
 
-def testCreateOpen():
-    tmpBagFile = testUtils.RandomFileGuard("name")
+class TestVRMetadata(unittest.TestCase):
+    def testCreateOpen(self):
+        tmpBagFile = testUtils.RandomFileGuard("name")
 
-    # test create
-    metadata = Metadata()
-    assert(metadata)
+        # test create
+        metadata = Metadata()
+        self.assertIsNotNone(metadata)
 
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
 
-    dataset = Dataset.create(tmpBagFile.getName(), metadata, chunkSize,
-        compressionLevel)
-    assert(dataset)
+        dataset = Dataset.create(tmpBagFile.getName(), metadata,
+                                 chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset.createVR(chunkSize, compressionLevel, False)
+        dataset.createVR(chunkSize, compressionLevel, False)
 
-    # Check that the optional variable resolution metadata layer exists.
-    vrMetadata = dataset.getVRMetadata()
-    assert(vrMetadata)
+        # Check that the optional variable resolution metadata layer exists.
+        vrMetadata = dataset.getVRMetadata()
+        self.assertIsNotNone(vrMetadata)
 
-    vrMetadataDescriptor = vrMetadata.getDescriptor()
-    assert(vrMetadataDescriptor)
+        vrMetadataDescriptor = vrMetadata.getDescriptor()
+        self.assertIsNotNone(vrMetadataDescriptor)
 
-    vrMetadata.writeAttributes()
+        vrMetadata.writeAttributes()
 
-    # Set some new attribute values.
-    kExpectedMinDimX = 1
-    kExpectedMinDimY = 2
+        # Set some new attribute values.
+        kExpectedMinDimX = 1
+        kExpectedMinDimY = 2
+        vrMetadataDescriptor.setMinDimensions(kExpectedMinDimX, kExpectedMinDimY)
 
-    vrMetadataDescriptor.setMinDimensions(kExpectedMinDimX, kExpectedMinDimY)
+        kExpectedMaxDimX = 100
+        kExpectedMaxDimY = 200
+        vrMetadataDescriptor.setMaxDimensions(kExpectedMaxDimX, kExpectedMaxDimY)
 
-    kExpectedMaxDimX = 100
-    kExpectedMaxDimY = 200
+        kExpectedMinResX = 10.1
+        kExpectedMinResY = 20.2
+        vrMetadataDescriptor.setMinResolution(kExpectedMinResX, kExpectedMinResY)
 
-    vrMetadataDescriptor.setMaxDimensions(kExpectedMaxDimX, kExpectedMaxDimY)
+        kExpectedMaxResX = 111.1
+        kExpectedMaxResY = 222.2
+        vrMetadataDescriptor.setMaxResolution(kExpectedMaxResX, kExpectedMaxResY)
 
-    kExpectedMinResX = 10.1
-    kExpectedMinResY = 20.2
+        # Read the attributes back from memory.
+        minDimX, minDimY = vrMetadataDescriptor.getMinDimensions()
+        self.assertEqual(kExpectedMinDimX, minDimX)
+        self.assertEqual(kExpectedMinDimY, minDimY)
 
-    vrMetadataDescriptor.setMinResolution(kExpectedMinResX, kExpectedMinResY)
+        maxDimX, maxDimY = vrMetadataDescriptor.getMaxDimensions()
+        self.assertEqual(kExpectedMaxDimX, maxDimX)
+        self.assertEqual(kExpectedMaxDimY, maxDimY)
 
-    kExpectedMaxResX = 111.1
-    kExpectedMaxResY = 222.2
+        minResX, minResY = vrMetadataDescriptor.getMinResolution()
+        self.assertAlmostEqual(kExpectedMinResX, minResX, places=5)
+        self.assertAlmostEqual(kExpectedMinResY, minResY, places=5)
 
-    vrMetadataDescriptor.setMaxResolution(kExpectedMaxResX, kExpectedMaxResY)
+        maxResX, maxResY = vrMetadataDescriptor.getMaxResolution()
+        self.assertAlmostEqual(kExpectedMaxResX, maxResX, places=5)
+        self.assertAlmostEqual(kExpectedMaxResY, maxResY, places=5)
 
-    # Read the attributes back from memory.
-    minDimX, minDimY = vrMetadataDescriptor.getMinDimensions()
-    assert(kExpectedMinDimX == minDimX)
-    assert(kExpectedMinDimY == minDimY)
+        # Save the new attributes.
+        vrMetadata.writeAttributes()
 
-    maxDimX, maxDimY = vrMetadataDescriptor.getMaxDimensions()
-    assert(kExpectedMaxDimX == maxDimX)
-    assert(kExpectedMaxDimY == maxDimY)
+        # Force a close
+        del dataset
 
-    minResX, minResY = vrMetadataDescriptor.getMinResolution()
-    assert(isclose(kExpectedMinResX, minResX, abs_tol = 1e-5))
-    assert(isclose(kExpectedMinResY, minResY, abs_tol = 1e-5))
+        # Test opening
+        dataset = Dataset.openDataset(tmpBagFile.getName(), BAG_OPEN_READONLY)
 
-    maxResX, maxResY = vrMetadataDescriptor.getMaxResolution()
-    assert(isclose(kExpectedMaxResX, maxResX, abs_tol = 1e-5))
-    assert(isclose(kExpectedMaxResY, maxResY, abs_tol = 1e-5))
+        # Check that the optional variable resolution metadata layer exists.
+        vrMetadata = dataset.getVRMetadata()
+        self.assertIsNotNone(vrMetadata)
 
-    # Save the new attributes.
-    vrMetadata.writeAttributes()
+        vrMetadataDescriptor = vrMetadata.getDescriptor()
 
-    # Force a close
-    del dataset
+        # Read the attributes from the file.
+        minDimX, minDimY = vrMetadataDescriptor.getMinDimensions()
+        self.assertEqual(kExpectedMinDimX, minDimX)
+        self.assertEqual(kExpectedMinDimY, minDimY)
 
-    # Test opening
-    dataset = Dataset.openDataset(tmpBagFile.getName(), BAG_OPEN_READONLY)
+        maxDimX, maxDimY = vrMetadataDescriptor.getMaxDimensions()
+        self.assertEqual(kExpectedMaxDimX, maxDimX)
+        self.assertEqual(kExpectedMaxDimY, maxDimY)
 
-    # Check that the optional variable resolution metadata layer exists.
-    vrMetadata = dataset.getVRMetadata()
-    assert(vrMetadata)
+        minResX, minResY = vrMetadataDescriptor.getMinResolution()
+        self.assertAlmostEqual(kExpectedMinResX, minResX, places=5)
+        self.assertAlmostEqual(kExpectedMinResY, minResY, places=5)
 
-    vrMetadataDescriptor = vrMetadata.getDescriptor()
+        maxResX, maxResY = vrMetadataDescriptor.getMaxResolution()
+        self.assertAlmostEqual(kExpectedMaxResX, maxResX, places=5)
+        self.assertAlmostEqual(kExpectedMaxResY, maxResY, places=5)
 
-    # Read the attributes from the file.
-    minDimX, minDimY = vrMetadataDescriptor.getMinDimensions()
-    assert(kExpectedMinDimX == minDimX)
-    assert(kExpectedMinDimY == minDimY)
+        # Force a close.
+        del dataset
 
-    maxDimX, maxDimY = vrMetadataDescriptor.getMaxDimensions()
-    assert(kExpectedMaxDimX == maxDimX)
-    assert(kExpectedMaxDimY == maxDimY)
+    def testWriteRead(self):
+        tmpBagFile = testUtils.RandomFileGuard("name")
 
-    minResX, minResY = vrMetadataDescriptor.getMinResolution()
-    assert(isclose(kExpectedMinResX, minResX, abs_tol = 1e-5))
-    assert(isclose(kExpectedMinResY, minResY, abs_tol = 1e-5))
+        # test create
+        metadata = Metadata()
+        self.assertIsNotNone(metadata)
 
-    maxResX, maxResY = vrMetadataDescriptor.getMaxResolution()
-    assert(isclose(kExpectedMaxResX, maxResX, abs_tol = 1e-5))
-    assert(isclose(kExpectedMaxResY, maxResY, abs_tol = 1e-5))
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
 
-    # Force a close.
-    del dataset
+        dataset = Dataset.create(tmpBagFile.getName(), metadata, chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-def testWriteRead():
-    tmpBagFile = testUtils.RandomFileGuard("name")
+        dataset.createVR(chunkSize, compressionLevel, False)
 
-    # test create
-    metadata = Metadata()
-    assert(metadata)
+        # Check that the optional variable resolution metadata layer exists.
+        vrMetadata = dataset.getVRMetadata()
+        self.assertIsNotNone(vrMetadata)
 
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        vrMetadataDescriptor = vrMetadata.getDescriptor()
+        self.assertIsNotNone(vrMetadataDescriptor)
 
-    dataset = Dataset.create(tmpBagFile.getName(), metadata, chunkSize, compressionLevel)
-    assert(dataset)
+        # Write one record.
+        kExpectedItem0 = BagVRMetadataItem(0, 1, 2, 3.45, 6.789, 1001.01, 4004.004)
 
-    dataset.createVR(chunkSize, compressionLevel, False)
+        kRowStart = 0
+        kColumnStart = 0
+        kRowEnd = 0
+        kColumnEnd = 0
 
-    # Check that the optional variable resolution metadata layer exists.
-    vrMetadata = dataset.getVRMetadata()
-    assert(vrMetadata)
-
-    vrMetadataDescriptor = vrMetadata.getDescriptor()
-    assert(vrMetadataDescriptor)
-
-    # Write one record.
-    kExpectedItem0 = BagVRMetadataItem(0, 1, 2, 3.45, 6.789, 1001.01, 4004.004)
-
-    kRowStart = 0
-    kColumnStart = 0
-    kRowEnd = 0
-    kColumnEnd = 0
-
-    buffer = VRMetadataLayerItems((kExpectedItem0,))
-    vrMetadata.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+        buffer = VRMetadataLayerItems((kExpectedItem0,))
+        vrMetadata.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
 
-    # Read the record back.
-    buffer = vrMetadata.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
-    assert(buffer)
+        # Read the record back.
+        buffer = vrMetadata.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+        self.assertIsNotNone(buffer)
 
-    result = buffer.asVRMetadataItems()
-    assert(len(result) == 1)
+        result = buffer.asVRMetadataItems()
+        self.assertEqual(len(result), 1)
 
-    # Check the expected value of VRMetadataItem::index.
-    assert(result[0].index == kExpectedItem0.index)
+        # Check the expected value of VRMetadataItem::index.
+        self.assertEqual(result[0].index, kExpectedItem0.index)
 
-    # Check the expected value of VRMetadataItem::dimensions_x.
-    assert(result[0].dimensions_x == kExpectedItem0.dimensions_x)
+        # Check the expected value of VRMetadataItem::dimensions_x.
+        self.assertEqual(result[0].dimensions_x, kExpectedItem0.dimensions_x)
 
-    # Check the expected value of VRMetadataItem::dimensions_y.
-    assert(result[0].dimensions_y == kExpectedItem0.dimensions_y)
+        # Check the expected value of VRMetadataItem::dimensions_y.
+        self.assertEqual(result[0].dimensions_y, kExpectedItem0.dimensions_y)
 
-    # Check the expected value of VRMetadataItem::resolution_x.
-    assert(isclose(result[0].resolution_x, kExpectedItem0.resolution_x, abs_tol = 1e-5))
+        # Check the expected value of VRMetadataItem::resolution_x.
+        self.assertAlmostEqual(result[0].resolution_x, kExpectedItem0.resolution_x, places=5)
 
-    # Check the expected value of VRMetadataItem::resolution_y.
-    assert(isclose(result[0].resolution_y, kExpectedItem0.resolution_y, abs_tol = 1e-5))
+        # Check the expected value of VRMetadataItem::resolution_y.
+        self.assertAlmostEqual(result[0].resolution_y, kExpectedItem0.resolution_y, places=5)
 
-    # Check the expected value of VRMetadataItem::sw_corner_x.".
-    assert(isclose(result[0].sw_corner_x, kExpectedItem0.sw_corner_x, abs_tol = 1e-5))
+        # Check the expected value of VRMetadataItem::sw_corner_x.".
+        self.assertAlmostEqual(result[0].sw_corner_x, kExpectedItem0.sw_corner_x, places=5)
 
-    # Check the expected value of VRMetadataItem::sw_corner_y."
-    assert(isclose(result[0].sw_corner_y, kExpectedItem0.sw_corner_y, abs_tol = 1e-5))
+        # Check the expected value of VRMetadataItem::sw_corner_y."
+        self.assertAlmostEqual(result[0].sw_corner_y, kExpectedItem0.sw_corner_y, places=5)
 
-    # Force a close.
-    del dataset
+        # Force a close.
+        del dataset
 
 
-# run the unit test methods
-testCreateOpen()
-testWriteRead()
-
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

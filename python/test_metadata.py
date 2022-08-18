@@ -1,5 +1,10 @@
-from bagPy import *
+import unittest
 import pathlib
+
+import xmlrunner
+
+from bagPy import *
+
 import bagMetadataSamples, testUtils
 
 
@@ -7,89 +12,80 @@ import bagMetadataSamples, testUtils
 datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 
 
-# define the unit test methods:
-print("Testing Metadata")
+class TestMetadata(unittest.TestCase):
+    def testDefaultConstructor(self):
+        metadata = Metadata()
+        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata.llCornerX(), INIT_VALUE)
 
-def testDefaultConstructor():
-    metadata = Metadata()
-    assert(metadata)
-    #print(metadata.llCornerX())
-    assert(metadata.llCornerX() == INIT_VALUE)
+    def testConstructor(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-def testConstructor():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
-    #print(dataset)
+        metadata = Metadata(dataset)
+        self.assertIsNotNone(metadata)
+        self.assertEqual(metadata.llCornerX(), 687910.0)
+        wkt = metadata.horizontalReferenceSystemAsWKT()
+        self.assertTrue(wkt.startswith('''PROJCS["UTM-19N-Nad83'''))
 
-    metadata = Metadata(dataset)
-    assert(metadata)
-    assert(metadata.llCornerX() == 687910.0)
-    wkt = metadata.horizontalReferenceSystemAsWKT()
-    assert(wkt.startswith('''PROJCS["UTM-19N-Nad83'''))
+    def testGetStruct(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-def testGetStruct():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
+        metadata = dataset.getMetadata()
+        self.assertIsNotNone(metadata)
+        bagStruct = metadata.getStruct()
+        self.assertIsNotNone(bagStruct)
+        self.assertEqual(bagStruct.fileIdentifier, "Unique Identifier")
+        self.assertIsNotNone(bagStruct.spatialRepresentationInfo)
+        self.assertEqual(bagStruct.spatialRepresentationInfo.llCornerX, 687910.0)
 
-    metadata = dataset.getMetadata()
-    assert(metadata)
-    bagStruct = metadata.getStruct()
-    assert(bagStruct)
-    #print(bagStruct.fileIdentifier)
-    assert(bagStruct.fileIdentifier == "Unique Identifier")
-    assert(bagStruct.spatialRepresentationInfo)
-    assert(bagStruct.spatialRepresentationInfo.llCornerX == 687910.0)
+    def testHorizontalReferenceSystemAsWKT(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-def testHorizontalReferenceSystemAsWKT():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
+        metadata = dataset.getMetadata()
+        self.assertIsNotNone(metadata)
+        horizontalRefSys = metadata.horizontalReferenceSystemAsWKT()
+        self.assertIsNotNone(horizontalRefSys)
+        self.assertTrue(horizontalRefSys.startswith('''PROJCS["UTM-19N-Nad83'''))
 
-    metadata = dataset.getMetadata()
-    assert(metadata)
-    horizontalRefSys = metadata.horizontalReferenceSystemAsWKT()
-    assert(horizontalRefSys)
-    assert(horizontalRefSys.startswith('''PROJCS["UTM-19N-Nad83'''))
+    def testLoadFromFile(self):
+        tmpFile = testUtils.RandomFileGuard("string",
+            bagMetadataSamples.kXMLv2MetadataBuffer)
 
-def testLoadFromFile():
-    tmpFile = testUtils.RandomFileGuard("string",
-        bagMetadataSamples.kXMLv2MetadataBuffer)
-    #print(tmpFile.getName())
+        metadata = Metadata()
+        metadata.loadFromFile(tmpFile.getName())
+        self.assertIsNotNone(metadata)
 
-    metadata = Metadata()
-    metadata.loadFromFile(tmpFile.getName())
-    assert(metadata)
+        self.assertEqual(metadata.columnResolution(), 10.0)
+        self.assertIsNotNone(metadata.horizontalReferenceSystemAsWKT())
+        self.assertEqual(metadata.llCornerX(), 687910.000000)
+        self.assertEqual(metadata.llCornerY(), 5554620.000000)
+        self.assertEqual(metadata.rowResolution(), 10.0)
+        self.assertEqual(metadata.urCornerX(), 691590.000000)
+        self.assertEqual(metadata.urCornerY(), 5562100.000000)
 
-    assert(metadata.columnResolution() == 10.0)
-    assert(metadata.horizontalReferenceSystemAsWKT())
-    assert(metadata.llCornerX() == 687910.000000)
-    assert(metadata.llCornerY() == 5554620.000000)
-    assert(metadata.rowResolution() == 10.0)
-    assert(metadata.urCornerX() == 691590.000000)
-    assert(metadata.urCornerY() == 5562100.000000)
+    def testLoadFromBuffer(self):
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kXMLv2MetadataBuffer)
+        self.assertIsNotNone(metadata)
 
-def testLoadFromBuffer():
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kXMLv2MetadataBuffer)
-    assert(metadata)
-
-    assert(metadata.columnResolution() == 10.0)
-    assert(metadata.llCornerX() == 687910.000000)
-    assert(metadata.llCornerY() == 5554620.000000)
-    assert(metadata.rowResolution() == 10.0)
-    assert(metadata.urCornerX() == 691590.000000)
-    assert(metadata.urCornerY() == 5562100.000000)
-    assert(metadata.rows() == 100)
-    assert(metadata.columns() == 100)
+        self.assertEqual(metadata.columnResolution(), 10.0)
+        self.assertEqual(metadata.llCornerX(), 687910.000000)
+        self.assertEqual(metadata.llCornerY(), 5554620.000000)
+        self.assertEqual(metadata.rowResolution(), 10.0)
+        self.assertEqual(metadata.urCornerX(), 691590.000000)
+        self.assertEqual(metadata.urCornerY(), 5562100.000000)
+        self.assertEqual(metadata.rows(), 100)
+        self.assertEqual(metadata.columns(), 100)
 
 
-
-# run the unit test methods
-testConstructor()
-testDefaultConstructor()
-testGetStruct()
-testHorizontalReferenceSystemAsWKT()
-testLoadFromFile()
-testLoadFromBuffer()
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

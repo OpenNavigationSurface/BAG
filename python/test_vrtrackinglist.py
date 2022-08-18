@@ -1,8 +1,12 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-from math import isclose
-import shutil, pathlib
+
 import bagMetadataSamples, testUtils
-import sys
+
 
 # define constants used in multiple tests
 datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
@@ -10,148 +14,143 @@ chunkSize = 100
 compressionLevel = 6
 
 
-print("Testing VRTrackingList")
+class TestVRTrackingList(unittest.TestCase):
+    def testCreateOpen(self):
+        tmpBagFile = testUtils.RandomFileGuard("name")
 
-def testCreateOpen():
-    tmpBagFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
 
-    metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
 
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        dataset = Dataset.create(tmpBagFile.getName(), metadata,
+                                 chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.create(tmpBagFile.getName(), metadata, chunkSize,
-        compressionLevel)
-    assert(dataset)
+        # Check no VR tracking list exists.
+        vrTrackingList = dataset.getVRTrackingList()
+        self.assertIsNone(vrTrackingList)
 
-    # Check no VR tracking list exists.
-    vrTrackingList = dataset.getVRTrackingList()
-    assert(not vrTrackingList)
+        # Check VR tracking list was created successfully.
+        dataset.createVR(chunkSize, compressionLevel, False)
+        vrTrackingList = dataset.getVRTrackingList()
+        self.assertIsNotNone(vrTrackingList)
 
-    # Check VR tracking list was created successfully.
-    dataset.createVR(chunkSize, compressionLevel, False)
-    vrTrackingList = dataset.getVRTrackingList()
-    assert(vrTrackingList)
+        # Check no items are in the tracking list after creation.
+        self.assertTrue(vrTrackingList.empty())
 
-    # Check no items are in the tracking list after creation.
-    assert(vrTrackingList.empty())
+        # Add 1 record.
+        kExpectedItem0 = BagVRTrackingItem(1, 2, 11, 22, 3.4, 5.6, 7, 8)
 
-    # Add 1 record.
-    kExpectedItem0 = BagVRTrackingItem(1, 2, 11, 22, 3.4, 5.6, 7, 8)
+        vrTrackingList.push_back(kExpectedItem0)
 
-    vrTrackingList.push_back(kExpectedItem0)
+        # Check one item was stored.
+        self.assertFalse(vrTrackingList.empty())
+        self.assertEqual(vrTrackingList.size(), 1)
 
-    # Check one item was stored.
-    assert(not vrTrackingList.empty());
-    assert(vrTrackingList.size() == 1);
+        vrTrackingList.write()
 
-    vrTrackingList.write()
+        # Read the expected record
+        vrTrackingList1 = dataset.getVRTrackingList()
+        self.assertIsNotNone(vrTrackingList1)
 
+        # Check one item was read.
+        self.assertEqual(vrTrackingList1.size(), 1)
 
-    # Read the expected record
-    vrTrackingList1 = dataset.getVRTrackingList()
-    assert(vrTrackingList1)
+        # Check the expected values are in the item.
+        actual = vrTrackingList1.front()
+        self.assertEqual(kExpectedItem0.row, actual.row)
+        self.assertEqual(kExpectedItem0.col, actual.col)
+        self.assertEqual(kExpectedItem0.sub_row, actual.sub_row)
+        self.assertEqual(kExpectedItem0.sub_col, actual.sub_col)
+        self.assertAlmostEqual(kExpectedItem0.depth, actual.depth, places=5)
+        self.assertAlmostEqual(kExpectedItem0.uncertainty, actual.uncertainty, places=5)
+        self.assertEqual(kExpectedItem0.track_code, actual.track_code)
+        self.assertEqual(kExpectedItem0.list_series, actual.list_series)
 
-    # Check one item was read.
-    assert(vrTrackingList1.size() == 1)
+        # Add a second record to an existing vrTrackingList.
+        vrTrackingList1 = dataset.getVRTrackingList()
+        self.assertIsNotNone(vrTrackingList1)
 
-    # Check the expected values are in the item.
-    actual = vrTrackingList1.front()
-    assert(kExpectedItem0.row == actual.row)
-    assert(kExpectedItem0.col== actual.col)
-    assert(kExpectedItem0.sub_row == actual.sub_row)
-    assert(kExpectedItem0.sub_col== actual.sub_col)
-    assert(isclose(kExpectedItem0.depth, actual.depth, abs_tol = 1e-5))
-    assert(isclose(kExpectedItem0.uncertainty, actual.uncertainty, abs_tol = 1e-5))
-    assert(kExpectedItem0.track_code == actual.track_code)
-    assert(kExpectedItem0.list_series == actual.list_series)
+        # Check one item was read.
+        self.assertEqual(vrTrackingList1.size(), 1)
 
-    # Add a second record to an existing vrTrackingList.
-    vrTrackingList1 = dataset.getVRTrackingList()
-    assert(vrTrackingList1)
+        kExpectedItem1 = BagVRTrackingItem(9, 8, 101, 202, 7.6, 5.4, 3, 2)
 
-    # Check one item was read.
-    assert(vrTrackingList1.size() == 1)
+        vrTrackingList1.push_back(kExpectedItem1)
+        self.assertEqual(vrTrackingList1.size(), 2)
 
-    kExpectedItem1 = BagVRTrackingItem(9, 8, 101, 202, 7.6, 5.4, 3, 2)
+        vrTrackingList1.write()
 
-    vrTrackingList1.push_back(kExpectedItem1)
-    assert(vrTrackingList1.size() == 2)
+        vrTrackingList2 = dataset.getVRTrackingList()
 
-    vrTrackingList1.write()
+        # Check the expected values are in the item.
+        self.assertEqual(vrTrackingList2.size(), 2)
 
+        # Check the first expected values are exactly the same.
+        actual = vrTrackingList2.at(0)
+        self.assertEqual(kExpectedItem0.row, actual.row)
+        self.assertEqual(kExpectedItem0.col, actual.col)
+        self.assertEqual(kExpectedItem0.sub_row, actual.sub_row)
+        self.assertEqual(kExpectedItem0.sub_col, actual.sub_col)
+        self.assertAlmostEqual(kExpectedItem0.depth, actual.depth, places=5)
+        self.assertAlmostEqual(kExpectedItem0.uncertainty, actual.uncertainty, places=5)
+        self.assertEqual(kExpectedItem0.track_code, actual.track_code)
+        self.assertEqual(kExpectedItem0.list_series, actual.list_series)
 
-    vrTrackingList2 = dataset.getVRTrackingList()
+        # Check the second expected values are exactly the same.
+        actual = vrTrackingList2.at(1)
+        self.assertEqual(kExpectedItem1.row, actual.row)
+        self.assertEqual(kExpectedItem1.col, actual.col)
+        self.assertEqual(kExpectedItem1.sub_row, actual.sub_row)
+        self.assertEqual(kExpectedItem1.sub_col, actual.sub_col)
+        self.assertAlmostEqual(kExpectedItem1.depth, actual.depth, places=5)
+        self.assertAlmostEqual(kExpectedItem1.uncertainty, actual.uncertainty, places=5)
+        self.assertEqual(kExpectedItem1.track_code, actual.track_code)
+        self.assertEqual(kExpectedItem1.list_series, actual.list_series)
 
-    # Check the expected values are in the item.
-    assert(vrTrackingList2.size() == 2)
+        # Force a close
+        del dataset
 
-    # Check the first expected values are exactly the same.
-    #assert(kExpectedItem0 == vrTrackingList2[0])
-    actual = vrTrackingList2.at(0)
-    assert(kExpectedItem0.row == actual.row)
-    assert(kExpectedItem0.col== actual.col)
-    assert(kExpectedItem0.sub_row == actual.sub_row)
-    assert(kExpectedItem0.sub_col== actual.sub_col)
-    assert(isclose(kExpectedItem0.depth, actual.depth, abs_tol = 1e-5))
-    assert(isclose(kExpectedItem0.uncertainty, actual.uncertainty, abs_tol = 1e-5))
-    assert(kExpectedItem0.track_code == actual.track_code)
-    assert(kExpectedItem0.list_series == actual.list_series)
+        # Read the BAG.
+        dataset = Dataset.openDataset(tmpBagFile.getName(), BAG_OPEN_READONLY)
 
-    # Check the second expected values are exactly the same.
-    #assert(kExpectedItem1 == vrTrackingList2[1])
-    actual = vrTrackingList2.at(1)
-    assert(kExpectedItem1.row == actual.row)
-    assert(kExpectedItem1.col== actual.col)
-    assert(kExpectedItem1.sub_row == actual.sub_row)
-    assert(kExpectedItem1.sub_col== actual.sub_col)
-    assert(isclose(kExpectedItem1.depth, actual.depth, abs_tol = 1e-5))
-    assert(isclose(kExpectedItem1.uncertainty, actual.uncertainty, abs_tol = 1e-5))
-    assert(kExpectedItem1.track_code == actual.track_code)
-    assert(kExpectedItem1.list_series == actual.list_series)
+        # Check dataset was read successfully.
+        self.assertIsNotNone(dataset)
 
-    # Force a close
-    del dataset
+        vrTrackingList3 = dataset.getVRTrackingList()
 
+        # Check the expected number of items in the tracking list are there.
+        kExpectedNumItems = 2
+        self.assertEqual(vrTrackingList3.size(), kExpectedNumItems)
 
-    # Read the BAG.
-    dataset = Dataset.openDataset(tmpBagFile.getName(), BAG_OPEN_READONLY)
+        # Check the first expected values are exactly the same.
+        actual = vrTrackingList3.at(0)
+        self.assertEqual(kExpectedItem0.row, actual.row)
+        self.assertEqual(kExpectedItem0.col, actual.col)
+        self.assertEqual(kExpectedItem0.sub_row, actual.sub_row)
+        self.assertEqual(kExpectedItem0.sub_col, actual.sub_col)
+        self.assertAlmostEqual(kExpectedItem0.depth, actual.depth, places=5)
+        self.assertAlmostEqual(kExpectedItem0.uncertainty, actual.uncertainty, places=5)
+        self.assertEqual(kExpectedItem0.track_code, actual.track_code)
+        self.assertEqual(kExpectedItem0.list_series, actual.list_series)
 
-    # Check dataset was read successfully.
-    assert(dataset)
+        # Check the second expected values are exactly the same.
+        actual = vrTrackingList3.at(1)
+        self.assertEqual(kExpectedItem1.row, actual.row)
+        self.assertEqual(kExpectedItem1.col, actual.col)
+        self.assertEqual(kExpectedItem1.sub_row, actual.sub_row)
+        self.assertEqual(kExpectedItem1.sub_col, actual.sub_col)
+        self.assertAlmostEqual(kExpectedItem1.depth, actual.depth, places=5)
+        self.assertAlmostEqual(kExpectedItem1.uncertainty, actual.uncertainty, places=5)
+        self.assertEqual(kExpectedItem1.track_code, actual.track_code)
+        self.assertEqual(kExpectedItem1.list_series, actual.list_series)
 
-    vrTrackingList3 = dataset.getVRTrackingList()
-
-    # Check the expected number of items in the tracking list are there.
-    kExpectedNumItems = 2
-    assert(vrTrackingList3.size() == kExpectedNumItems)
-
-    # Check the first expected values are exactly the same.
-    #assert(kExpectedItem0 == vrTrackingList3[0])
-    actual = vrTrackingList3.at(0)
-    assert(kExpectedItem0.row == actual.row)
-    assert(kExpectedItem0.col== actual.col)
-    assert(kExpectedItem0.sub_row == actual.sub_row)
-    assert(kExpectedItem0.sub_col== actual.sub_col)
-    assert(isclose(kExpectedItem0.depth, actual.depth, abs_tol = 1e-5))
-    assert(isclose(kExpectedItem0.uncertainty, actual.uncertainty, abs_tol = 1e-5))
-    assert(kExpectedItem0.track_code == actual.track_code)
-    assert(kExpectedItem0.list_series == actual.list_series)
-
-    # Check the second expected values are exactly the same.
-    #assert(kExpectedItem1 == vrTrackingList3[1])
-    actual = vrTrackingList3.at(1)
-    assert(kExpectedItem1.row == actual.row)
-    assert(kExpectedItem1.col== actual.col)
-    assert(kExpectedItem1.sub_row == actual.sub_row)
-    assert(kExpectedItem1.sub_col== actual.sub_col)
-    assert(isclose(kExpectedItem1.depth, actual.depth, abs_tol = 1e-5))
-    assert(isclose(kExpectedItem1.uncertainty, actual.uncertainty, abs_tol = 1e-5))
-    assert(kExpectedItem1.track_code == actual.track_code)
-    assert(kExpectedItem1.list_series == actual.list_series)
-
-    # Force a close
-    del dataset
+        # Force a close
+        del dataset
 
 
-testCreateOpen()
-
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

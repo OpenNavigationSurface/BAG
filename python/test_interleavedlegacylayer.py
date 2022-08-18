@@ -1,7 +1,9 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-from math import isclose
-import shutil, pathlib
-import bagMetadataSamples, testUtils
 
 
 # define constants used in multiple tests
@@ -10,35 +12,35 @@ chunkSize = 100
 compressionLevel = 6
 
 
-# define the unit test methods:
-print("Testing InterleavedLegacyLayer")
+class TestInterleavedLegacyLayer(unittest.TestCase):
+    def testGetLayerAndRead(self):
+        bagFileName = datapath + "/example_w_qc_layers.bag"
 
-def testGetLayerAndRead():
-    bagFileName = datapath + "/example_w_qc_layers.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
+        kLayerType = Hypothesis_Strength
+        layer = dataset.getLayer(kLayerType)
+        self.assertIsNotNone(layer)
 
-    kLayerType = Hypothesis_Strength
-    layer = dataset.getLayer(kLayerType)
-    assert(layer)
+        # 2x3
+        result = layer.read(247, 338, 248, 340)
+        self.assertIsNotNone(result)
 
-    result = layer.read(247, 338, 248, 340) # 2x3
-    assert(result)
+        kExpectedNumNodes = 6
 
-    kExpectedNumNodes = 6;
+        buffer = result.asFloatItems()
+        self.assertEqual(len(buffer), kExpectedNumNodes)
 
-    buffer = result.asFloatItems()
-    assert(len(buffer) == kExpectedNumNodes)
+        kExpectedBuffer = (1.0e6, 1.0e6, 0.0, 1.0e6, 0.0, 0.0)
+        for actual, expected in zip(buffer, kExpectedBuffer):
+            self.assertAlmostEqual(actual, expected, places=5)
 
-    kExpectedBuffer = (1.0e6, 1.0e6, 0.0, 1.0e6, 0.0, 0.0)
-
-    assert(all(isclose(actual, expected, abs_tol = 1e-5)
-        for actual, expected in zip(buffer, kExpectedBuffer)))
-
-    del dataset
+        del dataset
 
 
-# run the unit test methods
-testGetLayerAndRead()
-
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

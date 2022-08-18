@@ -1,4 +1,10 @@
-import tempfile, os, shutil
+import os
+import shutil
+import tempfile
+import re
+
+
+WHITESPACE_REGEX = re.compile(r'\s+')
 
 
 class RandomFileGuard:
@@ -37,3 +43,13 @@ class RandomFileGuard:
         if os.path.exists(self.m_name):
             os.remove(self.m_name)
 
+
+def replace_whitespace(input: str, *, replace_str: str = '') -> str:
+    """
+    Replace interior or exterior whitespace from a string
+    :param input: String whose whitespace should be replaced
+    :param replace_str: String to replace whitespace with;
+        defaults to empty string (i.e., removal of whitespace)
+    :return: String with whitespace replaced.
+    """
+    return WHITESPACE_REGEX.sub(replace_str, input)

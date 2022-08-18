@@ -1,7 +1,11 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-import shutil, pathlib, math
+
 import bagMetadataSamples, testUtils
-import sys
 
 
 # define constants used in multiple tests
@@ -10,98 +14,96 @@ chunkSize = 100
 compressionLevel = 6
 
 
-# define the unit test methods:
-print("Testing TrackingList")
+class TestTrackingList(unittest.TestCase):
+    def testConstructOpen(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-def testConstructOpen():
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata,
+                                 chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, 
-        chunkSize, compressionLevel)
-    assert(dataset)
+        trackingList = dataset.getTrackingList()
 
-    trackingList = dataset.getTrackingList()
+        # Add 1 record and save.  Is there one record with expected values?
+        kExpectedItem0 = BagTrackingItem(1, 2, 3.4, 5.6, 7, 8) #createTrackingItem
+        trackingList.push_back(kExpectedItem0)
+        self.assertEqual(trackingList.size(), 1)
 
-    # Add 1 record and save.  Is there one record with expected values?
-    kExpectedItem0 = BagTrackingItem(1, 2, 3.4, 5.6, 7, 8) #createTrackingItem
-    trackingList.push_back(kExpectedItem0)
-    assert(trackingList.size() == 1)
+        kExpectedItem1 = BagTrackingItem(11, 22, 33.44, 55.66, 77, 88) #createTrackingItem
+        trackingList.push_back(kExpectedItem1)
+        self.assertEqual(trackingList.size(), 2)
 
-    kExpectedItem1 = BagTrackingItem(11, 22, 33.44, 55.66, 77, 88) #createTrackingItem
-    trackingList.push_back(kExpectedItem1)
-    assert(trackingList.size() == 2);
+        trackingList.write()
 
-    trackingList.write()
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
-    assert(dataset)
+        trackingList = dataset.getTrackingList()
+        kExpectedNumItems = 2
+        self.assertEqual(trackingList.size(), kExpectedNumItems)
 
-    trackingList = dataset.getTrackingList()
-    kExpectedNumItems = 2
-    assert(trackingList.size() == kExpectedNumItems)
-    
-    del dataset #ensure dataset is deleted before tmpFile
+        del dataset #ensure dataset is deleted before tmpFile
 
-def testConstructCreate():
-    
-    tmpFile = testUtils.RandomFileGuard("name")
-    #print(tmpFile.getName())
+    def testConstructCreate(self):
+        tmpFile = testUtils.RandomFileGuard("name")
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), Metadata(), 
-        chunkSize, compressionLevel)
-    assert(dataset)
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), Metadata(),
+                                 chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    trackingList = dataset.getTrackingList()
-    assert(trackingList.size() == 0)
+        trackingList = dataset.getTrackingList()
+        self.assertEqual(trackingList.size(), 0)
 
-    # Add 1 record and save.  Is there one record with expected values?
-    kExpectedItem0 = BagTrackingItem(1, 2, 3.4, 5.6, 7, 8) #createTrackingItem
-    trackingList.push_back(kExpectedItem0)
-    assert(trackingList.size() == 1)
+        # Add 1 record and save.  Is there one record with expected values?
+        kExpectedItem0 = BagTrackingItem(1, 2, 3.4, 5.6, 7, 8) #createTrackingItem
+        trackingList.push_back(kExpectedItem0)
+        self.assertEqual(trackingList.size(), 1)
 
-    trackingList.write()
+        trackingList.write()
 
-    trackingList = dataset.getTrackingList()
-    assert(trackingList.size() == 1)
+        trackingList = dataset.getTrackingList()
+        self.assertEqual(trackingList.size(), 1)
 
-    item0 = trackingList.front()
-    assert(kExpectedItem0.row == item0.row)
-    assert(kExpectedItem0.col == item0.col)
-    assert(kExpectedItem0.depth == item0.depth)
-    assert(kExpectedItem0.uncertainty == item0.uncertainty)
-    assert(kExpectedItem0.track_code == item0.track_code)
-    assert(kExpectedItem0.list_series == item0.list_series)
+        item0 = trackingList.front()
+        self.assertEqual(kExpectedItem0.row, item0.row)
+        self.assertEqual(kExpectedItem0.col, item0.col)
+        self.assertEqual(kExpectedItem0.depth, item0.depth)
+        self.assertEqual(kExpectedItem0.uncertainty, item0.uncertainty)
+        self.assertEqual(kExpectedItem0.track_code, item0.track_code)
+        self.assertEqual(kExpectedItem0.list_series, item0.list_series)
 
-    kExpectedItem1 = BagTrackingItem(9, 8, 7.6, 5.4, 3, 2)
-    trackingList.push_back(kExpectedItem1)
-    assert(trackingList.size() == 2)
+        kExpectedItem1 = BagTrackingItem(9, 8, 7.6, 5.4, 3, 2)
+        trackingList.push_back(kExpectedItem1)
+        self.assertEqual(trackingList.size(), 2)
 
-    trackingList.write()
+        trackingList.write()
 
-    item0 = trackingList.at(0);
-    assert(kExpectedItem0.row == item0.row)
-    assert(kExpectedItem0.col == item0.col)
-    assert(kExpectedItem0.depth == item0.depth)
-    assert(kExpectedItem0.uncertainty == item0.uncertainty)
-    assert(kExpectedItem0.track_code == item0.track_code)
-    assert(kExpectedItem0.list_series == item0.list_series)
+        item0 = trackingList.at(0)
+        self.assertEqual(kExpectedItem0.row, item0.row)
+        self.assertEqual(kExpectedItem0.col, item0.col)
+        self.assertEqual(kExpectedItem0.depth, item0.depth)
+        self.assertEqual(kExpectedItem0.uncertainty, item0.uncertainty)
+        self.assertEqual(kExpectedItem0.track_code, item0.track_code)
+        self.assertEqual(kExpectedItem0.list_series, item0.list_series)
 
-    item1 = trackingList.at(1);
-    assert(kExpectedItem1.row == item1.row)
-    assert(kExpectedItem1.col == item1.col)
-    assert(kExpectedItem1.depth == item1.depth)
-    assert(kExpectedItem1.uncertainty == item1.uncertainty)
-    assert(kExpectedItem1.track_code == item1.track_code)
-    assert(kExpectedItem1.list_series == item1.list_series)
-    
-    del dataset #ensure dataset is deleted before tmpFile
+        item1 = trackingList.at(1)
+        self.assertEqual(kExpectedItem1.row, item1.row)
+        self.assertEqual(kExpectedItem1.col, item1.col)
+        self.assertEqual(kExpectedItem1.depth, item1.depth)
+        self.assertEqual(kExpectedItem1.uncertainty, item1.uncertainty)
+        self.assertEqual(kExpectedItem1.track_code, item1.track_code)
+        self.assertEqual(kExpectedItem1.list_series, item1.list_series)
+
+        del dataset #ensure dataset is deleted before tmpFile
 
 
-testConstructOpen()
-testConstructCreate()
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

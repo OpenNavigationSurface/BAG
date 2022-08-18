@@ -1,6 +1,8 @@
 import unittest
 import logging
 
+import xmlrunner
+
 import bagPy as BAG
 
 
@@ -8,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestRecord(unittest.TestCase):
-    def test_record_creation(self):
+    def testRecordCreation(self):
         r: BAG.Record = BAG.Record()
         r.append(BAG.CompoundDataType("123.45"))
         r.append(BAG.CompoundDataType(42.23))
@@ -18,3 +20,10 @@ class TestRecord(unittest.TestCase):
         self.assertEqual("123.45", BAG.getString(r[0]))
         self.assertAlmostEqual(42.23, BAG.getFloat(r[1]), places=5)
         self.assertEqual(23, BAG.getUInt32(r[2]))
+
+
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

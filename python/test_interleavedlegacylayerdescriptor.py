@@ -1,5 +1,10 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-import shutil, pathlib
+
 import bagMetadataSamples, testUtils
 
 
@@ -9,76 +14,75 @@ chunkSize = 100
 compressionLevel = 6
 
 
-# define the unit test methods:
-print("Testing InterleavedLegacyLayerDescriptor")
+class TestInterleavedLegacyLayerDescriptor(unittest.TestCase):
+    def testCreate(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-def testCreate():
-    tmpFile = testUtils.RandomFileGuard("name")
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
-    assert(dataset)
+        descriptor = InterleavedLegacyLayerDescriptor.create(dataset, Hypothesis_Strength,
+            NODE)
+        self.assertIsNotNone(descriptor)
 
-    descriptor = InterleavedLegacyLayerDescriptor.create(dataset, Hypothesis_Strength,
-        NODE)
-    assert(descriptor)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    del dataset #ensure dataset is deleted before tmpFile
+    def testGetGroupType(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-def testGetGroupType():
-    tmpFile = testUtils.RandomFileGuard("name")
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
-    assert(dataset)
+        kExpectedGroup = NODE
+        descriptor = InterleavedLegacyLayerDescriptor.create(dataset, Hypothesis_Strength,
+            kExpectedGroup)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getGroupType(), kExpectedGroup)
 
-    kExpectedGroup = NODE
-    descriptor = InterleavedLegacyLayerDescriptor.create(dataset, Hypothesis_Strength,
-        kExpectedGroup)
-    assert(descriptor)
-    assert(descriptor.getGroupType() == kExpectedGroup)
+        kExpectedGroup = ELEVATION
+        descriptor = InterleavedLegacyLayerDescriptor.create(dataset, Num_Soundings,
+            kExpectedGroup)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getGroupType(), kExpectedGroup)
 
-    kExpectedGroup = ELEVATION
-    descriptor = InterleavedLegacyLayerDescriptor.create(dataset, Num_Soundings,
-        kExpectedGroup)
-    assert(descriptor)
-    assert(descriptor.getGroupType() == kExpectedGroup)
+        del dataset #ensure dataset is deleted before tmpFile
 
-    del dataset #ensure dataset is deleted before tmpFile
+    def testElementSize(self):
+        tmpFile = testUtils.RandomFileGuard("name")
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-def testElementSize():
-    tmpFile = testUtils.RandomFileGuard("name")
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
-    assert(dataset)
+        kExpectedLayerType = Num_Hypotheses
+        kExpectedGroupType = NODE
+        descriptor = InterleavedLegacyLayerDescriptor.create(dataset, kExpectedLayerType,
+            kExpectedGroupType)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getElementSize(),
+                         Layer.getElementSize(Layer.getDataType(kExpectedLayerType)))
 
-    kExpectedLayerType = Num_Hypotheses
-    kExpectedGroupType = NODE
-    descriptor = InterleavedLegacyLayerDescriptor.create(dataset, kExpectedLayerType,
-        kExpectedGroupType)
-    assert(descriptor)
-    assert(descriptor.getElementSize() ==
-        Layer.getElementSize(Layer.getDataType(kExpectedLayerType)))
+        kExpectedLayerType = Std_Dev
+        kExpectedGroupType = ELEVATION
+        descriptor = InterleavedLegacyLayerDescriptor.create(dataset, kExpectedLayerType,
+            kExpectedGroupType)
+        self.assertIsNotNone(descriptor)
+        self.assertEqual(descriptor.getElementSize(),
+                         Layer.getElementSize(Layer.getDataType(kExpectedLayerType)))
 
-    kExpectedLayerType = Std_Dev
-    kExpectedGroupType = ELEVATION
-    descriptor = InterleavedLegacyLayerDescriptor.create(dataset, kExpectedLayerType,
-        kExpectedGroupType)
-    assert(descriptor)
-    assert(descriptor.getElementSize() ==
-        Layer.getElementSize(Layer.getDataType(kExpectedLayerType)))
-
-    del dataset #ensure dataset is deleted before tmpFile
+        del dataset #ensure dataset is deleted before tmpFile
 
 
-# run the unit test methods
-testCreate()
-testGetGroupType()
-testElementSize()
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

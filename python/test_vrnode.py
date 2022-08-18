@@ -1,8 +1,12 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-from math import isclose
-import shutil, pathlib
+
 import bagMetadataSamples, testUtils
-import sys
+
 
 # define constants used in multiple tests
 datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
@@ -10,142 +14,140 @@ chunkSize = 100
 compressionLevel = 6
 
 
-print("Testing VRNode")
+class TestVRNode(unittest.TestCase):
+    def testCreateOpen(self):
+        tmpBagFile = testUtils.RandomFileGuard("name")
 
-def testCreateOpen():
-    tmpBagFile = testUtils.RandomFileGuard("name")
+        # Check dataset was created successfully.
+        metadata = Metadata()
 
-    # Check dataset was created successfully.
-    metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
 
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        dataset = Dataset.create(tmpBagFile.getName(), metadata,
+                                 chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.create(tmpBagFile.getName(), metadata, chunkSize,
-        compressionLevel)
-    assert(dataset)
+        dataset.createVR(chunkSize, compressionLevel, True)
 
-    dataset.createVR(chunkSize, compressionLevel, True)
+        # Check that the optional variable resolution node layer exists.
+        vrNode = dataset.getVRNode()
+        self.assertIsNotNone(vrNode)
 
-    # Check that the optional variable resolution node layer exists.
-    vrNode = dataset.getVRNode()
-    assert(vrNode)
+        vrNodeDescriptor = vrNode.getDescriptor()
 
-    vrNodeDescriptor = vrNode.getDescriptor()
+        vrNode.writeAttributes()
 
-    vrNode.writeAttributes()
+        # Set some attributes to save.
+        kExpectedMinHypStr = 10.1
+        kExpectedMaxHypStr = 20.2
 
-    # Set some attributes to save.
-    kExpectedMinHypStr = 10.1
-    kExpectedMaxHypStr = 20.2
+        vrNodeDescriptor.setMinMaxHypStrength(kExpectedMinHypStr, kExpectedMaxHypStr)
 
-    vrNodeDescriptor.setMinMaxHypStrength(kExpectedMinHypStr,
-        kExpectedMaxHypStr)
+        kExpectedMinNumHyp = 100
+        kExpectedMaxNumHyp = 200
 
-    kExpectedMinNumHyp = 100
-    kExpectedMaxNumHyp = 200
+        vrNodeDescriptor.setMinMaxNumHypotheses(kExpectedMinNumHyp, kExpectedMaxNumHyp)
 
-    vrNodeDescriptor.setMinMaxNumHypotheses(kExpectedMinNumHyp,
-        kExpectedMaxNumHyp)
+        kExpectedMinNSamples = 1000
+        kExpectedMaxNSamples = 2000
 
-    kExpectedMinNSamples = 1000
-    kExpectedMaxNSamples = 2000
+        vrNodeDescriptor.setMinMaxNSamples(kExpectedMinNSamples, kExpectedMaxNSamples)
 
-    vrNodeDescriptor.setMinMaxNSamples(kExpectedMinNSamples,
-        kExpectedMaxNSamples)
+        # Read the attributes back
+        minHypStr, maxHypStr = vrNodeDescriptor.getMinMaxHypStrength()
+        self.assertAlmostEqual(kExpectedMinHypStr, minHypStr, places=5)
+        self.assertAlmostEqual(kExpectedMaxHypStr, maxHypStr, places=5)
 
-    # Read the attributes back
-    minHypStr, maxHypStr = vrNodeDescriptor.getMinMaxHypStrength()
-    assert(isclose(kExpectedMinHypStr, minHypStr, abs_tol = 1e-5))
-    assert(isclose(kExpectedMaxHypStr, maxHypStr, abs_tol = 1e-5))
+        minNumHyp, maxNumHyp = vrNodeDescriptor.getMinMaxNumHypotheses()
+        self.assertEqual(kExpectedMinNumHyp, minNumHyp)
+        self.assertEqual(kExpectedMaxNumHyp, maxNumHyp)
 
-    minNumHyp, maxNumHyp = vrNodeDescriptor.getMinMaxNumHypotheses()
-    assert(kExpectedMinNumHyp == minNumHyp)
-    assert(kExpectedMaxNumHyp == maxNumHyp)
+        minNSamples, maxNSamples = vrNodeDescriptor.getMinMaxNSamples()
+        self.assertEqual(kExpectedMinNSamples, minNSamples)
+        self.assertEqual(kExpectedMaxNSamples, maxNSamples)
 
-    minNSamples, maxNSamples = vrNodeDescriptor.getMinMaxNSamples()
-    assert(kExpectedMinNSamples == minNSamples)
-    assert(kExpectedMaxNSamples == maxNSamples)
+        # Write attributes to file.
+        vrNode.writeAttributes()
 
-    # Write attributes to file.
-    vrNode.writeAttributes()
+        # Force a close.
+        del dataset
 
-    # Force a close.
-    del dataset
+        # test open
+        dataset = Dataset.openDataset(tmpBagFile.getName(), BAG_OPEN_READONLY)
 
-    # test open
-    dataset = Dataset.openDataset(tmpBagFile.getName(), BAG_OPEN_READONLY)
+        # Check that the optional variable resolution node layer exists.
+        vrNode = dataset.getVRNode()
+        self.assertIsNotNone(vrNode)
 
-    # Check that the optional variable resolution node layer exists.
-    vrNode = dataset.getVRNode()
-    assert(vrNode)
+        vrNodeDescriptor = vrNode.getDescriptor()
 
-    vrNodeDescriptor = vrNode.getDescriptor()
+        # Read the attributes back.
+        minHypStr, maxHypStr = vrNodeDescriptor.getMinMaxHypStrength()
+        self.assertAlmostEqual(kExpectedMinHypStr, minHypStr, places=5)
+        self.assertAlmostEqual(kExpectedMaxHypStr, maxHypStr, places=5)
 
-    # Read the attributes back.
-    minHypStr, maxHypStr = vrNodeDescriptor.getMinMaxHypStrength()
-    assert(isclose(kExpectedMinHypStr, minHypStr, abs_tol = 1e-5))
-    assert(isclose(kExpectedMaxHypStr, maxHypStr, abs_tol = 1e-5))
+        minNumHyp, maxNumHyp = vrNodeDescriptor.getMinMaxNumHypotheses()
+        self.assertEqual(kExpectedMinNumHyp, minNumHyp)
+        self.assertEqual(kExpectedMaxNumHyp, maxNumHyp)
 
-    minNumHyp, maxNumHyp = vrNodeDescriptor.getMinMaxNumHypotheses()
-    assert(kExpectedMinNumHyp == minNumHyp)
-    assert(kExpectedMaxNumHyp == maxNumHyp)
+        minNSamples, maxNSamples = vrNodeDescriptor.getMinMaxNSamples()
+        self.assertEqual(kExpectedMinNSamples, minNSamples)
+        self.assertEqual(kExpectedMaxNSamples, maxNSamples)
 
-    minNSamples, maxNSamples = vrNodeDescriptor.getMinMaxNSamples()
-    assert(kExpectedMinNSamples == minNSamples)
-    assert(kExpectedMaxNSamples == maxNSamples)
+        # Force a close.
+        del dataset
 
-    # Force a close.
-    del dataset
+    def testWriteRead(self):
+        tmpBagFile = testUtils.RandomFileGuard("name")
 
-def testWriteRead():
-    tmpBagFile = testUtils.RandomFileGuard("name")
+        # Check dataset was created successfully.
+        metadata = Metadata()
 
-    # Check dataset was created successfully.
-    metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
 
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        dataset = Dataset.create(tmpBagFile.getName(), metadata,
+                                 chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    dataset = Dataset.create(tmpBagFile.getName(), metadata, chunkSize,
-        compressionLevel)
-    assert(dataset)
+        dataset.createVR(chunkSize, compressionLevel, True)
 
-    dataset.createVR(chunkSize, compressionLevel, True)
+        # Check the optional variable resolution node layer exists.
+        vrNode = dataset.getVRNode()
+        self.assertIsNotNone(vrNode)
 
-    # Check the optional variable resolution node layer exists.
-    vrNode = dataset.getVRNode()
-    assert(vrNode)
+        # Write one record.
+        kExpectedItem0 = BagVRNodeItem(123.456, 42, 1701)
 
-    # Write one record.
-    kExpectedItem0 = BagVRNodeItem(123.456, 42, 1701);
+        kRowStart = 0  # not used
+        kColumnStart = 0
+        kRowEnd = 0  # not used
+        kColumnEnd = 0
 
-    kRowStart = 0  # not used
-    kColumnStart = 0
-    kRowEnd = 0  # not used
-    kColumnEnd = 0
+        buffer = VRNodeLayerItems((kExpectedItem0,))  # LayerItem((kExpectedItem0,))
+        vrNode.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
-    buffer = VRNodeLayerItems((kExpectedItem0,))  # LayerItem((kExpectedItem0,))
-    vrNode.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
+        # Read the record back.
+        buffer = vrNode.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
+        self.assertIsNotNone(buffer)
 
-    # Read the record back.
-    buffer = vrNode.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)
-    assert(buffer)
+        result = buffer.asVRNodeItems()
+        self.assertEqual(len(result), 1)
 
-    result = buffer.asVRNodeItems()
-    assert(len(result) == 1)
+        # Check the expected value of BagVRNodeItem::hyp_strength.
+        self.assertEqual(result[0].hyp_strength, kExpectedItem0.hyp_strength)
 
-    # Check the expected value of BagVRNodeItem::hyp_strength.
-    assert(result[0].hyp_strength == kExpectedItem0.hyp_strength)
+        # Check the expected value of BagVRNodeItem::num_hypotheses.
+        self.assertEqual(result[0].num_hypotheses, kExpectedItem0.num_hypotheses)
 
-    # Check the expected value of BagVRNodeItem::num_hypotheses.
-    assert(result[0].num_hypotheses == kExpectedItem0.num_hypotheses)
+        # Check the expected value of BagVRNodeItem::n_samples.
+        self.assertEqual(result[0].n_samples, kExpectedItem0.n_samples)
 
-    # Check the expected value of BagVRNodeItem::n_samples.
-    assert(result[0].n_samples == kExpectedItem0.n_samples)
-
-    # Force a close.
-    del dataset
+        # Force a close.
+        del dataset
 
 
-testCreateOpen()
-testWriteRead()
-
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

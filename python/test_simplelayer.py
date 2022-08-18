@@ -1,8 +1,11 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-from math import isclose
-import shutil, pathlib, math
+
 import bagMetadataSamples, testUtils
-import sys
 
 
 # define constants used in multiple tests
@@ -11,155 +14,145 @@ chunkSize = 100
 compressionLevel = 6
 
 
-# define the unit test methods:
-print("Testing SimpleLayer")
+class TestSimpleLayer(unittest.TestCase):
+    def testGetName(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-def testGetName():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
+        layer = dataset.getLayer(Elevation)
+        self.assertIsNotNone(layer)
+        descriptor = layer.getDescriptor()
+        self.assertIsNotNone(descriptor)
 
-    layer = dataset.getLayer(Elevation)
-    assert(layer)
-    descriptor = layer.getDescriptor()
-    assert(descriptor)
+        self.assertEqual(descriptor.getName(), getLayerTypeAsString(Elevation))
 
-    assert(descriptor.getName() == getLayerTypeAsString(Elevation))
+    def testRead(self):
+        bagFileName = datapath + "/NAVO_data/JD211_public_Release_1-4_UTM.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
 
-def testRead():
-    bagFileName = datapath + "/NAVO_data/JD211_public_Release_1-4_UTM.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
+        kLayerType = Elevation
+        elevLayer = dataset.getLayer(kLayerType)
 
-    kLayerType = Elevation
-    elevLayer = dataset.getLayer(kLayerType)
+        rowStart = 288
+        rowEnd = 289
+        columnStart = 249
+        columnEnd = 251
 
-    rowStart = 288
-    rowEnd = 289
-    columnStart = 249
-    columnEnd = 251
+        result = elevLayer.read(rowStart, columnStart, rowEnd, columnEnd) # 2x3
+        self.assertIsNotNone(result)
 
-    result = elevLayer.read(rowStart, columnStart, rowEnd, columnEnd) # 2x3
-    assert(result)
+        kExpectedNumNodes = 6
 
-    kExpectedNumNodes = 6
+        buffer = result.asFloatItems()
+        self.assertEqual(len(buffer), kExpectedNumNodes)
 
-    buffer = result.asFloatItems()
-    assert(len(buffer) == kExpectedNumNodes)
+        kExpectedBuffer = (1000000.0, -52.161003, -52.172005,
+            1000000.0, -52.177002, -52.174004)
 
-    rows = (rowEnd - rowStart) + 1
-    columns = (columnEnd - columnStart) + 1
+        for actual, expected in zip(buffer, kExpectedBuffer):
+            self.assertAlmostEqual(actual, expected, places=5)
 
-    kExpectedBuffer = (1000000.0, -52.161003, -52.172005,
-        1000000.0, -52.177002, -52.174004)
+    def testWrite(self):
+        kLayerType = Elevation
+        kExpectedNumNodes = 12
+        kFloatValue = 123.456
+        tmpFile = testUtils.RandomFileGuard("name")
 
-    assert(all(isclose(actual, expected, abs_tol = 1e-5)
-        for actual, expected in zip(buffer, kExpectedBuffer)))
+        metadata = Metadata()
+        metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
+        self.assertIsNotNone(metadata)
 
-def testWrite():
-    kLayerType = Elevation
-    kExpectedNumNodes = 12
-    kFloatValue = 123.456
-    tmpFile = testUtils.RandomFileGuard("name")
+        # Create the dataset.
+        dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
+        self.assertIsNotNone(dataset)
 
-    metadata = Metadata()
-    metadata.loadFromBuffer(bagMetadataSamples.kMetadataXML)
-    assert(metadata)
+        layer = dataset.getLayer(kLayerType)
+        self.assertIsNotNone(layer)
 
-    # Create the dataset.
-    dataset = Dataset.create(tmpFile.getName(), metadata, chunkSize, compressionLevel)
-    assert(dataset)
+        fileDims = dataset.getDescriptor().getDims()
 
-    layer = dataset.getLayer(kLayerType)
-    assert(layer)
+        kExpectedRows = dataset.getMetadata().getStruct().spatialRepresentationInfo.numberOfRows
+        kExpectedColumns = dataset.getMetadata().getStruct().spatialRepresentationInfo.numberOfColumns
+        self.assertEqual(fileDims, (kExpectedRows, kExpectedColumns))
 
-    fileDims = dataset.getDescriptor().getDims()
+        # Open the dataset read/write and write to it.
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
 
-    kExpectedRows = dataset.getMetadata().getStruct().spatialRepresentationInfo.numberOfRows
-    kExpectedColumns = dataset.getMetadata().getStruct().spatialRepresentationInfo.numberOfColumns
-    assert(fileDims == (kExpectedRows, kExpectedColumns))
+        elevLayer = dataset.getLayer(kLayerType)
+        self.assertIsNotNone(elevLayer)
+
+        origBuffer = (kFloatValue,) * kExpectedNumNodes
+        buffer = FloatLayerItems(origBuffer)
+
+        # Write the floats to the elevation layer.
+        elevLayer.write(1, 2, 3, 5, buffer)
+
+        # Open the dataset and read what was written.
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
+
+        elevLayer = dataset.getLayer(kLayerType)
+        self.assertIsNotNone(elevLayer)
+
+        readBuffer = elevLayer.read(1, 2, 3, 5) # 3x4
+        self.assertGreater(readBuffer.size(), 0)
+
+        floatBuffer = readBuffer.asFloatItems()
+
+        for actual, expected in zip(floatBuffer, origBuffer):
+            self.assertAlmostEqual(actual, expected, places=5)
+
+        del dataset #ensure dataset is deleted before tmpFile
+
+    def testWriteAttributes(self):
+        bagFileName = datapath + "/sample.bag"
+        tmpFile = testUtils.RandomFileGuard("file", bagFileName)
+        kLayerType = Elevation
+
+        # Open the dataset read/write and write to it.
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
+        self.assertIsNotNone(dataset)
+        elevLayer = dataset.getLayer(kLayerType)
+        self.assertIsNotNone(elevLayer)
+        descriptor = elevLayer.getDescriptor()
+        self.assertIsNotNone(descriptor)
+
+        # change min & max values
+        originalMinMax = descriptor.getMinMax()
+        kExpectedMin = originalMinMax[0] - 12.34
+        kExpectedMax = originalMinMax[1] + 56.789
+        descriptor.setMinMax(kExpectedMin, kExpectedMax)
+        elevLayer.writeAttributes()
+
+        # check that written values have changed
+        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
+        elevLayer = dataset.getLayer(kLayerType)
+        descriptor = elevLayer.getDescriptor()
+        actualMinMax = descriptor.getMinMax()
+        self.assertAlmostEqual(actualMinMax[0], kExpectedMin, places=5)
+        self.assertAlmostEqual(actualMinMax[1], kExpectedMax, places=5)
+
+        del dataset #ensure dataset is deleted before tmpFile
+
+    def testGetSimpleLayer(self):
+        bagFileName = datapath + "/sample.bag"
+        dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
+        self.assertIsNotNone(dataset)
+
+        layer = dataset.getSimpleLayer(Elevation)
+        self.assertIsNotNone(layer)
+        descriptor = layer.getDescriptor()
+        self.assertIsNotNone(descriptor)
+
+        self.assertEqual(descriptor.getName(), getLayerTypeAsString(Elevation))
 
 
-    # Open the dataset read/write and write to it.
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
-    assert(dataset)
-
-    elevLayer = dataset.getLayer(kLayerType)
-    assert(elevLayer)
-
-    origBuffer = (kFloatValue,) * kExpectedNumNodes
-    buffer = FloatLayerItems(origBuffer)
-
-    # Write the floats to the elevation layer.
-    elevLayer.write(1, 2, 3, 5, buffer)
-
-
-    # Open the dataset and read what was written.
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
-    assert(dataset)
-
-    elevLayer = dataset.getLayer(kLayerType)
-    assert(elevLayer)
-
-    readBuffer = elevLayer.read(1, 2, 3, 5) # 3x4
-    assert(readBuffer.size() > 0)
-
-    floatBuffer = readBuffer.asFloatItems()
-
-    assert(all(isclose(actual, expected, abs_tol = 1e-5)
-        for actual, expected in zip(floatBuffer, origBuffer)))
-
-    del dataset #ensure dataset is deleted before tmpFile
-
-def testWriteAttributes():
-    bagFileName = datapath + "/sample.bag"
-    tmpFile = testUtils.RandomFileGuard("file", bagFileName)
-    kLayerType = Elevation
-    kExpectedMin = 0.0
-    kExpectedMax = 0.0
-
-    # Open the dataset read/write and write to it.
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
-    assert(dataset)
-    elevLayer = dataset.getLayer(kLayerType)
-    assert(elevLayer)
-    descriptor = elevLayer.getDescriptor()
-    assert(descriptor)
-
-    # change min & max values
-    originalMinMax = descriptor.getMinMax()
-    kExpectedMin = originalMinMax[0] - 12.34
-    kExpectedMax = originalMinMax[1] + 56.789
-    descriptor.setMinMax(kExpectedMin, kExpectedMax)
-    elevLayer.writeAttributes()
-
-    # check that written values have changed
-    dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
-    assert(dataset)
-    elevLayer = dataset.getLayer(kLayerType)
-    descriptor = elevLayer.getDescriptor()
-    actualMinMax = descriptor.getMinMax()
-    assert(math.isclose(actualMinMax[0], kExpectedMin, rel_tol=1e-7))
-    assert(math.isclose(actualMinMax[1], kExpectedMax, rel_tol=1e-7))
-
-    del dataset #ensure dataset is deleted before tmpFile
-
-    
-def testGetSimpleLayer():
-    bagFileName = datapath + "/sample.bag"
-    dataset = Dataset.openDataset(bagFileName, BAG_OPEN_READONLY)
-    assert(dataset)
-
-    layer = dataset.getSimpleLayer(Elevation)
-    assert(layer)
-    descriptor = layer.getDescriptor()
-    assert(descriptor)
-
-    assert(descriptor.getName() == getLayerTypeAsString(Elevation))
-
-# run the unit test methods
-testGetName()
-testRead()
-testWrite()
-testWriteAttributes()
-testGetSimpleLayer()
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )

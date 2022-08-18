@@ -1,150 +1,135 @@
+import unittest
+import pathlib
+
+import xmlrunner
+
 from bagPy import *
-import pathlib, math
-import bagMetadataSamples
+
+# import bagMetadataSamples
 
 # define constants used in multiple tests
 datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 
 
-# define the unit test methods:
+class TestCompoundDataType(unittest.TestCase):
+    def testDefaultConstructor(self):
+        cdt = CompoundDataType()
+        self.assertIsNotNone(cdt)
+        self.assertEqual(cdt.getType(), DT_UNKNOWN_DATA_TYPE)
 
-def testDefaultConstructor():
-    cdt = CompoundDataType()
-    assert(cdt)
-    assert(cdt.getType() == DT_UNKNOWN_DATA_TYPE)
+    def testConstructorFloat(self):
+        kExpectedValue = 42.3
+        kExpectedType = DT_FLOAT32
+        cdt = CompoundDataType(kExpectedValue)
+        self.assertIsNotNone(cdt)
+        self.assertEqual(cdt.getType(), kExpectedType)
 
-def testConstructorFloat():
-    kExpectedValue = 42.3
-    kExpectedType = DT_FLOAT32
-    cdt = CompoundDataType(kExpectedValue)
-    assert(cdt)
-    assert(cdt.getType() == kExpectedType)
+        floatVal = cdt.asFloat()
+        self.assertAlmostEqual(floatVal, kExpectedValue, places=5)
 
-    floatVal = cdt.asFloat()
-    #print(floatVal)
-    assert(math.isclose(floatVal, kExpectedValue, rel_tol=1e-7))
+        floatVal = getFloat(cdt)
+        self.assertAlmostEqual(floatVal, kExpectedValue, places=5)
 
-    floatVal = getFloat(cdt)
-    #print(floatVal)
-    assert(math.isclose(floatVal, kExpectedValue, rel_tol=1e-7))
+    def testConstructorUInt32(self):
+        kExpectedValue = 42
+        kExpectedType = DT_UINT32
+        cdt = CompoundDataType(kExpectedValue)
+        self.assertIsNotNone(cdt)
+        self.assertEqual(cdt.getType(), kExpectedType)
 
-def testConstructorUInt32():
-    kExpectedValue = 42
-    kExpectedType = DT_UINT32
-    cdt = CompoundDataType(kExpectedValue)
-    assert(cdt)
-    assert(cdt.getType() == kExpectedType)
+        uintVal = cdt.asUInt32()
+        self.assertEqual(uintVal, kExpectedValue)
 
-    uintVal = cdt.asUInt32()
-    #print(uintVal)
-    assert(uintVal == kExpectedValue)
+        uintVal = getUInt32(cdt)
+        self.assertEqual(uintVal, kExpectedValue)
 
-    uintVal = getUInt32(cdt)
-    #print(uintVal)
-    assert(uintVal == kExpectedValue)
+    def testConstructorBool(self):
+        kExpectedValue = True
+        kExpectedType = DT_BOOLEAN
+        cdt = CompoundDataType(kExpectedValue)
+        self.assertIsNotNone(cdt)
+        self.assertEqual(cdt.getType(), kExpectedType)
 
-def testConstructorBool():
-    kExpectedValue = True
-    kExpectedType = DT_BOOLEAN
-    cdt = CompoundDataType(kExpectedValue)
-    assert(cdt)
-    assert(cdt.getType() == kExpectedType)
+        boolVal = cdt.asBool()
+        self.assertEqual(boolVal, kExpectedValue)
 
-    boolVal = cdt.asBool()
-    #print(boolVal)
-    assert(boolVal == kExpectedValue)
+        boolVal = getBool(cdt)
+        self.assertEqual(boolVal, kExpectedValue)
 
-    boolVal = getBool(cdt)
-    #print(boolVal)
-    assert(boolVal == kExpectedValue)
 
-    
-def testConstructorString():
-    kExpectedValue = "Test Constructor"
-    kExpectedType = DT_STRING
-    cdt = CompoundDataType(kExpectedValue)
-    assert(cdt)
-    assert(cdt.getType() == kExpectedType)
+    def testConstructorString(self):
+        kExpectedValue = "Test Constructor"
+        kExpectedType = DT_STRING
+        cdt = CompoundDataType(kExpectedValue)
+        self.assertIsNotNone(cdt)
+        self.assertEqual(cdt.getType(), kExpectedType)
 
-    stringVal = str(cdt.asString())
-    #print(stringVal)
-    assert(stringVal == kExpectedValue)
+        stringVal = str(cdt.asString())
+        self.assertEqual(stringVal, kExpectedValue)
 
-    stringVal = getString(cdt)
-    #print(stringVal)
-    assert(stringVal == kExpectedValue)
+        stringVal = getString(cdt)
+        self.assertEqual(stringVal, kExpectedValue)
 
-def testAssignFloat():
-    cdt = CompoundDataType()
-    assert(cdt.getType() == DT_UNKNOWN_DATA_TYPE)
-    kExpectedValue = 123.456
-    cdt.assignFloat(kExpectedValue)
-    assert(cdt.getType() == DT_FLOAT32)
-    floatVal = getFloat(cdt)
-    assert(math.isclose(floatVal, kExpectedValue, rel_tol=1e-7))
-    
-def testAssignUInt32():
-    cdt = CompoundDataType()
-    assert(cdt.getType() == DT_UNKNOWN_DATA_TYPE)
-    kExpectedValue = 101
-    cdt.assignUInt32(kExpectedValue)
-    assert(cdt.getType() == DT_UINT32)
-    uintVal = getUInt32(cdt)
-    assert(uintVal == kExpectedValue)
+    def testAssignFloat(self):
+        cdt = CompoundDataType()
+        self.assertEqual(cdt.getType(), DT_UNKNOWN_DATA_TYPE)
+        kExpectedValue = 123.456
+        cdt.assignFloat(kExpectedValue)
+        self.assertEqual(cdt.getType(), DT_FLOAT32)
+        floatVal = getFloat(cdt)
+        self.assertAlmostEqual(floatVal, kExpectedValue, places=5)
 
-def testAssignBool():
-    cdt = CompoundDataType()
-    assert(cdt.getType() == DT_UNKNOWN_DATA_TYPE)
-    kExpectedValue = True
-    cdt.assignBool(kExpectedValue)
-    assert(cdt.getType() == DT_BOOLEAN)
-    boolVal = getBool(cdt)
-    assert(boolVal == kExpectedValue)
+    def testAssignUInt32(self):
+        cdt = CompoundDataType()
+        self.assertEqual(cdt.getType(), DT_UNKNOWN_DATA_TYPE)
+        kExpectedValue = 101
+        cdt.assignUInt32(kExpectedValue)
+        self.assertEqual(cdt.getType(), DT_UINT32)
+        uintVal = getUInt32(cdt)
+        self.assertEqual(uintVal, kExpectedValue)
 
-def testAssignString():
-    cdt = CompoundDataType()
-    assert(cdt.getType() == DT_UNKNOWN_DATA_TYPE)
-    kExpectedValue = "Test Constructor"
-    cdt.assignString(kExpectedValue)
-    assert(cdt.getType() == DT_STRING)
-    stringVal = getString(cdt)
-    assert(stringVal == kExpectedValue)
+    def testAssignBool(self):
+        cdt = CompoundDataType()
+        self.assertEqual(cdt.getType(), DT_UNKNOWN_DATA_TYPE)
+        kExpectedValue = True
+        cdt.assignBool(kExpectedValue)
+        self.assertEqual(cdt.getType(), DT_BOOLEAN)
+        boolVal = getBool(cdt)
+        self.assertEqual(boolVal, kExpectedValue)
 
-def testCopyConstuct():
-    cdt1 = CompoundDataType()
-    cdt2 = CompoundDataType("Test")
-    stringVal = str(cdt2.asString())
-    #print(stringVal)
-    assert(stringVal == "Test")
+    def testAssignString(self):
+        cdt = CompoundDataType()
+        self.assertEqual(cdt.getType(), DT_UNKNOWN_DATA_TYPE)
+        kExpectedValue = "Test Constructor"
+        cdt.assignString(kExpectedValue)
+        self.assertEqual(cdt.getType(), DT_STRING)
+        stringVal = getString(cdt)
+        self.assertEqual(stringVal, kExpectedValue)
 
-    cdt1 = cdt2
-    stringVal = str(cdt1.asString())
-    #print(stringVal)
-    assert(stringVal == "Test")
-    assert(cdt1 == cdt2)
+    def testCopyConstuct(self):
+        cdt1 = CompoundDataType()
+        cdt2 = CompoundDataType("Test")
+        stringVal = str(cdt2.asString())
+        self.assertEqual(stringVal, "Test")
 
-def testCopyAssign():
-    cdt1 = CompoundDataType(123.45)
-    floatVal = cdt1.asFloat()
-    #print(floatVal)  
-    assert(math.isclose(floatVal, 123.45, rel_tol=1e-7))
+        cdt1 = cdt2
+        stringVal = str(cdt1.asString())
+        self.assertEqual(stringVal, "Test")
+        self.assertEqual(cdt1, cdt2)
 
-    cdt2 = CompoundDataType(cdt1)
-    floatVal = cdt2.asFloat()
-    #print(floatVal)
-    assert(math.isclose(floatVal, 123.45, rel_tol=1e-7))
-    assert(cdt1 == cdt2)
+    def testCopyAssign(self):
+        cdt1 = CompoundDataType(123.45)
+        floatVal = cdt1.asFloat()
+        self.assertAlmostEqual(floatVal, 123.45, places=5)
 
-# run the unit test methods
-testDefaultConstructor()
-testConstructorFloat()
-testConstructorUInt32()
-testConstructorBool()
-testConstructorString()
-testAssignFloat()
-testAssignUInt32()
-testAssignBool()
-testAssignString()
-testCopyConstuct()
-testCopyAssign()
+        cdt2 = CompoundDataType(cdt1)
+        floatVal = cdt2.asFloat()
+        self.assertAlmostEqual(floatVal, 123.45, places=5)
+        self.assertEqual(cdt1, cdt2)
 
+
+if __name__ == '__main__':
+    unittest.main(
+        testRunner=xmlrunner.XMLTestRunner(output='test-reports'),
+        failfast=False, buffer=False, catchbreak=False
+    )
