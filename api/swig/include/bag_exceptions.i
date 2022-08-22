@@ -50,9 +50,9 @@
    ACTION(BAG,UnsupportedInterleavedLayer) \
    ACTION(BAG,InvalidLayerDescriptor) \
    ACTION(BAG,InvalidCast) \
-   ACTION(BAG,CoordSysError) \
    ACTION(BAG,InvalidDatumError) \
    ACTION(BAG,InvalidEllipsoidError) \
+   ACTION(BAG,CoordSysError) \
    ACTION(BAG,MetadataNotFound) \
    ACTION(BAG,UknownMetadataProfile) \
    ACTION(BAG,UnrecognizedMetadataProfile) \
