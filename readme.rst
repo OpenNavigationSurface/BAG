@@ -31,6 +31,27 @@ Doxygen is needed to produce the documentation.  Get it at http://www.doxygen.nl
     doxygen docs_config.dox
 
   Browse to html/index.html
+
+To generate API docs for Python bindings, you will need to install Sphinx (see requirements-docs.txt).
+To build the docs, first build the Python bindings:
+
+::
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON && \
+    cmake --build build
+
+Then, generate .rst files using Sphinx:
+
+::
+    sphinx-apidoc -o docs/python/source build/api/swig/python
+
+Finally, build HTML API docs:
+
+::
+    cd docs/python
+    make html
+
+Then open docs/python/build/html/index.html.
+
 Running C++ tests in Visual Studio
 ----------------------------------
 The C++ unit tests are written with Catch2.  There is no test harness at the moment.  Using the Standard toolbar, choose bag_tests.exe as the Select Startup Item.  Press F5 to run the tests.
