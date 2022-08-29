@@ -85,6 +85,6 @@ jobs:
     - name: Commit New Coverage Badge
       uses: EndBug/add-and-commit@v9
       with:
-        message: 'Update coverage badge'
+        message: 'Update coverage badge [skip ci]'
         add: 'coverage.svg'
         push: true
