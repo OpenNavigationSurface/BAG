@@ -5,6 +5,7 @@ skip_commits:
     - '.github/workflows/*'
     - readme.*
     - '*.md'
+    - '*.svg'
 
 environment:
 
