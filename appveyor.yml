@@ -4,6 +4,7 @@ skip_commits:
     - docs/**
     - '.github/workflows/*'
     - readme.*
+    - README.*
     - '*.md'
     - '*.svg'
 

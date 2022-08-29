@@ -6,6 +6,7 @@ on:
       - 'docs/**'
       - appveyor.yml
       - readme.*
+      - README.*
       - '*.md'
       - '*.svg'
     branches: [ "master", "v2" ]
