@@ -64,7 +64,10 @@ jobs:
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ninja -C build ccov-all-export-lcov
 
     - name: Test Coverage Reporter
-      uses: vebr/jest-lcov-reporter@v0.2.1
+      uses: zgosalvez/github-actions-report-lcov@v1
       with:
+        coverage-files: ./build/ccov/lcov.info
+        minimum-coverage: 60
+        artifact-name: code-coverage-report
         github-token: ${{ secrets.GITHUB_TOKEN }}
-        lcov-file: ./build/ccov/lcov.info
+        working-directory: ./api
