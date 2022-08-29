@@ -1,7 +1,7 @@
 #!/bin/bash
 pushd .
 sudo apt-get update -y
-sudo apt-get install -y llvm clang lcov cmake ninja-build libhdf5-dev libxml2-dev catch2
+sudo apt-get install -y llvm clang lcov cmake ninja-build libhdf5-dev libxml2-dev catch2 python3-venv
 # Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
 cd /tmp
 wget https://github.com/catchorg/Catch2/archive/v3.0.1.tar.gz
@@ -12,3 +12,7 @@ cd Catch2-3.0.1
 cmake -B build -G Ninja -S . -DCMAKE_INSTALL_PREFIX:PATH=/usr -DBUILD_TESTING:BOOL=OFF
 sudo cmake --build build --target install
 popd
+python3 -m venv python-venv --system-site-packages
+source python-venv/bin/activate
+pip install "genbadge[coverage]"
+deactivate
