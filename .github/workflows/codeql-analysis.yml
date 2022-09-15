@@ -16,7 +16,7 @@ on:
     branches: [ "master" ]
   pull_request:
     # The branches below must be a subset of the branches above
-    branches: [ "master", "v2" ]
+    branches: [ "master" ]
   schedule:
     - cron: '19 14 * * 6'
 
