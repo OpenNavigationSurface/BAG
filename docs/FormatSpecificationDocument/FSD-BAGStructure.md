@@ -162,6 +162,11 @@ The elevation solution group is designed to contain the shoal elevation, standar
  The node group has two components: hypothesis strength and number of hypotheses.  The hypothesis strength and number of hypotheses are computed in the CUBE/CHRT algorithm.  
  
 ## Certification
+
+> Note: Due to the large-scale changes to the BAG codebase as part of moving from C to C++14, support
+> for BAG Digital Signatures has been removed from the 2.0.0 codebase. Signing support will be added back
+> to a subsequent release of the BAG library.
+
 ### Intent of the BAG Digital Signature Scheme
 
 In a traditional hydrographic processing workflow, there is a strict chain of custody for all data that is to be used for nautical charting.  At each stage of the chain, a responsible authority reviews the data, the processes applied to it, and certifies that the data is fit for some intended purpose.  This may be that the data is ready for final plotting, that it is ready to be combined with other data in a compilation, or that the compilation is suitable as an aid to safe surface navigation.  Generally, this is done by some physical signature on appropriate archival documentation, which is traditionally the hydrographic smooth sheet or fair sheet.

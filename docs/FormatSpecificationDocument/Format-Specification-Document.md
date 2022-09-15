@@ -1,9 +1,9 @@
 # Format Specification Document
 
-Description of the Bathymetric Attributed Grid Object, version 1.6
-Release 1.6.3 (2018-05-02)
+Description of the Bathymetric Attributed Grid Object, version 2.0
+Release 2.0.1 (2022-12-01)
 
-The release history is [here](https://github.com/OpenNavigationSurface/BAG/wiki/RevisionHistory)
+The release history is [here](RevisionHistory.md).
 
 ## Contents
 
@@ -67,10 +67,8 @@ The idea for what became the Open Navigation Surface Project had been discussed 
 
 ### Identification
 
-This document describes the Bathymetric Attributed Grid file format, version 1.6.3.  This version corresponds to the Git release tag “release-fr-1.6.3”, which may be obtained from the Open Navigation Surface (ONS) Project web-site, [here](http://www.opennavsurf.org), as source code.  It may also be obtained from the ONS GitHub Git repository with appropriate authorization.  Details of how to apply for access is given in Section 7.
+This document describes the Bathymetric Attributed Grid file format, version 2.0.1.  This version corresponds to the Git release tag “release-2.0.1”, which may be obtained from the Open Navigation Surface (ONS) Project on [GitHub](https://github.com/OpenNavigationSurface/BAG).
 
-This release of the library supports, and has been tested on, Windows 7, Mac OS X 10.11.5 (“El Capitan”), Linux Mint, and Red Hat Enterprise Linux 3.0 and 4.0.  The source code release is generic ANSI C and C++, and should therefore compile on most Unix-like systems if required.  Users who successfully compile the library on other platforms are urged to provide information on any modifications required to the project so that these platforms can be supported in future releases.
-
-It is the intent of the ONSWG to support as many other Unix-like platforms as possible in future releases.
+This release of the library supports, and has been tested on 64-bit versions of Linux, Windows 10, and macOS, Linux Mint.  The source code is written in C++14 and builds with CMake, and should therefore compile on most Unix-like systems if required.  Users who successfully compile the library on other platforms are urged to provide information on any modifications required to the project so that these platforms can be supported in future releases.
 
 ## [Next: Overview of the BAG Structure](FSD-BAGStructure.md)

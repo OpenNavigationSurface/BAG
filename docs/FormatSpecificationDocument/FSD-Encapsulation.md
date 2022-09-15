@@ -7,46 +7,148 @@ The BAG structure utilizes HDF-5.  HDF-5 is a hierarchical data format product c
 
 An HDF-5 “Group” provides the top-level structure for the data contents of a BAG.  The major subcomponents are defined using the HDF-5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters.  “Attributes” are included were appropriate to provide “Dataset” specific metadata.    Following the high level BAG file structure described in Fig. 3, the specific HDF-5 type definitions that define the BAG encapsulation structure are illustrated in Fig. 8.  Note that the digital signature is not shown in Fig. 8.  As described in Section 2, the digital signature byte stream is appended to the end of the HDF-5 group.
 
-    Group “BAG_root” {
-    Attribute “BAG Version”
-    Dataset “metadata” {
-        DATATYPE    String
-        DATASPACE    1-dimension, 0-N
-        DATASET {“XML…”}
+Output of `h5dump -A examples/sample-data/sample-2.0.1.bag`:
+```
+HDF5 "examples/sample-data/sample-2.0.1.bag" {
+GROUP "/" {
+   GROUP "BAG_root" {
+      ATTRIBUTE "Bag Version" {
+         DATATYPE  H5T_STRING {
+            STRSIZE 32;
+            STRPAD H5T_STR_NULLTERM;
+            CSET H5T_CSET_ASCII;
+            CTYPE H5T_C_S1;
+         }
+         DATASPACE  SCALAR
+         DATA {
+         (0): "2.0.1"
+         }
+      }
+      DATASET "elevation" {
+         DATATYPE  H5T_IEEE_F32LE
+         DATASPACE  SIMPLE { ( 100, 100 ) / ( 100, 100 ) }
+         ATTRIBUTE "Maximum Elevation Value" {
+            DATATYPE  H5T_IEEE_F32LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 99.99
             }
-            Dataset “elevation” {
-                DATATYPE    Floating point 4 bytes
-                DATASPACE    2-dimensions, 0-N, 0-M
-                DATASET {{}}
-                Attribute “Minimum Elevation Value”
-                Attribute “Maximum Elevation Value”                
+         }
+         ATTRIBUTE "Minimum Elevation Value" {
+            DATATYPE  H5T_IEEE_F32LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): -10
             }
-    Dataset “uncertainty” {
-    DATATYPE    Floating point 4 bytes
-    DATASPACE    2-dimensions, 0-N, 0-M
-    DATASET {{}}
-                Attribute “Minimum Uncertainty Value”
-                Attribute “Maximum Uncertainty Value”
+         }
+      }
+      DATASET "metadata" {
+         DATATYPE  H5T_STRING {
+            STRSIZE 1;
+            STRPAD H5T_STR_NULLTERM;
+            CSET H5T_CSET_ASCII;
+            CTYPE H5T_C_S1;
+         }
+         DATASPACE  SIMPLE { ( 11005 ) / ( H5S_UNLIMITED ) }
+      }
+      DATASET "nominal_elevation" {
+         DATATYPE  H5T_IEEE_F32LE
+         DATASPACE  SIMPLE { ( 100, 100 ) / ( 100, 100 ) }
+         ATTRIBUTE "max_value" {
+            DATATYPE  H5T_IEEE_F32LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 100.99
             }
-    Dataset “tracking list” {
-    DATATYPE    bagTrackingListItem
-    DATASPACE    1-dimension, 0-N
-    DATASET {}    
-                Attribute “Tracking List Length”
+         }
+         ATTRIBUTE "min_value" {
+            DATATYPE  H5T_IEEE_F32LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 1
             }
-        }
+         }
+      }
+      DATASET "tracking_list" {
+         DATATYPE  H5T_COMPOUND {
+            H5T_STD_U32LE "row";
+            H5T_STD_U32LE "col";
+            H5T_IEEE_F32LE "depth";
+            H5T_IEEE_F32LE "uncertainty";
+            H5T_STD_U8LE "track_code";
+            H5T_STD_I16LE "list_series";
+         }
+         DATASPACE  SIMPLE { ( 0 ) / ( H5S_UNLIMITED ) }
+         ATTRIBUTE "Tracking List Length" {
+            DATATYPE  H5T_STD_U32LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 0
+            }
+         }
+      }
+      DATASET "uncertainty" {
+         DATATYPE  H5T_IEEE_F32LE
+         DATASPACE  SIMPLE { ( 100, 100 ) / ( 100, 100 ) }
+         ATTRIBUTE "Maximum Uncertainty Value" {
+            DATATYPE  H5T_IEEE_F32LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 100.01
+            }
+         }
+         ATTRIBUTE "Minimum Uncertainty Value" {
+            DATATYPE  H5T_IEEE_F32LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 0
+            }
+         }
+      }
+      DATASET "vertical_datum_corrections" {
+         DATATYPE  H5T_COMPOUND {
+            H5T_IEEE_F64LE "x";
+            H5T_IEEE_F64LE "y";
+            H5T_ARRAY { [1][2] H5T_IEEE_F32LE } "z";
+         }
+         DATASPACE  SIMPLE { ( 3, 3 ) / ( H5S_UNLIMITED, H5S_UNLIMITED ) }
+         ATTRIBUTE "surface_type" {
+            DATATYPE  H5T_STD_U8LE
+            DATASPACE  SCALAR
+            DATA {
+            (0): 2
+            }
+         }
+         ATTRIBUTE "vertical_datum" {
+            DATATYPE  H5T_STRING {
+               STRSIZE 1;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            }
+            DATASPACE  SIMPLE { ( 0 ) / ( 256 ) }
+            DATA {
+            }
+         }
+      }
+   }
+}
+}
+```
 
 **Figure 8: Structure of BAG data encapsulated using HDF-5.**
 
 Table 3 defines the contents of the HDF data elements belonging to the BAG_root Group.  
 
-| Entity Name | Data Type | Domain |
-| :------------- | :----------- | :-------- |
-| BAG Version | String | Maximum 32 bytes available |
-| metadata | Dataset | Detailed in table 4 |
-| elevation | Dataset | Detailed in table 5 |
-| uncertainty | Dataset | Detailed in table 6 |
-| tracking list | Dataset | Detailed in table 7, and in table 8 |
+| Entity Name | Data Type | Domain                              | Required |
+| :------------- |:----------|:------------------------------------| :-------- |
+| BAG Version | String    | Maximum 32 bytes available          | Yes |
+| metadata | Array     | Detailed in table 4                 | Yes |
+| elevation | Array     | Detailed in table 5                 | Yes |
+| uncertainty | Array     | Detailed in table 6                 | Yes |
+| tracking list | Table     | Detailed in table 7, and in table 8 | Yes |
+| nominal_elevation | Array     | Detailed in table 9                 | No |
+ | vertical_datum_corrections | Table | Detaild in Table 10 | No |
 
 **Table 3: Contents of BAG_Root group**
 
