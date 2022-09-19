@@ -133,8 +133,8 @@ class TestSimpleLayer(unittest.TestCase):
         elevLayer = dataset.getLayer(kLayerType)
         descriptor = elevLayer.getDescriptor()
         actualMinMax = descriptor.getMinMax()
-        self.assertAlmostEqual(actualMinMax[0], kExpectedMin, places=5)
-        self.assertAlmostEqual(actualMinMax[1], kExpectedMax, places=5)
+        self.assertAlmostEqual(actualMinMax[0], kExpectedMin, places=4)
+        self.assertAlmostEqual(actualMinMax[1], kExpectedMax, places=4)
 
         del dataset #ensure dataset is deleted before tmpFile
 

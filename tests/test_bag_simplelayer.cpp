@@ -448,6 +448,70 @@ TEST_CASE("test simple layer write", "[simplelayer][write]")
     }
 }
 
+TEST_CASE("test simple layer write, shoal_elevation", "[simplelayer][write][shoal_elevation]")
+{
+    const TestUtils::RandomFileGuard tmpFileName;
+
+//    constexpr BAG::LayerType kLayerType = Shoal_Elevation;
+    constexpr size_t kExpectedNumNodes = 12;
+    constexpr float kFloatValue = 456.123f;
+    constexpr uint32_t kGridSize = 100;
+
+    // Create the dataset.
+    {
+        UNSCOPED_INFO("Create the dataset.");
+        BAG::Metadata metadata;
+        metadata.loadFromBuffer(kMetadataXML);
+
+        constexpr uint64_t chunkSize = 100;
+        constexpr int compressionLevel = 1;
+        const auto pDataset = Dataset::create(tmpFileName, std::move(metadata),
+                                              chunkSize, compressionLevel);
+        REQUIRE(pDataset);
+
+        UNSCOPED_INFO("Create Shoal_Elevation layer");
+        auto& shoalElevationLayer = pDataset->createSimpleLayer(
+                Shoal_Elevation, chunkSize, compressionLevel);
+
+        // Write the data.
+        std::array<float, kGridSize> shoalElevation{};
+
+        for (uint32_t row=0; row<kGridSize; ++row)
+        {
+            for (uint32_t column=0; column<kGridSize; ++column) {
+                shoalElevation[column] = kFloatValue;
+            }
+
+            auto buffer = reinterpret_cast<uint8_t*>(shoalElevation.data());
+            constexpr uint32_t columnStart = 0;
+            constexpr uint32_t columnEnd = kGridSize - 1;
+
+            shoalElevationLayer.write(row, columnStart, row, columnEnd, buffer);
+        }
+    }
+
+    // Open the dataset and read what was written.
+    {
+        UNSCOPED_INFO("Open the dataset for reading.");
+        auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
+        REQUIRE(pDataset);
+
+        const auto& shoalElevLayer = pDataset->getLayer(Shoal_Elevation, "shoal_elevation");
+
+        UNSCOPED_INFO("Read the new data in the Shoal_Elevation layer.");
+        const auto buffer = shoalElevLayer->read(0, 0, kGridSize-1, kGridSize-1);
+        REQUIRE(buffer);
+
+        const auto* floatBuffer = reinterpret_cast<const float*>(buffer.data());
+
+        std::array<float, kExpectedNumNodes> kExpectedBuffer;
+        kExpectedBuffer.fill(kFloatValue);
+
+        for (size_t i=0; i<kExpectedNumNodes; ++i)
+            CHECK(floatBuffer[i] == kExpectedBuffer[i]);
+    }
+}
+
 //  void writeAttributesProxy() const override;
 TEST_CASE("test simple layer write attributes", "[simplelayer][write]")
 {
