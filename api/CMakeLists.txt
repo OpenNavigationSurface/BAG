@@ -194,12 +194,15 @@ if(MSVC)
         endif()
     endif()
 else()
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20")
+        set(HDF5_PRIVATE HDF5::HDF5)
+    endif()
     target_link_libraries(baglib
         PUBLIC
             ${HDF5_LIBRARIES}
         PRIVATE
             LibXml2::LibXml2
-            HDF5::HDF5
+            ${HDF5_PRIVATE}
     )
 endif()
 
