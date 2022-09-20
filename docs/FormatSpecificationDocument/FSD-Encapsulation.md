@@ -140,17 +140,34 @@ GROUP "/" {
 
 Table 3 defines the contents of the HDF data elements belonging to the BAG_root Group.  
 
-| Entity Name | Data Type | Domain                              | Required |
+| Entity Name | Data Type | Domain                              | Required | 
 | :------------- |:----------|:------------------------------------| :-------- |
 | BAG Version | String    | Maximum 32 bytes available          | Yes |
-| metadata | Array     | Detailed in table 4                 | Yes |
-| elevation | Array     | Detailed in table 5                 | Yes |
-| uncertainty | Array     | Detailed in table 6                 | Yes |
-| tracking list | Table     | Detailed in table 7, and in table 8 | Yes |
-| nominal_elevation | Array     | Detailed in table 9                 | No |
- | vertical_datum_corrections | Table | Detaild in Table 10 | No |
+| metadata | Dataset   | Detailed in table 4                 | Yes |
+| elevation | Dataset   | Detailed in table 5                 | Yes |
+| uncertainty | Dataset   | Detailed in table 6                 | Yes |
+| tracking list | Dataset   | Detailed in table 7, and in table 8 | Yes |
+| nominal_elevation | Dataset   | Detailed in table 9                 | No |
+| node | Dataset | Detailed in Table 10                | No |
+| elevation_solution | Dataset | Detailed in Table 11                | No |
+ | Georef_metadata | Dataset | Detailed in Table 12 | No |
 
 **Table 3: Contents of BAG_Root group**
+
+| average | Dataset | Detailed in Table 13? | No |
+
+Okay, so what appears to be going on is that "node" is an HDF5 group (`BAG_GROUP_TYPE::NODE`) that can store the 
+following attributes: "hyp_strength" (type `Hypothesis_Strength`), and "num_hypotheses" (type `Num_Hypotheses`). 
+Correspondinly "elevation_solution" is an HDF5 group(`BAG_GROUP_TYPE::ELEVATION`) that can store the following
+attributes: "shoal_elevation" (type `Shoal_Elevation`), "stddev" (type `Std_Dev`), and "num_soundings"
+(type `Num_Soundings`).
+
+However, it appears that each of the attributes of "node" and "elevation_solution" can alternately be stored
+as simple layers of the BAG root as well.
+
+
+
+
 
 Table 4 defines the metadata items used with in the BAG library.  These items must be present and properly defined for BAG I/O operations to succeed.  Note that this listing of metadata items does not specify the mandatory metadata items required by the ISO 19915 standard.
 
@@ -234,17 +251,17 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 
 **Table 4: Group level metadata - grid parameters.**
 
-| Entity Name | Data Type | Domain |
-| :------------- | :----------- | :-------- |
-| Elevation | Float 32[][] | (FLT_MIN, FLT_MAX) | 
+| Entity Name             | Data Type | Domain |
+|:------------------------| :----------- | :-------- |
+| elevation               | Float 32[][] | (FLT_MIN, FLT_MAX) | 
 | Minimum Elevation Value | Float 32 | (FLT_MIN, FLT_MAX) |
 | Maximum Elevation Value | Float 32 | (FLT_MIN, FLT_MAX) |
 
 **Table 5: Elevation dataset attributes.**
 
-| Entity Name | Data Type | Domain |
-| :------------- | :----------- | :-------- |
-| Uncertainty | Float 32[][] | (FLT_MIN, FLT_MAX) | 
+| Entity Name               | Data Type | Domain |
+|:--------------------------| :----------- | :-------- |
+| uncertainty               | Float 32[][] | (FLT_MIN, FLT_MAX) | 
 | Minimum Uncertainty Value | Float 32 | (FLT_MIN, FLT_MAX) |
 | Maximum Uncertainty Value | Float 32 | (FLT_MIN, FLT_MAX) |
 
@@ -258,14 +275,88 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 **Table 7: Tracking list dataset attributes.**
 
 | Entity Name | Data Type | Domain |
-| :------------- | :----------- | :-------- |
-| Row | Unsigned Integer 32 | location of the node of the BAG that was modified |
-| Col | Unsigned Integer 32 | location of the node of the BAG that was modified |
-| Depth | Float 32 | original depth before this change |
-| Uncertainty | Float 32 | original uncertainty before this change |
-| track_code | Char | reason code indicating why the modification was made |
+|:------------| :----------- | :-------- |
+| row         | Unsigned Integer 32 | location of the node of the BAG that was modified |
+| col         | Unsigned Integer 32 | location of the node of the BAG that was modified |
+| depth       | Float 32 | original depth before this change |
+| uncertainty | Float 32 | original uncertainty before this change |
+| track_code  | Char | reason code indicating why the modification was made |
 | list_series | Unsigned Integer 16 | index number indicating the item in the metadata that describes the modifications |
 
 **Table 8: Definition of contents of the BAG tracking list item.**
+
+| Entity Name                     | Data Type | Domain |
+|:--------------------------------| :-------- | :----- |
+ | nominal_elevation               | Float 32[][] | (FLT_MIN, FLT_MAX) |
+| Minimum Nominal Elevation Value | Float 32 | (FLT_MIN, FLT_MAX) |
+| Maximum Nominal Elevation Value | Float 32 | (FLT_MIN, FLT_MAX) |
+
+**Table 9: Nominal elevation dataset attributes.**
+
+| Entity Name | Data Type               | Domain |
+| :---------- |:------------------------| :----- |
+ | hyp_strength | Float 32[][]            | (FLT_MIN, FLT_MAX) |
+| max_hyp_strength | Float 32                | (FLT_MIN, FLT_MAX) |
+ | min_hyp_strength | Float 32                | (FLT_MIN, FLT_MAX) |
+ | num_hypotheses | Unsigned Integer 32[][] | (UINT32_MIN, UINT32_MAX) |
+ | max_num_hypotheses | Unsigned Integer 32     | (UINT32_MIN, UINT32_MAX) |
+ | min_num_hypotheses | Unsigned Integer 32     | (UINT32_MIN, UINT32_MAX) |
+
+**Table 10: Node extension dataset attributes.**
+
+| Entity Name         | Data Type               | Domain |
+|:--------------------|:------------------------| :----- |
+ | shoal_elevation     | Float 32[][]            | (FLT_MIN, FLT_MAX) |
+| max_shoal_elevation | Float 32                | (FLT_MIN, FLT_MAX) |
+| min_shoal_elevation | Float 32                | (FLT_MIN, FLT_MAX) |
+ | stddev              | Float 32[][]            | (FLT_MIN, FLT_MAX) |
+| max_stddev          | Float 32                | (FLT_MIN, FLT_MAX) |
+| min_stddev          | Float 32                | (FLT_MIN, FLT_MAX) |
+ | num_soundings       | Unsigned Integer 32[][] | (UINT32_MIN, UINT32_MAX) |
+| max_num_soundings   | Unsigned Integer 32 | (UINT32_MIN, UINT32_MAX) |
+| min_num_soundings   | Unsigned Integer 32 | (UINT32_MIN, UINT32_MAX) |
+
+**Table 11: Elevation solution extension dataset attributes.**
+
+| Entity Name    | Data Type  | Domain                                                                                                    |
+|:---------------|:-----------|:----------------------------------------------------------------------------------------------------------|
+ | <LAYER_NAME_1> | HDF5 group | HDF5 group whose name corresponds to the BAG layer this geoferenced metadata layer provides metadata for. |
+ | ...            | ...        | ...                                                                                                       |
+ | <LAYER_NAME_N> | HDF5 group | HDF5 group whose name corresponds to the BAG layer this geoferenced metadata layer provides metadata for. |
+
+**Table 12: Georef_metadata extension dataset attributes.**
+
+Each HDF5 group in Georef_metadata must correspond to an existing BAG layer of the same name. Each Georef_metadata
+group must consist of two HDF5 compound datasets: (1) "keys"; and (2) "values". The "keys" dataset is described in
+Table 13, and "values" described in Table 15.
+
+| Entity Name           | Data Type                        | Domain                               | Required |
+|:----------------------|:---------------------------------|:-------------------------------------| :------- |
+ | Record Definition     | Array of Record Definition Items | Definition Item detailed in table 14 | Yes |
+ | Metadata Profile Type | Character String                 | 32 characters                        | No |
+
+**Table 13: Required and optional elements of Georef_metadata "keys" dataset.**
+
+Metadata Profile Type string should be "Unknown metadata profile" unless the Georef_metadata Record Definition is
+of a known profile (e.g., "NOAA-NBS-2022.06").
+
+| Entity Name          | Data Type                  | Domain                          |
+|:---------------------|:---------------------------|:--------------------------------|
+ | name                 | Character String           | The name of the metadata record |
+ | type | Unsigned Integer 8 | [UINT8_MIN, UINT8_MAX]          |
+
+**Table 14: Georef_metadata Record Definition Item.**
+
+| Entity Name      | Data Type                                                       | Domain |
+|:-----------------|:----------------------------------------------------------------|:------|
+| <RECORD_VALUE_1> | Float 32 or Unsigned Integer 32 or Boolean or Character String  |        |
+| ...              | ...                                                             | ...   |
+ | <RECORD_VALUE_N> | Float 32 or Unsigned Integer 32 or Boolean or Character String  |       |
+
+**Table 15: Required elements of Georef_metadata "values" dataset.**
+
+The raster values of a Georef_metadata is interpretted to correspond to the entry of the "values" table containing
+the metadata to be associated with one or more points in raster space. The NoData value is 0, hence the first entry
+in the "values" table will always contain 0 or NULL values.
 
 ## [Next: Axiomatic Definitions](FSD-AxiomaticDefs.md)
