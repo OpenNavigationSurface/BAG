@@ -27,20 +27,22 @@ The BAG::Dataset class represents a bag file. The static BAG::Dataset::open meth
 
     auto bag = BAG::Dataset::open(filename);
 
-Data is organized in layers with equired layers being "Elevation" and "Uncertainty". Obtaining size information of the elevation grid can be done with the Dataset's Metadata object.
+Data is organized in layers with required layers being BAG::LayerType::Elevation and BAG::LayerType::Uncertainty. Obtaining size information of the elevation grid can be done with the BAG::Metadata object obtained from BAG::Dataset::getMetadata.
 
     const auto& meta = bag->getMetadata();
 
 TODO: what about BAG::Descriptor? Does it contain the same metadata?
 
-To extract elevation data from a bag file, the layer is obtained with the getLayer method specifiying the layer type.
+To extract elevation data from a bag file, the layer is obtained with the BAG::Dataset::getLayer method specifiying the layer type.
 
     auto elevationLayer = bag.getLayer(BAG::LayerType::Elevation, "");
 
-The data as a byte array can now be extracted from the layer. A subset of the data can be requested by specifying appropriate bounds.
+The data as a byte array can now be extracted from the layer using BAG::Layer::read. A subset of the data can be requested by specifying appropriate bounds.
 
     auto data = elevationLayer->read(startRow, startCol, endRow, endCol);
 
 Note: to obtain usable values, the returned data should be cast to floats.
 
 ### Variable resolution bags
+
+TODO: add details once refinements read bug is fixed
