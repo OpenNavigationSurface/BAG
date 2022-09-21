@@ -197,7 +197,7 @@ namespace {
             dataset->close();
 
             // Go behind the BAG library's back to delete the metadata profile attribute from the HDF5 file
-            // so that we can test reading a BAG that doesn't declare the profile attribute in its compound layer below.
+            // so that we can test reading a BAG that doesn't declare the profile attribute in its compound layer.
             {
                 ::H5::H5File *m_pH5file = new ::H5::H5File{tmpBagFileName,H5F_ACC_RDONLY};
                 const std::string internalPath{COMPOUND_PATH + elevationLayerName + COMPOUND_KEYS};
@@ -236,8 +236,8 @@ namespace {
             dataset->close();
 
             // Go behind the BAG library's back to change the metadata profile attribute in the HDF5 file to be an
-            // unrecognized value so that we can test reading a BAG that doesn't declare the profile attribute in its
-            // compound layer below.
+            // unrecognized value so that we can test reading a BAG with an unrecognized profile attribute in its
+            // compound layer.
             {
                 ::H5::H5File *m_pH5file = new ::H5::H5File{tmpBagFileName,H5F_ACC_RDONLY};
                 const std::string internalPath{COMPOUND_PATH + elevationLayerName + COMPOUND_KEYS};
@@ -250,7 +250,7 @@ namespace {
             }
         }
 
-        // Open the dataset to exercise code for handling undefined metadata profile
+        // Open the dataset to exercise code for handling unrecognized metadata profile
         {
             UNSCOPED_INFO("Open dataset with undefined metadata profile.");
             const auto datasetRO = Dataset::open(tmpBagFileName, BAG_OPEN_READONLY);

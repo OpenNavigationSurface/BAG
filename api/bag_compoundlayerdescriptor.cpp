@@ -147,19 +147,22 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
         const auto metadataProfileAtt = h5dataSet.openAttribute(METADATA_PROFILE_TYPE);
         metadataProfileAtt.read(metadataProfileAtt.getDataType(), profileString);
     } else {
-        std::cerr << "Unable to find metadata profile attribute '" << METADATA_PROFILE_TYPE <<
-                  "', setting profile to '" << UNKOWN_METADATA_PROFILE_NAME << "'." << std::endl;
+        std::cerr << "Unable to find compound layer attribute '" << METADATA_PROFILE_TYPE <<
+                  "' for simple layer '" << name << "', setting profile to '" << UNKOWN_METADATA_PROFILE_NAME <<
+                  "'." << std::endl;
         profileString = UNKOWN_METADATA_PROFILE_NAME;
     }
 
-    GeorefMetadataProfile profile = UNKNOWN_METADATA_PROFILE;
+    GeorefMetadataProfile profile;
     auto search = BAG::kStringMapGeorefMetadataProfile.find(profileString);
     if (search != BAG::kStringMapGeorefMetadataProfile.end()) {
-        // This is a recognized metadata profile (either known or unknown)
+        // This is a recognized metadata profile (either a specific known profile or the unknown profile)
         profile = search->second;
     } else {
-        std::cerr << "WARNING: Unrecognized metadata profile '" << profileString <<
-                  "', assuming unknown metadata profile." << std::endl;
+        std::cerr << "WARNING: Unrecognized compound layer metadata profile '" << profileString <<
+                  "' for simple layer '" << name << "', assuming value was '" << UNKOWN_METADATA_PROFILE_NAME <<
+                  "'." << std::endl;
+        profile = UNKNOWN_METADATA_PROFILE;
     }
 
     return std::shared_ptr<CompoundLayerDescriptor>(
