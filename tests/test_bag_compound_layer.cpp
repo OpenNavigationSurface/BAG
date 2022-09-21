@@ -3,22 +3,93 @@
 
 #include <catch2/catch_all.hpp>
 #include <cstdlib>
-#include <array>
 #include <utility>
 
-#include <bag_dataset.h>
-#include <bag_metadata.h>
 #include <bag_simplelayer.h>
 #include <bag_surfacecorrections.h>
 #include <bag_surfacecorrectionsdescriptor.h>
 
-
+#include <bag_private.h>
+#include <H5Cpp.h>
 
 using BAG::Dataset;
 
 namespace {
 
-    TEST_CASE("test dataset NOAA NBS 2022-06 metadata profile creation", "[dataset][create][NOAA_NBS_2022_06][compoundLayer]")
+    TEST_CASE("test dataset with compound layer of unknown metadata profile type", "[dataset][create][compoundLayer][unknown]")
+    {
+        const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+                                           "/sample.xml"};
+        const TestUtils::RandomFileGuard tmpBagFileName;
+
+        // Create BAG with unknown metadata profile
+        {
+            UNSCOPED_INFO("Create dataset with unknown metadata profile.");
+            const auto result = TestUtils::createBag(metadataFileName,
+                                                     tmpBagFileName);
+            std::shared_ptr<BAG::Dataset> dataset = result.first;
+            REQUIRE(dataset);
+            std::string elevationLayerName = result.second;
+
+            TestUtils::create_unknown_metadata(elevationLayerName, dataset);
+            dataset->close();
+        }
+
+        // Open the dataset and read some values back
+        {
+            UNSCOPED_INFO("Open dataset with unknown metadata profile.");
+            const auto datasetRO = Dataset::open(tmpBagFileName, BAG_OPEN_READONLY);
+            REQUIRE(datasetRO);
+            REQUIRE(datasetRO->getLayers().size() == 3);
+
+            uint32_t numRows = 0;
+            uint32_t numColumns = 0;
+            std::tie(numRows, numColumns) = datasetRO->getDescriptor().getDims();
+
+            std::string elevationLayerName = "elevation";
+            const auto& compoundLayer = datasetRO->getCompoundLayer(elevationLayerName);
+            REQUIRE(compoundLayer);
+
+            const auto& valueTable = compoundLayer->getValueTable();
+
+            {
+                // Read region of compound layer raster associated with first index, check values
+                auto buff = compoundLayer->read(0, 0, 4,
+                                                numColumns - 1);
+                auto* buffer = reinterpret_cast<uint16_t*>(buff.data());
+
+                const auto recordIndex = buffer[0];
+                const auto &dummy_int = valueTable.getValue(recordIndex,
+                                                                  "dummy_int");
+                REQUIRE(1u == dummy_int.asUInt32());
+
+                const auto fieldIndex = valueTable.getFieldIndex("dummy_float");
+                const auto &dummy_float = valueTable.getValue(recordIndex,
+                                                              fieldIndex);
+                REQUIRE(123.456f == dummy_float.asFloat());
+            }
+
+            {
+                // Read region of compound layer raster associated with first index, check values
+                auto buff = compoundLayer->read(5, 0, numRows - 1,
+                                                numColumns - 1);
+                auto* buffer = reinterpret_cast<uint16_t*>(buff.data());
+
+                const auto recordIndex = buffer[0];
+                const auto &dummy_int = valueTable.getValue(recordIndex,
+                                                             "dummy_int");
+                REQUIRE(2u == dummy_int.asUInt32());
+
+                const auto fieldIndex = valueTable.getFieldIndex("dummy_float");
+                const auto &dummy_float = valueTable.getValue(recordIndex,
+                                                               fieldIndex);
+                REQUIRE(456.123f == dummy_float.asFloat());
+            }
+        }
+
+    }
+
+    TEST_CASE("test dataset NOAA NBS 2022-06 metadata profile creation", "[dataset][create][compoundLayer][NOAA_NBS_2022_06]")
     {
         const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
                                            "/sample.xml"};
@@ -105,5 +176,86 @@ namespace {
             REQUIRE(987.59998f == featureSize.asFloat());
         }
 
+    }
+
+    TEST_CASE("test dataset with compound layer with undefined metadata profile attribute", "[dataset][create][compoundLayer][undefined_metadata_profile]")
+    {
+        const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+                                           "/sample.xml"};
+        const TestUtils::RandomFileGuard tmpBagFileName;
+
+        // Create BAG with unknown metadata profile
+        {
+            UNSCOPED_INFO("Create dataset with unknown metadata profile.");
+            const auto result = TestUtils::createBag(metadataFileName,
+                                                     tmpBagFileName);
+            std::shared_ptr<BAG::Dataset> dataset = result.first;
+            REQUIRE(dataset);
+            std::string elevationLayerName = result.second;
+
+            TestUtils::create_unknown_metadata(elevationLayerName, dataset);
+            dataset->close();
+
+            // Go behind the BAG library's back to delete the metadata profile attribute from the HDF5 file
+            // so that we can test reading a BAG that doesn't declare the profile attribute in its compound layer below.
+            {
+                ::H5::H5File *m_pH5file = new ::H5::H5File{tmpBagFileName,H5F_ACC_RDONLY};
+                const std::string internalPath{COMPOUND_PATH + elevationLayerName + COMPOUND_KEYS};
+                const auto h5dataSet = ::H5::DataSet{m_pH5file->openDataSet(internalPath)};
+                h5dataSet.removeAttr(METADATA_PROFILE_TYPE);
+                m_pH5file->close();
+                delete m_pH5file;
+            }
+        }
+
+        // Open the dataset to exercise code for handling undefined metadata profile
+        {
+            UNSCOPED_INFO("Open dataset with undefined metadata profile.");
+            const auto datasetRO = Dataset::open(tmpBagFileName, BAG_OPEN_READONLY);
+            REQUIRE(datasetRO);
+            REQUIRE(datasetRO->getLayers().size() == 3);
+        }
+    }
+
+    TEST_CASE("test dataset with compound layer with unrecognized metadata profile attribute", "[dataset][create][compoundLayer][unrecognized_metadata_profile]")
+    {
+        const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+                                           "/sample.xml"};
+        const TestUtils::RandomFileGuard tmpBagFileName;
+
+        // Create BAG with unknown metadata profile
+        {
+            UNSCOPED_INFO("Create dataset with unknown metadata profile.");
+            const auto result = TestUtils::createBag(metadataFileName,
+                                                     tmpBagFileName);
+            std::shared_ptr<BAG::Dataset> dataset = result.first;
+            REQUIRE(dataset);
+            std::string elevationLayerName = result.second;
+
+            TestUtils::create_unknown_metadata(elevationLayerName, dataset);
+            dataset->close();
+
+            // Go behind the BAG library's back to change the metadata profile attribute in the HDF5 file to be an
+            // unrecognized value so that we can test reading a BAG that doesn't declare the profile attribute in its
+            // compound layer below.
+            {
+                ::H5::H5File *m_pH5file = new ::H5::H5File{tmpBagFileName,H5F_ACC_RDONLY};
+                const std::string internalPath{COMPOUND_PATH + elevationLayerName + COMPOUND_KEYS};
+                const auto h5dataSet = ::H5::DataSet{m_pH5file->openDataSet(internalPath)};
+                const auto metadataProfileAtt = h5dataSet.openAttribute(METADATA_PROFILE_TYPE);
+                const auto profileAttType = ::H5::StrType{0, METADATA_PROFILE_LEN};
+                metadataProfileAtt.write(profileAttType, "Some unknown profile");
+                m_pH5file->close();
+                delete m_pH5file;
+            }
+        }
+
+        // Open the dataset to exercise code for handling undefined metadata profile
+        {
+            UNSCOPED_INFO("Open dataset with undefined metadata profile.");
+            const auto datasetRO = Dataset::open(tmpBagFileName, BAG_OPEN_READONLY);
+            REQUIRE(datasetRO);
+            REQUIRE(datasetRO->getLayers().size() == 3);
+        }
     }
 }

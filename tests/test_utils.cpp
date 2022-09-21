@@ -278,5 +278,81 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
     }
 }
 
+void create_unknown_metadata(const std::string& elevationLayerName,
+                             std::shared_ptr<BAG::Dataset> dataset) {
+    // Create compound layer of unknown metadata profile
+    BAG::RecordDefinition definition(2);
+    definition[0].name = "dummy_int";
+    definition[0].type = DT_UINT32;
+    definition[1].name = "dummy_float";
+    definition[1].type = DT_FLOAT32;
+
+    constexpr uint64_t chunkSize = 100;
+    constexpr unsigned int compressionLevel = 1;
+
+    const BAG::DataType indexType = DT_UINT16;
+    auto &compoundLayer = dataset->createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
+                                                       elevationLayerName, definition, chunkSize,
+                                                       compressionLevel);
+    auto &valueTable = compoundLayer.getValueTable();
+    // Add some records to the compound layer
+    using BAG::CompoundDataType;
+    // First record
+    BAG::Record record{
+            CompoundDataType{1u},  // dummy_int
+            CompoundDataType{123.456f},  // dummy_float
+    };
+    const auto firstRecordIndex = valueTable.addRecord(record);
+    // Second record
+    record = BAG::Record{
+            CompoundDataType{2u},  // dummy_int
+            CompoundDataType{456.123f},  // dummy_float
+    };
+    const auto secondRecordIndex = valueTable.addRecord(record);
+
+    // Write record index values to compound layer raster
+    uint32_t numRows = 0;
+    uint32_t numColumns = 0;
+    std::tie(numRows, numColumns) = dataset->getDescriptor().getDims();
+
+    // Set up the compound layer to point to the new records.
+    // Let's say the first 5 rows of elevation should use the first record
+    // index, and the next 3 columns use the second record index.
+
+    // Start at row 0, go to (including) row 4.
+    // Use the entire column.
+    uint32_t rowStart = 0;
+    uint32_t columnStart = 0;
+    uint32_t rowEnd = 4;
+    uint32_t columnEnd = numColumns - 1;
+
+    // Create the buffer.  The type depends on the indexType used when
+    // creating the compound layer.
+    // The buffer contains the first record's index covering the first four
+    // rows (across all the columns).
+    size_t numElements = (rowEnd - rowStart + 1) * numColumns;
+    const std::vector<uint16_t> firstBuffer(numElements, firstRecordIndex);
+
+    compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+                        reinterpret_cast<const uint8_t *>(firstBuffer.data()));
+
+    // Start at row 6, go to the last row.
+    // Start at column 0, go to (including) column 2.
+    rowStart = 5;
+    columnStart = 0;
+    rowEnd = numRows - 1;
+    columnEnd = 2;
+
+    // Create the buffer.  The type depends on the indexType used when
+    // creating the compound layer.
+    // The buffer contains the second record's index covering the first four
+    // rows (across all the columns).
+    numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1);
+    const std::vector<uint16_t> secondBuffer(numElements, secondRecordIndex);
+
+    compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+                        reinterpret_cast<const uint8_t *>(secondBuffer.data()));
+}
+
 }  // namespace TestUtils
 
