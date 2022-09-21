@@ -8,41 +8,48 @@
 This repository contains the necessary library code and examples required
 to build and work with data in the BAG format:
 
--   **api** - This is the primary API directory and contains the source
+- **api** - This is the primary API directory and contains the source
     for the Bathymetric Attributed Grid format (BAG).
--   **configdata** - Required XML support files. You must have an
+- **configdata** - Required XML support files. You must have an
     environment variable called BAG_HOME mapped to this directory in
     order to run the API functions.
--   **docs** - As the documentation evolves it will reside here.
+- **docs** - As the documentation evolves it will reside here.
     Currently this contains some initial draft documentation.
--   **examples** - Contains programs to demonstrate some of the API
+- **examples** - Contains programs to demonstrate some of the API
     functionality. In particular bag_create and bag_read are good
     starting points.
--   **python** - Contains Python units tests and examples that make 
+- **python** - Contains Python units tests and examples that make
     use of the SWIG interface.
--   **tests** - Contains C++ tests.
+- **tests** - Contains C++ tests.
 
-*Important Building Notes*: The build instructions can be found here:
-docs/build_instructions.html
+# Building the library
+
+The build instructions can be found [here](docs/BUILDING.md).
+
+
+For a C++ Quick Start, see [quickstart.md](./quickstart.md).
 
 # Building documentation
 
 ## C++ API
+
 Doxygen is needed to produce the documentation. Get it at
 <http://www.doxygen.nl/>
 
 To build documentation:
+
 ```
-cd docs/api 
-doxygen docs_config.dox
+doxygen docs/api/docs_config.dox
 ```
 
-The browse to html/index.html.
+Then browse to docs/api/html/index.html.
 
 ## Python bindings
+
 To generate API docs for Python bindings, you will need to install
 Sphinx (see requirements-docs.txt). To build the docs, first build the
 Python bindings:
+
 ```
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . \
     -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_SWIG:BOOL=ON \
@@ -51,11 +58,13 @@ cmake --build build
 ```
 
 Then, generate .rst files using Sphinx:
+
 ```
 sphinx-apidoc -o docs/python/source build/api/swig/python
 ```
 
 Finally, build HTML API docs:
+
 ```
 cd docs/python
 make html
