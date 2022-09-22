@@ -48,22 +48,19 @@ Then browse to docs/api/html/index.html.
 
 To generate API docs for Python bindings, you will need to install
 Sphinx (see requirements-docs.txt). To build the docs, first build the
-Python bindings:
+Python bindings and install them into a virtual environment:
 
 ```
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . \
     -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_SWIG:BOOL=ON \
     -DBAG_BUILD_PYTHON:BOOL=ON && \
 cmake --build build
+python build/api/swig/python/setup.py install
 ```
 
-Then, generate .rst files using Sphinx:
+> Note: Make sure you initialize your virtual environment before running the final command.
 
-```
-sphinx-apidoc -o docs/python/source build/api/swig/python
-```
-
-Finally, build HTML API docs:
+Build HTML API docs:
 
 ```
 cd docs/python
