@@ -11,7 +11,7 @@ Several top-level requirements were identified during the inaugural ONSWG meetin
 5.    The BAG library and file format shall support files larger than 2 gigabytes.
 6.    The BAG file format shall include mandatory data elements, and optional extensions.
 7.    The BAG mandatory elements include: metadata, elevation grid, vertical uncertainty grid, change tracking list, and digital signature.
-8.    The BAG file format and access library shall maintain all mandatory data elements within a single, self contained, file structure.
+8.    The BAG file format and access library shall maintain all mandatory data elements within a single, self-contained, file structure.
 9.    The BAG digital signature shall provide a mechanism to describe intended use of the dataset.
 10.    The BAG digital signature shall provide a mechanism to validate that the contents of the file have not changed since original signature.
 11.    Extensions to the BAG file format shall be fully defined and approved by the ONSWG prior to adoption.  
