@@ -63,6 +63,8 @@ During the first meeting of the Open Navigation Surface Working Group in January
 
 The ISO 19115 object model provided most of the needed classes and attributes required to fully describe the BAG content.  There were three extensions made to the model to allow for detailed description of the data.  First, the verticalUncertaintyType attribute was added to allow the BAG file to accurately describe the source and meaning of the encoded Uncertainty grid layer. Table 1 shows the list of supported values as of the 1.1 release.
 
+**Table 1: Table of uncertainty types.**
+
 | Enumerated Value | Description |
 | :-------------------- | :------------ |
 | Unknown | "Unknown" - The uncertainty layer is an unknown type |
@@ -71,11 +73,12 @@ The ISO 19115 object model provided most of the needed classes and attributes re
 | Product_Uncert | "Product Uncertainty" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures).|
 | Historical_Std_Dev | "Historical Standard Deviation " – Estimated standard deviation based on historical/archive data.|
 
-**Table 1: Table of uncertainty types.**
 
  Secondly, the trackingId extension allows internal Tracking List entries to be associated with a unique entry in the metadata so that the changes can be properly attributed, described and easily referenced.
  
 Thirdly, the depthCorrectionType extension was added to allow the BAG file to accurately describe the correction performed on the data.  Table 2 shows the list of supported values as of the 1.1 release.
+
+**Table 2: Table of depth correction types.**
 
 | Enumerated Value | Description |
 | :-------------------- | :------------ |
@@ -86,7 +89,6 @@ Thirdly, the depthCorrectionType extension was added to allow the BAG file to ac
 | Corrected_Matthews | “Corrected via Matthew’s Tables” – Corrected depth using Matthew’s tables |
 | Unknown | “Unknown” – Unknown depth correction type or mixture of above types |
 
-**Table 2: Table of depth correction types.**
 
 ### Common Encoding
 
