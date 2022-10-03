@@ -17,6 +17,9 @@
 %import "bag_layer.i"
 %import "bag_types.i"
 
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::InterleavedLegacyLayer)
+
 namespace BAG {
     class InterleavedLegacyLayer final : public Layer
     {

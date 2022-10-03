@@ -341,7 +341,7 @@ TEST_CASE("test vr node create open", "[vrnode][create][open]")
         UNSCOPED_INFO("Check that creating optional variable resolution node does not throw.");
         REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, true));
 
-        auto* pVrNode = pDataset->getVRNode();
+        auto pVrNode = pDataset->getVRNode();
         UNSCOPED_INFO("Check that the optional variable resolution node layer exists.");
         REQUIRE(pVrNode);
 
@@ -381,7 +381,7 @@ TEST_CASE("test vr node create open", "[vrnode][create][open]")
     {  // test open
         auto pDataset = Dataset::open(tmpBagFile, BAG_OPEN_READONLY);
 
-        const auto* pVrNode = pDataset->getVRNode();
+        const auto pVrNode = pDataset->getVRNode();
         UNSCOPED_INFO("Check that the optional variable resolution node layer exists.");
         REQUIRE(pVrNode);
 
@@ -429,7 +429,7 @@ TEST_CASE("test vr node write read", "[vrnode][write][read]")
     REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, true));
 
     UNSCOPED_INFO("Check the optional variable resolution node layer exists.");
-    auto* pVrNode = pDataset->getVRNode();
+    auto pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
     UNSCOPED_INFO("Check VRNodeDescriptor is the default descriptor.");

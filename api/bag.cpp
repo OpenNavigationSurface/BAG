@@ -467,7 +467,7 @@ BagError bagGetMinMaxSimple(
     if (!minValue || !maxValue)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* layer = handle->dataset->getSimpleLayer(type);
+    const auto layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
         return 9997;  // layer type not found
 
@@ -504,7 +504,7 @@ BagError bagSetMinMaxSimple(
     if (!minValue || !maxValue)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* layer = handle->dataset->getSimpleLayer(type);
+    auto layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
         return BAG_SIMPLE_LAYER_MISSING;
 
@@ -640,7 +640,7 @@ BagError bagRead(
     if (type == Compound && (!layerName || layerName[0] == '\0'))
         return BAG_COMPOUND_LAYER_NAME_MISSING;
 
-    const auto* layer = handle->dataset->getLayer(type, layerName);
+    const auto layer = handle->dataset->getLayer(type, layerName);
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -706,7 +706,7 @@ BagError bagWrite(
     if (type == Compound && (!layerName || layerName[0] == '\0'))
         return BAG_COMPOUND_LAYER_NAME_MISSING;
 
-    auto* layer = handle->dataset->getLayer(type, layerName);
+    auto layer = handle->dataset->getLayer(type, layerName);
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -1071,7 +1071,7 @@ uint8_t* bagAllocateBuffer(
         return {};
     }
 
-    const auto* layer = handle->dataset->getLayer(type, layerName);
+    const auto layer = handle->dataset->getLayer(type, layerName);
     if (!layer)
     {
         *bagError = BAG_LAYER_MISSING;
@@ -1139,7 +1139,7 @@ BagError bagReadCorrectorVerticalDatum(
     if (!datum)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* layer = handle->dataset->getSurfaceCorrections();
+    const auto layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
@@ -1202,7 +1202,7 @@ BagError bagWriteCorrectorVerticalDatum(
     if (!inDatum)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* layer = handle->dataset->getSurfaceCorrections();
+    auto layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
@@ -1278,11 +1278,11 @@ BagError bagReadCorrectedLayer(
     if (!data)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* corrections = handle->dataset->getSurfaceCorrections();
+    const auto corrections = handle->dataset->getSurfaceCorrections();
     if (!corrections)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    const auto* layer = handle->dataset->getSimpleLayer(type);
+    const auto layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
         return BAG_SIMPLE_LAYER_MISSING;
 
@@ -1345,12 +1345,11 @@ BagError bagReadCorrectedRegion(
     if (!data)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* corrections = handle->dataset->getSurfaceCorrections();
+    const auto corrections = handle->dataset->getSurfaceCorrections();
     if (!corrections)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    const auto* layer = dynamic_cast<BAG::SimpleLayer*>(
-        handle->dataset->getSimpleLayer(type));
+    const auto layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -1395,12 +1394,11 @@ BagError bagReadCorrectedRow(
     if (!data)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* corrections = handle->dataset->getSurfaceCorrections();
+    const auto corrections = handle->dataset->getSurfaceCorrections();
     if (!corrections)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    const auto* layer = dynamic_cast<BAG::SimpleLayer*>(
-        handle->dataset->getSimpleLayer(type));
+    const auto layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -1453,12 +1451,11 @@ BagError bagReadCorrectedNode(
     if (!data)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* corrections = handle->dataset->getSurfaceCorrections();
+    const auto corrections = handle->dataset->getSurfaceCorrections();
     if (!corrections)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
-    const auto* layer = dynamic_cast<BAG::SimpleLayer*>(
-        handle->dataset->getSimpleLayer(type));
+    const auto layer = handle->dataset->getSimpleLayer(type);
     if (!layer)
         return BAG_SIMPLE_LAYER_MISSING;
 
@@ -1493,7 +1490,7 @@ BagError bagGetNumSurfaceCorrectors(
     if (!numCorrectors)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* layer = handle->dataset->getSurfaceCorrections();
+    const auto layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -1531,7 +1528,7 @@ BagError bagGetSurfaceCorrectionTopography(
     if (!type)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* layer = handle->dataset->getSurfaceCorrections();
+    const auto layer = handle->dataset->getSurfaceCorrections();
     if (!layer)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
@@ -1570,7 +1567,7 @@ BagError bagCreateCorrectorLayer(
         return BAG_INVALID_BAG_HANDLE;
 
     // Get chunkSize & compressionLevel from the elevation layer.
-    const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
+    const auto elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
 
@@ -1607,7 +1604,7 @@ BagError bagWriteCorrectorDefinition(
     if (!def)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* corrections = handle->dataset->getSurfaceCorrections();
+    auto corrections = handle->dataset->getSurfaceCorrections();
     if (!corrections)
         return BAG_SURFACE_CORRECTIONS_MISSING;
 
@@ -1655,7 +1652,7 @@ BagError bagReadCorrectorDefinition(
     if (!def)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* corrections = handle->dataset->getSurfaceCorrections();
+    auto corrections = handle->dataset->getSurfaceCorrections();
     if (!corrections)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -2073,7 +2070,7 @@ BagError bagCreateCompoundLayer(
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
     // Get the chunkSize & compressionLevel from the elevation layer.
-    const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
+    const auto elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
 
@@ -2124,7 +2121,7 @@ BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle,
         return BAG_INVALID_BAG_HANDLE;
 
     // Get the chunkSize & compressionLevel from the elevation layer.
-    const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
+    const auto elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
 
@@ -2178,7 +2175,7 @@ BagError bagGetCompoundLayerDefinition(
     if (!definition || !numFields)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2233,7 +2230,7 @@ BagError bagGetCompoundLayerRecords(
     if (!layerName || !records || !numRecords || !numFields)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2314,7 +2311,7 @@ BagError bagGetCompoundLayerValueByName(
     if (!value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2376,7 +2373,7 @@ BagError bagGetCompoundLayerValueByIndex(
     if (!value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2434,7 +2431,7 @@ BagError bagGetCompoundLayerFieldIndex(
     if (!layerName || !fieldName || !fieldIndex)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2481,7 +2478,7 @@ BagError bagGetCompoundLayerFieldName(
     if (!layerName || !fieldName)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2531,7 +2528,7 @@ BagError bagAddCompoundLayerRecord(
     if (!layerName || !record || !recordIndex)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2596,7 +2593,7 @@ BagError bagAddCompoundLayerRecords(
     if (!layerName || !records)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2669,7 +2666,7 @@ BagError bagCompoundLayerSetValueByName(
     if (!layerName || !fieldName || !value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2733,7 +2730,7 @@ BagError bagCompoundLayerSetValueByIndex(
     if (!layerName || !value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* compoundLayer = handle->dataset->getCompoundLayer(layerName);
+    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
     if (!compoundLayer)
         return BAG_COMPOUND_LAYER_MISSING;
 
@@ -2786,7 +2783,7 @@ BagError bagCreateVRLayers(
         return BAG_INVALID_BAG_HANDLE;
 
     //  Get chunkSize & compressionLevel from the elevation layer.
-    const auto* elevationLayer = handle->dataset->getSimpleLayer(Elevation);
+    const auto elevationLayer = handle->dataset->getSimpleLayer(Elevation);
     if (!elevationLayer)
         return BAG_SIMPLE_LAYER_MISSING;
 
@@ -2838,7 +2835,7 @@ BagError bagVRMetadataGetMinDimensions(
     if (!minX || !minY)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrMetadata = handle->dataset->getVRMetadata();
+    const auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -2880,7 +2877,7 @@ BagError bagVRMetadataGetMaxDimensions(
     if (!maxX || !maxY)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrMetadata = handle->dataset->getVRMetadata();
+    const auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -2922,7 +2919,7 @@ BagError bagVRMetadataGetMinResolution(
     if (!minX || !minY)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrMetadata = handle->dataset->getVRMetadata();
+    const auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -2964,7 +2961,7 @@ BagError bagVRMetadataGetMaxResolution(
     if (!maxX || !maxY)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrMetadata = handle->dataset->getVRMetadata();
+    const auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3000,7 +2997,7 @@ BagError bagVRMetadataSetMinDimensions(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrMetadata = handle->dataset->getVRMetadata();
+    auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3053,7 +3050,7 @@ BagError bagVRMetadataSetMaxDimensions(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrMetadata = handle->dataset->getVRMetadata();
+    auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3106,7 +3103,7 @@ BagError bagVRMetadataSetMinResolution(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrMetadata = handle->dataset->getVRMetadata();
+    auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3159,7 +3156,7 @@ BagError bagVRMetadataSetMaxResolution(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrMetadata = handle->dataset->getVRMetadata();
+    auto vrMetadata = handle->dataset->getVRMetadata();
     if (!vrMetadata)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3218,7 +3215,7 @@ BagError bagVRNodeGetMinMaxHypStrength(
     if (!minHypStr || !maxHypStr)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* vrNode = handle->dataset->getVRNode();
+    auto vrNode = handle->dataset->getVRNode();
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3259,7 +3256,7 @@ BagError bagVRNodeGetMinMaxNumHypotheses(
     if (!minNumHyp || !maxNumHyp)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* vrNode = handle->dataset->getVRNode();
+    auto vrNode = handle->dataset->getVRNode();
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3300,7 +3297,7 @@ BagError bagVRNodeGetMinMaxNSamples(
     if (!minNSamples || !maxNSamples)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* vrNode = handle->dataset->getVRNode();
+    auto vrNode = handle->dataset->getVRNode();
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3336,7 +3333,7 @@ BagError bagVRNodeSetMinMaxHypStrength(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrNode = handle->dataset->getVRMetadata();
+    auto vrNode = handle->dataset->getVRMetadata();
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3389,7 +3386,7 @@ BagError bagVRNodeSetMinMaxNumHypotheses(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrNode = handle->dataset->getVRMetadata();
+    auto vrNode = handle->dataset->getVRMetadata();
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3442,7 +3439,7 @@ BagError bagVRNodeSetMinMaxNSamples(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrNode = handle->dataset->getVRMetadata();
+    auto vrNode = handle->dataset->getVRMetadata();
     if (!vrNode)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3501,7 +3498,7 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxDepth(
     if (!minDepth || !maxDepth)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* vrRefinement = handle->dataset->getVRRefinements();
+    auto vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3542,7 +3539,7 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxUncertainty(
     if (!minUncert || !maxUncert)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto* vrRefinement = handle->dataset->getVRRefinements();
+    auto vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3578,7 +3575,7 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxDepth(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrRefinement = handle->dataset->getVRRefinements();
+    auto vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3631,7 +3628,7 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxUncertainty(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrRefinement = handle->dataset->getVRRefinements();
+    auto vrRefinement = handle->dataset->getVRRefinements();
     if (!vrRefinement)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3686,7 +3683,7 @@ BagError bagVRTrackingListLength(
     if (!numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    const auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3728,7 +3725,7 @@ BagError bagReadVRTrackingListNode(
     if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    const auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3782,7 +3779,7 @@ BagError bagReadVRTrackingListSubNode(
     if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    const auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3833,7 +3830,7 @@ BagError bagReadVRTrackingListCode(
     if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    const auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3884,7 +3881,7 @@ BagError bagReadVRTrackingListSeries(
     if (!items || !numItems)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    const auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3928,7 +3925,7 @@ BagError bagWriteVRTrackingListItem(
     if (!item)
         return BAG_SUCCESS;
 
-    auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -3970,7 +3967,7 @@ BagError bagSortVRTrackingListByNode(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -4017,7 +4014,7 @@ BagError bagSortVRTrackingListBySubNode(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -4064,7 +4061,7 @@ BagError bagSortVRTrackingListBySeries(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 
@@ -4111,7 +4108,7 @@ BagError bagSortVRTrackingListByCode(
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
-    auto* vrTrackingList = handle->dataset->getVRTrackingList();
+    auto vrTrackingList = handle->dataset->getVRTrackingList();
     if (!vrTrackingList)
         return BAG_HDF_DATASET_OPEN_FAILURE;
 

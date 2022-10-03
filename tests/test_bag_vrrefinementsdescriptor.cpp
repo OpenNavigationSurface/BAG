@@ -331,7 +331,7 @@ TEST_CASE("test vr refinement descriptor min/max depth",
     REQUIRE(pDataset);
 
     pDataset->createVR(kChunkSize, kCompressionLevel, false);
-    auto* pVrRefinements = pDataset->getVRRefinements();
+    auto pVrRefinements = pDataset->getVRRefinements();
     REQUIRE(pVrRefinements);
 
     auto pVrRefinementDescriptor =
@@ -370,7 +370,7 @@ TEST_CASE("test vr refinement descriptor min/max uncertainty",
     REQUIRE(pDataset);
 
     pDataset->createVR(kChunkSize, kCompressionLevel, false);
-    auto* pVrRefinements = pDataset->getVRRefinements();
+    auto pVrRefinements = pDataset->getVRRefinements();
     REQUIRE(pVrRefinements);
 
     auto pVrRefinementDescriptor =

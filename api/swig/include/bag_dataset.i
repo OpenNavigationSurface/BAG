@@ -24,17 +24,15 @@
 %import "bag_vrtrackinglist.i"
 
 %include <std_vector.i>
-
 namespace std
 {
-    %template(CompoundLayerVector) vector<BAG::CompoundLayer*>;
-    %template(LayerVector) vector<BAG::Layer*>;
+    %template(CompoundLayerVector) vector<shared_ptr<BAG::CompoundLayer>>;
+    %template(LayerVector) vector<shared_ptr<BAG::Layer>>;
 }
 
 %include <std_string.i>
-%include <std_shared_ptr.i>
 %include <stdint.i>
-
+%include <std_shared_ptr.i>
 %shared_ptr(BAG::Dataset)
 
 
@@ -60,9 +58,9 @@ public:
 
     Layer& getLayer(uint32_t id)&;
     %ignore getLayer(uint32_t id) const&;
-    Layer* getLayer(LayerType type, const std::string& name) &;
+    std::shared_ptr<Layer> getLayer(LayerType type, const std::string& name) &;
     %ignore getLayer(LayerType type, const std::string& name) const &;
-    std::vector<Layer*> getLayers() const&;
+    std::vector<std::shared_ptr<const Layer>> getLayers() const&;
 
     std::vector<LayerType> getLayerTypes() const;
 
@@ -84,32 +82,23 @@ public:
     const Metadata& getMetadata() const & noexcept;
 
     TrackingList& getTrackingList() & noexcept;
-    //const TrackingList& getTrackingList() const& noexcept;
 
-    CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
-    //const CompoundLayer* getCompoundLayer(const std::string& name) const & noexcept;
-    std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
+    std::shared_ptr<CompoundLayer> getCompoundLayer(const std::string& name) & noexcept;
+    std::vector<std::shared_ptr<CompoundLayer>> getCompoundLayers() & noexcept;
 
-    SurfaceCorrections* getSurfaceCorrections() & noexcept;
-    //const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
+    std::shared_ptr<SurfaceCorrections> getSurfaceCorrections() & noexcept;
 
-    SimpleLayer* getSimpleLayer(LayerType type) & noexcept;
-    //const SimpleLayer* getSimpleLayer(LayerType type) const & noexcept;
+    std::shared_ptr<SimpleLayer> getSimpleLayer(LayerType type) & noexcept;
 
-    VRMetadata* getVRMetadata() & noexcept;
-    //const VRMetadata* getVRMetadata() const & noexcept;
+    std::shared_ptr<VRMetadata> getVRMetadata() & noexcept;
 
-    VRNode* getVRNode() & noexcept;
-    //const VRNode* getVRNode() const & noexcept;
+    std::shared_ptr<VRNode> getVRNode() & noexcept;
 
-    VRRefinements* getVRRefinements() & noexcept;
-    // const VRRefinements* getVRRefinements() const & noexcept;
+    std::shared_ptr<VRRefinements> getVRRefinements() & noexcept;
 
-    VRTrackingList* getVRTrackingList() & noexcept;
-    //const VRTrackingList* getVRTrackingList() const & noexcept;
+    std::shared_ptr<VRTrackingList> getVRTrackingList() & noexcept;
 
     Descriptor& getDescriptor() & noexcept;
-    //const Descriptor& getDescriptor() const & noexcept;
 
     // Converted to std::pair<T, T> below.
     //! Intentionally omit exposing of std::tuple methods (unsupported by SWIG), 

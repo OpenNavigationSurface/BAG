@@ -119,7 +119,7 @@ int main(
     }
 
     // VR stuff
-    const auto* vrMetadata = pDataset->getVRMetadata();
+    const auto vrMetadata = pDataset->getVRMetadata();
     if (vrMetadata)
     {
         std::cout << "\nVR Metadata:\n";
@@ -152,7 +152,7 @@ int main(
                 std::get<1>(maxRes) << ")\n";
         }
 
-        const auto* vrNode = pDataset->getVRNode();
+        const auto vrNode = pDataset->getVRNode();
         std::cout << "\nVR Node:\n";
         if (!vrNode)
             std::cout << "\tnot present\n";
@@ -185,7 +185,7 @@ int main(
                 ")\n";
         }
 
-        const auto* vrRefinements = pDataset->getVRRefinements();
+        const auto vrRefinements = pDataset->getVRRefinements();
         std::cout << "\nVR Refinements:\n";
 
         {
@@ -210,7 +210,7 @@ int main(
                 std::get<1>(minMaxUncertainty) << ")\n";
         }
 
-        const auto* vrTrackingList = pDataset->getVRTrackingList();
+        const auto vrTrackingList = pDataset->getVRTrackingList();
         std::cout << "\nVR Tracking List:  (" << vrTrackingList->size() << " items)\n";
 
         itemNum = 0;

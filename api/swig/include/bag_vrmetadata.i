@@ -15,8 +15,8 @@
 %import "bag_layer.i"
 
 %include <std_shared_ptr.i>
-
-%shared_ptr(BAG::LayerDescriptor)
+%shared_ptr(BAG::VRMetadata)
+//%shared_ptr(BAG::LayerDescriptor)
 
 
 namespace BAG {

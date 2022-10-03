@@ -475,7 +475,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        auto const* layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        const auto layer = pDataset->getCompoundLayer(kExpectedLayerName);
         REQUIRE(layer);
 
         const auto& valueTable = layer->getValueTable();
@@ -531,7 +531,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
         REQUIRE(pDataset);
 
-        auto* layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        auto layer = pDataset->getCompoundLayer(kExpectedLayerName);
         REQUIRE(layer);
 
         auto& valueTable = layer->getValueTable();
@@ -590,7 +590,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        auto const* layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        const auto layer = pDataset->getCompoundLayer(kExpectedLayerName);
         REQUIRE(layer);
 
         const auto& valueTable = layer->getValueTable();
@@ -707,7 +707,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        auto const* pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
+        const auto pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
         REQUIRE(pLayer);
 
         UNSCOPED_INFO("Check reading from variable resolution metadata fails because the dataset does not have variable resolution.");
@@ -816,7 +816,7 @@ TEST_CASE("test compound layer readVR/writeVR", "[compoundlayer][readvr][writevr
     const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
     REQUIRE(pDataset);
 
-    auto const* pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
+    const auto pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
     REQUIRE(pLayer);
 
     // Read single resolution metadata keys.

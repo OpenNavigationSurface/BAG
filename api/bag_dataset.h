@@ -79,9 +79,9 @@ public:
 
     Layer& getLayer(uint32_t id) &;
     const Layer& getLayer(uint32_t id) const &;
-    Layer* getLayer(LayerType type, const std::string& name) &;
-    const Layer* getLayer(LayerType type, const std::string& name) const &;
-    std::vector<Layer*> getLayers() const &;
+    std::shared_ptr<Layer> getLayer(LayerType type, const std::string& name) &;
+    std::shared_ptr<const Layer> getLayer(LayerType type, const std::string& name) const &;
+    std::vector<std::shared_ptr<const Layer>> getLayers() const &;
 
     std::vector<LayerType> getLayerTypes() const;
 
@@ -104,22 +104,27 @@ public:
     TrackingList& getTrackingList() & noexcept;
     const TrackingList& getTrackingList() const & noexcept;
 
-    CompoundLayer* getCompoundLayer(const std::string& name) & noexcept;
-    const CompoundLayer* getCompoundLayer(const std::string& name) const & noexcept;
-    std::vector<CompoundLayer*> getCompoundLayers() & noexcept;
-    SurfaceCorrections* getSurfaceCorrections() & noexcept;
-    const SurfaceCorrections* getSurfaceCorrections() const & noexcept;
-    SimpleLayer* getSimpleLayer(LayerType type) & noexcept;
-    const SimpleLayer* getSimpleLayer(LayerType type) const & noexcept;
+    std::shared_ptr<CompoundLayer> getCompoundLayer(const std::string& name) & noexcept;
+    std::shared_ptr<const CompoundLayer> getCompoundLayer(const std::string& name) const & noexcept;
+    std::vector<std::shared_ptr<CompoundLayer>> getCompoundLayers() & noexcept;
 
-    VRMetadata* getVRMetadata() & noexcept;
-    const VRMetadata* getVRMetadata() const & noexcept;
-    VRNode* getVRNode() & noexcept;
-    const VRNode* getVRNode() const & noexcept;
-    VRRefinements* getVRRefinements() & noexcept;
-    const VRRefinements* getVRRefinements() const & noexcept;
-    VRTrackingList* getVRTrackingList() & noexcept;
-    const VRTrackingList* getVRTrackingList() const & noexcept;
+    std::shared_ptr<SurfaceCorrections> getSurfaceCorrections() & noexcept;
+    std::shared_ptr<const SurfaceCorrections> getSurfaceCorrections() const & noexcept;
+
+    std::shared_ptr<SimpleLayer> getSimpleLayer(LayerType type) & noexcept;
+    std::shared_ptr <const SimpleLayer> getSimpleLayer(LayerType type) const & noexcept;
+
+    std::shared_ptr<VRMetadata> getVRMetadata() & noexcept;
+    std::shared_ptr<const VRMetadata> getVRMetadata() const & noexcept;
+
+    std::shared_ptr<VRNode> getVRNode() & noexcept;
+    std::shared_ptr<const VRNode> getVRNode() const & noexcept;
+
+    std::shared_ptr<VRRefinements> getVRRefinements() & noexcept;
+    std::shared_ptr<const VRRefinements> getVRRefinements() const & noexcept;
+
+    std::shared_ptr<VRTrackingList> getVRTrackingList() & noexcept;
+    std::shared_ptr<const VRTrackingList> getVRTrackingList() const & noexcept;
 
     Descriptor& getDescriptor() & noexcept;
     const Descriptor& getDescriptor() const & noexcept;
@@ -140,7 +145,7 @@ private:
 
     ::H5::H5File& getH5file() const & noexcept;
 
-    Layer& addLayer(std::unique_ptr<Layer> layer) &;
+    Layer& addLayer(std::shared_ptr<Layer> layer) &;
 
     //! Custom deleter to not require knowledge of ::H5::H5File destructor here.
     struct BAG_API DeleteH5File final {
@@ -151,7 +156,7 @@ private:
     std::unique_ptr<::H5::H5File, DeleteH5File> m_pH5file;
     //! The mandatory and optional layers found in the BAG, including ones
     //! created after opening.
-    std::vector<std::unique_ptr<Layer>> m_layers;
+    std::vector<std::shared_ptr<Layer>> m_layers;
     //! The metadata.
     std::unique_ptr<Metadata> m_pMetadata;
     //! The tracking list.
@@ -159,7 +164,7 @@ private:
     //! The descriptor.
     Descriptor m_descriptor;
     //! The optional VR tracking list.
-    std::unique_ptr<VRTrackingList> m_pVRTrackingList;
+    std::shared_ptr<VRTrackingList> m_pVRTrackingList;
 
     friend CompoundLayer;
     friend CompoundLayerDescriptor;

@@ -28,6 +28,7 @@
 #include <map>
 #include <regex>
 #include <string>
+#include <memory>
 
 
 namespace BAG {
@@ -48,8 +49,8 @@ namespace {
     The found layer.
     nullptr if not found.
 */
-Layer* getLayer(
-    const std::vector<std::unique_ptr<Layer>>& layers,
+std::shared_ptr<Layer> getLayer(
+    const std::vector<std::shared_ptr<Layer>>& layers,
     LayerType type,
     const std::string& name = {})
 {
@@ -62,28 +63,29 @@ Layer* getLayer(
             return static_cast<char>(std::tolower(c));
         });
 
-    auto layerIter = std::find_if(cbegin(layers), cend(layers),
-        [type, &nameLower](const std::unique_ptr<Layer>& layer) {
-            auto pDescriptor = layer->getDescriptor();
-
-            if (pDescriptor->getLayerType() != type)
-                return false;
-
-            if (nameLower.empty())
-                return true;
-
+    std::shared_ptr<Layer> foundLayer = nullptr;
+    for (auto layer : layers) {
+        auto pDescriptor = layer->getDescriptor();
+        if (type == pDescriptor->getLayerType()) {
+            if (nameLower.empty()) {
+                foundLayer = layer;
+                break;
+            }
             std::string foundNameLower{pDescriptor->getName()};
             std::transform(begin(foundNameLower), end(foundNameLower), begin(foundNameLower),
-                [](char c) noexcept {
-                    return static_cast<char>(std::tolower(c));
-                });
+                           [](char c) noexcept {
+                               return static_cast<char>(std::tolower(c));
+                           });
+            if (foundNameLower == nameLower) {
+                foundLayer = layer;
+                break;
+            }
+        }
+    }
 
-            return foundNameLower == nameLower;
-        });
-    if (layerIter == cend(layers))
-        return {};
+    if (foundLayer == nullptr) return {};
 
-    return layerIter->get();
+    return std::shared_ptr<Layer>(foundLayer);
 }
 
 //! Get the numerical version.
@@ -312,9 +314,9 @@ void Dataset::close() {
     A reference to the new layer.
 */
 Layer& Dataset::addLayer(
-    std::unique_ptr<Layer> newLayer) &
+    std::shared_ptr<Layer> newLayer) &
 {
-    m_layers.emplace_back(std::move(newLayer));
+    m_layers.push_back(std::move(newLayer));
 
     const auto& layer = m_layers.back();
 
@@ -359,7 +361,7 @@ CompoundLayer& Dataset::createCompoundLayer(
 
     // Make sure a corresponding simple layer exists.
     const bool simpleLayerExists = std::any_of(cbegin(m_layers), cend(m_layers),
-        [&nameLower](const std::unique_ptr<Layer>& layer) {
+        [&nameLower](const std::shared_ptr<Layer>& layer) {
             auto pDescriptor = layer->getDescriptor();
 
             const auto layerType = pDescriptor->getLayerType();
@@ -634,10 +636,10 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
 \return
     The specified compound layer, if it exists.  nullptr otherwise
 */
-CompoundLayer* Dataset::getCompoundLayer(
+std::shared_ptr<CompoundLayer> Dataset::getCompoundLayer(
     const std::string& name) & noexcept
 {
-    return dynamic_cast<CompoundLayer*>(BAG::getLayer(m_layers, Compound, name));
+    return std::dynamic_pointer_cast<CompoundLayer>(BAG::getLayer(m_layers, Compound, name));
 }
 
 //! Retrieve an optional compound layer by name.
@@ -646,12 +648,11 @@ CompoundLayer* Dataset::getCompoundLayer(
     The name of the simple layer the compound layer has metadata for.
 
 \return
-    The specified compound layer, if it exists.  nullptr otherwise
+ x   The specified compound layer, if it exists.  nullptr otherwise
 */
-const CompoundLayer* Dataset::getCompoundLayer(
-    const std::string& name) const & noexcept
+std::shared_ptr<const CompoundLayer> Dataset::getCompoundLayer(const std::string& name) const & noexcept
 {
-    return dynamic_cast<CompoundLayer*>(BAG::getLayer(m_layers, Compound, name));
+    return std::dynamic_pointer_cast<const CompoundLayer>(BAG::getLayer(m_layers, Compound, name));
 }
 
 //! Retrieve all the compound layers.
@@ -659,13 +660,14 @@ const CompoundLayer* Dataset::getCompoundLayer(
 \return
     All the compound layers.
 */
-std::vector<CompoundLayer*> Dataset::getCompoundLayers() & noexcept
+std::vector<std::shared_ptr<CompoundLayer>> Dataset::getCompoundLayers() & noexcept
 {
-    std::vector<CompoundLayer*> layers;
+    std::vector<std::shared_ptr<CompoundLayer>> layers;
 
     for (const auto& layer : m_layers)
-        if (layer->getDescriptor()->getLayerType() == Compound)
-            layers.emplace_back(dynamic_cast<CompoundLayer*>(layer.get()));
+        if (layer->getDescriptor()->getLayerType() == Compound) {
+            layers.emplace_back(std::dynamic_pointer_cast<CompoundLayer>(layer));
+        }
 
     return layers;
 }
@@ -750,7 +752,7 @@ const Layer& Dataset::getLayer(uint32_t id) const &
     The specified layer.
     nullptr if no layer is found.
 */
-Layer* Dataset::getLayer(
+std::shared_ptr<Layer> Dataset::getLayer(
     LayerType type,
     const std::string& name) &
 {
@@ -765,11 +767,11 @@ Layer* Dataset::getLayer(
     The optional, case-insensitive name.
     If the layer type is Compound, the name must be the simple layer it refers to.
 */
-const Layer* Dataset::getLayer(
+std::shared_ptr<const Layer> Dataset::getLayer(
     LayerType type,
     const std::string& name) const &
 {
-    return BAG::getLayer(m_layers, type, name);
+    return std::shared_ptr<const Layer>{BAG::getLayer(m_layers, type, name)};
 }
 
 //! Retrieve all the layers.
@@ -777,13 +779,13 @@ const Layer* Dataset::getLayer(
 \return
     All the layers.
 */
-std::vector<Layer*> Dataset::getLayers() const &
+std::vector<std::shared_ptr<const Layer>> Dataset::getLayers() const &
 {
-    std::vector<Layer*> layers;
+    std::vector<std::shared_ptr<const Layer>> layers;
     layers.reserve(m_layers.size());
 
     for (auto&& layer : m_layers)
-        layers.push_back(layer.get());
+        layers.push_back(std::static_pointer_cast<const Layer>(layer));
 
     return layers;
 }
@@ -879,10 +881,9 @@ uint32_t Dataset::getNextId() const noexcept
     The specified simple l ayer.
     nullptr if the layer does not exist.
 */
-SimpleLayer* Dataset::getSimpleLayer(
-    LayerType type) & noexcept
+std::shared_ptr<SimpleLayer> Dataset::getSimpleLayer(LayerType type) & noexcept
 {
-    return dynamic_cast<SimpleLayer*>(BAG::getLayer(m_layers, type));
+    return std::dynamic_pointer_cast<SimpleLayer>(BAG::getLayer(m_layers, type));
 }
 
 //! Retrieve the specified simple layer.
@@ -894,10 +895,9 @@ SimpleLayer* Dataset::getSimpleLayer(
     The specified simple l ayer.
     nullptr if the layer does not exist.
 */
-const SimpleLayer* Dataset::getSimpleLayer(
-    LayerType type) const & noexcept
+std::shared_ptr<const SimpleLayer> Dataset::getSimpleLayer(LayerType type) const & noexcept
 {
-    return dynamic_cast<SimpleLayer*>(BAG::getLayer(m_layers, type));
+    return std::dynamic_pointer_cast<const SimpleLayer>(BAG::getLayer(m_layers, type));
 }
 
 //! Retrieve the optional surface corrections layer.
@@ -905,10 +905,9 @@ const SimpleLayer* Dataset::getSimpleLayer(
 \return
     The optional surface corrections layer.
 */
-SurfaceCorrections* Dataset::getSurfaceCorrections() & noexcept
+std::shared_ptr<SurfaceCorrections> Dataset::getSurfaceCorrections() & noexcept
 {
-    return dynamic_cast<SurfaceCorrections*>(
-        BAG::getLayer(m_layers, Surface_Correction));
+    return std::dynamic_pointer_cast<SurfaceCorrections>(BAG::getLayer(m_layers, Surface_Correction));
 }
 
 //! Retrieve the optional surface corrections layer.
@@ -916,10 +915,9 @@ SurfaceCorrections* Dataset::getSurfaceCorrections() & noexcept
 \return
     The optional surface corrections layer.
 */
-const SurfaceCorrections* Dataset::getSurfaceCorrections() const & noexcept
+std::shared_ptr<const SurfaceCorrections> Dataset::getSurfaceCorrections() const & noexcept
 {
-    return dynamic_cast<SurfaceCorrections*>(
-        BAG::getLayer(m_layers, Surface_Correction));
+    return std::dynamic_pointer_cast<const SurfaceCorrections>(BAG::getLayer(m_layers, Surface_Correction));
 }
 
 //! Retrieve the tracking list.
@@ -947,9 +945,9 @@ const TrackingList& Dataset::getTrackingList() const & noexcept
 \return
     The optional variable resolution metadata.
 */
-VRMetadata* Dataset::getVRMetadata() & noexcept
+std::shared_ptr<VRMetadata> Dataset::getVRMetadata() & noexcept
 {
-    return dynamic_cast<VRMetadata*>(BAG::getLayer(m_layers, VarRes_Metadata));
+    return std::dynamic_pointer_cast<VRMetadata>(BAG::getLayer(m_layers, VarRes_Metadata));
 }
 
 //! Retrieve the optional variable resolution metadata.
@@ -957,9 +955,9 @@ VRMetadata* Dataset::getVRMetadata() & noexcept
 \return
     The optional variable resolution metadata.
 */
-const VRMetadata* Dataset::getVRMetadata() const & noexcept
+std::shared_ptr<const VRMetadata> Dataset::getVRMetadata() const & noexcept
 {
-    return dynamic_cast<VRMetadata*>(BAG::getLayer(m_layers, VarRes_Metadata));
+    return std::dynamic_pointer_cast<const VRMetadata>(BAG::getLayer(m_layers, VarRes_Metadata));
 }
 
 //! Retrieve the optional variable resolution node group.
@@ -967,9 +965,9 @@ const VRMetadata* Dataset::getVRMetadata() const & noexcept
 \return
     The optional variable resolution node group.
 */
-VRNode* Dataset::getVRNode() & noexcept
+std::shared_ptr<VRNode> Dataset::getVRNode() & noexcept
 {
-    return dynamic_cast<VRNode*>(BAG::getLayer(m_layers, VarRes_Node));
+    return std::dynamic_pointer_cast<VRNode>(BAG::getLayer(m_layers, VarRes_Node));
 }
 
 //! Retrieve the optional variable resolution node group.
@@ -977,9 +975,9 @@ VRNode* Dataset::getVRNode() & noexcept
 \return
     The optional variable resolution node group.
 */
-const VRNode* Dataset::getVRNode() const & noexcept
+std::shared_ptr<const VRNode> Dataset::getVRNode() const & noexcept
 {
-    return dynamic_cast<VRNode*>(BAG::getLayer(m_layers, VarRes_Node));
+    return std::dynamic_pointer_cast<const VRNode>(BAG::getLayer(m_layers, VarRes_Node));
 }
 
 //! Retrieve the optional variable resolution refinements.
@@ -987,10 +985,9 @@ const VRNode* Dataset::getVRNode() const & noexcept
 \return
     The optional variable resolution refinements.
 */
-VRRefinements* Dataset::getVRRefinements() & noexcept
+std::shared_ptr<VRRefinements> Dataset::getVRRefinements() & noexcept
 {
-    return dynamic_cast<VRRefinements*>(
-        BAG::getLayer(m_layers, VarRes_Refinement));
+    return std::dynamic_pointer_cast<VRRefinements>(BAG::getLayer(m_layers, VarRes_Refinement));
 }
 
 //! Retrieve the optional variable resolution refinements.
@@ -998,10 +995,9 @@ VRRefinements* Dataset::getVRRefinements() & noexcept
 \return
     The optional variable resolution refinements.
 */
-const VRRefinements* Dataset::getVRRefinements() const & noexcept
+std::shared_ptr<const VRRefinements> Dataset::getVRRefinements() const & noexcept
 {
-    return dynamic_cast<VRRefinements*>(
-        BAG::getLayer(m_layers, VarRes_Refinement));
+    return std::dynamic_pointer_cast<const VRRefinements>(BAG::getLayer(m_layers, VarRes_Refinement));
 }
 
 //! Retrieve the optional variable resolution tracking list.
@@ -1009,9 +1005,9 @@ const VRRefinements* Dataset::getVRRefinements() const & noexcept
 \return
     The optional variable resolution tracking list.
 */
-VRTrackingList* Dataset::getVRTrackingList() & noexcept
+std::shared_ptr<VRTrackingList> Dataset::getVRTrackingList() & noexcept
 {
-    return m_pVRTrackingList.get();
+    return std::shared_ptr<VRTrackingList>{m_pVRTrackingList};
 }
 
 //! Retrieve the optional variable resolution tracking list.
@@ -1019,9 +1015,9 @@ VRTrackingList* Dataset::getVRTrackingList() & noexcept
 \return
     The optional variable resolution tracking list.
 */
-const VRTrackingList* Dataset::getVRTrackingList() const & noexcept
+std::shared_ptr<const VRTrackingList> Dataset::getVRTrackingList() const & noexcept
 {
-    return m_pVRTrackingList.get();
+    return std::static_pointer_cast<const VRTrackingList>(m_pVRTrackingList);
 }
 
 //! Convert a grid position to a geographic location.
@@ -1143,8 +1139,7 @@ void Dataset::readDataset(
     {
         H5Dclose(id);
 
-        m_pVRTrackingList = std::unique_ptr<VRTrackingList>(
-            new VRTrackingList{*this});
+        m_pVRTrackingList = std::make_shared<VRTrackingList>(*this);
 
         {
             auto descriptor = VRMetadataDescriptor::open(*this);

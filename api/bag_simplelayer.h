@@ -27,6 +27,9 @@ namespace BAG {
 class BAG_API SimpleLayer final : public Layer
 {
 public:
+    SimpleLayer(Dataset& dataset, SimpleLayerDescriptor& descriptor,
+                std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
+
     SimpleLayer(const SimpleLayer&) = delete;
     SimpleLayer(SimpleLayer&&) = delete;
 
@@ -42,13 +45,10 @@ public:
     }
 
 protected:
-    SimpleLayer(Dataset& dataset, SimpleLayerDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
-
-    static std::unique_ptr<SimpleLayer> create(Dataset& dataset,
+    static std::shared_ptr<SimpleLayer> create(Dataset& dataset,
         LayerType type, uint64_t chunkSize, int compressionLevel);
 
-    static std::unique_ptr<SimpleLayer> open(Dataset& dataset,
+    static std::shared_ptr<SimpleLayer> open(Dataset& dataset,
         SimpleLayerDescriptor& descriptor);
 
 private:

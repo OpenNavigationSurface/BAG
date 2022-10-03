@@ -68,7 +68,7 @@ std::shared_ptr<BAG::Dataset> constructBasicBAG(
         return {};
 
     // Get the elevation layer.
-    auto* elevationLayer = dataset->getSimpleLayer(Elevation);
+    auto elevationLayer = dataset->getSimpleLayer(Elevation);
     if(!elevationLayer)
         return {};
 
@@ -82,7 +82,7 @@ std::shared_ptr<BAG::Dataset> constructBasicBAG(
     elevationLayer->getDescriptor()->setMinMax(minElevation, maxElevation);
 
     // Get the uncertainty layer.
-    auto* uncertaintyLayer = dataset->getSimpleLayer(Uncertainty);
+    auto uncertaintyLayer = dataset->getSimpleLayer(Uncertainty);
     if(!uncertaintyLayer)
         return {};
 
@@ -188,11 +188,11 @@ bool augmentVRBAG(
 
     // Write the NumHypotheses and HypStrength data.
 
-    auto* numHypothesesLayer = dataset.getSimpleLayer(Num_Hypotheses);
+    auto numHypothesesLayer = dataset.getSimpleLayer(Num_Hypotheses);
     if(!numHypothesesLayer)
         return false;
 
-    auto* hypStrengthLayer = dataset.getSimpleLayer(Hypothesis_Strength);
+    auto hypStrengthLayer = dataset.getSimpleLayer(Hypothesis_Strength);
     if (!hypStrengthLayer)
         return false;
 
@@ -228,18 +228,18 @@ bool augmentVRBAG(
     constexpr float kMinUncert = 0.0f;
     constexpr float kMaxUncert = 10.0f;
 
-    auto* vrRefinementsLayer = dataset.getVRRefinements();
+    auto vrRefinementsLayer = dataset.getVRRefinements();
     if (!vrRefinementsLayer)
         return false;
 
     std::vector<BAG::VRRefinementsItem> vrRefinements(21*21);
     std::vector<BAG::VRNodeItem> vrNodes(21*21);
 
-    auto* vrNodeLayer = dataset.getVRNode();
+    auto vrNodeLayer = dataset.getVRNode();
     if (!vrNodeLayer)
         return false;
 
-    auto* vrMetadataLayer = dataset.getVRMetadata();
+    auto vrMetadataLayer = dataset.getVRMetadata();
     if (!vrMetadataLayer)
         return false;
 

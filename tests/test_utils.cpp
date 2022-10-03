@@ -49,7 +49,7 @@ std::pair<std::shared_ptr<BAG::Dataset>, std::string>
                                    chunkSize, compressionLevel);
 
     // Write the elevation layer, constructing bogus data as we do so.
-    auto* elevationLayer = dataset->getSimpleLayer(Elevation);
+    auto elevationLayer = dataset->getSimpleLayer(Elevation);
 
     // Set the min/max values (optional).
     // NOTE: Layer::write() calls update min/max.
@@ -89,7 +89,7 @@ std::pair<std::shared_ptr<BAG::Dataset>, std::string>
     }
 
     // Write the uncertainty layer, constructing bogus data as we do so.
-    auto* uncertaintyLayer = dataset->getSimpleLayer(Uncertainty);
+    auto uncertaintyLayer = dataset->getSimpleLayer(Uncertainty);
 
     // Set the min/max values (optional).
     // NOTE: Layer::write() calls update min/max.

@@ -19,6 +19,9 @@
 %import "bag_uint8array.i"
 %import "bag_valuetable.i"
 
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::CompoundLayer)
+
 namespace BAG {
 class CompoundLayer final : public Layer
 {
