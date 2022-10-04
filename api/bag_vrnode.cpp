@@ -6,6 +6,7 @@
 
 #include <array>
 #include <cstring>  //memset
+#include <memory>
 #include <H5Cpp.h>
 
 
@@ -88,7 +89,7 @@ VRNode::VRNode(
 \return
     The new variable resolution node.
 */
-std::unique_ptr<VRNode> VRNode::create(
+std::shared_ptr<VRNode> VRNode::create(
     Dataset& dataset,
     uint64_t chunkSize,
     int compressionLevel)
@@ -98,8 +99,8 @@ std::unique_ptr<VRNode> VRNode::create(
 
     auto h5dataSet = VRNode::createH5dataSet(dataset, *descriptor);
 
-    return std::unique_ptr<VRNode>(new VRNode{dataset,
-        *descriptor, std::move(h5dataSet)});
+    return std::make_shared<VRNode>(dataset,
+        *descriptor, std::move(h5dataSet));
 }
 
 //! Open an existing variable resolution node.
@@ -112,7 +113,7 @@ std::unique_ptr<VRNode> VRNode::create(
 \return
     The specified variable resolution node.
 */
-std::unique_ptr<VRNode> VRNode::open(
+std::shared_ptr<VRNode> VRNode::open(
     Dataset& dataset,
     VRNodeDescriptor& descriptor)
 {
@@ -147,8 +148,8 @@ std::unique_ptr<VRNode> VRNode::open(
         new ::H5::DataSet{h5file.openDataSet(VR_REFINEMENT_PATH)},
             DeleteH5dataSet{});
 
-    return std::unique_ptr<VRNode>(new VRNode{dataset,
-        descriptor, std::move(h5dataSet)});
+    return std::make_unique<VRNode>(dataset,
+        descriptor, std::move(h5dataSet));
 }
 
 
@@ -162,7 +163,7 @@ std::unique_ptr<VRNode> VRNode::open(
 \return
     The new HDF5 DataSet.
 */
-std::unique_ptr<::H5::DataSet, VRNode::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 VRNode::createH5dataSet(
     const Dataset& dataset,
     const VRNodeDescriptor& descriptor)
@@ -373,11 +374,6 @@ void VRNode::writeProxy(
     pDescriptor->setMinMaxHypStrength(minHypStr, maxHypStr);
     pDescriptor->setMinMaxNumHypotheses(minNumHyp, maxNumHyp);
     pDescriptor->setMinMaxNSamples(minNSamples, maxNSamples);
-}
-
-void VRNode::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
 }
 
 }   //namespace BAG
