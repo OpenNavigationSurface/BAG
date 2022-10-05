@@ -34,6 +34,8 @@ public:
 
     VRTrackingList(const VRTrackingList&) = delete;
     VRTrackingList(VRTrackingList&&) = delete;
+    // Allow std::make_shared() to call our constructor
+    explicit VRTrackingList(const Dataset& dataset);
 
     VRTrackingList& operator=(const VRTrackingList&) = delete;
     VRTrackingList& operator=(VRTrackingList&&) = delete;
@@ -77,7 +79,6 @@ public:
     void write() const;
 
 protected:
-    explicit VRTrackingList(const Dataset& dataset);
     VRTrackingList(const Dataset& dataset, int compressionLevel);
 
 private:

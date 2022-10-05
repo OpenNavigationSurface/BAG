@@ -3,6 +3,7 @@
 ## Linux / macOS
 
 ### Configure and build BAG
+
 ```shell
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local \
  -DBAG_BUILD_TESTS:BOOL=ON -DCODE_COVERAGE:BOOL=ON \
@@ -27,10 +28,12 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 ### Dependencies from Miniconda
 
 #### Install miniconda & BAG dependencies
+
 Download the latest version of miniconda from [here](https://docs.conda.io/en/latest/miniconda.html#windows-installers) and install to \miniconda (i.e., C:\miniconda).
 
 Next, to install configure miniconda open an Developer Command Prompt in Visual Studio:
-```
+
+```shell
 set PATH=\miniconda;\miniconda\Scripts;\miniconda\Library\bin;%PATH%
 conda init # Restart your shell
 conda update conda
@@ -43,7 +46,8 @@ conda install cmake ninja hdf5 libxml2 swig catch2
 > Note: if usnig a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
 
 #### Configure and build BAG
-```
+
+```shell
 set CC=cl.exe
 set CXX=cl.exe
 cmake -Bbuild -S. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\miniconda\envs\bag-dev-env\Library -DBAG_BUILD_PYTHON=ON
@@ -54,13 +58,13 @@ build\tests\bag_tests.exe
 python python\test_all.py
 ```
 
-
 ### Dependencies from source
 
 > Note: We recommend using Dependencies from Miniconda as per above.
 
 #### Setup output directory for build artifacts
-```
+
+```shell
 mkdir \BAG
 ```
 

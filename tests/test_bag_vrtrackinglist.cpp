@@ -346,7 +346,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
         REQUIRE(pDataset);
 
         {
-            auto* trackingList = pDataset->getVRTrackingList();
+            auto trackingList = pDataset->getVRTrackingList();
             UNSCOPED_INFO("Check no VR tracking list exists.");
             REQUIRE(trackingList == nullptr);
 
@@ -370,7 +370,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
 
         {
             // Read the expected record.
-            const auto* trackingList = pDataset->getVRTrackingList();
+            const auto trackingList = pDataset->getVRTrackingList();
             REQUIRE(trackingList);
 
             UNSCOPED_INFO("Check one item was read.");
@@ -382,7 +382,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
 
         {
             // Add a second record to an existing TrackingList.
-            auto* trackingList = pDataset->getVRTrackingList();
+            auto trackingList = pDataset->getVRTrackingList();
             REQUIRE(trackingList);
 
             UNSCOPED_INFO("Check one item was read.");
@@ -395,7 +395,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
             REQUIRE_NOTHROW(trackingList->write());
         }
 
-        const auto* trackingList = pDataset->getVRTrackingList();
+        const auto trackingList = pDataset->getVRTrackingList();
 
         UNSCOPED_INFO("Check the expected values are in the item.");
         CHECK(trackingList->size() == 2);
@@ -412,7 +412,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
     UNSCOPED_INFO("Check dataset was read successfully.");
     REQUIRE(pDataset);
 
-    const auto* trackingList = pDataset->getVRTrackingList();
+    const auto trackingList = pDataset->getVRTrackingList();
 
     UNSCOPED_INFO("Check the expected number of items in the tracking list are there.");
     constexpr size_t kExpectedNumItems = 2;

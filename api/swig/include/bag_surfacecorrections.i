@@ -21,6 +21,8 @@
 %import "bag_uint8array.i"
 
 %include <stdint.i>
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::SurfaceCorrections)
 
 
 namespace BAG {

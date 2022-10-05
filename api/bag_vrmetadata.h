@@ -2,6 +2,7 @@
 #define BAG_VRMETADATA_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 
@@ -19,6 +20,10 @@ namespace BAG {
 class BAG_API VRMetadata final : public Layer
 {
 public:
+    VRMetadata(Dataset& dataset,
+               VRMetadataDescriptor& descriptor,
+               std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
+
     VRMetadata(const VRMetadata&) = delete;
     VRMetadata(VRMetadata&&) = delete;
 
@@ -34,20 +39,10 @@ public:
     }
 
 protected:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
-
-    VRMetadata(Dataset& dataset,
-        VRMetadataDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
-
-    static std::unique_ptr<VRMetadata> create(Dataset& dataset,
+    static std::shared_ptr<VRMetadata> create(Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);
 
-    static std::unique_ptr<VRMetadata> open(Dataset& dataset,
+    static std::shared_ptr<VRMetadata> open(Dataset& dataset,
         VRMetadataDescriptor& descriptor);
 
 private:

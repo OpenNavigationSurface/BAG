@@ -35,7 +35,7 @@ InterleavedLegacyLayer::InterleavedLegacyLayer(
 \param descriptor
     The descriptor of this layer.
 */
-std::unique_ptr<InterleavedLegacyLayer> InterleavedLegacyLayer::open(
+std::shared_ptr<InterleavedLegacyLayer> InterleavedLegacyLayer::open(
     Dataset& dataset,
     InterleavedLegacyLayerDescriptor& descriptor)
 {
@@ -51,8 +51,8 @@ std::unique_ptr<InterleavedLegacyLayer> InterleavedLegacyLayer::open(
         descriptor.setMinMax(std::get<1>(possibleMinMax),
             std::get<2>(possibleMinMax));
 
-    return std::unique_ptr<InterleavedLegacyLayer>(new InterleavedLegacyLayer{dataset,
-        descriptor, std::move(h5dataSet)});
+    return std::make_shared<InterleavedLegacyLayer>(dataset,
+        descriptor, std::move(h5dataSet));
 }
 
 

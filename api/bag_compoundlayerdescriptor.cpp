@@ -6,6 +6,7 @@
 #include "bag_private.h"
 #include "bag_valuetable.h"
 
+#include <iostream>
 #include <array>
 #include <H5Cpp.h>
 
@@ -142,14 +143,26 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
 
     // Read metadata profile as string from HDF5 file attribute and convert to GeorefMetadataProfile enum value.
     std::string profileString;
-    const auto metadataProfileAtt = h5dataSet.openAttribute(METADATA_PROFILE_TYPE);
-    metadataProfileAtt.read(metadataProfileAtt.getDataType(), profileString);
-    // TODO: Check for empty value and proceed with UNKNOWN_METADATA_PROFILE
-    GeorefMetadataProfile profile = UNKNOWN_METADATA_PROFILE;
-    try {
-        profile = BAG::kStringMapGeorefMetadataProfile.at(profileString);
-    } catch (const std::out_of_range&) {
-        throw UnrecognizedMetadataProfile{profileString};
+    if (h5dataSet.attrExists(METADATA_PROFILE_TYPE)) {
+        const auto metadataProfileAtt = h5dataSet.openAttribute(METADATA_PROFILE_TYPE);
+        metadataProfileAtt.read(metadataProfileAtt.getDataType(), profileString);
+    } else {
+        std::cerr << "Unable to find compound layer attribute '" << METADATA_PROFILE_TYPE <<
+                  "' for simple layer '" << name << "', setting profile to '" << UNKOWN_METADATA_PROFILE_NAME <<
+                  "'." << std::endl;
+        profileString = UNKOWN_METADATA_PROFILE_NAME;
+    }
+
+    GeorefMetadataProfile profile;
+    auto search = BAG::kStringMapGeorefMetadataProfile.find(profileString);
+    if (search != BAG::kStringMapGeorefMetadataProfile.end()) {
+        // This is a recognized metadata profile (either a specific known profile or the unknown profile)
+        profile = search->second;
+    } else {
+        std::cerr << "WARNING: Unrecognized compound layer metadata profile '" << profileString <<
+                  "' for simple layer '" << name << "', assuming value was '" << UNKOWN_METADATA_PROFILE_NAME <<
+                  "'." << std::endl;
+        profile = UNKNOWN_METADATA_PROFILE;
     }
 
     return std::shared_ptr<CompoundLayerDescriptor>(

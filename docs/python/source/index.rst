@@ -3,8 +3,7 @@ Bathymetric Attributed Grid (BAG) version 2.0.1 Python API
 `Open Navigation Surface Project`_
 
 .. toctree::
-   :maxdepth: 4
-   :caption: Contents:
+   :maxdepth: 2
 
    modules
 

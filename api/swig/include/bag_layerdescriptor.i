@@ -18,6 +18,13 @@
 %include <std_string.i>
 
 %shared_ptr(BAG::LayerDescriptor)
+%shared_ptr(BAG::CompoundLayerDescriptor)
+%shared_ptr(BAG::InterleavedLegacyLayerDescriptor)
+%shared_ptr(BAG::SimpleLayerDescriptor)
+%shared_ptr(BAG::SurfaceCorrectionsDescriptor)
+%shared_ptr(BAG::VRMetadataDescriptor)
+%shared_ptr(BAG::VRNodeDescriptor)
+%shared_ptr(AG::VRRefinementsDescriptor)
 
 
 namespace BAG {

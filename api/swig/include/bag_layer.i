@@ -10,6 +10,8 @@
 
 
 %{
+#include <memory>
+
 #include "bag_layer.h"
 %}
 
@@ -18,18 +20,28 @@
 %import "bag_uint8array.i"
 %import "bag_layeritems.i"
 
-%include <downcast_shared_ptr.i>
-%include <std_shared_ptr.i>
+//%include <downcast_shared_ptr.i>
 %include <std_string.i>
 %include <stdint.i>
 
-%shared_ptr(BAG::LayerDescriptor)
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::Layer)
+//%shared_ptr(BAG::LayerDescriptor)
 
-%downcast_shared(std::shared_ptr<BAG::LayerDescriptor> BAG::Layer::getDescriptor,
-    BAG::CompoundLayerDescriptor, BAG::InterleavedLegacyLayerDescriptor,
-    BAG::SimpleLayerDescriptor, BAG::SurfaceCorrectionsDescriptor,
-    BAG::VRMetadataDescriptor, BAG::VRNodeDescriptor,
-    BAG::VRRefinementsDescriptor, BAG::LayerDescriptor)
+//%shared_ptr(BAG::LayerDescriptor)
+//%shared_ptr(BAG::CompoundLayerDescriptor)
+//%shared_ptr(BAG::InterleavedLegacyLayerDescriptor)
+//%shared_ptr(BAG::SimpleLayerDescriptor)
+//%shared_ptr(BAG::SurfaceCorrectionsDescriptor)
+//%shared_ptr(BAG::VRMetadataDescriptor)
+//%shared_ptr(BAG::VRNodeDescriptor)
+//%shared_ptr(AG::VRRefinementsDescriptor)
+
+//%downcast_shared(std::shared_ptr<BAG::LayerDescriptor> BAG::Layer::getDescriptor,
+//    BAG::CompoundLayerDescriptor, BAG::InterleavedLegacyLayerDescriptor,
+//    BAG::SimpleLayerDescriptor, BAG::SurfaceCorrectionsDescriptor,
+//    BAG::VRMetadataDescriptor, BAG::VRNodeDescriptor,
+//    BAG::VRRefinementsDescriptor, BAG::LayerDescriptor)
 
 
 namespace BAG {

@@ -84,8 +84,7 @@ int main(
     }
 
     // Write the elevation layer, constructing bogus data as we do so.
-
-    auto* elevationLayer = dataset->getSimpleLayer(Elevation);
+    auto elevationLayer = dataset->getSimpleLayer(Elevation);
 
     // Set the min/max values (optional).
     // NOTE: Layer::write() calls update min/max.
@@ -124,8 +123,7 @@ int main(
     }
 
     // Write the uncertainty layer, constructing bogus data as we do so.
-
-    auto* uncertaintyLayer = dataset->getSimpleLayer(Uncertainty);
+    auto uncertaintyLayer = dataset->getSimpleLayer(Uncertainty);
 
     // Set the min/max values (optional).
     // NOTE: Layer::write() calls update min/max.
@@ -178,7 +176,7 @@ int main(
 	        const std::array<float, 2> nominalDepthRange{20.0f,
                 20.0f + ((kGridSize - 1) * (kGridSize - 1) + kGridSize) / 20.0f};
 
-            auto pDescriptor = uncertaintyLayer->getDescriptor();
+            auto pDescriptor = nominalElevationLayer.getDescriptor();
             pDescriptor->setMinMax(nominalDepthRange[0], nominalDepthRange[1]);
 
             nominalElevationLayer.writeAttributes();

@@ -15,14 +15,32 @@ release = '2.0.1'
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
 extensions = ['sphinx.ext.autodoc',
+              'sphinx.ext.autosummary',
               'sphinx.ext.napoleon',
-              'sphinx.ext.viewcode']
+              'sphinx.ext.viewcode',
+              'sphinx.ext.intersphinx']
 
 templates_path = ['_templates']
 exclude_patterns = ['setup.rst']
 
+# Configuration for autodoc extension
+autodoc_member_order = 'alphabetical'
+autodoc_class_signature = 'separated'
+autoclass_content = 'both'
+autodoc_typehints = 'both'
+autodoc_default_options = {
+    'member-order': 'groupwise',
+    'members': True,
+    'special-members': '__init__',
+    'show-inheritance': True,
+}
+## Generate autodoc stubs with summaries from code
+autosummary_generate = True
+
+intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'classic'
 html_static_path = ['_static']

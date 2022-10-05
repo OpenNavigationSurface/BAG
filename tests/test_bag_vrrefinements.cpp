@@ -340,7 +340,7 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
         REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
         UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
-        auto* pVrRefinements = pDataset->getVRRefinements();
+        auto pVrRefinements = pDataset->getVRRefinements();
         REQUIRE(pVrRefinements);
 
         UNSCOPED_INFO("Check that writing attributes does not throw.");
@@ -374,7 +374,7 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
     {  // test open
         auto pDataset = Dataset::open(tmpBagFile, BAG_OPEN_READONLY);
 
-        const auto* pVrRefinements = pDataset->getVRRefinements();
+        const auto pVrRefinements = pDataset->getVRRefinements();
         UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
         REQUIRE(pVrRefinements);
 
@@ -417,7 +417,7 @@ TEST_CASE("test vr refinements write read", "[vrrefinements][write][read]")
     REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
     UNSCOPED_INFO("Check the variable resolution refinement layer exists.");
-    auto* pVrRefinements = pDataset->getVRRefinements();
+    auto pVrRefinements = pDataset->getVRRefinements();
     REQUIRE(pVrRefinements);
 
     UNSCOPED_INFO("Check VRRefinementsDescriptor is the default descriptor.");

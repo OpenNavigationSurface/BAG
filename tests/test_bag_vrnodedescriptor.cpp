@@ -331,7 +331,7 @@ TEST_CASE("test vr node descriptor min/max hyp strength",
     REQUIRE(pDataset);
 
     pDataset->createVR(kChunkSize, kCompressionLevel, true);
-    auto* pVrNode = pDataset->getVRNode();
+    auto pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
     auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
@@ -369,7 +369,7 @@ TEST_CASE("test vr node descriptor min/max num hypotheses",
     REQUIRE(pDataset);
 
     pDataset->createVR(kChunkSize, kCompressionLevel, true);
-    auto* pVrNode = pDataset->getVRNode();
+    auto pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
     auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(
@@ -408,7 +408,7 @@ TEST_CASE("test vr node descriptor min/max n samples",
     REQUIRE(pDataset);
 
     pDataset->createVR(kChunkSize, kCompressionLevel, true);
-    auto* pVrNode = pDataset->getVRNode();
+    auto pVrNode = pDataset->getVRNode();
     REQUIRE(pVrNode);
 
     auto pVrNodeDescriptor = std::dynamic_pointer_cast<VRNodeDescriptor>(

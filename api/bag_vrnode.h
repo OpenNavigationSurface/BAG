@@ -2,6 +2,7 @@
 #define BAG_VRNODE_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 
@@ -19,6 +20,10 @@ namespace BAG {
 class BAG_API VRNode final : public Layer
 {
 public:
+    VRNode(Dataset& dataset,
+           VRNodeDescriptor& descriptor,
+           std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
+
     VRNode(const VRNode&) = delete;
     VRNode(VRNode&&) = delete;
 
@@ -34,20 +39,10 @@ public:
     }
 
 protected:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
-
-    VRNode(Dataset& dataset,
-        VRNodeDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet);
-
-    static std::unique_ptr<VRNode> create(Dataset& dataset,
+    static std::shared_ptr<VRNode> create(Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);
 
-    static std::unique_ptr<VRNode> open(Dataset& dataset,
+    static std::shared_ptr<VRNode> open(Dataset& dataset,
         VRNodeDescriptor& descriptor);
 
 private:

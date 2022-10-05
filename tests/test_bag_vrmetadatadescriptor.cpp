@@ -333,7 +333,7 @@ TEST_CASE("test vr metadata descriptor min/max dimensions",
     REQUIRE(pDataset);
 
     pDataset->createVR(kChunkSize, kCompressionLevel, false);
-    auto* pVrMetadata = pDataset->getVRMetadata();
+    auto pVrMetadata = pDataset->getVRMetadata();
     REQUIRE(pVrMetadata);
 
     auto pVrMetadataDescriptor =
@@ -386,7 +386,7 @@ TEST_CASE("test vr metadata descriptor min/max resolution",
     REQUIRE(pDataset);
 
     pDataset->createVR(kChunkSize, kCompressionLevel, false);
-    auto* pVrMetadata = pDataset->getVRMetadata();
+    auto pVrMetadata = pDataset->getVRMetadata();
     REQUIRE(pVrMetadata);
 
     auto pVrMetadataDescriptor =

@@ -494,7 +494,7 @@ TEST_CASE("test simple layer write, optional layer, nominal_elevation", "[simple
         auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        const auto& nominallElevLayer = pDataset->getLayer(Nominal_Elevation, "nominal_elevation");
+        const auto nominallElevLayer = pDataset->getLayer(Nominal_Elevation, "nominal_elevation");
 
         UNSCOPED_INFO("Read the new data in the Nominal_Elevation layer.");
         const auto buffer = nominallElevLayer->read(0, 0, kGridSize - 1, kGridSize - 1);

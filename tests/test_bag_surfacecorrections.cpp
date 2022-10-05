@@ -327,7 +327,7 @@ TEST_CASE("test surface corrections read irregular",
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that the surface corrections exist.");
-    const auto* pCorrections = pDataset->getSurfaceCorrections();
+    const auto pCorrections = pDataset->getSurfaceCorrections();
     REQUIRE(pCorrections);
 
     UNSCOPED_INFO("Check that the surface corrections descriptor exists.");
@@ -566,7 +566,7 @@ TEST_CASE("test surface corrections create, write, read two gridded records",
     auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
     REQUIRE(pDataset);
 
-    auto* pCorrections = pDataset->getSurfaceCorrections();
+    auto pCorrections = pDataset->getSurfaceCorrections();
     REQUIRE(pCorrections);
 
     UNSCOPED_INFO("Read the records back.");

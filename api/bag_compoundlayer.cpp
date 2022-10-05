@@ -9,6 +9,7 @@
 #include <array>
 #include <H5Cpp.h>
 #include <limits>
+#include <memory>
 #include <vector>
 
 
@@ -90,7 +91,7 @@ CompoundLayer::CompoundLayer(
 \return
     The new compound layer.
 */
-std::unique_ptr<CompoundLayer> CompoundLayer::create(
+std::shared_ptr<CompoundLayer> CompoundLayer::create(
             DataType keyType,
             const std::string& name,
             GeorefMetadataProfile profile,
@@ -120,9 +121,9 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
 
     auto h5valueDataSet = CompoundLayer::createH5valueDataSet(dataset, *pDescriptor);
 
-    auto layer = std::unique_ptr<CompoundLayer>(new CompoundLayer{dataset,
+    auto layer = std::make_shared<CompoundLayer>(dataset,
         *pDescriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
-        std::move(h5valueDataSet)});
+        std::move(h5valueDataSet));
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
 
@@ -139,7 +140,7 @@ std::unique_ptr<CompoundLayer> CompoundLayer::create(
 \return
     The compound layer read from dataset.
 */
-std::unique_ptr<CompoundLayer> CompoundLayer::open(
+std::shared_ptr<CompoundLayer> CompoundLayer::open(
     Dataset& dataset,
     CompoundLayerDescriptor& descriptor)
 {
@@ -159,9 +160,9 @@ std::unique_ptr<CompoundLayer> CompoundLayer::open(
         new ::H5::DataSet{h5file.openDataSet(internalPath + COMPOUND_VALUES)},
         DeleteH5dataSet{});
 
-    auto layer = std::unique_ptr<CompoundLayer>(new CompoundLayer{dataset,
+    auto layer = std::make_shared<CompoundLayer>(dataset,
         descriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
-        std::move(h5valueDataSet)});
+        std::move(h5valueDataSet));
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
 

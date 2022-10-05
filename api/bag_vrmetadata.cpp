@@ -96,7 +96,7 @@ VRMetadata::VRMetadata(
 \return
     The new variable resolution metadata.
 */
-std::unique_ptr<VRMetadata> VRMetadata::create(
+std::shared_ptr<VRMetadata> VRMetadata::create(
     Dataset& dataset,
     uint64_t chunkSize,
     int compressionLevel)
@@ -106,8 +106,8 @@ std::unique_ptr<VRMetadata> VRMetadata::create(
 
     auto h5dataSet = VRMetadata::createH5dataSet(dataset, *descriptor);
 
-    return std::unique_ptr<VRMetadata>(new VRMetadata{dataset,
-        *descriptor, std::move(h5dataSet)});
+    return std::make_shared<VRMetadata>(dataset,
+        *descriptor, std::move(h5dataSet));
 }
 
 //! Open a variable resolution metadata layer.
@@ -120,7 +120,7 @@ std::unique_ptr<VRMetadata> VRMetadata::create(
 \return
     The variable resolution metadata.
 */
-std::unique_ptr<VRMetadata> VRMetadata::open(
+std::shared_ptr<VRMetadata> VRMetadata::open(
     Dataset& dataset,
     VRMetadataDescriptor& descriptor)
 {
@@ -151,8 +151,8 @@ std::unique_ptr<VRMetadata> VRMetadata::open(
         new ::H5::DataSet{h5file.openDataSet(VR_METADATA_PATH)},
             DeleteH5dataSet{});
 
-    return std::unique_ptr<VRMetadata>(new VRMetadata{dataset,
-        descriptor, std::move(h5dataSet)});
+    return std::make_shared<VRMetadata>(dataset,
+        descriptor, std::move(h5dataSet));
 }
 
 
@@ -166,7 +166,7 @@ std::unique_ptr<VRMetadata> VRMetadata::open(
 \return
     The HDF5 Dataset for this variable resolution metadata layer.
 */
-std::unique_ptr<::H5::DataSet, VRMetadata::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 VRMetadata::createH5dataSet(
     const Dataset& dataset,
     const VRMetadataDescriptor& descriptor)
@@ -399,11 +399,6 @@ void VRMetadata::writeProxy(
     pDescriptor->setMaxDimensions(maxDimX, maxDimY);
     pDescriptor->setMinResolution(minResX, minResY);
     pDescriptor->setMaxResolution(maxResX, maxResY);
-}
-
-void VRMetadata::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
 }
 
 }   //namespace BAG

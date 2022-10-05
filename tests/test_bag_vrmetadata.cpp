@@ -343,7 +343,7 @@ TEST_CASE("test vr metadata create open", "[vrmetadata][create][open]")
         UNSCOPED_INFO("Check that creating optional variable resolution layers does not throw.");
         REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
-        auto* pVrMetadata = pDataset->getVRMetadata();
+        auto pVrMetadata = pDataset->getVRMetadata();
         UNSCOPED_INFO("Check that the optional variable resolution metadata layer exists.");
         REQUIRE(pVrMetadata);
 
@@ -380,7 +380,7 @@ TEST_CASE("test vr metadata create open", "[vrmetadata][create][open]")
     {  // test open
         auto pDataset = Dataset::open(tmpBagFile, BAG_OPEN_READONLY);
 
-        const auto* pVrMetadata = pDataset->getVRMetadata();
+        const auto pVrMetadata = pDataset->getVRMetadata();
         UNSCOPED_INFO("Check that the optional variable resolution metadata layer exists.");
         REQUIRE(pVrMetadata);
 
@@ -426,7 +426,7 @@ TEST_CASE("test vr metadata write read", "[vrmetadata][write][read]")
     REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
     UNSCOPED_INFO("Check the variable resolution metadata exists.");
-    auto* pVrMetadata = pDataset->getVRMetadata();
+    auto pVrMetadata = pDataset->getVRMetadata();
     REQUIRE(pVrMetadata);
 
     UNSCOPED_INFO("Check VRMetadataDescriptor is the default descriptor.");

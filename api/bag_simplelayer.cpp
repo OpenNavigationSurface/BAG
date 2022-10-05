@@ -43,7 +43,7 @@ SimpleLayer::SimpleLayer(
 \return
     The new simple layer.
 */
-std::unique_ptr<SimpleLayer> SimpleLayer::create(
+std::shared_ptr<SimpleLayer> SimpleLayer::create(
     Dataset& dataset,
     LayerType type,
     uint64_t chunkSize,
@@ -53,8 +53,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
         compressionLevel);
     auto h5dataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
 
-    return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, *descriptor,
-        std::move(h5dataSet)});
+    return std::make_shared<SimpleLayer>(dataset, *descriptor, std::move(h5dataSet));
 }
 
 //! Open an existing simple layer.
@@ -67,7 +66,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::create(
 \return
     The specified simple layer.
 */
-std::unique_ptr<SimpleLayer> SimpleLayer::open(
+std::shared_ptr<SimpleLayer> SimpleLayer::open(
     Dataset& dataset,
     SimpleLayerDescriptor& descriptor)
 {
@@ -82,8 +81,7 @@ std::unique_ptr<SimpleLayer> SimpleLayer::open(
         descriptor.setMinMax(std::get<1>(possibleMinMax),
             std::get<2>(possibleMinMax));
 
-    return std::unique_ptr<SimpleLayer>(new SimpleLayer{dataset, descriptor,
-        std::move(h5dataSet)});
+    return std::make_shared<SimpleLayer>(dataset, descriptor,std::move(h5dataSet));
 }
 
 

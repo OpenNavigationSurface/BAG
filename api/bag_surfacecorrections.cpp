@@ -8,6 +8,7 @@
 #include <array>
 #include <cmath>
 #include <cstring>  // memset
+#include <memory>
 #include <H5Cpp.h>
 
 
@@ -90,7 +91,7 @@ SurfaceCorrections::SurfaceCorrections(
 \return
     The new surface corrections layer.
 */
-std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
+std::shared_ptr<SurfaceCorrections> SurfaceCorrections::create(
     Dataset& dataset,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY type,
     uint8_t numCorrectors,
@@ -102,8 +103,8 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
 
     auto h5dataSet = SurfaceCorrections::createH5dataSet(dataset, *descriptor);
 
-    return std::unique_ptr<SurfaceCorrections>(new SurfaceCorrections{dataset,
-        *descriptor, std::move(h5dataSet)});
+    return std::make_shared<SurfaceCorrections>(dataset,
+        *descriptor, std::move(h5dataSet));
 }
 
 //! Open an existing surface corrections layer.
@@ -116,7 +117,7 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::create(
 \return
     The new surface corrections layer.
 */
-std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
+std::shared_ptr<SurfaceCorrections> SurfaceCorrections::open(
     Dataset& dataset,
     SurfaceCorrectionsDescriptor& descriptor)
 {
@@ -125,8 +126,8 @@ std::unique_ptr<SurfaceCorrections> SurfaceCorrections::open(
         new ::H5::DataSet{h5file.openDataSet(descriptor.getInternalPath())},
         DeleteH5dataSet{});
 
-    return std::unique_ptr<SurfaceCorrections>(new SurfaceCorrections{dataset,
-        descriptor, std::move(h5dataSet)});
+    return std::make_shared<SurfaceCorrections>(dataset,
+        descriptor, std::move(h5dataSet));
 }
 
 

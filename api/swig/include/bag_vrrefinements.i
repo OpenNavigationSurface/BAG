@@ -12,8 +12,12 @@
 #include "bag_vrrefinements.h"
 %}
 
+#define final
+
 %import "bag_layer.i"
 
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::VRRefinements)
 
 namespace BAG {
 

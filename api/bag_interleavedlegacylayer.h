@@ -35,6 +35,10 @@ namespace BAG {
 class BAG_API InterleavedLegacyLayer final : public Layer
 {
 public:
+    InterleavedLegacyLayer(Dataset& dataset,
+                           InterleavedLegacyLayerDescriptor& descriptor,
+                           std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
+
     InterleavedLegacyLayer(const InterleavedLegacyLayer&) = delete;
     InterleavedLegacyLayer(InterleavedLegacyLayer&&) = delete;
 
@@ -50,11 +54,7 @@ public:
     }
 
 protected:
-    InterleavedLegacyLayer(Dataset& dataset,
-        InterleavedLegacyLayerDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
-
-    static std::unique_ptr<InterleavedLegacyLayer> open(Dataset& dataset,
+    static std::shared_ptr<InterleavedLegacyLayer> open(Dataset& dataset,
         InterleavedLegacyLayerDescriptor& descriptor);
 
 private:

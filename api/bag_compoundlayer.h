@@ -30,6 +30,11 @@ namespace BAG {
 class BAG_API CompoundLayer final : public Layer
 {
 public:
+    CompoundLayer(Dataset& dataset, CompoundLayerDescriptor& descriptor,
+                  std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5keyDataSet,
+                  std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5vrKeyDataSet,
+                  std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5recordDataSet);
+
     CompoundLayer(const CompoundLayer&) = delete;
     CompoundLayer(CompoundLayer&&) = delete;
 
@@ -54,17 +59,12 @@ public:
     void writeVR(uint32_t indexStart, uint32_t indexEnd, const uint8_t* buffer);
 
 protected:
-    CompoundLayer(Dataset& dataset, CompoundLayerDescriptor& descriptor,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5keyDataSet,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5vrKeyDataSet,
-        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5recordDataSet);
-
-    static std::unique_ptr<CompoundLayer> create(DataType keyType,
+    static std::shared_ptr<CompoundLayer> create(DataType keyType,
                                                  const std::string& name, GeorefMetadataProfile profile, Dataset& dataset,
                                                  const RecordDefinition& definition, uint64_t chunkSize,
                                                  int compressionLevel);
-    static std::unique_ptr<CompoundLayer> open(Dataset& dataset,
-        CompoundLayerDescriptor& descriptor);
+    static std::shared_ptr<CompoundLayer> open(Dataset& dataset,
+                                               CompoundLayerDescriptor& descriptor);
 
 private:
     static std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
