@@ -16,6 +16,8 @@
 
 %include <std_vector.i>
 %include <stdint.i>
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::VRTrackingList)
 
 %template(VRTrackingItems) std::vector<BAG::VRTrackingList::value_type>;
 

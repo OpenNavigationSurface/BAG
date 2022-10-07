@@ -26,6 +26,7 @@
 #include <cctype>
 #include <H5Cpp.h>
 #include <map>
+#include <memory>
 #include <regex>
 #include <string>
 #include <memory>
@@ -596,8 +597,8 @@ void Dataset::createVR(
 
     //TODO Consider a try/catch to undo partial creation.
 
-    m_pVRTrackingList = std::unique_ptr<VRTrackingList>(
-        new VRTrackingList{*this, compressionLevel});
+    m_pVRTrackingList = std::make_unique<VRTrackingList>(
+        *this, compressionLevel);
 
     this->addLayer(VRMetadata::create(*this, chunkSize, compressionLevel));
     this->addLayer(VRRefinements::create(*this, chunkSize, compressionLevel));

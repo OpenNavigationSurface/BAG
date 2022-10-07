@@ -12,6 +12,7 @@
 #include "bag_dataset.h"
 %}
 
+%import "bag_layer.i"
 %import "bag_compoundlayer.i"
 %import "bag_descriptor.i"
 %import "bag_simplelayer.i"
@@ -23,17 +24,19 @@
 %import "bag_vrrefinements.i"
 %import "bag_vrtrackinglist.i"
 
+%include <std_string.i>
+%include <stdint.i>
+
+%include <std_shared_ptr.i>
+%shared_ptr(BAG::Dataset)
+%shared_ptr(BAG::Layer)
+
 %include <std_vector.i>
 namespace std
 {
     %template(CompoundLayerVector) vector<shared_ptr<BAG::CompoundLayer>>;
     %template(LayerVector) vector<shared_ptr<BAG::Layer>>;
 }
-
-%include <std_string.i>
-%include <stdint.i>
-%include <std_shared_ptr.i>
-%shared_ptr(BAG::Dataset)
 
 
 namespace BAG {
@@ -44,8 +47,11 @@ public:
     %rename(openDataset) open(const std::string &, OpenMode);
     static std::shared_ptr<Dataset> open(const std::string & fileName,
         OpenMode openMode);
+
     static std::shared_ptr<Dataset> create(const std::string& fileName,
         Metadata&& metadata, uint64_t chunkSize, int compressionLevel);
+
+    void close();
 
     Dataset(const Dataset&) = delete;
     Dataset(Dataset&&) = delete;
@@ -60,7 +66,7 @@ public:
     %ignore getLayer(uint32_t id) const&;
     std::shared_ptr<Layer> getLayer(LayerType type, const std::string& name) &;
     %ignore getLayer(LayerType type, const std::string& name) const &;
-    std::vector<std::shared_ptr<const Layer>> getLayers() const&;
+    %ignore getLayers() const&;
 
     std::vector<LayerType> getLayerTypes() const;
 
@@ -109,6 +115,21 @@ public:
 
 %extend Dataset
 {
+    // Manually create getLayers() due to errors in how SWIG handles vectors of const shared_ptr
+    //   For more information, see: https://github.com/swig/swig/issues/753
+    std::vector<std::shared_ptr<BAG::Layer>> Dataset::getLayers() &
+    {
+        std::vector<std::shared_ptr<BAG::Layer const>> smartPtrLayers = $self->getLayers();
+        std::vector<std::shared_ptr<BAG::Layer>> rawPtrlayers;
+        rawPtrlayers.reserve(smartPtrLayers.size());
+
+        for (std::shared_ptr<BAG::Layer const> smartPtrLayer : smartPtrLayers) {
+            rawPtrlayers.push_back(std::const_pointer_cast<BAG::Layer>(smartPtrLayer));
+        }
+
+        return rawPtrlayers;
+    }
+
     std::pair<double, double> gridToGeo(uint32_t row, uint32_t column) const noexcept
     {
         double x=0.0, y=0.0;

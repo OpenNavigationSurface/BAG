@@ -32,6 +32,7 @@ public:
     using reference = value_type&;
     using const_reference = const value_type&;
 
+    VRTrackingList(const Dataset& dataset, int compressionLevel);
     VRTrackingList(const VRTrackingList&) = delete;
     VRTrackingList(VRTrackingList&&) = delete;
     // Allow std::make_shared() to call our constructor
@@ -79,7 +80,6 @@ public:
     void write() const;
 
 protected:
-    VRTrackingList(const Dataset& dataset, int compressionLevel);
 
 private:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
