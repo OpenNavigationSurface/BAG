@@ -166,7 +166,7 @@ std::unique_ptr<VRRefinements> VRRefinements::open(
 \return
     A new HDF5 DataSet.
 */
-std::unique_ptr<::H5::DataSet, VRRefinements::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 VRRefinements::createH5dataSet(
     const Dataset& dataset,
     const VRRefinementsDescriptor& descriptor)
@@ -357,10 +357,4 @@ void VRRefinements::writeProxy(
     pDescriptor->setMinMaxUncertainty(minUncert, maxUncert);
 }
 
-void VRRefinements::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
-
 }  // namespace BAG
-

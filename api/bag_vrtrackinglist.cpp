@@ -260,7 +260,7 @@ const VRTrackingList::value_type* VRTrackingList::data() const & noexcept
 \return
     The HDF5 DataSet the tracking list wraps.
 */
-std::unique_ptr<::H5::DataSet, VRTrackingList::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 VRTrackingList::createH5dataSet(
     int compressionLevel)
 {
@@ -319,7 +319,7 @@ VRTrackingList::createH5dataSet(
 \return
     The HDF5 DataSet the tracking list wraps.
 */
-std::unique_ptr<::H5::DataSet, VRTrackingList::DeleteH5dataSet>
+std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
 VRTrackingList::openH5dataSet()
 {
     if (m_pBagDataset.expired())
@@ -424,10 +424,4 @@ void VRTrackingList::write() const
     m_pH5dataSet->write(m_items.data(), h5type, h5memSpace, h5fileSpace);
 }
 
-void VRTrackingList::DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
-{
-    delete ptr;
-}
-
 }   //namespace BAG
-

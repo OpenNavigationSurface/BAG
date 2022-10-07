@@ -2,6 +2,7 @@
 #define BAG_VRREFINEMENTS_H
 
 #include "bag_config.h"
+#include "bag_deleteh5dataset.h"
 #include "bag_fordec.h"
 #include "bag_layer.h"
 
@@ -37,12 +38,6 @@ public:
     std::shared_ptr<const VRRefinementsDescriptor> getDescriptor() const & noexcept;
 
 protected:
-    //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
-    struct BAG_API DeleteH5dataSet final
-    {
-        void operator()(::H5::DataSet* ptr) noexcept;
-    };
-
     VRRefinements(Dataset& dataset,
         VRRefinementsDescriptor& descriptor,
         std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5dataSet);
