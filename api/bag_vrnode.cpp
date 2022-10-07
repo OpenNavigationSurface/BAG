@@ -77,6 +77,27 @@ VRNode::VRNode(
 {
 }
 
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<VRNodeDescriptor> VRNode::getDescriptor() & noexcept
+{
+    return std::dynamic_pointer_cast<VRNodeDescriptor>(Layer::getDescriptor());
+}
+
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<const VRNodeDescriptor> VRNode::getDescriptor() const & noexcept {
+    return std::dynamic_pointer_cast<const VRNodeDescriptor>(Layer::getDescriptor());
+}
+
 //! Create a variable resolution node.
 /*!
 \param dataset

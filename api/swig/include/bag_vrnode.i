@@ -19,6 +19,8 @@
 
 namespace BAG {
 
+class VRNodeDescriptor;
+
 class VRNode final : public Layer
 {
 public:
@@ -30,6 +32,9 @@ public:
 
     bool operator==(const VRNode &rhs) const noexcept;
     bool operator!=(const VRNode &rhs) const noexcept;
+
+    std::shared_ptr<VRNodeDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const VRNodeDescriptor> getDescriptor() const & noexcept;
 };
 
 }  // namespace BAG

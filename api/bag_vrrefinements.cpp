@@ -53,6 +53,27 @@ T readAttribute(
 
 }  // namespace
 
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+    std::shared_ptr<VRRefinementsDescriptor> VRRefinements::getDescriptor() & noexcept
+    {
+        return std::dynamic_pointer_cast<VRRefinementsDescriptor>(Layer::getDescriptor());
+    }
+
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+    std::shared_ptr<const VRRefinementsDescriptor> VRRefinements::getDescriptor() const & noexcept {
+        return std::dynamic_pointer_cast<const VRRefinementsDescriptor>(Layer::getDescriptor());
+    }
+
 //! Constructor.
 /*!
 \param dataset

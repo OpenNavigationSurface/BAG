@@ -15,12 +15,10 @@
 %import "bag_layerdescriptor.i"
 %import "bag_types.i"
 
+%include <stdint.i>
 %include <std_pair.i>
 %include <std_shared_ptr.i>
-
 %shared_ptr(BAG::VRMetadataDescriptor)
-
-%include <stdint.i>
 
 
 namespace BAG {

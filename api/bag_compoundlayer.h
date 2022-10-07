@@ -52,6 +52,9 @@ public:
         return !(rhs == *this);
     }
 
+    std::shared_ptr<CompoundLayerDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const CompoundLayerDescriptor> getDescriptor() const & noexcept;
+
     ValueTable& getValueTable() & noexcept;
     const ValueTable& getValueTable() const & noexcept;
 

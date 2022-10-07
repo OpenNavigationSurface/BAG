@@ -377,6 +377,27 @@ const ::H5::DataSet& CompoundLayer::getValueDataSet() const &
     return *m_pH5valueDataSet;
 }
 
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<CompoundLayerDescriptor> CompoundLayer::getDescriptor() & noexcept
+{
+    return std::dynamic_pointer_cast<CompoundLayerDescriptor>(Layer::getDescriptor());
+}
+
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<const CompoundLayerDescriptor> CompoundLayer::getDescriptor() const & noexcept {
+    return std::dynamic_pointer_cast<const CompoundLayerDescriptor>(Layer::getDescriptor());
+}
+
 //! Retrieve the value table.
 /*!
 \return

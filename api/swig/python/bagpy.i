@@ -14,6 +14,9 @@
 */
 %module bagpy
 
+// Ignore warnings about shadowing superclass methods
+#pragma SWIG nowarn=512
+
 %feature("autodoc", "3");
 
 %{

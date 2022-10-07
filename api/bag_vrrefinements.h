@@ -33,6 +33,9 @@ public:
         return !(rhs == *this);
     }
 
+    std::shared_ptr<VRRefinementsDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const VRRefinementsDescriptor> getDescriptor() const & noexcept;
+
 protected:
     //! Custom deleter to avoid needing a definition for ::H5::DataSet::~DataSet().
     struct BAG_API DeleteH5dataSet final

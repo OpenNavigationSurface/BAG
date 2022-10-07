@@ -228,6 +228,27 @@ const ::H5::DataSet& SurfaceCorrections::getH5dataSet() const & noexcept
     return *m_pH5dataSet;
 }
 
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<SurfaceCorrectionsDescriptor> SurfaceCorrections::getDescriptor() & noexcept
+{
+    return std::dynamic_pointer_cast<SurfaceCorrectionsDescriptor>(Layer::getDescriptor());
+}
+
+//! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
+/*!
+\return
+    The layer's descriptor.
+    Will never be nullptr.
+*/
+std::shared_ptr<const SurfaceCorrectionsDescriptor> SurfaceCorrections::getDescriptor() const & noexcept {
+    return std::dynamic_pointer_cast<const SurfaceCorrectionsDescriptor>(Layer::getDescriptor());
+}
+
 //! Read a corrected region from a simple layer using the specified corrector.
 /*!
 \param rowStart

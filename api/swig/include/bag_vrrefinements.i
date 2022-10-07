@@ -21,6 +21,8 @@
 
 namespace BAG {
 
+class VRRefinementsDescriptor;
+
 class VRRefinements final : public Layer
 {
 public:
@@ -32,6 +34,9 @@ public:
 
     bool operator==(const VRRefinements &rhs) const noexcept;
     bool operator!=(const VRRefinements &rhs) const noexcept;
+
+    std::shared_ptr<VRRefinementsDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const VRRefinementsDescriptor> getDescriptor() const & noexcept;
 };
 
 }  // namespace BAG

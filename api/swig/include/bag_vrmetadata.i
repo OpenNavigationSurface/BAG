@@ -16,10 +16,11 @@
 
 %include <std_shared_ptr.i>
 %shared_ptr(BAG::VRMetadata)
-//%shared_ptr(BAG::LayerDescriptor)
 
 
 namespace BAG {
+
+class VRMetadataDescriptor;
 
 class BAG_API VRMetadata final : public Layer
 {
@@ -32,6 +33,9 @@ public:
 
     bool operator==(const VRMetadata &rhs) const noexcept;
     bool operator!=(const VRMetadata &rhs) const noexcept;
+
+    std::shared_ptr<VRMetadataDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const VRMetadataDescriptor> getDescriptor() const & noexcept;
 };
 
 }  // namespace BAG

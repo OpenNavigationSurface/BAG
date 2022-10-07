@@ -38,6 +38,9 @@ public:
         return !(rhs == *this);
     }
 
+    std::shared_ptr<VRNodeDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const VRNodeDescriptor> getDescriptor() const & noexcept;
+
 protected:
     static std::shared_ptr<VRNode> create(Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);

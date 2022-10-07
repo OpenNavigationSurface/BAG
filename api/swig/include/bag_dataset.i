@@ -115,7 +115,7 @@ public:
 
 %extend Dataset
 {
-    // Manually create getLayers() due to errors in how SWIG handles vectors of const shared_ptr
+    // Manually create non-const getLayers() due to errors in how SWIG handles vectors of const shared_ptr
     //   For more information, see: https://github.com/swig/swig/issues/753
     std::vector<std::shared_ptr<BAG::Layer>> Dataset::getLayers() &
     {

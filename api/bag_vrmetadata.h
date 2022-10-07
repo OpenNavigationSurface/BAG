@@ -38,6 +38,9 @@ public:
         return !(rhs == *this);
     }
 
+    std::shared_ptr<VRMetadataDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const VRMetadataDescriptor> getDescriptor() const & noexcept;
+
 protected:
     static std::shared_ptr<VRMetadata> create(Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);

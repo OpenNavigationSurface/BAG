@@ -17,9 +17,8 @@
 %import "bag_layerdescriptor.i"
 
 %include <std_string.i>
+%include <std_weak_ptr.i>
 %include <std_shared_ptr.i>
-
-%include "std_weak_ptr.i"
 %shared_ptr(BAG::CompoundLayerDescriptor)
 %shared_ptr(BAG::Dataset)
 

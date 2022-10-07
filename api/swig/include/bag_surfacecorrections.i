@@ -27,6 +27,8 @@
 
 namespace BAG {
 
+class SurfaceCorrectionsDescriptor;
+
 class SurfaceCorrections final : public Layer
 {
 public:
@@ -38,6 +40,9 @@ public:
 
     bool operator==(const SurfaceCorrections &rhs) const noexcept;
     bool operator!=(const SurfaceCorrections &rhs) const noexcept;
+
+    std::shared_ptr<SurfaceCorrectionsDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const SurfaceCorrectionsDescriptor> getDescriptor() const & noexcept;
 };
 
 %extend SurfaceCorrections

@@ -23,6 +23,9 @@
 %shared_ptr(BAG::CompoundLayer)
 
 namespace BAG {
+
+class CompoundLayerDescriptor;
+
 class CompoundLayer final : public Layer
 {
 public:
@@ -33,6 +36,9 @@ public:
 
     bool operator==(const CompoundLayer &rhs) const noexcept;
     bool operator!=(const CompoundLayer &rhs) const noexcept;
+
+    std::shared_ptr<CompoundLayerDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const CompoundLayerDescriptor> getDescriptor() const & noexcept;
 
     ValueTable& getValueTable() & noexcept;
     %ignore getValueTable() const& noexcept;
