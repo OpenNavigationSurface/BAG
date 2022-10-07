@@ -143,6 +143,15 @@ public:
         std::tie(row, column) = self->geoToGrid(x, y);
         return std::pair<uint32_t, uint32_t>(row, column);
     }
+
+    #ifdef SWIGPYTHON
+    %pythoncode %{
+        def __del__(self):
+            import logging
+            logging.getLogger().info("BAG DATASET CALLING CLOSE()")
+            self.close()
+    %}
+    #endif
 }
 
 }  // namespace BAG
