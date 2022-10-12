@@ -1,4 +1,5 @@
 import unittest
+import shutil
 
 import xmlrunner
 
@@ -123,8 +124,9 @@ class TestValueTable(unittest.TestCase):
                                             kExpectedLayerName, definition, chunkSize, compressionLevel)
 
         # There is one No Data Value record at index 0.
+        kExpectedNumRecords = 1
         valueTable = layer.getValueTable()
-        self.assertEqual(len(valueTable.getRecords()), 1)
+        self.assertEqual(len(valueTable.getRecords()), kExpectedNumRecords)
 
         # A record matching the definition.
         kExpectedNewRecord0 = Record(7)
@@ -136,11 +138,13 @@ class TestValueTable(unittest.TestCase):
         kExpectedNewRecord0[5] = CompoundDataType(1234.567)
         kExpectedNewRecord0[6] = CompoundDataType("101 Tape Drive")
 
-        kExpectedNumRecords = 2
+        kExpectedNumRecords += 1
 
         index = valueTable.addRecord(kExpectedNewRecord0)
         self.assertEqual(index, 1)
         self.assertEqual(len(valueTable.getRecords()), kExpectedNumRecords)
+
+        del dataset
 
         # Read the new record.
         dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
@@ -186,8 +190,15 @@ class TestValueTable(unittest.TestCase):
 
         del dataset
 
+        # Workaround bug sometime exposed when running in Linux where if a Python process
+        #   uses bagPy to open the same HDF5 file read-write, closes the file, then
+        #   opens the same file read-only, the file then cannot be closed or re-opened
+        #   read-write.
+        tmpFileCopy = testUtils.RandomFileGuard("name")
+        shutil.copyfile(tmpFile.getName(), tmpFileCopy.getName())
+
         # Set some new values an existing record.
-        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READ_WRITE)
+        dataset = Dataset.openDataset(tmpFileCopy.getName(), BAG_OPEN_READ_WRITE)
         self.assertIsNotNone(dataset)
 
         layer = dataset.getCompoundLayer(kExpectedLayerName)
@@ -199,7 +210,7 @@ class TestValueTable(unittest.TestCase):
         self.assertEqual(len(records), kExpectedNumRecords)
 
         # Set the values.
-        kRecordIndex = 1
+        kRecordIndex += 1
         fieldIndex = 0
 
         kExpectedNewRecord1 = Record(7)
@@ -211,50 +222,44 @@ class TestValueTable(unittest.TestCase):
         kExpectedNewRecord1[5] = CompoundDataType(0.08642)
         kExpectedNewRecord1[6] = CompoundDataType("404 Disk Drive")
 
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
+        kExpectedNumRecords += 1
+
+        index = valueTable.addRecord(kExpectedNewRecord1)
+        self.assertEqual(index, 2)
+        self.assertEqual(len(valueTable.getRecords()), kExpectedNumRecords)
 
         # Read values back from memory.
         field0value = valueTable.getValue(kRecordIndex, fieldIndex)
         self.assertEqual(field0value, kExpectedNewRecord1[fieldIndex])
 
         fieldIndex += 1
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
-
         field1value = valueTable.getValue(kRecordIndex, fieldIndex)
         self.assertEqual(field1value, kExpectedNewRecord1[fieldIndex])
 
         fieldIndex += 1
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
-
         field2value = valueTable.getValue(kRecordIndex, fieldIndex)
         self.assertEqual(field2value, kExpectedNewRecord1[fieldIndex])
 
         fieldIndex += 1
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
-
         field3value = valueTable.getValue(kRecordIndex, fieldIndex)
         self.assertEqual(field3value, kExpectedNewRecord1[fieldIndex])
 
         fieldIndex += 1
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
-
         field4value = valueTable.getValue(kRecordIndex, fieldIndex)
         self.assertEqual(field4value, kExpectedNewRecord1[fieldIndex])
 
         fieldIndex += 1
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
-
         field5value = valueTable.getValue(kRecordIndex, fieldIndex)
         self.assertEqual(field5value, kExpectedNewRecord1[fieldIndex])
 
         fieldIndex += 1
-        valueTable.setValue(kRecordIndex, fieldIndex, kExpectedNewRecord1[fieldIndex])
-
         field6value = valueTable.getValue(kRecordIndex, fieldIndex)
         self.assertEqual(field6value, kExpectedNewRecord1[fieldIndex])
 
-        # Read new values back from the HDF5 file.
-        dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
+        del dataset
+
+        # Re-open dataset read only and read new values back from the HDF5 file.
+        dataset = Dataset.openDataset(tmpFileCopy.getName(), BAG_OPEN_READONLY)
         self.assertIsNotNone(dataset)
 
         layer = dataset.getCompoundLayer(kExpectedLayerName)
@@ -264,7 +269,7 @@ class TestValueTable(unittest.TestCase):
         records = valueTable.getRecords()
         self.assertEqual(len(records), kExpectedNumRecords)
 
-        kRecordIndex = 1
+        kRecordIndex = 2
         fieldIndex = 0
 
         field0value = valueTable.getValue(kRecordIndex, fieldIndex)

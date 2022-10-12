@@ -64,6 +64,29 @@ template <typename T> T get(const CompoundDataType& v);
 %template(getBool) get<bool>;
 %template(getString) get<std::string>;
 
+%extend CompoundDataType {
+    %pythoncode %{
+    def __eq__(self, other):
+        self_type = self.getType()
+        if self_type == other.getType():
+            if self_type == DT_FLOAT32:
+                return self.asFloat() == other.asFloat()
+            if self_type == DT_BOOLEAN:
+                return self.asBool() == other.asBool()
+            if self_type == DT_UNKNOWN_DATA_TYPE:
+                return True
+            if self_type == DT_COMPOUND:
+                return self == other
+            if self_type == DT_STRING:
+                return self.asString() == other.asString()
+            else:
+                # Lump DT_UINT8, DT_UINT16, DT_UINT32 together
+                return self.asUInt32() == other.asUInt32()
+
+        return False
+    %}
+};
+
 }; // namespace BAG
 
 %template(Record) std::vector<BAG::CompoundDataType>;
