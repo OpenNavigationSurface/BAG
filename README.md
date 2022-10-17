@@ -13,8 +13,7 @@ to build and work with data in the BAG format:
 - **configdata** - Required XML support files. You must have an
     environment variable called BAG_HOME mapped to this directory in
     order to run the API functions.
-- **docs** - As the documentation evolves it will reside here.
-    Currently this contains some initial draft documentation.
+- **docs** - Miscellaneous and historical documentation resides here
 - **examples** - Contains programs to demonstrate some of the API
     functionality. In particular bag_create and bag_read are good
     starting points.
@@ -39,7 +38,7 @@ Doxygen is needed to produce the documentation. Get it at
 To build documentation:
 
 ```
-doxygen docs/api/docs_config.dox
+doxygen docs/doxygen/docs_config.dox
 ```
 
 Then browse to docs/api/html/index.html.
@@ -63,7 +62,7 @@ python build/api/swig/python/setup.py install
 Build HTML API docs:
 
 ```
-cd docs/python
+cd docs/sphinx
 make html
 ```
 
