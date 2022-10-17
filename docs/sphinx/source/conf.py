@@ -18,7 +18,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'sphinx.ext.napoleon',
               'sphinx.ext.viewcode',
-              'sphinx.ext.intersphinx']
+              'sphinx.ext.intersphinx',
+              'breathe']
 
 templates_path = ['_templates']
 exclude_patterns = ['setup.rst']
@@ -44,3 +45,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 html_theme = 'classic'
 html_static_path = ['_static']
+
+# Config for integrating Doxygen C++ docs with Sphinx
+breathe_default_project = 'baglib'
+breathe_projects = {breathe_default_project: '../../doxygen/build/xml'}

@@ -1,11 +1,14 @@
-Bathymetric Attributed Grid (BAG) version 2.0.1 Python API
-==========================================================
+=================================
+Bathymetric Attributed Grid (BAG)
+=================================
 `Open Navigation Surface Project`_
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 1
 
-   modules
+    How-to Guide <howto-guide/index>
+    C++ API Reference <cpp-api/index>
+    Python API Reference <python-api/index>
 
 .. _Open Navigation Surface Project: https://github.com/OpenNavigationSurface/BAG/
 
