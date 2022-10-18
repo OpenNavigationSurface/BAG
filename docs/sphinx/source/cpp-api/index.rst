@@ -2,6 +2,8 @@
 C++ API Reference
 =================
 
-.. doxygenindex::
-    :project: baglib
-    :outline:
+.. doxygennamespace:: BAG
+    :path: ../../doxygen/build/xml
+    :members:
+    :protected-members:
+    :private-members:
