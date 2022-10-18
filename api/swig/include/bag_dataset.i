@@ -147,8 +147,6 @@ public:
     #ifdef SWIGPYTHON
     %pythoncode %{
         def __del__(self):
-            import logging
-            logging.getLogger().info("BAG DATASET CALLING CLOSE()")
             self.close()
     %}
     #endif
