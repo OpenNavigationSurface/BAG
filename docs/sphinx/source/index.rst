@@ -6,6 +6,7 @@ Bathymetric Attributed Grid (BAG)
 .. toctree::
     :maxdepth: 1
 
+    Format Specification Document <fsd/index.md>
     How-to Guide <howto-guide/index>
     C++ API Reference <cpp-api/index>
     Python API Reference <python-api/index>

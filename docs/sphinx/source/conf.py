@@ -19,7 +19,8 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.napoleon',
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx',
-              'breathe']
+              'breathe',
+              'myst_parser']
 
 templates_path = ['_templates']
 exclude_patterns = ['setup.rst']
