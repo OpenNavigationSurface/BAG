@@ -149,6 +149,7 @@ public:
         def __del__(self):
             self.close()
     %}
+    // TODO: Add context manager for Dataset to allow use with ``with``.
     #endif
 }
 
