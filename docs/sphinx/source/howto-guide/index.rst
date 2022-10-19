@@ -13,11 +13,9 @@ Opening a BAG file
 
 Opening read-only
 -----------------
-To open a BAG file read-only and print the number of rows and columns use the
+**C++**: To open a BAG file read-only and print the number of rows and columns use the
 :cpp:func:`BAG::Dataset::open` function with :cpp:type:`BAG::OpenMode` set to
-:cpp:enumerator:`BAG_OPEN_READONLY`:
-
-C++::
+:cpp:enumerator:`BAG_OPEN_READONLY`::
 
     #include <stdlib.h>
     #include <bag_dataset.h>
@@ -34,7 +32,8 @@ C++::
         return EXIT_SUCCESS;
     }
 
-Python::
+**Python**: To open a BAG file read-only and print the number of rows and columns use the
+:py:func:`bagPy.Dataset.openDataset` function with ``openMode`` set to ``BAG_OPEN_READONLY``::
 
     import sys
     from bagPy import *
@@ -47,10 +46,8 @@ Python::
 
 Opening read-write
 ------------------
-To open a BAG file read-write and add a new layer use the :cpp:func:`BAG::Dataset::open` function with
-:cpp:type:`BAG::OpenMode` set to :cpp:enumerator:`BAG_OPEN_READ_WRITE`:
-
-C++::
+**C++**: To open a BAG file read-write and add a new layer use the :cpp:func:`BAG::Dataset::open` function with
+:cpp:type:`BAG::OpenMode` set to :cpp:enumerator:`BAG_OPEN_READ_WRITE`::
 
     #include <stdlib.h>
     #include <bag_dataset.h>
@@ -69,7 +66,10 @@ C++::
         return EXIT_SUCCESS;
     }
 
-Python::
+
+**Python**: To open a BAG file read-write and add a new layer use the :py:func:`bagPy.Dataset.openDataset` function
+with ``openMode`` set to ``BAG_OPEN_READ_WRITE``::
+
 
     import sys
     from bagPy import *
