@@ -48,8 +48,13 @@ add_subdirectory(api)
 add_subdirectory(examples)
 
 option(BAG_BUILD_TESTS "Build Tests" ON)
+option(BAG_BUILD_DOCS "Build Documenation" OFF)
 
 if(BAG_BUILD_TESTS)
     add_subdirectory(tests)
 endif()
 
+if(BAG_BUILD_DOCS)
+    set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules" ${CMAKE_MODULE_PATH})
+    add_subdirectory(docs)
+endif()

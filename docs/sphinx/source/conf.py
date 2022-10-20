@@ -49,4 +49,3 @@ html_static_path = ['_static']
 
 # Config for integrating Doxygen C++ docs with Sphinx
 breathe_default_project = 'baglib'
-breathe_projects = {breathe_default_project: '../../doxygen/build/xml'}
