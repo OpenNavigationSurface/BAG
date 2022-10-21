@@ -215,7 +215,7 @@ if(CODE_COVERAGE)
     target_code_coverage(baglib AUTO ALL)
 endif()
 
-set_property(GLOBAL PROPERTY BAGLIB_TARGET_PROP $<TARGET_FILE:bagPy>)
+set_property(GLOBAL PROPERTY BAGLIB_TARGET_PROP $<TARGET_FILE:baglib>)
 
 # Install
 install(FILES
