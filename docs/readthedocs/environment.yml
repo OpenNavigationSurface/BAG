@@ -15,3 +15,5 @@ dependencies:
   - numpydoc
   - breathe
   - myst-parser
+  - sphinx-automodapi
+  - graphviz

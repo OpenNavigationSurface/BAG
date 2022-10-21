@@ -14,13 +14,16 @@ release = '2.0.1'
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
-extensions = ['sphinx.ext.autodoc',
+extensions = ['sphinx_automodapi.automodapi',
+              'sphinx.ext.autodoc',
               'sphinx.ext.autosummary',
               'sphinx.ext.napoleon',
               'sphinx.ext.viewcode',
               'sphinx.ext.intersphinx',
               'breathe',
               'myst_parser']
+
+numpydoc_show_class_members = False
 
 templates_path = ['_templates']
 exclude_patterns = ['setup.rst']
