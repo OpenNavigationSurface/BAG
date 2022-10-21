@@ -11,11 +11,11 @@ conda:
 # Set the version of Python and other tools you might need
 build:
   image: latest
-  commands: |
-    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
-    cmake --build build
-    mkdir -p _readthedocs/html/
-    cp -r build/docs/sphinx/* _readthedocs/html/
+  commands:
+    - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
+    - cmake --build build
+    - mkdir -p _readthedocs/html/
+    - cp -r build/docs/sphinx/* _readthedocs/html/
 
 # Build documentation in the docs/ directory with Sphinx
 #sphinx:
