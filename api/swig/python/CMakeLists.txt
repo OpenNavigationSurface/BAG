@@ -2,6 +2,9 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 include_directories(../..)
 
+set_property(GLOBAL PROPERTY BAGPY_BINARY_DIR_PROP ${CMAKE_CURRENT_BINARY_DIR})
+set(BAGPY_MODULE_NAME bagPy.py)
+
 set(CMAKE_SWIG_FLAGS "-Wextra" "-v" "-py3")
 
 set_source_files_properties("bagpy.i" PROPERTIES
@@ -36,7 +39,7 @@ endif()
 
 # Files to install with Python
 set(PYTHON_INSTALL_FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/bagPy.py
+        ${CMAKE_CURRENT_BINARY_DIR}/${BAGPY_MODULE_NAME}
         ${CMAKE_CURRENT_BINARY_DIR}/${BAGPY_LIB})
 
 # Configure setup.py and copy to output directory
