@@ -6,6 +6,6 @@ hash -r
 conda env create -q --file docs/readthedocs/environment.yml
 conda activate readthedocs
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
-cmake --build build
+cmake --build build -v
 mkdir -p _readthedocs/html/
 cp -r build/docs/sphinx/* _readthedocs/html/
