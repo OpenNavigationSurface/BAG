@@ -10,7 +10,9 @@ conda:
 
 # Set the version of Python and other tools you might need
 build:
-  image: latest
+  os: ubuntu-22.04
+  tools:
+    python: "3.9"
   commands:
     - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
     - cmake --build build
