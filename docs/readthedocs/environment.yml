@@ -1,0 +1,17 @@
+name: readthedocs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.9
+  - gxx_linux-64
+  - cmake
+  - ninja
+  - hdf5-static
+  - libxml2
+  - swig
+  - catch2
+  - unittest-xml-reporting
+  - Sphinx
+  - numpydoc
+  - breathe
+  - parser
