@@ -14,4 +14,4 @@ dependencies:
   - Sphinx
   - numpydoc
   - breathe
-  - parser
+  - myst-parser
