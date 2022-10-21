@@ -14,7 +14,7 @@ build:
   tools:
     python: "3.9"
   commands:
-    bash docs/readthedocs/build.bash
+    - bash docs/readthedocs/build.bash
 
 # Build documentation in the docs/ directory with Sphinx
 #sphinx:
