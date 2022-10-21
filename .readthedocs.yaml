@@ -14,6 +14,7 @@ build:
   tools:
     python: "miniconda3-4.7"
   commands:
+    - conda activate readthedocs
     - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
     - cmake --build build
     - mkdir -p _readthedocs/html/
