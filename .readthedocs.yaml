@@ -14,12 +14,13 @@ build:
   tools:
     python: "3.9"
   commands:
+    - bash
     - wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
     - bash miniconda.sh -b -p $(pwd)/miniconda
-    - . "$(pwd)/miniconda/etc/profile.d/conda.sh"
+    - source "$(pwd)/miniconda/etc/profile.d/conda.sh"
     - hash -r
-    - $(pwd)/miniconda/condabin/conda env create -q --file docs/readthedocs/environment.yml
-    - $(pwd)/miniconda/condabin/conda activate readthedocs
+    - conda env create -q --file docs/readthedocs/environment.yml
+    - conda activate readthedocs
     - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
     - cmake --build build
     - mkdir -p _readthedocs/html/
