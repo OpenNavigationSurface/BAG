@@ -18,8 +18,8 @@ build:
     - bash miniconda.sh -b -p $(pwd)/miniconda
     - . "$(pwd)/miniconda/etc/profile.d/conda.sh"
     - hash -r
-    - conda env create -q --file docs/readthedocs/environment.yml
-    - conda activate readthedocs
+    - $(pwd)/miniconda/condabin/conda env create -q --file docs/readthedocs/environment.yml
+    - $(pwd)/miniconda/condabin/conda activate readthedocs
     - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
     - cmake --build build
     - mkdir -p _readthedocs/html/
