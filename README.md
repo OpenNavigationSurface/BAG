@@ -22,6 +22,9 @@ to build and work with data in the BAG format:
     use of the SWIG interface.
 - [tests](/tests) - Contains C++ tests.
 
+The BAG specification and library are produced by the 
+[Open Navigation Surface project](https://opennavigationsurface.github.io).
+
 # Documentation
 
 Documentation for the BAG library can be found [here](https://bag.readthedocs.io/en/stable/index.html), in particular:
