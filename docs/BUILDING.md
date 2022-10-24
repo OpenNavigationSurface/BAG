@@ -23,6 +23,10 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 > configuration only works properly with LLVM, meaning that lcov coverage will include things like the C++ standard
 > library, which will lead to inaccurate coverage percentages for the BAG tests.
 
+> Note: if you want to build documentation, add `-DBAG_BUILD_DOCS:BOOL=ON` to the CMake config. 
+> See the Read the Docs [conda environment](readthedocs/environment.yml) for dependencies needed
+> to build documentation.
+
 ## Windows: Visual Studio 2022/2019
 
 ### Dependencies from Miniconda
@@ -140,3 +144,22 @@ mkdir \BAG
  ```
  
   > Note: Use `-G "Visual Studio 17 2022"` for Visual Studio 2019.
+
+### Running C++ tests in Visual Studio
+
+The C++ unit tests are written with Catch2. There is no test harness at
+the moment. Using the Standard toolbar, choose bag_tests.exe as the
+Select Startup Item. Press F5 to run the tests.
+
+If you are unable to run tests directly withing Visual Studio, the tests
+can be run manually. See [appveyor.yml](/appveyor.yml) for details.
+
+### Running Python tests in Visual Studio
+
+The Python tests do not use any unit test framework at the moment. Using
+the Standard toolbar, choose Current Document as the Select Startup
+Item. Open test_all.py (or any other `test_*.py`) in the python
+folder, and press F5 to run the tests.
+
+If you are unable to run tests directly withing Visual Studio, the tests
+can be run manually. See [appveyor.yml](/appveyor.yml) for details.
