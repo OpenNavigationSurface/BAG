@@ -27,7 +27,7 @@ The BAG specification and library are produced by the
 
 # Documentation
 
-Documentation for the BAG library can be found [here](https://bag.readthedocs.io/en/stable/index.html), in particular:
+Documentation for the BAG specification and library can be found [here](https://bag.readthedocs.io/en/stable/index.html), in particular:
 
 - [Format Specification Document](https://bag.readthedocs.io/en/stable/fsd/index.html)
 - [How-to Guide](https://bag.readthedocs.io/en/stable/howto-guide/index.html)
