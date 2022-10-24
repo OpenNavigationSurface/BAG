@@ -16,6 +16,12 @@ if(POLICY CMP0092)
     cmake_policy(SET CMP0092 NEW)
 endif()
 
+# Allow bag_version.h to be generated in CMake 3.20+ without getting a warning
+# of a non-explicit source file.
+if(POLICY CMP0115)
+    cmake_policy(SET CMP0115 NEW)
+endif()
+
 project(OPENNS LANGUAGES C CXX VERSION 2.0.1)
 
 # Options

@@ -1,6 +1,11 @@
 # The debug build will have a 'd' postfix
 set(CMAKE_DEBUG_POSTFIX "d")
 
+# Pass version from CMake to bag_version.h
+set(BAG_VERSION_H_IN ${CMAKE_CURRENT_SOURCE_DIR}/bag_version.h.in)
+set(BAG_VERSION_H_OUT ${CMAKE_CURRENT_SOURCE_DIR}/bag_version.h)
+configure_file(${BAG_VERSION_H_IN} ${BAG_VERSION_H_OUT})
+
 set(BAG_SOURCE_FILES
     bag.cpp
     bag_attributeinfo.cpp
