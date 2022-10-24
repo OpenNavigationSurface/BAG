@@ -1,3 +1,4 @@
+# CMake 3.15+ needed for SWIG version 4.0+ support.
 cmake_minimum_required(VERSION 3.15)
 
 # SWIG: use standard target name.
@@ -15,7 +16,7 @@ if(POLICY CMP0092)
     cmake_policy(SET CMP0092 NEW)
 endif()
 
-project(OPENNS LANGUAGES C CXX VERSION 2.0.0)
+project(OPENNS LANGUAGES C CXX VERSION 2.0.1)
 
 # Options
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
