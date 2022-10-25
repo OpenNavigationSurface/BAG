@@ -27,6 +27,7 @@ endif()
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 option(BAG_BUILD_PYTHON "Build Python bindings using SWIG" OFF)
 option(BAG_BUILD_TESTS "Build Tests" OFF)
+option(BAG_CODE_COVERAGE "Compute code coverage for C++ unit tests" OFF)
 option(BAG_BUILD_DOCS "Build Documentation" OFF)
 option(BAG_CI "The build is on the CI (GitHub Actions/Appveyor)" OFF)
 
@@ -45,7 +46,8 @@ if(MSVC AND NOT BAG_CI)
     endif()
 endif()
 
-if(CODE_COVERAGE)
+if(BAG_CODE_COVERAGE)
+    set(CODE_COVERAGE ON CACHE INTERNAL "Turn on code coverage")
     include(CMakeModules/code-coverage.cmake)
     # Exclude C wrapper for now since our tests only target C++ code currently
     add_code_coverage_all_targets(EXCLUDE test/* api/bag.cpp api/bag.h)

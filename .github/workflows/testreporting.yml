@@ -61,7 +61,7 @@ jobs:
       run: |
         export CC=${{env.CC}}
         export CXX=${{env.CXX}}
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_TESTS:BOOL=ON -DCODE_COVERAGE:BOOL=ON
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON
 
     - name: Build
       # Build your program with the given configuration
