@@ -107,7 +107,9 @@ mkdir \BAG
   cmake --build build --config Release
   cmake --install build --config Release
   ```
-  
+   
+  > Note: `BUILD_SHARED_LIBS` must be set to `ON`.
+
   > Note: Use `-G "Visual Studio 17 2022"` for Visual Studio 2022.
   
 #### Catch2
