@@ -163,11 +163,17 @@ The elevation solution group is designed to contain the shoal elevation, standar
 
  The node group has two components: hypothesis strength and number of hypotheses.  The hypothesis strength and number of hypotheses are computed in the CUBE/CHRT algorithm.  
  
+### Metadata Raster Attribute Table
+
+The option metadata raster attribute table is a raster and table pair where the raster value indicates the row of the table where a group of metadata is valid (Fig. 7.).  This construct requires some definition of the metadata fields available in the table.  Standard metadata profile definitions can be found in Appendix B. There can be multiple metadata raster attribute tables, each with its own distinct metadata profile.  All metadata layers are found in a node under **BAG_root** called **Georef_metadata**, and then each raster table pair is found in its own node with the name of the profile.  The raster in the profile node is named "**keys**", and shall match the shape of the required elevation layer.  The no data value for this layer is 0, and the first row (zeroth row) of the table is ignored. The table in the profile node is named "**values**" and must have the rows indicated by the raster.  Variable resolution keys are stored in an array the same length as, and corrisponding to, **varres_refinements** with an index indicating the table row in the same fashion as the raster.
+
+![Nominal Elevation optional datasets](fig7-BAGNominalElevation.png)
+
+**Figure 7: Example of BAG with optional dataset of nominal elevation.**
+ 
 ## Certification
 
-> Note: Due to the large-scale changes to the BAG codebase as part of moving from C to C++14, support
-> for BAG Digital Signatures has been removed from the 2.0.0 codebase. Signing support will be added back
-> to a subsequent release of the BAG library.
+> *Note: Due to the large-scale changes to the BAG codebase as part of moving from C to C++14, support for BAG Digital Signatures has been removed from the 2.0.0 codebase. Signing support will be added back to a subsequent release of the BAG library.*
 
 ### Intent of the BAG Digital Signature Scheme
 
@@ -189,10 +195,10 @@ The DSS is not mandatory, in the sense that the API does not enforce checks for 
 
 ### Stucture of the BAG Certification Block
 
-The BAG DS information shall be maintained in a certification block of length 1024 bytes, appended to the end of the HDF-5 data.  The structure of the certification block shall be as shown in Fig. 7.  The ID number shall be a ‘magic number’ to identify the block, and the version byte shall be used to identify the structure of the remainder of the block between different versions of the algorithm.  The SigID number corresponds to the Signature ID described above, and shall be followed immediately by the DS values which shall be stored sequentially as a length byte followed by the digits of the element.  The CRC-32 checksum shall be used to ensure that any accidental or intentional corruption of the certification block will be detectable.  The block shall be stored in little endian format, and zero padded to the full size of the block.
+The BAG DS information shall be maintained in a certification block of length 1024 bytes, appended to the end of the HDF-5 data.  The structure of the certification block shall be as shown in Fig. 8.  The ID number shall be a ‘magic number’ to identify the block, and the version byte shall be used to identify the structure of the remainder of the block between different versions of the algorithm.  The SigID number corresponds to the Signature ID described above, and shall be followed immediately by the DS values which shall be stored sequentially as a length byte followed by the digits of the element.  The CRC-32 checksum shall be used to ensure that any accidental or intentional corruption of the certification block will be detectable.  The block shall be stored in little endian format, and zero padded to the full size of the block.
 
-![BAG Digital Signature Block](fig7-BAGSignatureStructureBlock.png)
+![BAG Digital Signature Block](fig8-BAGSignatureStructureBlock.png)
 
-**Figure 7: Structure of the BAG Digital Signature Scheme certification block.**
+**Figure 8: Structure of the BAG Digital Signature Scheme certification block.**
 
 ## [Next: Encapsulation](FSD-Encapsulation.md)
