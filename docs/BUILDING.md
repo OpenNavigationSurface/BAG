@@ -7,7 +7,7 @@
 ```shell
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local \
  -DBAG_BUILD_TESTS:BOOL=ON -DCODE_COVERAGE:BOOL=ON \
- -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON
+ -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_EXAMPLES:BOOL=ON
 BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data; ninja -C build ccov-all
 ```
 
@@ -35,7 +35,7 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 
 Download the latest version of miniconda from [here](https://docs.conda.io/en/latest/miniconda.html#windows-installers) and install to \miniconda (i.e., C:\miniconda).
 
-Next, to install configure miniconda open an Developer Command Prompt in Visual Studio:
+Next, to install configure miniconda open a Developer Command Prompt in Visual Studio:
 
 ```shell
 set PATH=\miniconda;\miniconda\Scripts;\miniconda\Library\bin;%PATH%
@@ -54,7 +54,7 @@ conda install cmake ninja hdf5 libxml2 swig catch2
 ```shell
 set CC=cl.exe
 set CXX=cl.exe
-cmake -Bbuild -S. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\miniconda\envs\bag-dev-env\Library -DBAG_BUILD_PYTHON=ON
+cmake -Bbuild -S. -G "Visual Studio 16 2019" -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=\miniconda\envs\bag-dev-env\Library -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_TESTS:BOOL=ON
 cmake --build build
 set PATH=build\api;%PATH%
 set BAG_SAMPLES_PATH=examples\sample-data

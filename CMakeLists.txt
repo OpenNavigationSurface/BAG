@@ -29,6 +29,7 @@ option(BAG_BUILD_PYTHON "Build Python bindings using SWIG" OFF)
 option(BAG_BUILD_TESTS "Build Tests" OFF)
 option(BAG_CODE_COVERAGE "Compute code coverage for C++ unit tests" OFF)
 option(BAG_BUILD_DOCS "Build Documentation" OFF)
+option(BAG_BUILD_EXAMPLES "Build Examples" OFF)
 option(BAG_CI "The build is on the CI (GitHub Actions/Appveyor)" OFF)
 
 # Put the artifacts into a single directory for MSVC so running tests is easier.
@@ -59,7 +60,10 @@ if(BAG_BUILD_PYTHON)
 endif()
 
 add_subdirectory(api)
-add_subdirectory(examples)
+
+if(BAG_BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
 
 if(BAG_BUILD_TESTS)
     add_subdirectory(tests)
