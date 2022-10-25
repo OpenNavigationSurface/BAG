@@ -40,7 +40,7 @@ install:
   - conda config --add channels conda-forge
   - conda create -q -n test-environment python=%PYTHON_VERSION%
   - activate test-environment
-  - conda install cmake ninja hdf5 libxml2 swig catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
+  - conda install cmake ninja hdf5 libxml2 swig=4.0.1 catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
   - conda list --show-channel-urls
   # Check that we have the expected version of Python
   - python --version
