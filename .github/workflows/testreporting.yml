@@ -97,7 +97,7 @@ jobs:
     - name: Update coverage badge
       run: |
         source python-venv/bin/activate
-        llvm-cov report -instr-profile=build/ccov/all-merged.profdata `cat ./build/ccov/binaries.list` -ignore-filename-regex="tests/*" -ignore-filename-regex="bag.cpp" | tail -n 1 | awk '{ print $10 }' | xargs python ./scripts/coverage-badge.py -o coverage.svg -c
+        llvm-cov report -instr-profile=build/ccov/all-merged.profdata `cat ./build/ccov/binaries.list` -ignore-filename-regex="tests/*" -ignore-filename-regex="bag.cpp" | tail -n 1 | awk '{ print $10 }' | xargs python ./scripts/coverage-badge.py -o /tmp/coverage.svg -c
         deactivate
 
     - name: Checkout badges branch
@@ -105,7 +105,6 @@ jobs:
       uses: actions/checkout@v3
       with:
         ref: ${{ steps.coverage.outputs.branch }}
-        clean: false
 
     - name: Create coverage badge destination directory
       # Create the directory where badges will be saved, if needed
@@ -118,8 +117,9 @@ jobs:
       env:
         BADGE: ${{ steps.coverage.outputs.path }}
       run: |
+        ls /tmp
         ls -R
-        mv coverage.svg "${BADGE}"
+        mv /tmp/coverage.svg "${BADGE}"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add "${BADGE}"
