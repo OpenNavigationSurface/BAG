@@ -1,5 +1,6 @@
 # CMake 3.15+ needed for SWIG version 4.0+ support.
 cmake_minimum_required(VERSION 3.15)
+project(OpenNavSurf-BAG LANGUAGES C CXX VERSION 2.0.1)
 
 # SWIG: use standard target name.
 if(POLICY CMP0078)
@@ -22,13 +23,12 @@ if(POLICY CMP0115)
     cmake_policy(SET CMP0115 NEW)
 endif()
 
-project(OPENNS LANGUAGES C CXX VERSION 2.0.1)
-
 # Options
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
-option(BAG_BUILD_SWIG "Build SWIG interface" OFF)
-option(BAG_BUILD_PYTHON "Build Python bindings" OFF)
-option(BAG_CI "The build is on the CI (Travis/Appveyor)." OFF)
+option(BAG_BUILD_PYTHON "Build Python bindings using SWIG" OFF)
+option(BAG_BUILD_TESTS "Build Tests" OFF)
+option(BAG_BUILD_DOCS "Build Documentation" OFF)
+option(BAG_CI "The build is on the CI (GitHub Actions/Appveyor)" OFF)
 
 # Put the artifacts into a single directory for MSVC so running tests is easier.
 if(MSVC AND NOT BAG_CI)
@@ -51,11 +51,13 @@ if(CODE_COVERAGE)
     add_code_coverage_all_targets(EXCLUDE test/* api/bag.cpp api/bag.h)
 endif()
 
+
+if(BAG_BUILD_PYTHON)
+    set(BAG_BUILD_SWIG ON)
+endif()
+
 add_subdirectory(api)
 add_subdirectory(examples)
-
-option(BAG_BUILD_TESTS "Build Tests" ON)
-option(BAG_BUILD_DOCS "Build Documenation" OFF)
 
 if(BAG_BUILD_TESTS)
     add_subdirectory(tests)

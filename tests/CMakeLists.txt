@@ -1,5 +1,4 @@
-cmake_minimum_required(VERSION 3.15)
-project(OPENNS_Tests LANGUAGES CXX)
+project(OpenNavSurf-BAG_Tests LANGUAGES CXX)
 
 enable_testing()
 
