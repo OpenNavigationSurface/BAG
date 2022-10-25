@@ -1,1 +1,0 @@
-http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19139_Schemas/gmd/

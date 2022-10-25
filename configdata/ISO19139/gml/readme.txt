@@ -1,1 +1,0 @@
-http://standards.iso.org/ittf/PubliclyAvailableStandards/ISO_19136_Schemas/
