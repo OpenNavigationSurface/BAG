@@ -117,8 +117,6 @@ jobs:
       env:
         BADGE: ${{ steps.coverage.outputs.path }}
       run: |
-        ls /tmp
-        ls -R
         mv /tmp/coverage.svg "${BADGE}"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
