@@ -25,11 +25,11 @@ class CompiledLibInstall(setuptools.command.install.install):
 
 if __name__ == '__main__':
     setuptools.setup(
-        name='bayPy',
+        name='bagPy',
         version='${PROJECT_VERSION}',
         packages=['bagPy'],
         license='BSD 3-Clause License',
-        author='Open Navigation Surface',
+        author='Open Navigation Surface Working Group',
         author_email='',
         cmdclass={'install': CompiledLibInstall}
     )
