@@ -64,11 +64,20 @@ target_compile_options(bag_tests
 find_package(HDF5 COMPONENTS CXX REQUIRED)
 find_package(Catch2 3 REQUIRED)
 
+if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20")
+    set(HDF5_PRIVATE HDF5::HDF5)
+endif()
+
 target_link_libraries(bag_tests
     PRIVATE
         baglib
         Catch2::Catch2
-        HDF5::HDF5
+        ${HDF5_PRIVATE}
+)
+
+target_include_directories(bag_tests 
+    PRIVATE SYSTEM
+        ${HDF5_INCLUDE_DIRS}
 )
 
 include(CTest)
