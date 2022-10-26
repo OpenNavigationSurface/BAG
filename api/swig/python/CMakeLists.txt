@@ -1,4 +1,3 @@
-set(CMAKE_CXX_STANDARD 14)
 find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
 include_directories(../..)
 
@@ -10,7 +9,6 @@ set(CMAKE_SWIG_FLAGS "-Wextra" "-v" "-py3")
 set_source_files_properties("bagpy.i" PROPERTIES
     SWIG_MODULE_NAME bagPy
     CPLUSPLUS ON
-    COMPILE_FLAGS "--std=c++14"
 )
 
 # Proper Python exception generation results in larger code, which MSVC can't handle by default 

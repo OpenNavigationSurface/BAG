@@ -1,10 +1,6 @@
 # Adapted from: https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/
 find_package(Doxygen REQUIRED)
 find_package(Sphinx REQUIRED)
-#include(${PROJECT_SOURCE_DIR}/api/CMakeLists.txt)
-if(BAG_BUILD_PYTHON)
-#    include(${PROJECT_SOURCE_DIR}/swig/python/CMakeLists.txt)
-endif()
 
 # Configure Doxygen to build XML docs for C++ API
 set(DOXYGEN_INPUT_DIR ${PROJECT_SOURCE_DIR}/api)
@@ -83,7 +79,6 @@ elseif()
             MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
             COMMENT "Generating documentation with Sphinx")
 endif()
-
 
 # Nice named target so we can run the job easily
 add_custom_target(Sphinx ALL DEPENDS ${SPHINX_INDEX_FILE})

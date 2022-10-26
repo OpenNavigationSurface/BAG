@@ -103,8 +103,6 @@ endif()
 
 set_target_properties(baglib
     PROPERTIES
-        CXX_STANDARD 14
-        CMAKE_CXX_STANDARD_REQUIRED ON
         CMAKE_CXX_EXTENSIONS OFF
 )
 

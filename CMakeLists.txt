@@ -1,6 +1,7 @@
 # CMake 3.15+ needed for SWIG version 4.0+ support.
 cmake_minimum_required(VERSION 3.15)
 project(OpenNavSurf-BAG LANGUAGES C CXX VERSION 2.0.1)
+set(CMAKE_CXX_STANDARD 14)
 
 # SWIG: use standard target name.
 if(POLICY CMP0078)

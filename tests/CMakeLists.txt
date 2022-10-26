@@ -38,8 +38,6 @@ add_executable(bag_tests ${TEST_SOURCE_FILES})
 
 set_target_properties(bag_tests
     PROPERTIES
-        CXX_STANDARD 14
-        CMAKE_CXX_STANDARD_REQUIRED ON
         CMAKE_CXX_EXTENSIONS OFF
         DEBUG_OUTPUT_NAME bag_tests_d
 )
