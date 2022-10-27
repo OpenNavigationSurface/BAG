@@ -30,4 +30,4 @@ All data in the BAG grid, metadata and tracking list shall be represented as IEE
 
 All positioning and geo-referencing data within a BAG shall have at least millimeter resolution.  All elevation information shall have at least millimeter resolution, although this should not be taken to mean that the fundamental precision of the data is better than the associated uncertainty measurement.  All times shall have at least millisecond resolution.
 
-## [Next: The BAG API](FSD-BAGAPI.md)
+## [Next: BAG Architecture Review Board](FSD-BAGARB.md)

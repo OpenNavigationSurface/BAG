@@ -13,8 +13,6 @@ The release history is [here](RevisionHistory.md).
 
 [Axiomatic Definitions](FSD-AxiomaticDefs.md)
 
-[The BAG API](FSD-BAGAPI.md)
-
 [BAG Architecture Review Board](FSD-BAGARB.md)
 
 [Revision Control and Code Availability](FSD-RevisionControl.md)
@@ -25,7 +23,7 @@ The release history is [here](RevisionHistory.md).
 
 [References](FSD-References.md)
 
-[Appendix A](FSD-Appendices.md)
+[Appendices](FSD-Appendices.md)
 
 ## Introduction
 
@@ -37,7 +35,7 @@ Depending on task, this might be a uniform grid at the best available resolution
 
 In order to make this database possible, there is a need for a uniform file format that allows data to be passed between software packages, and between agencies involved in the collection, processing and dissemination of the data, while maintaining the integrity of the data and metadata at all times. The file format should also be sufficiently flexible to support processing of data without format conversion where possible, since format conversion is an extremely expensive process.  The Open Navigation Surface (ONS) Project has as its mandate the task of building such a data file format, and developing and maintaining the source code for a software library to read and write this format so that adoption of the technology is eased for any developer.  The source code library has been developed on the Open Source model [4] so that the source code is freely available; all of the members of the ONS Working Group (ONSWG) and their respective employers have provided their effort on this basis.
 
-This document describes the format, the Application Programming Interface (API) associated with it, and the conduct of the ONSWG and its derivatives that maintain the BAG file format source code.  It also describes where to find the code, how to obtain access to the current source tree, how to apply for extensions to the format, and how to provide bug-fixes.  The development effort is entirely voluntary, and participation from other interested parties is actively encouraged.
+This document describes the BAG format and the conduct of the ONSWG and its derivatives that maintain the BAG format [reference implementation](https://github.com/OpenNavigationSurface/BAG). For information on using the BAG reference implementation, please see the [How-to Guide](https://bag.readthedocs.io/en/stable/howto-guide/index.html).
 
 ### Nomenclature
 
