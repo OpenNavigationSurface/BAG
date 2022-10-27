@@ -204,5 +204,14 @@ CompoundLayerDescriptor::getDefinition() const & noexcept
     return m_definition;
 }
 
+//! Retrieve the metadata profile type.
+/*!
+\return
+    The metadata profile type.
+ */
+GeorefMetadataProfile CompoundLayerDescriptor::getProfile() {
+    return m_profile;
+}
+
 }  // namespace BAG
 

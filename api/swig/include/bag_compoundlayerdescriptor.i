@@ -51,6 +51,7 @@ public:
 
     std::weak_ptr<Dataset> getDataset() const &;
     const RecordDefinition& getDefinition() const & noexcept;
+    GeorefMetadataProfile getProfile();
 };
 
 }  // namespace BAG
