@@ -80,7 +80,6 @@ public:
 %template(FloatLayerItems) LayerItems::LayerItems<float>;
 %template(SurfaceCorrectionsLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrections>;
 %template(SurfaceCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
-
 %template(UInt16LayerItems) LayerItems::LayerItems<uint16_t>;
 %template(UInt32LayerItems) LayerItems::LayerItems<uint32_t>;
 %template(VRMetadataLayerItems) LayerItems::LayerItems<BagVRMetadataItem>;
@@ -90,6 +89,8 @@ public:
 %template(VerticalDatumCorrectionsGriddedLayerItems) LayerItems::LayerItems<BagVerticalDatumCorrectionsGridded>;
 
 %template(asFloatItems) LayerItems::getAs<float>;
+%template(asUInt8Items) LayerItems::getAs<uint8_t>;
+%template(asUInt16Items) LayerItems::getAs<uint16_t>;
 %template(asUInt32Items) LayerItems::getAs<uint32_t>;
 %template(asVerticalDatumCorrections) LayerItems::getAs<BagVerticalDatumCorrections>;
 %template(asVerticalDatumCorrectionsGridded) LayerItems::getAs<BagVerticalDatumCorrectionsGridded>;
