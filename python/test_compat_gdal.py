@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 from typing import Union
+import os
 import logging
 
 import xmlrunner
@@ -59,6 +60,16 @@ def get_gdal_rat_field_value(gdal_rat: gdal.RasterAttributeTable,
         return gdal_rat.GetValueAsString(row, col)
 
 
+def get_bag_path(bag_path: Path) -> str:
+    if os.name == 'nt' and bag_path.drive != '':
+        # On Windows we strip the drive letter from the path because having it there
+        # causes GDAL to be unable to open subdatasets of the BAG using "BAG:$FILENAME:georef_metadata:Elevation"
+        # syntax
+        return str(Path('/', *bag_path.parts[1:]))
+    else:
+        return str(bag_path)
+
+
 # define constants used in multiple tests
 datapath: Path = Path(Path(__file__).parent.parent, 'examples', 'sample-data')
 
@@ -71,7 +82,7 @@ class TestCompatGDAL(unittest.TestCase):
         pass
 
     def test_compound_layer(self) -> None:
-        bag_filename = str(Path(datapath, 'bag_compound_layer.bag'))
+        bag_filename = get_bag_path(Path(datapath, 'bag_compound_layer.bag'))
 
         # Open in BAG library
         bd = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READONLY)
