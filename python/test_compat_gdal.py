@@ -1,6 +1,6 @@
 import unittest
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple
 import os
 import logging
 
@@ -60,6 +60,95 @@ def get_gdal_rat_field_value(gdal_rat: gdal.RasterAttributeTable,
         return gdal_rat.GetValueAsString(row, col)
 
 
+def cmp_bag_gdal_raster_rows_cols(bag_descriptor: BAG.Descriptor, gdal_band_arr: np.ndarray) -> bool:
+    bag_rows, bag_cols = bag_descriptor.getDims()
+    gdal_rows, gdal_cols = gdal_band_arr.shape
+    return (bag_rows == gdal_rows) and (bag_cols == gdal_cols)
+
+
+def cmp_bag_gdal_raster_res(bag_descriptor: BAG.Descriptor,
+                            gdal_pixel_width: float,
+                            gdal_pixel_height: float) -> bool:
+    bag_grid_spacing_x, bag_grid_spacing_y = bag_descriptor.getGridSpacing()
+    return (bag_grid_spacing_x == gdal_pixel_width) and (bag_grid_spacing_y == gdal_pixel_height)
+
+
+def cmp_bag_gdal_origin_coord(bag_descriptor: BAG.Descriptor, gdal_geo_transform: Tuple) -> bool:
+    """
+    Make sure GDAL origin coordinates match the projected coverage of the BAG
+    :param bag_descriptor:
+    :param gdal_geo_transform:
+    :return:
+    """
+    # Note: GDAL's origin is at the upper left, while the bag coverage is
+    # defined by lower left and upper right corners. So we need use the Y value of
+    # upper right corner of the BAG coverage
+    gdal_top_left_x = gdal_geo_transform[0]
+    gdal_top_left_y = gdal_geo_transform[3]
+    bag_proj_cover = bag_descriptor.getProjectedCover()
+    bag_lower_left_x = bag_proj_cover[0][0]
+    bag_upper_right_y = bag_proj_cover[1][1]
+
+    # Note: Make a half-pixel correction to account for BAG cells being the
+    # center of pixels, while the GDAL origin is the upper left corner of
+    # the upper left pixel
+    gdal_pixel_width, gdal_pixel_height = get_gdal_resolution(gdal_geo_transform)
+    bag_lower_left_x = bag_lower_left_x - (gdal_pixel_width / 2)
+    bag_upper_right_y = bag_upper_right_y - (gdal_pixel_height / 2)
+
+    return (gdal_top_left_x == bag_lower_left_x) and (gdal_top_left_y == bag_upper_right_y)
+
+
+def get_gdal_resolution(gdal_geo_transform: Tuple) -> Tuple[float, float]:
+    """
+
+    :param gdal_geo_transform:
+    :return: Tuple of (gdal_pixel_width, abs(gdal_pixel_height)
+    """
+    gdal_pixel_width = gdal_geo_transform[1]
+    # Since GDAL's origin is the upper left (NW) corner, the pixel height is
+    # expressed as a negative number, so we convert to an absolute value
+    gdal_pixel_height = abs(gdal_geo_transform[5])
+    return gdal_pixel_width, gdal_pixel_height
+
+
+def get_bag_layer_as_array(bag_descriptor: BAG.Descriptor, bag_layer: BAG.Layer) -> np.ndarray:
+    """
+    Someday we may be able to do zero-copy exports of BAG data to numpy arrays, until then...
+    :param bag_descriptor:
+    :param bag_layer:
+    :return:
+    """
+    bag_dtype = bag_layer.getDescriptor().getDataType()
+    bag_rows, bag_cols = bag_descriptor.getDims()
+    bag_layer_items = bag_layer.read(0, 0, bag_rows-1, bag_cols-1)
+    if bag_dtype == BAG.DT_FLOAT32:
+        bag_layer_data = bag_layer_items.asFloatItems()
+        np_dtype = np.float32
+    elif bag_dtype == BAG.DT_UINT32:
+        bag_layer_data = bag_layer_items.asUInt32Items()
+        np_dtype = np.uint32
+    elif bag_dtype == BAG.DT_UINT16:
+        bag_layer_data = bag_layer_items.asUInt16Items()
+        np_dtype = np.uint16
+    else:
+        # Assume UInt8
+        bag_layer_data = bag_layer_items.asUInt8Items()
+        np_dtype = np.uint8
+
+    return np.reshape(np.array(bag_layer_data, dtype=np_dtype), (bag_rows, bag_cols))
+
+
+def get_gdal_band_as_array(gdal_band: gdal.Band) -> np.ndarray:
+    """
+    Note: The origin of BAG files is the lower-left corner, while GDAL uses the upper-left
+    corner as the origin, so we need to flip the GDAL data about the Y axis (rows)
+    :param gdal_band:
+    :return:
+    """
+    return np.flip(gdal_band.ReadAsArray(), axis=0)
+
+
 def get_bag_path(bag_path: Path) -> str:
     if os.name == 'nt' and bag_path.drive != '':
         # On Windows we strip the drive letter from the path because having it there
@@ -70,19 +159,54 @@ def get_bag_path(bag_path: Path) -> str:
         return str(bag_path)
 
 
-# define constants used in multiple tests
-datapath: Path = Path(Path(__file__).parent.parent, 'examples', 'sample-data')
-
-
 class TestCompatGDAL(unittest.TestCase):
     def setUp(self) -> None:
-        pass
+        self.datapath: Path = Path(Path(__file__).parent.parent, 'examples', 'sample-data')
 
     def tearDown(self) -> None:
         pass
 
+    def test_simple_layer(self) -> None:
+        bag_filename = get_bag_path(Path(self.datapath, 'sample.bag'))
+
+        # Open in BAG library
+        bd = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READONLY)
+        self.assertIsNotNone(bd)
+        bag_elev = bd.getLayer(BAG.Elevation)
+        self.assertIsNotNone(bag_elev)
+
+        # Open in GDAL
+        gd = gdal.Open(bag_filename, gdal.GA_ReadOnly)
+        self.assertEqual('BAG', gd.GetDriver().ShortName)
+        gdal_elev = gd.GetRasterBand(1)
+        self.assertIsNotNone(gdal_elev)
+
+        # Make sure rows and columns are the same in BAG and GDAL representations
+        bag_descriptor = bd.getDescriptor()
+        gdal_array = get_gdal_band_as_array(gdal_elev)
+        self.assertTrue(cmp_bag_gdal_raster_rows_cols(bag_descriptor, gdal_array))
+
+        # Compare BAG and GDAL resolutions are the same
+        gdal_gt = gd.GetGeoTransform()
+        gdal_pixel_width, gdal_pixel_height = get_gdal_resolution(gdal_gt)
+        self.assertTrue(cmp_bag_gdal_raster_res(bag_descriptor, gdal_pixel_width, gdal_pixel_height))
+
+        # Make sure GDAL origin coordinates match the projected coverage of the BAG
+        self.assertTrue(bag_descriptor, gdal_gt)
+
+        # Make sure raster data types are the same
+        bag_elev_desc = bag_elev.getDescriptor()
+        self.assertEqual(BAG.DT_FLOAT32, bag_elev_desc.getDataType())
+        self.assertEqual(gdalconst.GDT_Float32, gdal_elev.DataType)
+
+        # Get BAG data as a 2D numpy array
+        bag_array = get_bag_layer_as_array(bag_descriptor, bag_elev)
+
+        # Compare bag_array to gdal_array to make sure all data are identical
+        self.assertTrue(np.array_equiv(bag_array, gdal_array))
+
     def test_compound_layer(self) -> None:
-        bag_filename = get_bag_path(Path(datapath, 'bag_compound_layer.bag'))
+        bag_filename = get_bag_path(Path(self.datapath, 'bag_compound_layer.bag'))
 
         # Open in BAG library
         bd = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READONLY)
@@ -140,52 +264,34 @@ class TestCompatGDAL(unittest.TestCase):
 
         # Make sure rows and columns are the same in BAG and GDAL representations
         bag_descriptor = bd.getDescriptor()
-        bag_rows, bag_cols = bag_descriptor.getDims()
-        gdal_array = gdal_band.ReadAsArray()
-        gdal_rows, gdal_cols = gdal_array.shape
-        self.assertEqual(bag_rows, gdal_rows)
-        self.assertEqual(bag_cols, gdal_cols)
+        gdal_array = get_gdal_band_as_array(gdal_band)
+        self.assertTrue(cmp_bag_gdal_raster_rows_cols(bag_descriptor, gdal_array))
 
         # Compare BAG and GDAL resolutions are the same
-        bag_grid_spacing_x, bag_grid_spacing_y = bag_descriptor.getGridSpacing()
         gdal_gt = gd.GetGeoTransform()
-        gdal_pixel_width = gdal_gt[1]
-        # Since GDAL's origin is the upper left (NW) corner, the pixel height is
-        # expressed as a negative number, so we convert to an absolute value
-        gdal_pixel_height = abs(gdal_gt[5])
-        self.assertEqual(bag_grid_spacing_x, gdal_pixel_width)
-        self.assertEqual(bag_grid_spacing_y, gdal_pixel_height)
+        gdal_pixel_width, gdal_pixel_height = get_gdal_resolution(gdal_gt)
+        self.assertTrue(cmp_bag_gdal_raster_res(bag_descriptor, gdal_pixel_width, gdal_pixel_height))
 
         # Make sure GDAL origin coordinates match the projected coverage of the BAG
-        # Note: GDAL's origin is at the upper left, while the bag coverage is
-        # defined by lower left and upper right corners. So we need use the Y value of
-        # upper right corner of the BAG coverage
-        gdal_top_left_x = gdal_gt[0]
-        gdal_top_left_y = gdal_gt[3]
-        bag_proj_cover = bag_descriptor.getProjectedCover()
-        bag_lower_left_x = bag_proj_cover[0][0]
-        bag_upper_right_y = bag_proj_cover[1][1]
-
-        # Note: Make a half-pixel correction to account for BAG cells being the
-        # center of pixels, while the GDAL origin is the upper left corner of
-        # the upper left pixel
-        self.assertEqual(gdal_top_left_x, bag_lower_left_x - (gdal_pixel_width / 2))
-        self.assertEqual(gdal_top_left_y, bag_upper_right_y - (gdal_pixel_height / 2))
+        self.assertTrue(bag_descriptor, gdal_gt)
 
         # Make sure raster data types are the same
         self.assertEqual(BAG.DT_UINT16, bag_georef_elev_desc.getDataType())
         self.assertEqual(gdalconst.GDT_UInt16, gdal_band.DataType)
 
-        # Get BAG data into 2D numpy array
-        bag_georef_elev_layer_items = bag_georef_elev.read(0, 0, bag_rows-1, bag_cols-1)
-        bag_georef_elev_data = bag_georef_elev_layer_items.asUInt16Items()
-        bag_array = np.reshape(np.array(bag_georef_elev_data, dtype=np.uint16), (bag_rows, bag_cols))
+        # Get BAG data as a 2D numpy array
+        bag_array = get_bag_layer_as_array(bag_descriptor, bag_georef_elev)
 
         # Compare bag_array to gdal_array to make sure all data are identical
-        # Note: The origin of BAG files is the lower-left corner, while GDAL uses the upper-left
-        # corner as the origin, so we need to flip the GDAL data about the Y axis (rows)
-        gdal_array = np.flip(gdal_array, axis=0)
         self.assertTrue(np.array_equiv(bag_array, gdal_array))
+
+    @unittest.skip
+    def test_gdal_create_simple(self):
+        pass
+
+    @unittest.skip
+    def test_gdal_create_compound(self):
+        pass
 
 
 if __name__ == '__main__':
