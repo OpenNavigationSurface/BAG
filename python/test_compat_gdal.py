@@ -7,7 +7,7 @@ import tempfile
 import shutil
 
 import xmlrunner
-from osgeo import gdal, gdalconst, osr
+from osgeo import gdal, gdalconst
 import numpy as np
 
 import bagPy as BAG
@@ -109,8 +109,12 @@ def cmp_bag_gdal_origin_coord(bag_descriptor: BAG.Descriptor, gdal_geo_transform
     # center of pixels, while the GDAL origin is the upper left corner of
     # the upper left pixel
     gdal_pixel_width, gdal_pixel_height = get_gdal_resolution(gdal_geo_transform)
+    # Upper left corner of upper left pixel is less east than center of pixel, so subtract
+    #   1/2 the GDAL pixel width (which should always be >0, so no need to take absolute value)
     bag_lower_left_x = bag_lower_left_x - (gdal_pixel_width / 2)
-    bag_upper_right_y = bag_upper_right_y - (gdal_pixel_height / 2)
+    # Upper left corner of upper left pixel is more north of center, so add the absolute value
+    #   of 1/2 the GDAL pixel height
+    bag_upper_right_y = bag_upper_right_y + (gdal_pixel_height / 2)
 
     return (gdal_top_left_x == bag_lower_left_x) and (gdal_top_left_y == bag_upper_right_y)
 
@@ -280,7 +284,7 @@ class TestCompatGDAL(unittest.TestCase):
         self.assertTrue(cmp_bag_gdal_raster_res(bag_descriptor, gdal_pixel_width, gdal_pixel_height))
 
         # Make sure GDAL origin coordinates match the projected coverage of the BAG
-        self.assertTrue(bag_descriptor, gdal_gt)
+        self.assertTrue(cmp_bag_gdal_origin_coord(bag_descriptor, gdal_gt))
 
         # Make sure raster data types are the same
         self.assertEqual(BAG.DT_UINT16, bag_georef_elev_desc.getDataType())
@@ -328,12 +332,14 @@ class TestCompatGDAL(unittest.TestCase):
         self.assertIsNotNone(bag_elev)
         bag_uncert = bd.getLayer(BAG.Uncertainty)
         self.assertIsNotNone(bag_uncert)
+        bag_descriptor = bd.getDescriptor()
+        self.assertIsNotNone(bag_descriptor)
 
-        # TODO: Check BAG version
+        # Check BAG version
+        self.assertEqual('1.6.2', bag_descriptor.getVersion())
 
         # Make sure rows and columns are the same in BAG and GDAL representations
-        bag_descriptor = bd.getDescriptor()
-        # Re-fetch array and flip it so that subsequent comparisons to BAG data succeed
+        #   Note: re-fetch array and flip it so that subsequent comparisons to BAG data succeed
         gdal_elev_array = get_gdal_band_as_array(gdal_elev)
         self.assertTrue(cmp_bag_gdal_raster_rows_cols(bag_descriptor, gdal_elev_array))
 
@@ -343,8 +349,7 @@ class TestCompatGDAL(unittest.TestCase):
         self.assertTrue(cmp_bag_gdal_raster_res(bag_descriptor, gdal_pixel_width, gdal_pixel_height))
 
         # Make sure GDAL origin coordinates match the projected coverage of the BAG
-        # TODO: Understand why this assertion fails. Disabled for now.
-        #self.assertTrue(cmp_bag_gdal_origin_coord(bag_descriptor, gdal_gt))
+        self.assertTrue(cmp_bag_gdal_origin_coord(bag_descriptor, gdal_gt))
 
         # Make sure raster data types are the same
         bag_elev_desc = bag_elev.getDescriptor()
@@ -363,10 +368,6 @@ class TestCompatGDAL(unittest.TestCase):
         # Compare BAG elevation array to GDAL elevation array to make sure all data are identical
         gdal_uncrt_array = get_gdal_band_as_array(gdal_uncrt)
         self.assertTrue(np.array_equiv(bag_uncrt_array, gdal_uncrt_array))
-
-    @unittest.skip
-    def test_gdal_create_compound(self):
-        pass
 
 
 if __name__ == '__main__':

@@ -73,7 +73,7 @@
 			</gmd:checkPointAvailability>
 			<gmd:cornerPoints>
 				<gml:Point gml:id="id1">
-					<gml:coordinates decimal="." cs="," ts=" ">687910.000000,5554620.000000 688910.000000,5555620.000000</gml:coordinates>
+					<gml:coordinates decimal="." cs="," ts=" ">687910.000000,5554620.000000 688900.000000,5555610.000000</gml:coordinates>
 				</gml:Point>
 			</gmd:cornerPoints>
 			<gmd:pointInPixel>

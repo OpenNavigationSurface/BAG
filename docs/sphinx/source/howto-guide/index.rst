@@ -28,10 +28,17 @@ For more example usage, please refer to these sections of the BAG source code:
     * `C++ examples`_
     * `Python examples`_
 
-.. _C++ unit tests: https://github.com/OpenNavigationSurface/BAG/tree/b13ef862a791c6cf776251e6a3e05867acc1fb27/tests
-.. _Python unit tests: https://github.com/OpenNavigationSurface/BAG/tree/b13ef862a791c6cf776251e6a3e05867acc1fb27/python
-.. _C++ examples: https://github.com/OpenNavigationSurface/BAG/tree/b13ef862a791c6cf776251e6a3e05867acc1fb27/examples
-.. _Python examples: https://github.com/OpenNavigationSurface/BAG/tree/b13ef862a791c6cf776251e6a3e05867acc1fb27/examples/python
+.. pull-quote::
+
+    Note: if you have experience using `GDAL`_, the `BAG-GDAL compatibility tests`_ may be particularly useful as they
+    show how to use the BAG API side-by-side with the GDAL API.
+
+.. _GDAL: https://gdal.org
+.. _BAG-GDAL compatibility tests: https://github.com/OpenNavigationSurface/BAG/blob/v2/python/test_compat_gdal.py
+.. _C++ unit tests: https://github.com/OpenNavigationSurface/BAG/blob/v2/tests
+.. _Python unit tests: https://github.com/OpenNavigationSurface/BAG/blob/v2/python
+.. _C++ examples: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples
+.. _Python examples: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples/python
 
 Opening an existing BAG file
 ============================
