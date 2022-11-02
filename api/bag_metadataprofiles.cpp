@@ -4,39 +4,35 @@
 
 namespace BAG {
 
-    const Record CreateRecord_NOAA_NBS_2022_06(uint32_t dataAssessment,
-                                               bool significantFeatures,
+    const Record CreateRecord_NOAA_OCS_2022_10(bool significantFeatures,
                                                bool featureLeastDepth,
                                                float featureSize,
+                                               float featureSizeVar,
                                                bool coverage,
                                                bool bathyCoverage,
                                                float horizontalUncertFixed,
                                                float horizontalUncertVar,
-                                               float verticalUncertFixed,
-                                               float verticalUncertVar,
-                                               std::string licenseName,
-                                               std::string licenseURL,
-                                               std::string sourceSurveyID,
+                                               std::string surveyDateStart,
+                                               std::string surveyDateEnd,
                                                std::string sourceInstitution,
-                                               std::string surveyDataStart,
-                                               std::string surveyDateEnd) {
+                                               std::string sourceSurveyID,
+                                               std::string licenseName,
+                                               std::string licenseURL) {
         return BAG::Record{
-            CompoundDataType{dataAssessment},
             CompoundDataType{significantFeatures},
             CompoundDataType{featureLeastDepth},
             CompoundDataType{featureSize},
+            CompoundDataType{featureSizeVar},
             CompoundDataType{coverage},
             CompoundDataType{bathyCoverage},
             CompoundDataType{horizontalUncertFixed},
             CompoundDataType{horizontalUncertVar},
-            CompoundDataType{verticalUncertFixed},
-            CompoundDataType{verticalUncertVar},
-            CompoundDataType{licenseName},
-            CompoundDataType{licenseURL},
-            CompoundDataType{sourceSurveyID},
+            CompoundDataType{surveyDateStart},
+            CompoundDataType{surveyDateEnd},
             CompoundDataType{sourceInstitution},
-            CompoundDataType{surveyDataStart},
-            CompoundDataType{surveyDateEnd}
+            CompoundDataType{sourceSurveyID},
+            CompoundDataType{licenseName},
+            CompoundDataType{licenseURL}
         };
     }
 

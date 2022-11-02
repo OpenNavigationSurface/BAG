@@ -172,7 +172,7 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
         auto& compoundLayer = dataset->createMetadataProfileCompoundLayer(
-                BAG::GeorefMetadataProfile::NOAA_NBS_2022_06_METADATA_PROFILE,
+                BAG::GeorefMetadataProfile::NOAA_OCS_2022_10_METADATA_PROFILE,
                 simpleLayerName, chunkSize, compressionLevel);
 
         // At this point, all entries in the compound layer point to index 0,
@@ -182,23 +182,21 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
 
         using BAG::CompoundDataType;
 
-        BAG::Record record = BAG::CreateRecord_NOAA_NBS_2022_06(
-                3u,         // data_assessment
-                false,      // significant_features
-                true,       // feature_least_depth
-                1234.567f,  // feature_size
-                true,       // coverage
-                false,      // bathy_coverage
-                9.87f,      // horizontal_uncert_fixed
-                1.23f,      // horizontal_uncert_var
-                0.98f,      // vertical_uncert_fixed
-                0.12f,      // vertical_uncert_var
-                std::string("Creative Commons Zero Public Domain Dedication (CC0)"),         // license_Name
-                std::string("https://creativecommons.org/publicdomain/zero/1.0/"),         // license_URL
-                std::string("CD71EB77-5812-4735-B728-0DC1AE2A2F3B"),         // source_Survey_ID
-                std::string("NOAA"),         // source_Institution
-                std::string{"2019-04-01 00:00:00.0Z"},         // survey_data_start
-                std::string{"2019-04-01 12:00:00.0Z"}         // survey_date_end
+        BAG::Record record = BAG::CreateRecord_NOAA_OCS_2022_10(
+                false,     // significant_features
+                true,      // feature_least_depth
+                1234.567f,      // feature_size
+                765.4321f,   // feature_size_var
+                true,            // coverage
+                false,       // bathy_coverage
+                9.87f,  // horizontal_uncert_fixed
+                1.23f,   // horizontal_uncert_var
+                std::string{"2019-04-01 00:00:00.0Z"}, // survey_data_start
+                std::string{"2019-04-01 12:00:00.0Z"},  // survey_date_end
+                std::string("NOAA"),                   // source_institution
+                std::string("CD71EB77-5812-4735-B728-0DC1AE2A2F3B"),                // source_survey_id
+                std::string("Creative Commons Zero Public Domain Dedication (CC0)"),  // license_same
+                std::string("https://creativecommons.org/publicdomain/zero/1.0/")      // license_url
         );
 
         auto& valueTable = compoundLayer.getValueTable();
@@ -206,23 +204,21 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
         // Store the new record in memory and in the BAG.
         const auto firstRecordIndex = valueTable.addRecord(record);
 
-        record = BAG::CreateRecord_NOAA_NBS_2022_06(
-                1u,         // data_assessment
-                true,      // significant_features
-                false,       // feature_least_depth
-                987.6f,  // feature_size
-                false,       // coverage
-                true,      // bathy_coverage
-                12345.67f,      // horizontal_uncert_fixed
+        record = BAG::CreateRecord_NOAA_OCS_2022_10(
+                true,         // significant_features
+                false,        // feature_least_depth
+                987.6f,            // feature_size
+                6.789f,         // feature_size_var
+                false,              // coverage
+                true,           // bathy_coverage
+                12345.67f, // horizontal_uncert_fixed
                 89.0f,      // horizontal_uncert_var
-                0.12f,      // vertical_uncert_fixed
-                0.89f,      // vertical_uncert_var
-                std::string("Open Data Commons Public Domain Dedication and Licence (PDDL)"),         // license_Name
-                std::string("http://opendatacommons.org/licenses/pddl/1.0/"),         // license_URL
-                std::string("15B46F99-1D94-4669-92D8-AA86F533B097"),         // source_Survey_ID
-                std::string("NOAA"),         // source_Institution
-                std::string{"2019-04-02 00:00:00.0Z"},         // survey_data_start
-                std::string{"2019-04-02 12:00:00.0Z"}         // survey_date_end
+                std::string{"2019-04-02 00:00:00.0Z"},  // survey_data_start
+                std::string{"2019-04-02 12:00:00.0Z"},   // survey_date_end
+                std::string("NOAA"),                    // source_institution
+                std::string("15B46F99-1D94-4669-92D8-AA86F533B097"),                        // source_survey_id
+                std::string("Open Data Commons Public Domain Dedication and Licence (PDDL)"), // license_name
+                std::string("http://opendatacommons.org/licenses/pddl/1.0/")                   // license_url
         );
 
         // Store the new record in memory and in the BAG.
@@ -279,7 +275,7 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
 }
 
 void create_unknown_metadata(const std::string& elevationLayerName,
-                             std::shared_ptr<BAG::Dataset> dataset) {
+                             const std::shared_ptr<BAG::Dataset>& dataset) {
     // Create compound layer of unknown metadata profile
     BAG::RecordDefinition definition(2);
     definition[0].name = "dummy_int";

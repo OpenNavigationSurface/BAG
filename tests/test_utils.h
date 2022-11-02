@@ -69,7 +69,7 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& elevationLayerName,
                                       std::shared_ptr<BAG::Dataset> dataset);
 
 void create_unknown_metadata(const std::string& elevationLayerName,
-                             std::shared_ptr<BAG::Dataset> dataset);
+                             const std::shared_ptr<BAG::Dataset>& dataset);
 
 }  // namespace TestUtils
 

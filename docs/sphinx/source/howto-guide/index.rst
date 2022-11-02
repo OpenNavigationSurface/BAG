@@ -151,7 +151,7 @@ resolution of the dataset. This is accomplished by creating a :cpp:class:`BAG::C
 :cpp:class:`BAG::RecordDefinition` (Python: :py:class:`bagPy.RecordDefinition`); see lines 122-135 in the example
 C++ source code, or lines 88-101 in the example Python code below. Note, to make it easier to create BAGs with
 georeferenced metadata of a known format, it is possible to create a named metadata profile, for example
-:cpp:enumerator:`NOAA_NBS_2022_06_METADATA_PROFILE`. For information on how to use a named metadata profile, see the
+:cpp:enumerator:`NOAA_OCS_2022_10_METADATA_PROFILE`. For information on how to use a named metadata profile, see the
 examples `bag_compound_layer.cpp`_ and `bag_compound_layer.py`_ in the BAG source code.
 
 .. _bag_compound_layer.cpp: https://github.com/OpenNavigationSurface/BAG/blob/b13ef862a791c6cf776251e6a3e05867acc1fb27/examples/bag_compound_layer.cpp

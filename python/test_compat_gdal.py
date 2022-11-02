@@ -227,7 +227,7 @@ class TestCompatGDAL(unittest.TestCase):
         self.assertIsNotNone(bag_georef_elev)
         # Verify metadata profile
         bag_georef_elev_desc: BAG.CompoundLayerDescriptor = bag_georef_elev.getDescriptor()
-        self.assertEqual(BAG.NOAA_NBS_2022_06_METADATA_PROFILE, bag_georef_elev_desc.getProfile())
+        self.assertEqual(BAG.NOAA_OCS_2022_10_METADATA_PROFILE, bag_georef_elev_desc.getProfile())
 
         # Open in GDAL
         gd = gdal.Open(bag_filename, gdal.GA_ReadOnly)

@@ -92,29 +92,27 @@ def main():
         chunkSize: int = 100
         compressionLevel: int = 1
         compoundLayer: BAG.CompoundLayer = dataset.createMetadataProfileCompoundLayer(
-            BAG.NOAA_NBS_2022_06_METADATA_PROFILE,
+            BAG.NOAA_OCS_2022_10_METADATA_PROFILE,
             simpleLayerName, chunkSize, compressionLevel)
         # At this point, all entries in the compound layer point to index 0,
         # which is a no data value.
 
         # Write a couple records.
-        record: BAG.Record = BAG.CreateRecord_NOAA_NBS_2022_06(
-            3,          # data_assessment
+        record: BAG.Record = BAG.CreateRecord_NOAA_OCS_2022_10(
             False,      # significant_features
             True,       # feature_least_depth
             1234.567,   # feature_size
+            765.4321,   # feature_size_var
             True,       # coverage
             False,      # bathy_coverage
             9.87,       # horizontal_uncert_fixed
             1.23,       # horizontal_uncert_var
-            0.98,       # vertical_uncert_fixed
-            0.12,       # vertical_uncert_var
-            'Creative Commons Zero Public Domain Dedication (CC0)', # license_Name
-            'https://creativecommons.org/publicdomain/zero/1.0/',   # license_URL
-            'CD71EB77-5812-4735-B728-0DC1AE2A2F3B',                 # source_Survey_ID
-            'NOAA',                                                 # source_Institution
-            '2019-04-01 00:00:00.0Z',                               # survey_data_start
-            '2019-04-01 12:00:00.0Z'                                # survey_date_end
+            '2019-04-01 00:00:00.0Z',                                # survey_data_start
+            '2019-04-01 12:00:00.0Z',                                # survey_date_end
+            'NOAA',                                                  # source_institution
+            'CD71EB77-5812-4735-B728-0DC1AE2A2F3B',                  # source_survey_id
+            'Creative Commons Zero Public Domain Dedication (CC0)',  # license_name
+            'https://creativecommons.org/publicdomain/zero/1.0/'     # license_url
         )
 
         valueTable: BAG.ValueTable = compoundLayer.getValueTable()
@@ -122,23 +120,21 @@ def main():
         # Store the new record in memory and in the BAG.
         firstRecordIndex: int = valueTable.addRecord(record)
 
-        record: BAG.Record = BAG.CreateRecord_NOAA_NBS_2022_06(
-            1,          # data_assessment
+        record: BAG.Record = BAG.CreateRecord_NOAA_OCS_2022_10(
             True,       # significant_features
             False,      # feature_least_depth
             987.6,      # feature_size
+            6.789,      # feature_size_var
             False,      # coverage
             True,       # bathy_coverage
             12345.67,   # horizontal_uncert_fixed
             89.0,       # horizontal_uncert_var
-            0.12,       # vertical_uncert_fixed
-            0.89,       # vertical_uncert_var
-            'Open Data Commons Public Domain Dedication and Licence (PDDL)', # license_Name
-            'http://opendatacommons.org/licenses/pddl/1.0/',                # license_URL
-            '15B46F99-1D94-4669-92D8-AA86F533B097',                 # source_Survey_ID
-            'NOAA',                                                 # source_Institution
-            '2019-04-02 00:00:00.0Z',                               # survey_data_start
-            '2019-04-02 12:00:00.0Z'                                # survey_date_end
+            '2019-04-02 00:00:00.0Z',                                         # survey_data_start
+            '2019-04-02 12:00:00.0Z',                                         # survey_date_end
+            'NOAA',                                                           # source_institution
+            '15B46F99-1D94-4669-92D8-AA86F533B097',                           # source_survey_id
+            'Open Data Commons Public Domain Dedication and Licence (PDDL)',  # license_name
+            'http://opendatacommons.org/licenses/pddl/1.0/',                  # license_url
         )
 
         # Store the new record in memory and in the BAG.
