@@ -362,10 +362,10 @@ class TestCompatGDAL(unittest.TestCase):
         # Compare BAG elevation array to GDAL elevation array to make sure all data are identical
         self.assertTrue(np.array_equiv(bag_elev_array, gdal_elev_array))
 
-        # Get BAG elevation data as a 2D numpy array
+        # Get BAG uncertainty data as a 2D numpy array
         bag_uncrt_array = get_bag_layer_as_array(bag_descriptor, bag_uncert)
 
-        # Compare BAG elevation array to GDAL elevation array to make sure all data are identical
+        # Compare BAG uncertainty array to GDAL uncertainty array to make sure all data are identical
         gdal_uncrt_array = get_gdal_band_as_array(gdal_uncrt)
         self.assertTrue(np.array_equiv(bag_uncrt_array, gdal_uncrt_array))
 
