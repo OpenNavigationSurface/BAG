@@ -22,13 +22,13 @@ Several top-level requirements were identified during the inaugural ONSWG meetin
 
 Fig. 1 provides a conceptual view of the contents of each of the mandatory data elements of a BAG.  The elevation grid contains the two-dimensional array of bathymetry data. The uncertainty grid is co-located with the elevation grid and contains a two-dimensional array describing the vertical uncertainty of the elevation grid.  The tracking list details hydrographer modifications, and the certification section specifies authenticity and intended use of data.
 
-![Mandatory elements of a BAG](fig2-BAGBasicStructure.png)
+![Mandatory elements of a BAG](FSD-BAGStructure-fig1.png)
 
 **Figure 1: Mandatory elements of a BAG.**
 
 Fig. 2 shows the structural layout of the mandatory elements of the BAG.  The version tag is a simple text string that specifies the version of the format at the time the BAG was created.  The metadata, elevation, uncertainty, and change-list, are each HDF-5 datasets with a dataset substructure appropriate for the information being stored.  The signature section is simply a byte stream appended after the end of the HDF-5 file using standard C file access mechanisms.    The rationale for adding the signature byte stream after the end of the HDF-5 file is to ensure that the contents of the signature do not modify the file that it is trying to protect.
 
-![BAG File Structure](fig3-BAGFileStructure.png)
+![BAG File Structure](FSD-BAGStructure-fig2.png)
 
 **Figure 2: BAG file structure.**
 
@@ -49,7 +49,7 @@ With the evolution of digital data, also comes the necessity to accurately track
 
 During the first meeting of the Open Navigation Surface Working Group in January 2004, it was concluded that the ISO metadata standards 19915 and 19115-2 would be used as the common framework to store the metadata information needed by the BAG format.  A sub-working group was selected and assigned to work on creating the appropriate metadata profile to describe the BAG file contents.  The profile was created and is depicted in Fig. 3.  This profile describes the minimum required fields for a valid BAG file.  However, the user is not limited to this profile, and may include any of the other components described in the 19115 standard.
 
-![UML model for BAG metadata](fig4-BAGMetadataStructure.png)
+![UML model for BAG metadata](FSD-BAGStructure-fig3.png)
 
 **Figure 3: UML model for BAG metadata profile.**
 
@@ -66,7 +66,7 @@ The ISO 19115 object model provided most of the needed classes and attributes re
 | Historical_Std_Dev | "Historical Standard Deviation " – Estimated standard deviation based on historical/archive data.|
 
 
- Secondly, the trackingId extension allows internal Tracking List entries to be associated with a unique entry in the metadata so that the changes can be properly attributed, described and easily referenced.
+Secondly, the trackingId extension allows internal Tracking List entries to be associated with a unique entry in the metadata so that the changes can be properly attributed, described and easily referenced.
  
 Thirdly, the depthCorrectionType extension was added to allow the BAG file to accurately describe the correction performed on the data.  Table 2 shows the list of supported values as of the 1.1 release.
 
@@ -137,7 +137,7 @@ Extensions are optional and not required for a HDF file to be qualified as a BAG
 
 Note Fig. 5 shows an extension made to the BAG API starting with version 1.5.1, regarding the addition of optional datasets.  As listed in the BAG_SURFACE_PARAMS, Nominal Elevation is one of the optional layers that can be included in the BAG.
 
-![Nominal Elevation optional datasets](fig6-BAGNominalElevation.png)
+![Nominal Elevation optional datasets](FSD-BAGStructure-fig5.png)
 
 **Figure 5: Example of BAG with optional dataset of nominal elevation.**
 
@@ -159,7 +159,7 @@ The elevation solution group is designed to contain the shoal elevation, standar
 
 The option metadata raster attribute table is a raster and table pair where the raster value indicates the row of the table where a group of metadata is valid (Fig. 6).  This construct requires some definition of the metadata fields available in the table.  Standard metadata profile definitions can be found in Appendix B. There can be multiple metadata raster attribute tables, each with its own distinct metadata profile.  All metadata layers are found in a node under **BAG_root** called **Georef_metadata**, and then each raster table pair is found in its own node with the name of the profile.  The raster in the profile node is named "**keys**", and shall match the shape of the required elevation layer.  The no data value for this layer is 0, and the first row (zeroth row) of the table is ignored. The table in the profile node is named "**values**" and must have the rows indicated by the raster.  Variable resolution keys are stored in an array the same length as, and corrisponding to, **varres_refinements** with an index indicating the table row in the same fashion as the raster.
 
-![Nominal Elevation optional datasets](fig7-BAGNominalElevation.png)
+![Nominal Elevation optional datasets](FSD-BAGStructure-fig6.png)
 
 **Figure 6: Example of BAG with optional dataset of nominal elevation.**
  
@@ -189,7 +189,7 @@ The DSS is not mandatory, in the sense that the API does not enforce checks for 
 
 The BAG DS information shall be maintained in a certification block of length 1024 bytes, appended to the end of the HDF-5 data.  The structure of the certification block shall be as shown in Fig. 7.  The ID number shall be a ‘magic number’ to identify the block, and the version byte shall be used to identify the structure of the remainder of the block between different versions of the algorithm.  The SigID number corresponds to the Signature ID described above, and shall be followed immediately by the DS values which shall be stored sequentially as a length byte followed by the digits of the element.  The CRC-32 checksum shall be used to ensure that any accidental or intentional corruption of the certification block will be detectable.  The block shall be stored in little endian format, and zero padded to the full size of the block.
 
-![BAG Digital Signature Block](fig8-BAGSignatureStructureBlock.png)
+![BAG Digital Signature Block](FSD-BAGStructure-fig7.png)
 
 **Figure 7: Structure of the BAG Digital Signature Scheme certification block.**
 

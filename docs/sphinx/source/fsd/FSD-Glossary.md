@@ -1,5 +1,7 @@
 # Glossary of Acronyms
 
+**Table 1: Glossary of Acronyms**
+
 | Acronym | Definition |
 | :----------| :---------- |
 | AES | Advanced Encryption Standard |
@@ -22,7 +24,5 @@
 | SK | Secret Key |
 | URI | Universal Resource Indicator |
 | XML | eXtensible Markup Language |
-
-**Table 10: Glossary of Acronyms**
 
 ## [Next: References](FSD-References.md)

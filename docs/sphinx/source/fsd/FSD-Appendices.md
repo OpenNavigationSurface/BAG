@@ -8,6 +8,8 @@ See spreadsheet named [Appendix A.xls](../Appendix%20A.xls).
 
 ### NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)
 
+**Table 1: Definition of NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)**
+
 | Column Name               | Column Type | Note                                                                                                                             |
 |---------------------------| --- |----------------------------------------------------------------------------------------------------------------------------------|
 | significant_features      | Boolean | See S-101 significant features detected.                                                                                         |

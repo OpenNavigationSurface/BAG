@@ -7,10 +7,10 @@ The BAG structure utilizes HDF-5.  HDF-5 is a hierarchical data format product c
 
 An HDF-5 “Group” provides the top-level structure for the data contents of a BAG.  The major subcomponents are defined using the HDF-5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters.  “Attributes” are included were appropriate to provide “Dataset” specific metadata.    Following the high level BAG file structure described in Fig. 3, the specific HDF-5 type definitions that define the BAG encapsulation structure are illustrated in Fig. 8.  Note that the digital signature is not shown in Fig. 8.  As described in Section 2, the digital signature byte stream is appended to the end of the HDF-5 group.
 
-Figure 8 shows the structure of BAG data encapsulated using HDF-5:
+Figure 1 shows the structure of BAG data encapsulated using HDF-5:
 ```
-$ h5dump -A examples/sample-data/sample-2.0.1.bag
-HDF5 "examples/sample-data/sample-2.0.1.bag" {
+$ h5dump -A examples/sample-data/sample.bag
+HDF5 "examples/sample-data/sample.bag" {
 GROUP "/" {
    GROUP "BAG_root" {
       ATTRIBUTE "Bag Version" {
@@ -59,7 +59,7 @@ GROUP "/" {
             DATATYPE  H5T_IEEE_F32LE
             DATASPACE  SCALAR
             DATA {
-            (0): 100.99
+            (0): 515.05
             }
          }
          ATTRIBUTE "min_value" {
@@ -136,11 +136,11 @@ GROUP "/" {
 }
 }
 ```
-**Figure 8: Structure of BAG data encapsulated using HDF-5.**
+**Figure 1: Structure of BAG data encapsulated using HDF-5.**
 
-Table 3 defines the contents of the HDF data elements belonging to the BAG_root Group.  
+Table 1 defines the contents of the HDF data elements belonging to the BAG_root Group.  
 
-**Table 3: Contents of BAG_Root group**
+**Table 1: Contents of BAG_Root group**
 
 | Entity Name | Data Type | Domain                              | Required | 
 | :------------- |:----------|:------------------------------------| :-------- |
@@ -164,9 +164,9 @@ attributes: "shoal_elevation" (type `Shoal_Elevation`), "stddev" (type `Std_Dev`
 However, it appears that each of the attributes of "node" and "elevation_solution" can alternately be stored
 as simple layers of the BAG root as well.
 
-Table 4 defines the metadata items used with in the BAG library.  These items must be present and properly defined for BAG I/O operations to succeed.  Note that this listing of metadata items does not specify the mandatory metadata items required by the ISO 19915 standard.
+Table 2 defines the metadata items used with in the BAG library.  These items must be present and properly defined for BAG I/O operations to succeed.  Note that this listing of metadata items does not specify the mandatory metadata items required by the ISO 19915 standard.
 
-**Table 4: Group level metadata - grid parameters.**
+**Table 2: Group level metadata - grid parameters.**
 
 | Entity Name | XML Tag Nesting | Data Type | Domain |
 | :------------- | :------------------- | :----------- | :-------- |
@@ -247,7 +247,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 | | | | Historical_Std_Dev  = 4 |
 
 
-**Table 5: Elevation dataset attributes.**
+**Table 3: Elevation dataset attributes.**
 
 | Entity Name             | Data Type | Domain |
 |:------------------------| :----------- | :-------- |
@@ -256,7 +256,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 | Maximum Elevation Value | Float 32 | (FLT_MIN, FLT_MAX) |
 
 
-**Table 6: Uncertainty dataset attributes.**
+**Table 4: Uncertainty dataset attributes.**
 
 | Entity Name               | Data Type | Domain |
 |:--------------------------| :----------- | :-------- |
@@ -265,7 +265,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 | Maximum Uncertainty Value | Float 32 | (FLT_MIN, FLT_MAX) |
 
 
-**Table 7: Tracking list dataset attributes.**
+**Table 5: Tracking list dataset attributes.**
 
 | Entity Name | Data Type | Domain |
 | :------------- | :----------- | :-------- |
@@ -273,7 +273,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 | Tracking List Length | Unsigned Integer 32 | 0, 2^32-1] |
 
 
-**Table 8: Definition of contents of the BAG tracking list item.**
+**Table 6: Definition of contents of the BAG tracking list item.**
 
 | Entity Name | Data Type | Domain |
 |:------------| :----------- | :-------- |
@@ -285,7 +285,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 | list_series | Unsigned Integer 16 | index number indicating the item in the metadata that describes the modifications |
 
 
-**Table 9: Nominal elevation dataset attributes.**
+**Table 7: Nominal elevation dataset attributes.**
 
 | Entity Name                     | Data Type | Domain |
 |:--------------------------------| :-------- | :----- |
@@ -294,7 +294,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 | Maximum Nominal Elevation Value | Float 32 | (FLT_MIN, FLT_MAX) |
 
 
-**Table 10: Node extension dataset attributes.**
+**Table 8: Node extension dataset attributes.**
 
 | Entity Name | Data Type               | Domain |
 | :---------- |:------------------------| :----- |
@@ -306,7 +306,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
  | min_num_hypotheses | Unsigned Integer 32     | (UINT32_MIN, UINT32_MAX) |
 
 
-**Table 11: Elevation solution extension dataset attributes.**
+**Table 9: Elevation solution extension dataset attributes.**
 
 | Entity Name         | Data Type               | Domain |
 |:--------------------|:------------------------| :----- |
@@ -321,7 +321,7 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 | min_num_soundings   | Unsigned Integer 32 | (UINT32_MIN, UINT32_MAX) |
 
 
-**Table 12: Georef_metadata extension dataset attributes.**
+**Table 10: Georef_metadata extension dataset attributes.**
 
 | Entity Name    | Data Type  | Domain                                                                                                    |
 |:---------------|:-----------|:----------------------------------------------------------------------------------------------------------|
@@ -332,20 +332,21 @@ Table 4 defines the metadata items used with in the BAG library.  These items mu
 
 Each HDF5 group in Georef_metadata must correspond to an existing BAG layer of the same name. Each Georef_metadata
 group must consist of two HDF5 compound datasets: (1) "keys"; and (2) "values". The "keys" dataset is described in
-Table 13, and "values" described in Table 15.
+Table 11, and "values" described in Table 13.
 
-**Table 13: Required and optional elements of Georef_metadata "keys" dataset.**
+**Table 11: Required and optional elements of Georef_metadata "keys" dataset.**
 
 | Entity Name           | Data Type                        | Domain                               | Required |
 |:----------------------|:---------------------------------|:-------------------------------------| :------- |
- | Record Definition     | Array of Record Definition Items | Definition Item detailed in table 14 | Yes |
+ | Record Definition     | Array of Record Definition Items | Definition Item detailed in table 12 | Yes |
  | Metadata Profile Type | Character String                 | 32 characters                        | No |
 
 
 Metadata Profile Type string should be "Unknown metadata profile" unless the Georef_metadata Record Definition is
-of a known profile (e.g., "NOAA-NBS-2022.06").
+of a known profile (e.g., "NOAA-OCS-2022.10"). See [Appendix B](FSD-Appendices.md#appendix-b) for a description of
+known metadata profiles.
 
-**Table 14: Georef_metadata Record Definition Item.**
+**Table 12: Georef_metadata Record Definition Item.**
 
 | Entity Name          | Data Type                  | Domain                          |
 |:---------------------|:---------------------------|:--------------------------------|
@@ -353,7 +354,7 @@ of a known profile (e.g., "NOAA-NBS-2022.06").
  | type | Unsigned Integer 8 | [UINT8_MIN, UINT8_MAX]          |
 
 
-**Table 15: Required elements of Georef_metadata "values" dataset.**
+**Table 13: Required elements of Georef_metadata "values" dataset.**
 
 | Entity Name      | Data Type                                                       | Domain |
 |:-----------------|:----------------------------------------------------------------|:------|
@@ -362,15 +363,14 @@ of a known profile (e.g., "NOAA-NBS-2022.06").
  | <RECORD_VALUE_N> | Float 32 or Unsigned Integer 32 or Boolean or Character String  |       |
 
 
-
 The raster values of a Georef_metadata is interpretted to correspond to the entry of the "values" table containing
 the metadata to be associated with one or more points in raster space. The NoData value is 0, hence the first entry
 in the "values" table will always contain 0 or NULL values.
 
-Figure 9 shows structure of BAG Georef_metadata for an elevation layer encapsulated using HDF-5.
+Figure 2 shows structure of BAG Georef_metadata for an elevation layer encapsulated using HDF-5.
 ```
-$ h5dump -A examples/sample-data/georef_metadata_example.bag -g /BAG_root/Georef_metadata examples/sample-data/georef_metadata_example.bag
-HDF5 "examples/sample-data/georef_metadata_example.bag" {
+$ h5dump -A examples/sample-data/bag_compound_layer.bag -g /BAG_root/Georef_metadata examples/sample-data/bag_compound_layer.bag
+HDF5 "examples/sample-data/bag_compound_layer.bag" {
 GROUP "/BAG_root/Georef_metadata" {
    GROUP "Elevation" {
       DATASET "keys" {
@@ -408,40 +408,14 @@ GROUP "/BAG_root/Georef_metadata" {
       }
       DATASET "values" {
          DATATYPE  H5T_COMPOUND {
-            H5T_STD_U32LE "data_assessment";
             H5T_STD_U8LE "significant_features";
             H5T_STD_U8LE "feature_least_depth";
             H5T_IEEE_F32LE "feature_size";
+            H5T_IEEE_F32LE "feature_size_var";
             H5T_STD_U8LE "coverage";
             H5T_STD_U8LE "bathy_coverage";
             H5T_IEEE_F32LE "horizontal_uncert_fixed";
             H5T_IEEE_F32LE "horizontal_uncert_var";
-            H5T_IEEE_F32LE "vertical_uncert_fixed";
-            H5T_IEEE_F32LE "vertical_uncert_var";
-            H5T_STRING {
-               STRSIZE H5T_VARIABLE;
-               STRPAD H5T_STR_NULLTERM;
-               CSET H5T_CSET_ASCII;
-               CTYPE H5T_C_S1;
-            } "license_Name";
-            H5T_STRING {
-               STRSIZE H5T_VARIABLE;
-               STRPAD H5T_STR_NULLTERM;
-               CSET H5T_CSET_ASCII;
-               CTYPE H5T_C_S1;
-            } "license_URL";
-            H5T_STRING {
-               STRSIZE H5T_VARIABLE;
-               STRPAD H5T_STR_NULLTERM;
-               CSET H5T_CSET_ASCII;
-               CTYPE H5T_C_S1;
-            } "source_Survey_ID";
-            H5T_STRING {
-               STRSIZE H5T_VARIABLE;
-               STRPAD H5T_STR_NULLTERM;
-               CSET H5T_CSET_ASCII;
-               CTYPE H5T_C_S1;
-            } "source_Institution";
             H5T_STRING {
                STRSIZE H5T_VARIABLE;
                STRPAD H5T_STR_NULLTERM;
@@ -454,12 +428,34 @@ GROUP "/BAG_root/Georef_metadata" {
                CSET H5T_CSET_ASCII;
                CTYPE H5T_C_S1;
             } "survey_date_end";
+            H5T_STRING {
+               STRSIZE H5T_VARIABLE;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            } "source_institution";
+            H5T_STRING {
+               STRSIZE H5T_VARIABLE;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            } "source_survey_id";
+            H5T_STRING {
+               STRSIZE H5T_VARIABLE;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            } "license_name";
+            H5T_STRING {
+               STRSIZE H5T_VARIABLE;
+               STRPAD H5T_STR_NULLTERM;
+               CSET H5T_CSET_ASCII;
+               CTYPE H5T_C_S1;
+            } "license_url";
          }
          DATASPACE  SIMPLE { ( 3 ) / ( 65535 ) }
          DATA {
          (0): {
-               0,
-               0,
                0,
                0,
                0,
@@ -476,40 +472,36 @@ GROUP "/BAG_root/Georef_metadata" {
                NULL
             },
          (1): {
-               3,
                0,
                1,
                1234.57,
+               765.432,
                1,
                0,
                9.87,
                1.23,
-               0.98,
-               0.12,
-               "Creative Commons Zero Public Domain Dedication (CC0)",
-               "https://creativecommons.org/publicdomain/zero/1.0/",
-               "CD71EB77-5812-4735-B728-0DC1AE2A2F3B",
-               "NOAA",
                "2019-04-01 00:00:00.0Z",
-               "2019-04-01 12:00:00.0Z"
+               "2019-04-01 12:00:00.0Z",
+               "NOAA",
+               "CD71EB77-5812-4735-B728-0DC1AE2A2F3B",
+               "Creative Commons Zero Public Domain Dedication (CC0)",
+               "https://creativecommons.org/publicdomain/zero/1.0/"
             },
          (2): {
                1,
-               1,
                0,
                987.6,
+               6.789,
                0,
                1,
                12345.7,
                89,
-               0.12,
-               0.89,
-               "Open Data Commons Public Domain Dedication and Licence (PDDL)",
-               "http://opendatacommons.org/licenses/pddl/1.0/",
-               "15B46F99-1D94-4669-92D8-AA86F533B097",
-               "NOAA",
                "2019-04-02 00:00:00.0Z",
-               "2019-04-02 12:00:00.0Z"
+               "2019-04-02 12:00:00.0Z",
+               "NOAA",
+               "15B46F99-1D94-4669-92D8-AA86F533B097",
+               "Open Data Commons Public Domain Dedication and Licence (PDDL)",
+               "http://opendatacommons.org/licenses/pddl/1.0/"
             }
          }
       }
@@ -517,6 +509,6 @@ GROUP "/BAG_root/Georef_metadata" {
 }
 }
 ```
-**Figure 9: Structure of BAG Georef_metadata for an elevation layer encapsulated using HDF-5. Note, `key` datatable is truncated in several places using ellipses ("...").**
+**Figure 2: Structure of BAG Georef_metadata for an elevation layer encapsulated using HDF-5. Note, `key` datatable is truncated in several places using ellipses ("...").**
 
 ## [Next: Axiomatic Definitions](FSD-AxiomaticDefs.md)
