@@ -1,11 +1,11 @@
 # Encapsulation
-The BAG structure utilizes HDF-5.  HDF-5 is a hierarchical data format product consisting of a data format specification and a supporting library implementation.  HDF-5 files are organized in a hierarchical structure, with two primary structures; groups and datasets.  They are defined as:
+BAG data are encoded as [HDF-5](https://www.hdfgroup.org/solutions/hdf5/) files. HDF-5 is a hierarchical data format product consisting of a data format specification and a supporting library implementation. HDF-5 provides two primary structures: groups and datasets. They are defined as:
 
 * HDF-5 Group: a grouping structure containing instances of zero or more groups or data sets, together with supporting metadata.
 
-* HDF-5 Data set: a multidimensional array of data elements, together with supporting metadata or attributes.
+* HDF-5 Dataset: a multidimensional array of data elements, together with supporting metadata or attributes.
 
-An HDF-5 “Group” provides the top-level structure for the data contents of a BAG.  The major subcomponents are defined using the HDF-5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters.  “Attributes” are included were appropriate to provide “Dataset” specific metadata.    Following the high level BAG file structure described in Fig. 3, the specific HDF-5 type definitions that define the BAG encapsulation structure are illustrated in Fig. 8.  Note that the digital signature is not shown in Fig. 8.  As described in Section 2, the digital signature byte stream is appended to the end of the HDF-5 group.
+An HDF-5 “Group” provides the top-level structure for the data contents of a BAG. The major subcomponents are defined using the HDF-5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters. “Attributes” are included were appropriate to provide “Dataset” specific metadata. The specific HDF-5 type definitions that define BAG encapsulation structure are illustrated in Fig. 1. Note that the digital signature is not shown in Fig. 1. As described in [Structure of the BAG Certification Block](FSD-BAGStructure.md#stucture-of-the-bag-certification-block), the digital signature byte stream is appended to the end of the HDF-5 group.
 
 Figure 1 shows the structure of BAG data encapsulated using HDF-5:
 ```
@@ -138,7 +138,7 @@ GROUP "/" {
 ```
 **Figure 1: Structure of BAG data encapsulated using HDF-5.**
 
-Table 1 defines the contents of the HDF data elements belonging to the BAG_root Group.  
+Table 1 defines the contents of the HDF data elements belonging to the `BAG_root` Group.  
 
 **Table 1: Contents of BAG_Root group**
 
@@ -154,17 +154,7 @@ Table 1 defines the contents of the HDF data elements belonging to the BAG_root 
 | elevation_solution | Dataset | Detailed in table 11                | No |
  | Georef_metadata | Dataset | Detailed in table 12                | No |
 
-
-Okay, so what appears to be going on is that "node" is an HDF5 group (`BAG_GROUP_TYPE::NODE`) that can store the 
-following attributes: "hyp_strength" (type `Hypothesis_Strength`), and "num_hypotheses" (type `Num_Hypotheses`). 
-Correspondinly "elevation_solution" is an HDF5 group(`BAG_GROUP_TYPE::ELEVATION`) that can store the following
-attributes: "shoal_elevation" (type `Shoal_Elevation`), "stddev" (type `Std_Dev`), and "num_soundings"
-(type `Num_Soundings`).
-
-However, it appears that each of the attributes of "node" and "elevation_solution" can alternately be stored
-as simple layers of the BAG root as well.
-
-Table 2 defines the metadata items used with in the BAG library.  These items must be present and properly defined for BAG I/O operations to succeed.  Note that this listing of metadata items does not specify the mandatory metadata items required by the ISO 19915 standard.
+Table 2 defines the metadata items used with in the BAG library. These items must be present and properly defined for BAG data to be read. Note that this listing of metadata items does not specify the mandatory metadata items required by the ISO 19915 standard.
 
 **Table 2: Group level metadata - grid parameters.**
 
@@ -330,7 +320,7 @@ Table 2 defines the metadata items used with in the BAG library.  These items mu
  | <LAYER_NAME_N> | HDF5 group | HDF5 group whose name corresponds to the BAG layer this geoferenced metadata layer provides metadata for. |
 
 
-Each HDF5 group in Georef_metadata must correspond to an existing BAG layer of the same name. Each Georef_metadata
+Each HDF5 group in `Georef_metadata` must correspond to an existing BAG layer of the same name. Each Georef_metadata
 group must consist of two HDF5 compound datasets: (1) "keys"; and (2) "values". The "keys" dataset is described in
 Table 11, and "values" described in Table 13.
 
@@ -363,8 +353,8 @@ known metadata profiles.
  | <RECORD_VALUE_N> | Float 32 or Unsigned Integer 32 or Boolean or Character String  |       |
 
 
-The raster values of a Georef_metadata is interpretted to correspond to the entry of the "values" table containing
-the metadata to be associated with one or more points in raster space. The NoData value is 0, hence the first entry
+The raster values of a Georef_metadata are interpreted to correspond to the entry of the "values" table containing
+the metadata to be associated with one or more points in raster space. The `NoData` value is 0, hence the first entry
 in the "values" table will always contain 0 or NULL values.
 
 Figure 2 shows structure of BAG Georef_metadata for an elevation layer encapsulated using HDF-5.
