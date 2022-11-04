@@ -343,7 +343,7 @@ Table 11, and "values" described in Table 13.
 
 
 Metadata Profile Type string should be "Unknown metadata profile" unless the Georef_metadata Record Definition is
-of a known profile (e.g., "NOAA-OCS-2022.10"). See [Appendix B](FSD-Appendices.md#appendix-b) for a description of
+of a known profile (e.g., "NOAA-OCS-2022.10"). See [Appendix A](FSD-Appendices.md) for a description of
 known metadata profiles.
 
 **Table 12: Georef_metadata Record Definition Item.**

@@ -148,7 +148,7 @@ Working with georeferenced metadata
 Version 2 of the BAG file format allows georeference metadata describing metadata on a node by node basis at the full
 resolution of the dataset. This is accomplished by creating a :cpp:class:`BAG::CompoundLayer` (Python:
 :py:class:`bagPy.CompoundLayer`) within an existing BAG. To create a compound layer, you first need to create a
-:cpp:class:`BAG::RecordDefinition` (Python: :py:class:`bagPy.RecordDefinition`); see lines 122-135 in the example
+:cpp:type:`BAG::RecordDefinition` (Python: :py:class:`bagPy.RecordDefinition`); see lines 122-135 in the example
 C++ source code, or lines 88-101 in the example Python code below. Note, to make it easier to create BAGs with
 georeferenced metadata of a known format, it is possible to create a named metadata profile, for example
 :cpp:enumerator:`NOAA_OCS_2022_10_METADATA_PROFILE`. For information on how to use a named metadata profile, see the

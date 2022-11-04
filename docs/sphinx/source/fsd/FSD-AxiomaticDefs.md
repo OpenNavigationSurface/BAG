@@ -26,7 +26,7 @@ Time shall be represented in seconds UTC with respect to the standard UNIX epoch
 
 ## Resolution and Precision of Data
 
-All data in the BAG grid, metadata and tracking list shall be represented as IEEE-754 [8] floating point numbers without rounding or limitation of precision.  Data that is fundamentally integer in nature (e.g., counts of elements) may be represented in integer format for compactness.  Grid data shall have single precision (32-bit) representation; metadata shall have at least single precision representation, but may be more if required.  All software attempting to manipulate BAGs shall at least preserve the precision of the input data.
+All data in the BAG grid, metadata and tracking list shall be represented as IEEE-754 <a href="FSD-References.html#ref7">[7]</a> floating point numbers without rounding or limitation of precision.  Data that is fundamentally integer in nature (e.g., counts of elements) may be represented in integer format for compactness.  Grid data shall have single precision (32-bit) representation; metadata shall have at least single precision representation, but may be more if required.  All software attempting to manipulate BAGs shall at least preserve the precision of the input data.
 
 All positioning and geo-referencing data within a BAG shall have at least millimeter resolution.  All elevation information shall have at least millimeter resolution, although this should not be taken to mean that the fundamental precision of the data is better than the associated uncertainty measurement.  All times shall have at least millisecond resolution.
 

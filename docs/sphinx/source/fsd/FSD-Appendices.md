@@ -1,31 +1,27 @@
-# Appendix A
+# Appendices
 
-See spreadsheet named [Appendix A.xls](../Appendix%20A.xls).
-
-# Appendix B
-
-## Metadata Profile Definitions
+## Appendix A: Metadata Profile Definitions
 
 ### NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)
 
 **Table 1: Definition of NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)**
 
 | Column Name               | Column Type | Note                                                                                                                             |
-|---------------------------| --- |----------------------------------------------------------------------------------------------------------------------------------|
-| significant_features      | Boolean | See S-101 significant features detected.                                                                                         |
-| feature\_least\_depth     | Boolean | See S-101 least depth of detected feature measured.                                                                              |
-| feature_size              | Float | See S-101 feature size.                                                                                                          |
-| feature\_size\_var        | Float | See further discussion (1)                                                                                                       |
-| coverage                  | Boolean | See S-101 full seafloor coverage achieved                                                                                        |
-| bathy_coverage            | Boolean | See further discussion (2)                                                                                                       |
-| horizontal\_uncert\_fixed | Float | See S-101 horizontal position uncertainty fixed                                                                                  |
-| horizontal\_uncert\_var   | Float | See S-101 horizontal position uncertainty variable factor                                                                        |
-| survey\_date\_start       | String | See S-101 Survey date start                                                                                                      |
-| survey\_date\_end         | String | See S-101 Survey date end                                                                                                        |
-| source\_institution       | String | e.g. "NOAA Office of Coast Survey"                                                                                               |
-| source\_survey\_id        | String | e.g. "H99999"                                                                                                                    |
-| license\_name             | String | e.g. "CC0 1.0"                                                                                                                   |
-| license\_url              | String | A URL or DOI (ideally in URL form) referencing the license definition, e.g. "https://creativecommons.org/publicdomain/zero/1.0/" |
+|:--------------------------|:------------|:---------------------------------------------------------------------------------------------------------------------------------|
+| significant_features      | Boolean     | See S-101 significant features detected.                                                                                         |
+| feature\_least\_depth     | Boolean     | See S-101 least depth of detected feature measured.                                                                              |
+| feature_size              | Float       | See S-101 feature size.                                                                                                          |
+| feature\_size\_var        | Float       | See further discussion (1)                                                                                                       |
+| coverage                  | Boolean     | See S-101 full seafloor coverage achieved                                                                                        |
+| bathy_coverage            | Boolean     | See further discussion (2)                                                                                                       |
+| horizontal\_uncert\_fixed | Float       | See S-101 horizontal position uncertainty fixed                                                                                  |
+| horizontal\_uncert\_var   | Float       | See S-101 horizontal position uncertainty variable factor                                                                        |
+| survey\_date\_start       | String      | See S-101 Survey date start                                                                                                      |
+| survey\_date\_end         | String      | See S-101 Survey date end                                                                                                        |
+| source\_institution       | String      | e.g. "NOAA Office of Coast Survey"                                                                                               |
+| source\_survey\_id        | String      | e.g. "H99999"                                                                                                                    |
+| license\_name             | String      | e.g. "CC0 1.0"                                                                                                                   |
+| license\_url              | String      | A URL or DOI (ideally in URL form) referencing the license definition, e.g. "https://creativecommons.org/publicdomain/zero/1.0/" |
 
 #### Further discussion
 

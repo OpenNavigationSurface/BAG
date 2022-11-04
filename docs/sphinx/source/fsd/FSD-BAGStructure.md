@@ -173,7 +173,7 @@ In a traditional hydrographic processing workflow, there is a strict chain of cu
 
 With an all-digital product, however, there is no opportunity to affix a physical signature to the data object.  In addition, with a dense data object such as a BAG, the opportunity for single-bit errors in transmission to cause navigationally significant changes to the data which are otherwise undetectable is greatly increased.  The Digital Signature Scheme (DSS) for the BAG is designed to provide an equivalent analogue for the physical hydrographer’s signature, and to ensure that any modifications to the data, either by mistake or malicious action, are readily detectable.
 
-This section describes the implementation for the DSS interaction with the BAG file format in outline.  Full details of the process are available in the whitepaper, “Digital Signature Scheme for the Bathymetric Attributed Grid (BAG)” [6], which is available from the project’s website.
+This section describes the implementation for the DSS interaction with the BAG file format in outline.  Full details of the process are available in the whitepaper, "Digital Signature Scheme for the Bathymetric Attributed Grid (BAG)" <a href="FSD-References.html#ref5">[5]</a>, which is available from the project’s website.
 
 ### DSS Implementation
 
@@ -183,7 +183,7 @@ Corresponding to the SK, there is a public key (PK) that can be distributed free
 
 In addition to the basic DS required for the DSS, the BAG certification block contains a 32-bit integer used to link the certification event with an entry in the metadata’s lineage section which describes the reasons for certification.  The intent of this is to ensure that the user can provide suitably flexible descriptions of any conditions attached to the certification event, or the intended use of the data so certified.  This ‘Signature ID’ shall be a file-unique sequentially constructed integer so that a certification block can be unambiguously associated with exactly one lineage element.
 
-The DSS is not mandatory, in the sense that the API does not enforce checks for certification blocks or DS results as BAG files are opened, written or closed.  A BAG without a certification block shall be considered valid.  The BAG API provides means to construct and verify DS values, but does not address questions of key distribution, certificate generation or certificate signing.  Users are urged to consult an appropriate reference (e.g., [7]) for details of these processes.
+The DSS is not mandatory, in the sense that the API does not enforce checks for certification blocks or DS results as BAG files are opened, written or closed.  A BAG without a certification block shall be considered valid.  The BAG API provides means to construct and verify DS values, but does not address questions of key distribution, certificate generation or certificate signing.  Users are urged to consult an appropriate reference (e.g., <a href="FSD-References.html#ref6">[6]</a>) for details of these processes.
 
 ### Stucture of the BAG Certification Block
 

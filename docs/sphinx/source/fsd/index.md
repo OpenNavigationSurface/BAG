@@ -17,7 +17,7 @@ The release history is [here](RevisionHistory.md).
 
 [Revision Control and Code Availability](FSD-RevisionControl.md)
 
-[How to Apply for an Extension/Bug Fix](FSD-Extensions.md)
+[BAG Format Extensions](FSD-Extensions.md)
 
 [Glossary of Acronyms](FSD-Glossary.md)
 
@@ -29,11 +29,11 @@ The release history is [here](RevisionHistory.md).
 
 ### Motivation
 
-The design of the ‘Navigation Surface’ concept [2, 3] envisioned a new structure for hydrographic product creation from basic surveys.  Relying on a database to hold all the original data, processed into the form of grids of the best available representation of the true nature of the seafloor, the Navigation Surface concept extracts whatever data is required for a particular product and, through automatic manipulation and/or cartography, constructs a product suitable for a particular purpose.
+The design of the ‘Navigation Surface’ <a href="FSD-References.html#ref1">[1]</a> concept [<a href="FSD-References.html#ref2">2</a>, <a href="FSD-References.html#ref3">3</a>] envisioned a new structure for hydrographic product creation from basic surveys.  Relying on a database to hold all the original data, processed into the form of grids of the best available representation of the true nature of the seafloor, the Navigation Surface concept extracts whatever data is required for a particular product and, through automatic manipulation and/or cartography, constructs a product suitable for a particular purpose.
 
 Depending on task, this might be a uniform grid at the best available resolution (e.g., for flow modeling), or a hydrographic vector-based chart for safety of navigation.  In order to make this possible, the database must contain the best available data for each area, at the highest achievable resolution, and will contain data from a number of different sources, potentially from a number of different software packages.
 
-In order to make this database possible, there is a need for a uniform file format that allows data to be passed between software packages, and between agencies involved in the collection, processing and dissemination of the data, while maintaining the integrity of the data and metadata at all times. The file format should also be sufficiently flexible to support processing of data without format conversion where possible, since format conversion is an extremely expensive process.  The Open Navigation Surface (ONS) Project has as its mandate the task of building such a data file format, and developing and maintaining the source code for a software library to read and write this format so that adoption of the technology is eased for any developer.  The source code library has been developed on the Open Source model [4] so that the source code is freely available; all of the members of the ONS Working Group (ONSWG) and their respective employers have provided their effort on this basis.
+In order to make this database possible, there is a need for a uniform file format that allows data to be passed between software packages, and between agencies involved in the collection, processing and dissemination of the data, while maintaining the integrity of the data and metadata at all times. The file format should also be sufficiently flexible to support processing of data without format conversion where possible, since format conversion is an extremely expensive process.  The Open Navigation Surface (ONS) Project has as its mandate the task of building such a data file format, and developing and maintaining the source code for a software library to read and write this format so that adoption of the technology is eased for any developer.  The source code library has been developed on the Open Source model <a href="FSD-References.html#ref4">[4]</a> so that the source code is freely available; all of the members of the ONS Working Group (ONSWG) and their respective employers have provided their effort on this basis.
 
 This document describes the BAG format and the conduct of the ONSWG and its derivatives that maintain the BAG format [reference implementation](https://github.com/OpenNavigationSurface/BAG). For information on using the BAG reference implementation, please see the [How-to Guide](https://bag.readthedocs.io/en/stable/howto-guide/index.html).
 
