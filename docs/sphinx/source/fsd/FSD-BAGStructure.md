@@ -155,17 +155,17 @@ The elevation solution group is designed to contain the shoal elevation, standar
 
  The node group has two components: hypothesis strength and number of hypotheses.  The hypothesis strength and number of hypotheses are computed in the CUBE/CHRT algorithm.  
  
-### Metadata Raster Attribute Table
+### Georeferenced Metadata Raster Attribute Table
 
-The option metadata raster attribute table is a raster and table pair where the raster value indicates the row of the table where a group of metadata is valid (Fig. 6).  This construct requires some definition of the metadata fields available in the table.  Standard metadata profile definitions can be found in Appendix B. There can be multiple metadata raster attribute tables, each with its own distinct metadata profile.  All metadata layers are found in a node under **BAG_root** called **Georef_metadata**, and then each raster table pair is found in its own node with the name of the profile.  The raster in the profile node is named "**keys**", and shall match the shape of the required elevation layer.  The no data value for this layer is 0, and the first row (zeroth row) of the table is ignored. The table in the profile node is named "**values**" and must have the rows indicated by the raster.  Variable resolution keys are stored in an array the same length as, and corrisponding to, **varres_refinements** with an index indicating the table row in the same fashion as the raster.
+An optional georeferenced metadata raster attribute table is a raster and table pair where the raster value indicates the row of the table where a group of metadata is valid (Fig. 6).  This construct requires some definition of the metadata fields available in the table.  Standard georeferenced metadata profile definitions can be found in [Appendix A](FSD-Appendices.md). There can be multiple metadata raster attribute tables, each associated with a given BAG layer (e.g., Elevation, Uncertainty, etc.) and each with its own distinct metadata profile.  All metadata layers are found in a node under **BAG_root** called **Georef_metadata**, and then each raster table pair is found in its own node with the name of the profile.  The raster in the profile node is named "**keys**", and shall match the shape of the required elevation layer.  The no data value for this layer is 0, and the first row (zeroth row) of the table is ignored. The table in the profile node is named "**values**" and must have the rows indicated by the raster.  Variable resolution keys are stored in an array the same length as, and corrisponding to, **varres_refinements** with an index indicating the table row in the same fashion as the raster.
 
 ![Nominal Elevation optional datasets](FSD-BAGStructure-fig6.png)
 
-**Figure 6: Example of BAG with optional dataset of nominal elevation.**
+**Figure 6: Example of BAG with optional georeferenced metadata.**
  
 ## Certification
 
-> *Note: Due to the large-scale changes to the BAG codebase as part of moving from C to C++14, support for BAG Digital Signatures has been removed from the 2.0.0 codebase. Signing support will be added back to a subsequent release of the BAG library.*
+> *Note: Due to the large-scale changes to the BAG codebase as part of moving from C to C++14, support for BAG Digital Signatures has been removed from the 2.0.1 codebase. Signing support will be added back to a subsequent release of the BAG library.*
 
 ### Intent of the BAG Digital Signature Scheme
 

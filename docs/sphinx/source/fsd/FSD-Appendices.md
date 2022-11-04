@@ -1,6 +1,6 @@
 # Appendices
 
-## Appendix A: Metadata Profile Definitions
+## Appendix A: Georeferenced Metadata Profile Definitions
 
 ### NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)
 
