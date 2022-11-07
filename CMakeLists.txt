@@ -48,6 +48,7 @@ if(MSVC AND NOT BAG_CI)
     endif()
 endif()
 
+# Note: Code coverage reporting is only supported when using Clang (LLVM)
 if(BAG_CODE_COVERAGE)
     set(CODE_COVERAGE ON CACHE INTERNAL "Turn on code coverage")
     include(CMakeModules/code-coverage.cmake)

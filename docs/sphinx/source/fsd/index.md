@@ -59,6 +59,4 @@ The idea for what became the Open Navigation Surface Project had been discussed 
 
 This document describes the Bathymetric Attributed Grid file format, version 2.0.1.  This version corresponds to the Git release tag “release-2.0.1”, which may be obtained from the Open Navigation Surface (ONS) Project on [GitHub](https://github.com/OpenNavigationSurface/BAG).
 
-This release of the library supports, and has been tested on 64-bit versions of Linux, Windows 10, and macOS. The source code is written in C++14 and builds with CMake, and should therefore compile on most Unix-like systems if required.  Users who successfully compile the library on other platforms are urged to provide information on any modifications required to the project so that these platforms can be supported in future releases.
-
 ## [Next: Overview of the BAG Structure](FSD-BAGStructure.md)
