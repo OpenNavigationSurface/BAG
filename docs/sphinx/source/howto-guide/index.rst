@@ -1,6 +1,6 @@
-============
-How-to Guide
-============
+================
+API How-to Guide
+================
 .. TODO: Change links to files in the BAG repo to refer to the main branch once v2 PR is merged
 
 .. reStructuredText newbie examples:
@@ -132,6 +132,9 @@ example, we'll use `sample.xml`_ to populated metadata in the newly created BAG.
 
 .. _Format Specification Document: ../fsd/FSD-BAGStructure.html#metadata
 .. _sample.xml: https://github.com/OpenNavigationSurface/BAG/blob/b13ef862a791c6cf776251e6a3e05867acc1fb27/examples/sample-data/sample.xml
+
+.. NOTE::
+    The spatial coverage of a BAG is defined by setting the southwest and northeast corners via the metadata element: ``/gmi:MI_Metadata/gmd:spatialRepresentationInfo/gmd:MD_Georectified/gmd:cornerPoints/gml:Point/gml:coordinates``.
 
 **C++**:
 

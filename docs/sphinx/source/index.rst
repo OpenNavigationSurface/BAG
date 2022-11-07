@@ -7,7 +7,7 @@ Bathymetric Attributed Grid (BAG)
     :maxdepth: 1
 
     Format Specification Document <fsd/index.md>
-    How-to Guide <howto-guide/index>
+    API How-to Guide <howto-guide/index>
     C++ API Reference <cpp-api/index>
     Python API Reference <python-api/index>
 
