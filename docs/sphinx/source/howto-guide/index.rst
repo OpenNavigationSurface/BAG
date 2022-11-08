@@ -16,7 +16,6 @@ This how-to guide described how to use the BAG API, from either C++ or Python, t
     * Opening read-only
     * Opening read-write
 * Creating a BAG file
-* Working with variable-resolution BAGs
 * Working with georeferenced metadata
 
 For more example usage, please refer to these sections of the BAG source code:
@@ -39,6 +38,45 @@ For more example usage, please refer to these sections of the BAG source code:
 .. _Python unit tests: https://github.com/OpenNavigationSurface/BAG/blob/v2/python
 .. _C++ examples: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples
 .. _Python examples: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples/python
+
+A quick tour of the BAG API
+===========================
+
+For most purposes, the entry point to the BAG API is the :cpp:class:`BAG::Dataset` (:py:class:`bagPy.Dataset`).
+Attributes for a BAG are described by the :cpp:class:`BAG::Descriptor` (:py:class:`bagPy.Descriptor`), which can be
+accessed via :cpp:func:`BAG::Dataset::getDescriptor`. BAG attributes include: (1) a list of layer types in the bag
+(:cpp:func:`BAG::Descriptor::getLayerTypes` or :cpp:func:`BAG::Descriptor::getLayerIds`); (2) the number of rows and
+columns of the BAG (:cpp:func:`BAG::Descriptor::getDims`); (3) the resolution/grid spacing of the BAG data
+(:cpp:func:`BAG::Descriptor::getGridSpacing`); (4) the horizontal and vertical reference systems
+(:cpp:func:`BAG::Descriptor::getHorizontalReferenceSystem` and :cpp:func:`BAG::Descriptor::getVerticalReferenceSystem`);
+(5) the geographic position of the south west corner of the BAG (:cpp:func:`BAG::Descriptor::getOrigin`); and
+(6) the BAG version (:cpp:func:`BAG::Descriptor::getVersion`).
+
+.. NOTE::
+    XML Metadata used to create a BAG are described via :cpp:class:`BAG::Metadata` (:py:class:`bagPy.Metadata`), which
+    can be accessed from a Dataset instance using the :cpp:func:`BAG::Dataset::getMetadata`
+    (:py:class:`bagPy.Dataset.getMetadata`) method.
+
+The layers contained in a BAG dataset can be accessed in several ways. A list of layers can be fetched using the
+:cpp:func:`BAG::Dataset::getLayers` method (:py:func:`bagPy.Dataset.getLayers`). Individual layers can be accessed by
+passing the layer ID (IDs  are integers starting at 0) to the :cpp:func:`BAG::Dataset::getLayer` method. The IDs of
+required layers correspond to their type value, i.e.., :cpp:enumerator:`Elevation` or :cpp:enumerator:`Uncertainty`;
+IDs of other layers correspond to the order in which they layers were added to the Dataset during creation.
+Layers also can be accessed by passing their :cpp:enum:`BAG_LAYER_TYPE` and layer name (as a :cpp:class:`std::string`)
+to the overloaded method :cpp:func:`BAG::Dataset::getLayer`.
+
+Regardless of how layers are accessed, all layers are an instance of :cpp:class:`BAG::Layer` (:py:class:`bagPy.Layer`)
+or one of its sub-classes. :cpp:class:`BAG::Layer` instances provide access to the :cpp:type:`BAG::DataType` via the
+:cpp:func:`BAG::Layer::getDataType` method. Data can be read from a layer using the :cpp:func:`BAG::Layer::read`
+method; similarly, the :cpp:func:`BAG::Layer::write` method allows for writing data to a layer.
+
+Detailed layer metadata can be accessed through :cpp:class:`BAG::LayerDescriptor` (:py:class:`bagPy.LayerDescriptor`)
+objects, which can be obtained from a layer instance using the :cpp:func:`BAG::Layer::getDescriptor`.
+:cpp:class:`BAG::LayerDescriptor` instances allow access to attributes such as: (1) chunk size
+(:cpp:func:`BAG::LayerDescriptor::getChunkSize`); (2) compression level
+(:cpp:func:`BAG::LayerDescriptor::getCompressionLevel`); and (3) data minimum and maximum
+(:cpp:func:`BAG::LayerDescriptor::getMinMax`). Derived layer classes supply derived descriptors to expose additional
+metadata.
 
 Opening an existing BAG file
 ============================

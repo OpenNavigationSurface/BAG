@@ -7,15 +7,15 @@ The release history is [here](RevisionHistory.md).
 
 ## Contents
 
-#### [1. Overview of the BAG Structure](FSD-BAGStructure.md)
-#### [2. Encapsulation](FSD-Encapsulation.md)
-#### [3. Axiomatic Definitions](FSD-AxiomaticDefs.md)
-#### [4. BAG Architecture Review Board](FSD-BAGARB.md)
-#### [5. Revision Control and Code Availability](FSD-RevisionControl.md)
-#### [6. BAG Format Extensions](FSD-Extensions.md)
-#### [7. Glossary of Acronyms](FSD-Glossary.md)
-#### [8. References](FSD-References.md)
-#### [9. Appendices](FSD-Appendices.md)
+1. [Overview of the BAG Structure](FSD-BAGStructure.md)
+2. [Encapsulation](FSD-Encapsulation.md)
+3. [Axiomatic Definitions](FSD-AxiomaticDefs.md)
+4. [BAG Architecture Review Board](FSD-BAGARB.md)
+5. [Revision Control and Code Availability](FSD-RevisionControl.md)
+6. [BAG Format Extensions](FSD-Extensions.md)
+7. [Glossary of Acronyms](FSD-Glossary.md)
+8. [References](FSD-References.md)
+9. [Appendices](FSD-Appendices.md)
 
 ## Introduction
 

@@ -47,7 +47,7 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'alabaster'
+html_theme = 'classic'
 html_static_path = ['_static']
 
 # Config for integrating Doxygen C++ docs with Sphinx
