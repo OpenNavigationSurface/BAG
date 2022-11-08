@@ -63,7 +63,7 @@ passing the layer ID (IDs  are integers starting at 0) to the :cpp:func:`BAG::Da
 required layers correspond to their type value, i.e.., :cpp:enumerator:`Elevation` or :cpp:enumerator:`Uncertainty`;
 IDs of other layers correspond to the order in which they layers were added to the Dataset during creation.
 Layers also can be accessed by passing their :cpp:enum:`BAG_LAYER_TYPE` and layer name (as a :cpp:class:`std::string`)
-to the overloaded method :cpp:func:`BAG::Dataset::getLayer`.
+to the overloaded method ``std::shared_ptr<Layer> getLayer(LayerType type, const std::string& name) &``.
 
 Regardless of how layers are accessed, all layers are an instance of :cpp:class:`BAG::Layer` (:py:class:`bagPy.Layer`)
 or one of its sub-classes. :cpp:class:`BAG::Layer` instances provide access to the :cpp:type:`BAG::DataType` via the
