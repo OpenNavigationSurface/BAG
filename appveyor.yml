@@ -32,7 +32,9 @@ matrix:
       MINICONDA: C:\Miniconda37-x64
 
 install:
-  - set PATH=%MINICONDA%;%MINICONDA%\Scripts;%PATH%
+  # Debug why we are suddenly getting CondaHTTPError when running conda update...
+  #- set PATH=%MINICONDA%;%MINICONDA%\Scripts;%PATH%
+  - set
   # Install the build and runtime dependencies of the project.
   - conda config --set always_yes yes --set changeps1 no
   - conda update -q conda
