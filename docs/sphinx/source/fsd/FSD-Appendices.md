@@ -20,6 +20,7 @@
 | survey\_date\_end         | String      | See S-101 Survey date end                                                                                                        |
 | source\_institution       | String      | e.g. "NOAA Office of Coast Survey"                                                                                               |
 | source\_survey\_id        | String      | e.g. "H99999"                                                                                                                    |
+| source\_survey\_index     | UInt64      | A value of 0 indicates the index is uninitialized or unused.                                                                     |
 | license\_name             | String      | e.g. "CC0 1.0"                                                                                                                   |
 | license\_url              | String      | A URL or DOI (ideally in URL form) referencing the license definition, e.g. "https://creativecommons.org/publicdomain/zero/1.0/" |
 
