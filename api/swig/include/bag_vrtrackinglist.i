@@ -51,8 +51,13 @@ public:
 
     void clear() noexcept;
 
-    void push_back(value_type&& value);
-    //void push_back(const value_type& value);
+    %ignore push_back(value_type&& value);
+    // Enable the copying version of push_back as newer versions of SWIG (i.e., 4.1+) on some copilers (e.g., clang)
+    // appear to change invalidate references to values pushed onto the tracking list, which results in a segfault.
+    // The copying version doesn't do this, however, users need to be aware that if the values pushed onto the list
+    // change, the original reference will not reflect those changes. This is also consistent with how
+    // ``bag_trackinglist.i`` works.
+    void push_back(const value_type& value);
 
     //template <typename... Args>
     //void emplace_back(Args&&... args) &;
