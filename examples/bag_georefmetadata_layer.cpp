@@ -27,7 +27,7 @@ int main(
 {
     if (argc != 3)
     {
-        std::cerr << "Usage is: bag_compound_layer_create <inputXMLFile> <outputBagFile>\n";
+        std::cerr << "Usage is: bag_georefmetadata_layer_create <inputXMLFile> <outputBagFile>\n";
         return EXIT_FAILURE;
     }
 
@@ -162,7 +162,7 @@ int main(
         const auto& simpleLayerName = elevationLayer->getDescriptor()->getName();
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
-        auto& compoundLayer = dataset->createGeorefMetadataLayer(
+        auto& georefMetaLayer = dataset->createGeorefMetadataLayer(
                 BAG::GeorefMetadataProfile::NOAA_OCS_2022_10_METADATA_PROFILE,
                 simpleLayerName, chunkSize, compressionLevel);
 
@@ -191,7 +191,7 @@ int main(
                 std::string("https://creativecommons.org/publicdomain/zero/1.0/")   // license_url
         );
 
-        auto& valueTable = compoundLayer.getValueTable();
+        auto& valueTable = georefMetaLayer.getValueTable();
 
         // Store the new record in memory and in the BAG.
         const auto firstRecordIndex = valueTable.addRecord(record);
@@ -239,7 +239,7 @@ int main(
         size_t numElements = (rowEnd - rowStart + 1) * numColumns;
         const std::vector<uint16_t> firstBuffer(numElements, firstRecordIndex);
 
-        compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+        georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
             reinterpret_cast<const uint8_t*>(firstBuffer.data()));
 
         // Start at row 6, go to the last row.
@@ -256,7 +256,7 @@ int main(
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1);
         const std::vector<uint16_t> secondBuffer(numElements, secondRecordIndex);
 
-        compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+        georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
             reinterpret_cast<const uint8_t*>(secondBuffer.data()));
 
         // Read the data back.
@@ -268,7 +268,7 @@ int main(
         rowEnd = 5;  // sixth row
         columnEnd = 2;  // third column
 
-        auto buff = compoundLayer.read(rowStart, columnStart, rowEnd,
+        auto buff = georefMetaLayer.read(rowStart, columnStart, rowEnd,
             columnEnd);
 
 

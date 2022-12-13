@@ -187,16 +187,16 @@ example, we'll use `sample.xml`_ to populated metadata in the newly created BAG.
 Working with georeferenced metadata
 ===================================
 Version 2 of the BAG file format allows georeference metadata describing metadata on a node by node basis at the full
-resolution of the dataset. This is accomplished by creating a :cpp:class:`BAG::CompoundLayer` (Python:
-:py:class:`bagPy.CompoundLayer`) within an existing BAG. To create a compound layer, you first need to create a
-:cpp:type:`BAG::RecordDefinition` (Python: :py:class:`bagPy.RecordDefinition`); see lines 122-135 in the example
-C++ source code, or lines 88-101 in the example Python code below. Note, to make it easier to create BAGs with
-georeferenced metadata of a known format, it is possible to create a named metadata profile, for example
+resolution of the dataset. This is accomplished by creating a :cpp:class:`BAG::GeorefMetadataLayer` (Python:
+:py:class:`bagPy.GeorefMetadataLayer`) within an existing BAG. To create a georeferenced metadata layer, you first
+need to create a :cpp:type:`BAG::RecordDefinition` (Python: :py:class:`bagPy.RecordDefinition`); see lines 122-135 in
+the example C++ source code, or lines 88-101 in the example Python code below. Note, to make it easier to create BAGs
+with georeferenced metadata of a known format, it is possible to create a named metadata profile, for example
 :cpp:enumerator:`NOAA_OCS_2022_10_METADATA_PROFILE`. For information on how to use a named metadata profile, see the
-examples `bag_compound_layer.cpp`_ and `bag_compound_layer.py`_ in the BAG source code.
+examples `bag_georefmetadata_layer.cpp`_ and `bag_georefmetadata_layer.py`_ in the BAG source code.
 
-.. _bag_compound_layer.cpp: https://github.com/OpenNavigationSurface/BAG/blob/b13ef862a791c6cf776251e6a3e05867acc1fb27/examples/bag_compound_layer.cpp
-.. _bag_compound_layer.py: https://github.com/OpenNavigationSurface/BAG/blob/b13ef862a791c6cf776251e6a3e05867acc1fb27/examples/python/bag_compound_layer.py
+.. _bag_georefmetadata_layer.cpp: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples/bag_georefmetadata_layer.cpp
+.. _bag_georefmetadata_layer.py: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples/python/bag_georefmetadata_layer.py
 
 **C++**:
 

@@ -130,13 +130,13 @@ int main(int argc, char *argv[]) {
         definition[3].type = DT_STRING;
         definition[4].name = "survey_date_end";
         definition[4].type = DT_STRING;
-        auto& compoundLayer = dataset->createCompoundLayer(indexType,
+        auto& georefMetaLayer = dataset->createGeorefMetadataLayer(indexType,
         	UNKNOWN_METADATA_PROFILE, simpleLayerName, definition, 
         	chunkSize, compressionLevel);
 
         // At this point, all entries in the georeferenced metadata layer point to index 0,
         // which is a no data value.
-		auto &valueTable = compoundLayer.getValueTable();
+		auto &valueTable = georefMetaLayer.getValueTable();
         // Write a couple records.
         using BAG::CompoundDataType;
 		// First metadata record
@@ -181,7 +181,7 @@ int main(int argc, char *argv[]) {
         size_t numElements = (rowEnd - rowStart + 1) * numColumns;
         const std::vector<uint16_t> firstBuffer(numElements, firstRecordIndex);
 
-        compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+        georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             reinterpret_cast<const uint8_t *>(firstBuffer.data()));
 
         // Start at row 6, go to the last row.
@@ -198,7 +198,7 @@ int main(int argc, char *argv[]) {
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1);
         const std::vector<uint16_t> secondBuffer(numElements, secondRecordIndex);
 
-        compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+        georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             reinterpret_cast<const uint8_t *>(secondBuffer.data()));
 
         // Read the data back.
@@ -209,7 +209,7 @@ int main(int argc, char *argv[]) {
         rowEnd = 5;  // sixth row
         columnEnd = 2;  // third column
 
-        auto buff = compoundLayer.read(rowStart, columnStart, rowEnd,
+        auto buff = georefMetaLayer.read(rowStart, columnStart, rowEnd,
                                        columnEnd);
 
         // With the indices, look at some values using the value table.

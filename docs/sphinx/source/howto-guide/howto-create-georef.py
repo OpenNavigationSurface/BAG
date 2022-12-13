@@ -96,13 +96,13 @@ try:
 		definition[3].type = BAG.DT_STRING
 		definition[4].name = "survey_date_end"
 		definition[4].type = BAG.DT_STRING
-		compoundLayer: BAG.CompoundLayer = dataset.createCompoundLayer(indexType,
+		georefMetaLayer: BAG.GeorefMetadataLayer = dataset.createMetadataProfileGeorefMetadataLayer(indexType,
 				BAG.UNKNOWN_METADATA_PROFILE, simpleLayerName, definition,
 				chunkSize, compressionLevel)
 				
 		# At this point, all entries in the georeferenced metadata layer point to index 0,
 		# which is a no data value.
-		valueTable: BAG.ValueTable = compoundLayer.getValueTable()
+		valueTable: BAG.ValueTable = georefMetaLayer.getValueTable()
 		# Write a couple records.
 		
 		# First metadata record
@@ -143,7 +143,7 @@ try:
 		firstBuffer: np.ndarray = np.full(numElements, firstRecordIndex, dtype=np.ushort)
 
 		buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(firstBuffer)
-		compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+		georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
 												buffer)
 
 		# Start at row 6, go to the last row.
@@ -161,7 +161,7 @@ try:
 		secondBuffer: np.ndarray = np.full(numElements, secondRecordIndex, dtype=np.ushort)
 
 		buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(secondBuffer)
-		compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+		georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
 												buffer)
 
 		# Read the data back.
@@ -172,7 +172,7 @@ try:
 		rowEnd = 5          # sixth row
 		columnEnd = 2       # third column
 
-		buff = compoundLayer.read(rowStart, columnStart, rowEnd,
+		buff = georefMetaLayer.read(rowStart, columnStart, rowEnd,
 															columnEnd)
 		# Cast from uint8_t into unint16_t
 		buffer_raw = bytes([b for b in buff])
