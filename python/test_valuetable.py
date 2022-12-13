@@ -52,11 +52,11 @@ class TestValueTable(unittest.TestCase):
         kExpectedDefinition = RecordDefinition(
             (kExpFieldDef0, kExpFieldDef1, kExpFieldDef2, kExpFieldDef3))
 
-        compoundLayer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE, layerName,
-                                                    kExpectedDefinition, chunkSize, compressionLevel)
-        self.assertIsNotNone(compoundLayer)
+        georefMetadataLayer = dataset.createGeorefMetadataLayer(indexType, UNKNOWN_METADATA_PROFILE, layerName,
+                                                          kExpectedDefinition, chunkSize, compressionLevel)
+        self.assertIsNotNone(georefMetadataLayer)
 
-        valueTable = compoundLayer.getValueTable()
+        valueTable = georefMetadataLayer.getValueTable()
         definition = valueTable.getDefinition()
         self.assertEqual(len(definition), kExpectedDefinitionSize)
 
@@ -77,7 +77,7 @@ class TestValueTable(unittest.TestCase):
         self.assertEqual(valueTable.getFieldName(2), kFieldName2)
         self.assertEqual(valueTable.getFieldName(3), kFieldName3)
 
-        descriptor = compoundLayer.getDescriptor()
+        descriptor = georefMetadataLayer.getDescriptor()
         descriptorDefinition = descriptor.getDefinition()
         self.assertEqual(len(descriptorDefinition), kExpectedDefinitionSize)
 
@@ -120,8 +120,8 @@ class TestValueTable(unittest.TestCase):
         definition[6].name = "address"
         definition[6].type = DT_STRING
 
-        layer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
-                                            kExpectedLayerName, definition, chunkSize, compressionLevel)
+        layer = dataset.createGeorefMetadataLayer(indexType, UNKNOWN_METADATA_PROFILE,
+                                                  kExpectedLayerName, definition, chunkSize, compressionLevel)
 
         # There is one No Data Value record at index 0.
         kExpectedNumRecords = 1
@@ -150,7 +150,7 @@ class TestValueTable(unittest.TestCase):
         dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
         self.assertIsNotNone(dataset)
 
-        layer = dataset.getCompoundLayer(kExpectedLayerName)
+        layer = dataset.getGeorefMetadataLayer(kExpectedLayerName)
         self.assertIsNotNone(layer)
 
         valueTable = layer.getValueTable()
@@ -201,7 +201,7 @@ class TestValueTable(unittest.TestCase):
         dataset = Dataset.openDataset(tmpFileCopy.getName(), BAG_OPEN_READ_WRITE)
         self.assertIsNotNone(dataset)
 
-        layer = dataset.getCompoundLayer(kExpectedLayerName)
+        layer = dataset.getGeorefMetadataLayer(kExpectedLayerName)
         self.assertIsNotNone(layer)
 
         valueTable = layer.getValueTable()
@@ -262,7 +262,7 @@ class TestValueTable(unittest.TestCase):
         dataset = Dataset.openDataset(tmpFileCopy.getName(), BAG_OPEN_READONLY)
         self.assertIsNotNone(dataset)
 
-        layer = dataset.getCompoundLayer(kExpectedLayerName)
+        layer = dataset.getGeorefMetadataLayer(kExpectedLayerName)
         self.assertIsNotNone(layer)
 
         valueTable = layer.getValueTable()
@@ -355,8 +355,8 @@ class TestValueTable(unittest.TestCase):
         definition[2].name = "bool2"
         definition[2].type = DT_BOOLEAN
 
-        layer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
-                                            kExpectedLayerName, definition, chunkSize, compressionLevel)
+        layer = dataset.createGeorefMetadataLayer(indexType, UNKNOWN_METADATA_PROFILE,
+                                                  kExpectedLayerName, definition, chunkSize, compressionLevel)
 
         valueTable = layer.getValueTable()
         self.assertEqual(len(valueTable.getRecords()), 1)
@@ -368,13 +368,13 @@ class TestValueTable(unittest.TestCase):
         dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
         self.assertIsNotNone(dataset)
 
-        layer = dataset.getCompoundLayer(kExpectedLayerName)
+        layer = dataset.getGeorefMetadataLayer(kExpectedLayerName)
         self.assertIsNotNone(layer)
 
-        compoundLayerList = dataset.getCompoundLayers()
-        self.assertIsNotNone(compoundLayerList)
-        self.assertEqual(len(compoundLayerList), 1)
-        self.assertEqual(compoundLayerList[0], layer)
+        georefMetadataLayerList = dataset.getGeorefMetadataLayers()
+        self.assertIsNotNone(georefMetadataLayerList)
+        self.assertEqual(len(georefMetadataLayerList), 1)
+        self.assertEqual(georefMetadataLayerList[0], layer)
 
         valueTable = layer.getValueTable()
         records = valueTable.getRecords()
@@ -414,7 +414,7 @@ class TestValueTable(unittest.TestCase):
         kMakeNode = False
         dataset.createVR(chunkSize, compressionLevel, kMakeNode)
 
-        # Make a new compound layer using the elevation layer.
+        # Make a new georeferenced metadata layer using the elevation layer.
         # Index type is an 8 bit integer.  Valid values are 1-255.  0 is a no value.
         indexType = DT_UINT8
 
@@ -433,8 +433,8 @@ class TestValueTable(unittest.TestCase):
         definition[2].name = "bool2"
         definition[2].type = DT_BOOLEAN
 
-        layer = dataset.createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
-                                            kExpectedLayerName, definition, chunkSize, compressionLevel)
+        layer = dataset.createGeorefMetadataLayer(indexType, UNKNOWN_METADATA_PROFILE,
+                                                  kExpectedLayerName, definition, chunkSize, compressionLevel)
 
         # Write some single resolution metadata.
         # Expected keys in the single resolution DataSet.
@@ -465,11 +465,11 @@ class TestValueTable(unittest.TestCase):
         del dataset  # close the dataset
 
         # Load the dataset, and Read keys from the single and variable resolution
-        # DataSets in the elevation compound layer.
+        # DataSets in the elevation georeferenced metadata layer.
         dataset = Dataset.openDataset(tmpFile.getName(), BAG_OPEN_READONLY)
         self.assertIsNotNone(dataset)
 
-        layer = dataset.getCompoundLayer(kExpectedLayerName)
+        layer = dataset.getGeorefMetadataLayer(kExpectedLayerName)
         self.assertIsNotNone(layer)
 
         # Read single resolution metadata keys.

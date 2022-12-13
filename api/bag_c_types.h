@@ -24,7 +24,7 @@ enum BAG_LAYER_TYPE
 	Average_Elevation = 7,  //!< The optional average elevation layer.
 	Nominal_Elevation = 8,  //!< The optional nominal elevation layer.
     Surface_Correction = 9,  //!< The optional surface correction layer.
-    Compound = 10,  //!< The optional compound layer (there can be many; the name must be unique).
+    Georef_Metadata = 10,  //!< The optional georeferenced metadata layer (there can be many; the name must be unique).
     VarRes_Metadata = 11,  //!< The optional variable resolution metadata layer.
     VarRes_Refinement = 12,  //!< The optional variable resolution refinement layer.
     VarRes_Node = 13,  //!< The optional variable resolution node layer.

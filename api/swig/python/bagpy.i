@@ -59,7 +59,7 @@ namespace std
 %include "../include/bag_simplelayer.i"
 %include "../include/bag_interleavedlegacylayer.i"
 %include "../include/bag_surfacecorrections.i"
-%include "../include/bag_compoundlayer.i"
+%include "../include/bag_georefmetadatalayer.i"
 %include "../include/bag_vrmetadata.i"
 %include "../include/bag_vrnode.i"
 %include "../include/bag_vrrefinements.i"
@@ -72,7 +72,7 @@ namespace std
 %include "../include/bag_metadata.i"
 %include "../include/bag_metadataprofiles.i"
 
-%include "../include/bag_compoundlayerdescriptor.i"
+%include "../include/bag_georefmetadatalayerdescriptor.i"
 %include "../include/bag_interleavedlegacylayerdescriptor.i"
 %include "../include/bag_simplelayerdescriptor.i"
 %include "../include/bag_surfacecorrectionsdescriptor.i"

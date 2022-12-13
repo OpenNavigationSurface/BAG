@@ -16,7 +16,8 @@ using BAG::Dataset;
 
 namespace {
 
-    TEST_CASE("test dataset with compound layer of unknown metadata profile type", "[dataset][create][compoundLayer][unknown]")
+    TEST_CASE("test dataset with georeferenced metadata layer of unknown metadata profile type",
+              "[dataset][create][georefMetadataLayer][unknown]")
     {
         const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
                                            "/sample.xml"};
@@ -47,13 +48,13 @@ namespace {
             std::tie(numRows, numColumns) = datasetRO->getDescriptor().getDims();
 
             std::string elevationLayerName = "elevation";
-            const auto& compoundLayer = datasetRO->getCompoundLayer(elevationLayerName);
+            const auto& compoundLayer = datasetRO->getGeorefMetadataLayer(elevationLayerName);
             REQUIRE(compoundLayer);
 
             const auto& valueTable = compoundLayer->getValueTable();
 
             {
-                // Read region of compound layer raster associated with first index, check values
+                // Read region of georeferenced metadata layer raster associated with first index, check values
                 auto buff = compoundLayer->read(0, 0, 4,
                                                 numColumns - 1);
                 auto* buffer = reinterpret_cast<uint16_t*>(buff.data());
@@ -70,7 +71,7 @@ namespace {
             }
 
             {
-                // Read region of compound layer raster associated with first index, check values
+                // Read region of georeferenced metadata layer raster associated with first index, check values
                 auto buff = compoundLayer->read(5, 0, numRows - 1,
                                                 numColumns - 1);
                 auto* buffer = reinterpret_cast<uint16_t*>(buff.data());
@@ -109,13 +110,13 @@ namespace {
         REQUIRE(datasetRO);
         REQUIRE(datasetRO->getLayers().size() == 3);
 
-        // Read NOAA NBS 2022-06 compound layer and make sure metadata profile is properly declared and defined.
-        const auto& compoundLayer = datasetRO->getCompoundLayer(elevationLayerName);
+        // Read NOAA OCS 2022-10 georeferenced metadata layer and make sure metadata profile is properly declared and defined.
+        const auto& compoundLayer = datasetRO->getGeorefMetadataLayer(elevationLayerName);
         REQUIRE(compoundLayer);
 
         const auto& valueTable = compoundLayer->getValueTable();
 
-        // Get the compound layer records specified by the fifth and sixth rows,
+        // Get the georeferenced metadata layer records specified by the fifth and sixth rows,
         // second and third columns.
         uint32_t rowStart = 4;  // fifth row
         uint32_t columnStart = 1;  // second column
@@ -178,7 +179,8 @@ namespace {
 
     }
 
-    TEST_CASE("test dataset with compound layer with undefined metadata profile attribute", "[dataset][create][compoundLayer][undefined_metadata_profile]")
+    TEST_CASE("test dataset with georeferenced metadata layer with undefined metadata profile attribute",
+              "[dataset][create][georefMetadataLayer][undefined_metadata_profile]")
     {
         const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
                                            "/sample.xml"};
@@ -197,10 +199,10 @@ namespace {
             dataset->close();
 
             // Go behind the BAG library's back to delete the metadata profile attribute from the HDF5 file
-            // so that we can test reading a BAG that doesn't declare the profile attribute in its compound layer.
+            // so that we can test reading a BAG that doesn't declare the profile attribute in its georeferenced metadata layer.
             {
                 ::H5::H5File *m_pH5file = new ::H5::H5File{tmpBagFileName,H5F_ACC_RDONLY};
-                const std::string internalPath{COMPOUND_PATH + elevationLayerName + COMPOUND_KEYS};
+                const std::string internalPath{GEOREF_METADATA_PATH + elevationLayerName + COMPOUND_KEYS};
                 const auto h5dataSet = ::H5::DataSet{m_pH5file->openDataSet(internalPath)};
                 h5dataSet.removeAttr(METADATA_PROFILE_TYPE);
                 m_pH5file->close();
@@ -217,7 +219,8 @@ namespace {
         }
     }
 
-    TEST_CASE("test dataset with compound layer with unrecognized metadata profile attribute", "[dataset][create][compoundLayer][unrecognized_metadata_profile]")
+    TEST_CASE("test dataset with georeferenced metadata layer with unrecognized metadata profile attribute",
+              "[dataset][create][georefMetadataLayer][unrecognized_metadata_profile]")
     {
         const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
                                            "/sample.xml"};
@@ -237,10 +240,10 @@ namespace {
 
             // Go behind the BAG library's back to change the metadata profile attribute in the HDF5 file to be an
             // unrecognized value so that we can test reading a BAG with an unrecognized profile attribute in its
-            // compound layer.
+            // georeferenced metadata layer.
             {
                 ::H5::H5File *m_pH5file = new ::H5::H5File{tmpBagFileName,H5F_ACC_RDONLY};
-                const std::string internalPath{COMPOUND_PATH + elevationLayerName + COMPOUND_KEYS};
+                const std::string internalPath{GEOREF_METADATA_PATH + elevationLayerName + COMPOUND_KEYS};
                 const auto h5dataSet = ::H5::DataSet{m_pH5file->openDataSet(internalPath)};
                 const auto metadataProfileAtt = h5dataSet.openAttribute(METADATA_PROFILE_TYPE);
                 const auto profileAttType = ::H5::StrType{0, METADATA_PROFILE_LEN};

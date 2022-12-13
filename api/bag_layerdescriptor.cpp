@@ -130,7 +130,7 @@ uint32_t LayerDescriptor::getId() const noexcept
 //! Retrieve the HDF5 path.
 /*!
 \return
-    The HDF5 path of the layer.  In the case of a CompoundLayer, the path to
+    The HDF5 path of the layer.  In the case of a GeorefMetadataLayer, the path to
     the unique group name is returned.  To read a DataSet using this path, add
     '/keys', '/varres_keys', or '/values'.
 */

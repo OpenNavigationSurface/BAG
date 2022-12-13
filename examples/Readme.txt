@@ -39,7 +39,7 @@ bag_create
 bag_compoundlayer
 -----------------
 
-    Creates and reads a CompoundLayer.
+    Creates and reads a GeorefMetadataLayer.
 
 bag_vr_create
 -------------

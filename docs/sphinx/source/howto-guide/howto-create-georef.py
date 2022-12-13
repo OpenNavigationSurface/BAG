@@ -78,7 +78,7 @@ except Exception as e:
 		dataset.close()
 		sys.exit(str(e))
 
-# Add a compound layer (additional metadata) for elevation.
+# Add a georeferenced metadata layer (additional metadata) for elevation.
 try:
 		indexType = BAG.DT_UINT16;
 		simpleLayerName: str = elevationLayer.getDescriptor().getName()
@@ -100,7 +100,7 @@ try:
 				BAG.UNKNOWN_METADATA_PROFILE, simpleLayerName, definition,
 				chunkSize, compressionLevel)
 				
-		# At this point, all entries in the compound layer point to index 0,
+		# At this point, all entries in the georeferenced metadata layer point to index 0,
 		# which is a no data value.
 		valueTable: BAG.ValueTable = compoundLayer.getValueTable()
 		# Write a couple records.
@@ -124,7 +124,7 @@ try:
 		# Store the new record in memory and in the BAG.
 		secondRecordIndex: int = valueTable.addRecord(record)
 
-		# Set up the compound layer to point to the new records.
+		# Set up the georeferenced metadata layer to point to the new records.
 		# Let's say the first 5 rows of elevation should use the first record
 		# index, and the next 3 columns use the second record index.
 		numRows, numColumns = dataset.getDescriptor().getDims()
@@ -136,7 +136,7 @@ try:
 		columnEnd: int = numColumns - 1
 
 		# Create the buffer.  The type depends on the indexType used when
-		# creating the compound layer.
+		# creating the georeferenced metadata layer.
 		# The buffer contains the first record's index covering the first four
 		# rows (across all the columns).
 		numElements: int = (rowEnd - rowStart + 1) * numColumns
@@ -154,7 +154,7 @@ try:
 		columnEnd = 2
 
 		# Create the buffer.  The type depends on the indexType used when
-		# creating the compound layer.
+		# creating the georeferenced metadata layer.
 		# The buffer contains the second record's index covering the first four
 		# rows (across all the columns).
 		numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1)
@@ -165,7 +165,7 @@ try:
 												buffer)
 
 		# Read the data back.
-		# Get the compound layer records specified by the fifth and sixth rows,
+		# Get the georeferenced metadata layer records specified by the fifth and sixth rows,
 		# second and third columns.
 		rowStart = 4        # fifth row
 		columnStart = 1     # second column

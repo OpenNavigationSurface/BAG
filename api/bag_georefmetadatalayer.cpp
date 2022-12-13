@@ -1,7 +1,7 @@
 
-#include "bag_compoundlayer.h"
+#include "bag_georefmetadatalayer.h"
 #include "bag_metadataprofiles.h"
-#include "bag_compoundlayerdescriptor.h"
+#include "bag_georefmetadatalayerdescriptor.h"
 #include "bag_exceptions.h"
 #include "bag_hdfhelper.h"
 #include "bag_private.h"
@@ -59,12 +59,12 @@ hsize_t getDataTypeMax(
 \param pH5valueDataSet
     The HDF5 DataSet that will hold the spatial metadata values.
 */
-CompoundLayer::CompoundLayer(
-    Dataset& dataset,
-    CompoundLayerDescriptor& descriptor,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5keyDataSet,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5vrKeyDataSet,
-    std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5valueDataSet)
+GeorefMetadataLayer::GeorefMetadataLayer(
+        Dataset& dataset,
+        GeorefMetadataLayerDescriptor& descriptor,
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5keyDataSet,
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5vrKeyDataSet,
+        std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5valueDataSet)
     : Layer(dataset, descriptor)
     , m_pH5keyDataSet(std::move(pH5keyDataSet))
     , m_pH5vrKeyDataSet(std::move(pH5vrKeyDataSet))
@@ -72,15 +72,15 @@ CompoundLayer::CompoundLayer(
 {
 }
 
-//! Create a compound layer.
+//! Create a georeferenced metadata layer.
 /*!
 \param keyType
     The type of key this layer will use.
 \param name
-    The name of this compound layer.
-    Must be a unique name among all compound layers in this BAG Dataset.
+    The name of this georeferenced metadata layer.
+    Must be a unique name among all georeferenced metadata layers in this BAG Dataset.
 \param dataset
-    The BAG Dataset this compound layer will belong to.
+    The BAG Dataset this georeferenced metadata layer will belong to.
 \param definition
     The list of fields describing a single record/value.
 \param chunkSize
@@ -89,9 +89,9 @@ CompoundLayer::CompoundLayer(
     The compression level the HDF5 DataSet will use.
 
 \return
-    The new compound layer.
+    The new georeferenced metadata layer.
 */
-std::shared_ptr<CompoundLayer> CompoundLayer::create(
+std::shared_ptr<GeorefMetadataLayer> GeorefMetadataLayer::create(
             DataType keyType,
             const std::string& name,
             GeorefMetadataProfile profile,
@@ -104,33 +104,33 @@ std::shared_ptr<CompoundLayer> CompoundLayer::create(
         keyType != DT_UINT64)
         throw InvalidKeyType{};
 
-    auto pDescriptor = CompoundLayerDescriptor::create(dataset, name, profile, keyType,
-        definition, chunkSize, compressionLevel);
+    auto pDescriptor = GeorefMetadataLayerDescriptor::create(dataset, name, profile, keyType,
+                                                             definition, chunkSize, compressionLevel);
 
     // Create the H5 Group to hold keys & values.
     const auto& h5file = dataset.getH5file();
-    h5file.createGroup(COMPOUND_PATH + name);
+    h5file.createGroup(GEOREF_METADATA_PATH + name);
 
-    auto h5keyDataSet = CompoundLayer::createH5keyDataSet(dataset, *pDescriptor);
+    auto h5keyDataSet = GeorefMetadataLayer::createH5keyDataSet(dataset, *pDescriptor);
 
     // create optional variable resolution keys.
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5vrKeyDataSet{};
 
     if (dataset.getVRMetadata())
-        h5vrKeyDataSet = CompoundLayer::createH5vrKeyDataSet(dataset, *pDescriptor);
+        h5vrKeyDataSet = GeorefMetadataLayer::createH5vrKeyDataSet(dataset, *pDescriptor);
 
-    auto h5valueDataSet = CompoundLayer::createH5valueDataSet(dataset, *pDescriptor);
+    auto h5valueDataSet = GeorefMetadataLayer::createH5valueDataSet(dataset, *pDescriptor);
 
-    auto layer = std::make_shared<CompoundLayer>(dataset,
-        *pDescriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
-        std::move(h5valueDataSet));
+    auto layer = std::make_shared<GeorefMetadataLayer>(dataset,
+                                                       *pDescriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
+                                                       std::move(h5valueDataSet));
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
 
     return layer;
 }
 
-//! Open an existing compound layer.
+//! Open an existing georeferenced metadata layer.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -138,11 +138,11 @@ std::shared_ptr<CompoundLayer> CompoundLayer::create(
     The descriptor of this layer.
 
 \return
-    The compound layer read from dataset.
+    The georeferenced metadata layer read from dataset.
 */
-std::shared_ptr<CompoundLayer> CompoundLayer::open(
-    Dataset& dataset,
-    CompoundLayerDescriptor& descriptor)
+std::shared_ptr<GeorefMetadataLayer> GeorefMetadataLayer::open(
+            Dataset& dataset,
+            GeorefMetadataLayerDescriptor& descriptor)
 {
     const auto& h5file = dataset.getH5file();
     const std::string& internalPath = descriptor.getInternalPath();
@@ -160,9 +160,9 @@ std::shared_ptr<CompoundLayer> CompoundLayer::open(
         new ::H5::DataSet{h5file.openDataSet(internalPath + COMPOUND_VALUES)},
         DeleteH5dataSet{});
 
-    auto layer = std::make_shared<CompoundLayer>(dataset,
-        descriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
-        std::move(h5valueDataSet));
+    auto layer = std::make_shared<GeorefMetadataLayer>(dataset,
+                                                       descriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
+                                                       std::move(h5valueDataSet));
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
 
@@ -170,7 +170,7 @@ std::shared_ptr<CompoundLayer> CompoundLayer::open(
 }
 
 
-//! Create an HDF5 DataSet for the keys of a single resolution compound layer with details from the descriptor.
+//! Create an HDF5 DataSet for the keys of a single resolution georeferenced metadata layer with details from the descriptor.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -178,12 +178,12 @@ std::shared_ptr<CompoundLayer> CompoundLayer::open(
     The descriptor of this layer.
 
 \return
-    The HDF5 DataSet containing the single resolution keys of a new compound layer.
+    The HDF5 DataSet containing the single resolution keys of a new georeferenced metadata layer.
 */
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-CompoundLayer::createH5keyDataSet(
+GeorefMetadataLayer::createH5keyDataSet(
     const Dataset& dataset,
-    const CompoundLayerDescriptor& descriptor)
+    const GeorefMetadataLayerDescriptor& descriptor)
 {
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet;
 
@@ -263,7 +263,7 @@ CompoundLayer::createH5keyDataSet(
     return pH5dataSet;
 }
 
-//! Create an HDF5 DataSet for the keys of a variable resolution compound layer with details from the descriptor.
+//! Create an HDF5 DataSet for the keys of a variable resolution georeferenced metadata layer with details from the descriptor.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -271,12 +271,12 @@ CompoundLayer::createH5keyDataSet(
     The descriptor of this layer.
 
 \return
-    The HDF5 DataSet containing the variable resolution keys of a new compound layer.
+    The HDF5 DataSet containing the variable resolution keys of a new georeferenced metadata layer.
 */
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-CompoundLayer::createH5vrKeyDataSet(
+GeorefMetadataLayer::createH5vrKeyDataSet(
     const Dataset& dataset,
-    const CompoundLayerDescriptor& descriptor)
+    const GeorefMetadataLayerDescriptor& descriptor)
 {
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet;
 
@@ -321,7 +321,7 @@ CompoundLayer::createH5vrKeyDataSet(
     return pH5dataSet;
 }
 
-//! Create an HDF5 DataSet for the values of a compound layer with details from the descriptor.
+//! Create an HDF5 DataSet for the values of a georeferenced metadata layer with details from the descriptor.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -332,9 +332,9 @@ CompoundLayer::createH5vrKeyDataSet(
     The HDF5 DataSet.
 */
 std::unique_ptr<::H5::DataSet, DeleteH5dataSet>
-CompoundLayer::createH5valueDataSet(
+GeorefMetadataLayer::createH5valueDataSet(
     const Dataset& dataset,
-    const CompoundLayerDescriptor& descriptor)
+    const GeorefMetadataLayerDescriptor& descriptor)
 {
     constexpr hsize_t numValues = 1;
     const auto keyType = descriptor.getDataType();
@@ -372,7 +372,7 @@ CompoundLayer::createH5valueDataSet(
 \return
     The HDF5 DataSet containing the values.
 */
-const ::H5::DataSet& CompoundLayer::getValueDataSet() const &
+const ::H5::DataSet& GeorefMetadataLayer::getValueDataSet() const &
 {
     return *m_pH5valueDataSet;
 }
@@ -383,9 +383,9 @@ const ::H5::DataSet& CompoundLayer::getValueDataSet() const &
     The layer's descriptor.
     Will never be nullptr.
 */
-std::shared_ptr<CompoundLayerDescriptor> CompoundLayer::getDescriptor() & noexcept
+std::shared_ptr<GeorefMetadataLayerDescriptor> GeorefMetadataLayer::getDescriptor() & noexcept
 {
-    return std::dynamic_pointer_cast<CompoundLayerDescriptor>(Layer::getDescriptor());
+    return std::dynamic_pointer_cast<GeorefMetadataLayerDescriptor>(Layer::getDescriptor());
 }
 
 //! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
@@ -394,8 +394,8 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayer::getDescriptor() & noexce
     The layer's descriptor.
     Will never be nullptr.
 */
-std::shared_ptr<const CompoundLayerDescriptor> CompoundLayer::getDescriptor() const & noexcept {
-    return std::dynamic_pointer_cast<const CompoundLayerDescriptor>(Layer::getDescriptor());
+std::shared_ptr<const GeorefMetadataLayerDescriptor> GeorefMetadataLayer::getDescriptor() const & noexcept {
+    return std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(Layer::getDescriptor());
 }
 
 //! Retrieve the value table.
@@ -403,7 +403,7 @@ std::shared_ptr<const CompoundLayerDescriptor> CompoundLayer::getDescriptor() co
 \return
     The value table.
 */
-ValueTable& CompoundLayer::getValueTable() & noexcept
+ValueTable& GeorefMetadataLayer::getValueTable() & noexcept
 {
     return *m_pValueTable;
 }
@@ -413,13 +413,13 @@ ValueTable& CompoundLayer::getValueTable() & noexcept
 \return
     The value table.
 */
-const ValueTable& CompoundLayer::getValueTable() const & noexcept
+const ValueTable& GeorefMetadataLayer::getValueTable() const & noexcept
 {
     return *m_pValueTable;
 }
 
 //! \copydoc Layer::read
-UInt8Array CompoundLayer::readProxy(
+UInt8Array GeorefMetadataLayer::readProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -472,7 +472,7 @@ UInt8Array CompoundLayer::readProxy(
 \return
     The specified keys.
 */
-UInt8Array CompoundLayer::readVR(
+UInt8Array GeorefMetadataLayer::readVR(
     uint32_t indexStart,
     uint32_t indexEnd) const
 {
@@ -480,7 +480,7 @@ UInt8Array CompoundLayer::readVR(
     if (!m_pH5vrKeyDataSet)
         throw DatasetRequiresVariableResolution{};
 
-    auto pDescriptor = std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+    auto pDescriptor = std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
         this->getDescriptor());
     if (!pDescriptor)
         throw InvalidLayerDescriptor{};
@@ -525,14 +525,14 @@ UInt8Array CompoundLayer::readVR(
 \param table
     The new value table.
 */
-void CompoundLayer::setValueTable(
+void GeorefMetadataLayer::setValueTable(
     std::unique_ptr<ValueTable> table) noexcept
 {
     m_pValueTable = std::move(table);
 }
 
 //! \copydoc Layer::write
-void CompoundLayer::writeProxy(
+void GeorefMetadataLayer::writeProxy(
     uint32_t rowStart,
     uint32_t columnStart,
     uint32_t rowEnd,
@@ -567,7 +567,7 @@ void CompoundLayer::writeProxy(
 }
 
 //! \copydoc Layer::writeAttributes
-void CompoundLayer::writeAttributesProxy() const
+void GeorefMetadataLayer::writeAttributesProxy() const
 {
     // Nothing to be done.  Attributes are not modified.
 }
@@ -583,7 +583,7 @@ void CompoundLayer::writeAttributesProxy() const
     The keys to be written.
     Must contain at least indexEnd - indexStart + 1 keys!
 */
-void CompoundLayer::writeVR(
+void GeorefMetadataLayer::writeVR(
     uint32_t indexStart,
     uint32_t indexEnd,
     const uint8_t* buffer)
@@ -608,7 +608,7 @@ void CompoundLayer::writeVR(
     if (indexStart > indexEnd)
         throw InvalidWriteSize{};
 
-    auto pDescriptor = std::dynamic_pointer_cast<CompoundLayerDescriptor>(
+    auto pDescriptor = std::dynamic_pointer_cast<GeorefMetadataLayerDescriptor>(
         this->getDescriptor());
     if (!pDescriptor)
         throw InvalidLayerDescriptor{};

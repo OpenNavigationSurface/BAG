@@ -1,6 +1,6 @@
 
 #include "bag_compounddatatype.h"
-#include "bag_compoundlayerdescriptor.h"
+#include "bag_georefmetadatalayerdescriptor.h"
 #include "bag_dataset.h"
 #include "bag_exceptions.h"
 #include "bag_hdfhelper.h"
@@ -19,12 +19,12 @@ namespace {
 //! Convert a chunk of memory and a definition into a Record.
 /*!
 \param buffer
-    A chunk of memory representing a Record for a compound layer.
+    A chunk of memory representing a Record for a georeferenced metadata layer.
 \param definition
-    The definition of the Record for a compound layer.
+    The definition of the Record for a georeferenced metadata layer.
 
 \return
-    A compound layer record using the buffer and definition.
+    A georeferenced metadata layer record using the buffer and definition.
 */
 Record convertMemoryToRecord(
     const uint8_t* const buffer,
@@ -136,7 +136,7 @@ void convertRecordToMemory(
     The layer the value table holds records/values for.
 */
 ValueTable::ValueTable(
-    const CompoundLayer& layer)
+    const GeorefMetadataLayer& layer)
     : m_layer(layer)
 {
     // Read the Records DataSet.
@@ -156,7 +156,7 @@ ValueTable::ValueTable(
     constexpr hsize_t startIndex = 0;
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &numRecords, &startIndex);
 
-    auto pDescriptor = std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+    auto pDescriptor = std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
         m_layer.getDescriptor());
     const auto& definition = pDescriptor->getDefinition();
 
@@ -237,7 +237,7 @@ std::vector<uint8_t> ValueTable::convertRecordToRaw(
     const Record& record) const
 {
     auto pDescriptor =
-        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
             m_layer.getDescriptor());
 
     std::vector<uint8_t> buffer(getRecordSize(pDescriptor->getDefinition()), 0);
@@ -262,7 +262,7 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
         return {};
 
     auto pDescriptor =
-        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
             m_layer.getDescriptor());
 
     const auto recordSize = getRecordSize(pDescriptor->getDefinition());
@@ -287,7 +287,7 @@ std::vector<uint8_t> ValueTable::convertRecordsToRaw(
 */
 const RecordDefinition& ValueTable::getDefinition() const & noexcept
 {
-    return std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+    return std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
         m_layer.getDescriptor())->getDefinition();
 }
 
@@ -457,7 +457,7 @@ bool ValueTable::validateRecord(
     const Record& record) const
 {
     auto pDescriptor =
-        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
             m_layer.getDescriptor());
     if (!pDescriptor)
         throw InvalidDescriptor{};
@@ -506,7 +506,7 @@ void ValueTable::writeRecord(
     const auto rawMemory = this->convertRecordToRaw(record);
 
     auto pDescriptor =
-        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
             m_layer.getDescriptor());
 
     const auto memDataType = createH5memoryCompType(pDescriptor->getDefinition());
@@ -548,7 +548,7 @@ void ValueTable::writeRecords(
     const auto rawMemory = this->convertRecordsToRaw(records);
 
     auto pDescriptor =
-        std::dynamic_pointer_cast<const CompoundLayerDescriptor>(
+        std::dynamic_pointer_cast<const GeorefMetadataLayerDescriptor>(
             m_layer.getDescriptor());
 
     const auto memDataType = createH5memoryCompType(pDescriptor->getDefinition());

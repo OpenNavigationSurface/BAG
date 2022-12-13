@@ -2,7 +2,7 @@
 # Define Sources
 #-----------------------------------------------------------------------------
 set(examples
-    bag_compound_layer
+    bag_georefmetadata_layer
     bag_create
     bag_read
     bag_vr_create

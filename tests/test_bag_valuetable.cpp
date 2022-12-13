@@ -1,7 +1,7 @@
 
 #include "test_utils.h"
-#include <bag_compoundlayer.h>
-#include <bag_compoundlayerdescriptor.h>
+#include <bag_georefmetadatalayer.h>
+#include <bag_georefmetadatalayerdescriptor.h>
 #include <bag_dataset.h>
 #include <bag_metadata.h>
 #include <bag_types.h>
@@ -368,7 +368,7 @@ TEST_CASE("test value table reading empty", "[valuetable][getDefinition][getReco
     kExpectredDefinition[3].name = kFieldName3;
     kExpectredDefinition[3].type = DT_STRING;
 
-    auto& pLayer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE, layerName,
+    auto& pLayer = pDataset->createGeorefMetadataLayer(keyType, UNKNOWN_METADATA_PROFILE, layerName,
         kExpectredDefinition, chunkSize, compressionLevel);
 
     const auto& valueTable = pLayer.getValueTable();
@@ -448,7 +448,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         definition[6].name = "address";
         definition[6].type = DT_STRING;
 
-        auto& pLayer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE,
+        auto& pLayer = pDataset->createGeorefMetadataLayer(keyType, UNKNOWN_METADATA_PROFILE,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         auto& valueTable = pLayer.getValueTable();
@@ -475,7 +475,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        const auto layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        const auto layer = pDataset->getGeorefMetadataLayer(kExpectedLayerName);
         REQUIRE(layer);
 
         const auto& valueTable = layer->getValueTable();
@@ -531,7 +531,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READ_WRITE);
         REQUIRE(pDataset);
 
-        auto layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        auto layer = pDataset->getGeorefMetadataLayer(kExpectedLayerName);
         REQUIRE(layer);
 
         auto& valueTable = layer->getValueTable();
@@ -590,7 +590,7 @@ TEST_CASE("test value table add record", "[valuetable][constructor][addRecord][g
         const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        const auto layer = pDataset->getCompoundLayer(kExpectedLayerName);
+        const auto layer = pDataset->getGeorefMetadataLayer(kExpectedLayerName);
         REQUIRE(layer);
 
         const auto& valueTable = layer->getValueTable();
@@ -681,7 +681,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         definition[2].name = "bool2";
         definition[2].type = DT_BOOLEAN;
 
-        auto& layer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE,
+        auto& layer = pDataset->createGeorefMetadataLayer(keyType, UNKNOWN_METADATA_PROFILE,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         UNSCOPED_INFO("Check writing to variable resolution metadata fails because the dataset does not have variable resolution.");
@@ -707,7 +707,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
         const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
         REQUIRE(pDataset);
 
-        const auto pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
+        const auto pLayer = pDataset->getGeorefMetadataLayer(kExpectedLayerName);
         REQUIRE(pLayer);
 
         UNSCOPED_INFO("Check reading from variable resolution metadata fails because the dataset does not have variable resolution.");
@@ -746,7 +746,7 @@ TEST_CASE("test value table add records", "[valuetable][constructor][addRecords]
 
 //  UInt8Array readVR(uint32_t indexStart, uint32_t indexEnd) const;
 //  void writeVR(uint32_t indexStart, uint32_t indexEnd, const uint8_t* buffer);
-TEST_CASE("test compound layer readVR/writeVR", "[compoundlayer][readvr][writevr]")
+TEST_CASE("test georeferenced metadata layer readVR/writeVR", "[georefMetadatalayer][readvr][writevr]")
 {
     const TestUtils::RandomFileGuard tmpFileName;
     const std::string kExpectedLayerName = "elevation";
@@ -775,7 +775,7 @@ TEST_CASE("test compound layer readVR/writeVR", "[compoundlayer][readvr][writevr
         constexpr bool kMakeNode = false;
         pDataset->createVR(chunkSize, compressionLevel, kMakeNode);
 
-        // Make a new compound layer using the elevation layer.
+        // Make a new georeferenced metadata layer using the elevation layer.
         // Key type is an 8 bit integer.  Valid values are 1-255.  0 is "no value".
         constexpr BAG::DataType keyType = DT_UINT8;
 
@@ -793,7 +793,7 @@ TEST_CASE("test compound layer readVR/writeVR", "[compoundlayer][readvr][writevr
         definition[2].name = "bool2";
         definition[2].type = DT_BOOLEAN;
 
-        auto& layer = pDataset->createCompoundLayer(keyType, UNKNOWN_METADATA_PROFILE,
+        auto& layer = pDataset->createGeorefMetadataLayer(keyType, UNKNOWN_METADATA_PROFILE,
             kExpectedLayerName, definition, chunkSize, compressionLevel);
 
         // Write some single resolution metadata.
@@ -812,11 +812,11 @@ TEST_CASE("test compound layer readVR/writeVR", "[compoundlayer][readvr][writevr
     }
 
     // Load the dataset, and Read keys from the single and variable resolution
-    // DataSets in the elevation compound layer.
+    // DataSets in the elevation georeferenced metadata layer.
     const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
     REQUIRE(pDataset);
 
-    const auto pLayer = pDataset->getCompoundLayer(kExpectedLayerName);
+    const auto pLayer = pDataset->getGeorefMetadataLayer(kExpectedLayerName);
     REQUIRE(pLayer);
 
     // Read single resolution metadata keys.

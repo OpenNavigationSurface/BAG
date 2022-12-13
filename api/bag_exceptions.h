@@ -66,12 +66,12 @@ struct BAG_API InvalidKeyType final : virtual std::exception
     }
 };
 
-//! A name is required to find a unique compound layer.
+//! A name is required to find a unique georeferenced metadata layer.
 struct BAG_API NameRequired final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "A name is required to find a unique compound layer.";
+        return "A name is required to find a unique georeferenced metadata layer.";
     }
 };
 
@@ -385,7 +385,7 @@ struct BAG_API InvalidValue final : virtual std::exception
     }
 };
 
-//! The dimensions of the values in the CompoundLayer are invalid.
+//! The dimensions of the values in the GeorefMetadataLayer are invalid.
 struct BAG_API InvalidValueSize final : virtual std::exception
 {
     const char* what() const noexcept override
@@ -405,13 +405,13 @@ struct BAG_API LayerRequiresChunkingSet final : virtual std::exception
     }
 };
 
-//! The dataset must use variable resolution to read or write variable resolution metadata using the CompoundLayer.
+//! The dataset must use variable resolution to read or write variable resolution metadata using the GeorefMetadataLayer.
 struct BAG_API DatasetRequiresVariableResolution final : virtual std::exception
 {
     const char* what() const noexcept override
     {
         return "The dataset must use variable resolution to read or write "
-            "variable resolution metadata using the CompoundLayer.";
+            "variable resolution metadata using the GeorefMetadataLayer.";
     }
 };
 

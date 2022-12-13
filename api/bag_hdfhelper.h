@@ -1,7 +1,7 @@
 #ifndef BAG_HDFHELPER_H
 #define BAG_HDFHELPER_H
 
-#include "bag_compoundlayer.h"
+#include "bag_georefmetadatalayer.h"
 #include "bag_config.h"
 #include "bag_fordec.h"
 #include "bag_types.h"

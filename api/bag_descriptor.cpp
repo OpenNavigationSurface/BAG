@@ -30,7 +30,7 @@ const LayerDescriptor* getLayerDescriptor(
     LayerType inType,
     const std::string& inName)
 {
-    if (inType == Compound && inName.empty())
+    if (inType == Georef_Metadata && inName.empty())
         throw NameRequired{};
 
     std::string nameLower{inName};
@@ -184,7 +184,7 @@ const LayerDescriptor& Descriptor::getLayerDescriptor(
     The descriptor of the layer specified by type.
 \param name
     The case-insensitive name of the layer.
-    Optional for all but compound layers.
+    Optional for all but georeferenced metadata layers.
 \return
     The specified layer descriptor.
 */
@@ -210,14 +210,14 @@ Descriptor::getLayerDescriptors() const & noexcept
 /*!
 \return
     All the unique layer types the descriptor is aware of.
-    If multiple compound layers are present, the type is only provided once.
+    If multiple georeferenced metadata  layers are present, the type is only provided once.
 */
 std::vector<LayerType> Descriptor::getLayerTypes() const
 {
     std::vector<LayerType> types;
     types.reserve(m_layerDescriptors.size());
 
-    bool addedCompoundLayer = false;
+    bool addedGeorefMetadataLayer = false;
 
     for (const auto& desc : m_layerDescriptors)
     {
@@ -227,10 +227,10 @@ std::vector<LayerType> Descriptor::getLayerTypes() const
         auto layerDescriptor = desc.lock();
 
         const auto type = layerDescriptor->getLayerType();
-        if (type == Compound)
+        if (type == Georef_Metadata)
         {
-            if (!addedCompoundLayer)
-                addedCompoundLayer = true;
+            if (!addedGeorefMetadataLayer)
+                addedGeorefMetadataLayer = true;
             else
                 continue;
         }

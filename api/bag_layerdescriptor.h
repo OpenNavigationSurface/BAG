@@ -86,7 +86,7 @@ private:
     //! The minimum and maximum value of this dataset.
     std::tuple<float, float> m_minMax{};
 
-    friend CompoundLayer;
+    friend GeorefMetadataLayer;
     friend InterleavedLegacyLayer;
     friend SurfaceCorrections;
     friend SimpleLayer;

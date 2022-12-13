@@ -1,7 +1,7 @@
 
 #include "bag_attributeinfo.h"
-#include "bag_compoundlayer.h"
-#include "bag_compoundlayerdescriptor.h"
+#include "bag_georefmetadatalayer.h"
+#include "bag_georefmetadatalayerdescriptor.h"
 #include "bag_dataset.h"
 #include "bag_exceptions.h"
 #include "bag_interleavedlegacylayer.h"
@@ -44,7 +44,7 @@ namespace {
     The type of layer to find.
 \param name
     The case-insensitive name of the layer to find.
-    This is optional unless looking for a compound layer.
+    This is optional unless looking for a georeferenced metadata layer.
 
 \return
     The found layer.
@@ -55,7 +55,7 @@ std::shared_ptr<Layer> getLayer(
     LayerType type,
     const std::string& name = {})
 {
-    if (type == Compound && name.empty())
+    if (type == Georef_Metadata && name.empty())
         throw NameRequired{};
 
     std::string nameLower{name};
@@ -326,24 +326,24 @@ Layer& Dataset::addLayer(
     return *layer;
 }
 
-//! Create a compound layer.
+//! Create a georeferenced metadata layer.
 /*!
 \param keyType
-    The type of key the compound layer will use.
+    The type of key the georeferenced metadata layer will use.
     Valid values are: DT_UINT8, DT_UINT16, DT_UINT32 or DT_UINT64
 \param name
-    The name of the simple layer this compound layer has metadata for.
+    The name of the simple layer this georeferenced metadata layer has metadata for.
 \param definition
-    The list of fields defining a record of the compound layer.
+    The list of fields defining a record of the georeferenced metadata layer.
 \param chunkSize
     The chunk size the HDF5 DataSet will use.
 \param compressionLevel
     The compression level the HDF5 DataSet will use.
 
 \return
-    The new compound layer.
+    The new georeferenced metadata layer.
 */
-CompoundLayer& Dataset::createCompoundLayer(
+GeorefMetadataLayer& Dataset::createGeorefMetadataLayer(
             DataType keyType,
             GeorefMetadataProfile profile,
             const std::string& name,
@@ -368,7 +368,7 @@ CompoundLayer& Dataset::createCompoundLayer(
             const auto layerType = pDescriptor->getLayerType();
 
             // Skip non-simple layers.
-            if (layerType == Compound || layerType == VarRes_Metadata ||
+            if (layerType == Georef_Metadata || layerType == VarRes_Metadata ||
                 layerType == VarRes_Refinement || layerType == VarRes_Node)
                 return false;
 
@@ -383,44 +383,44 @@ CompoundLayer& Dataset::createCompoundLayer(
     if (!simpleLayerExists)
         throw LayerNotFound{};
 
-    // Make sure the compound layer does not already exist.
-    if (this->getCompoundLayer(name))
+    // Make sure the georeferenced metadata layer does not already exist.
+    if (this->getGeorefMetadataLayer(name))
         throw LayerExists{};
 
     // Create the group if it does not exist.
-    const auto id = H5Gopen2(m_pH5file->getId(), COMPOUND_PATH, H5P_DEFAULT);
+    const auto id = H5Gopen2(m_pH5file->getId(), GEOREF_METADATA_PATH, H5P_DEFAULT);
     if (id == -1)
-        m_pH5file->createGroup(COMPOUND_PATH);
+        m_pH5file->createGroup(GEOREF_METADATA_PATH);
     else
         H5Gclose(id);
 
-    return dynamic_cast<CompoundLayer&>(this->addLayer(CompoundLayer::create(
+    return dynamic_cast<GeorefMetadataLayer&>(this->addLayer(GeorefMetadataLayer::create(
         keyType, name, profile, *this, definition, chunkSize, compressionLevel)));
 }
 
-//! Convenience method for creating a compound layer with a known metadata profile.
+//! Convenience method for creating a georeferenced metadata layer with a known metadata profile.
 //! Will use the RecordDefinition appropriate to the known profile.
 /*!
 \param profile
-    The metadata profile to assign to the compound layer.
+    The metadata profile to assign to the georeferenced metadata layer.
 \param name
-    The name of the simple layer this compound layer has metadata for.
+    The name of the simple layer this georeferenced metadata layer has metadata for.
 \param chunkSize
     The chunk size the HDF5 DataSet will use.
 \param compressionLevel
     The compression level the HDF5 DataSet will use.
 \param keyType
-    The type of key the compound layer will use.
+    The type of key the georeferenced metadata layer will use.
     Valid values are: DT_UINT8, DT_UINT16, DT_UINT32 or DT_UINT64
     Default value: DT_UINT16
 
 \return
-    The new compound layer.
+    The new georeferenced metadata layer.
 
 \throws
     UknownMetadataProfile if profile is not a known metadata profile
 */
-CompoundLayer& Dataset::createMetadataProfileCompoundLayer(
+GeorefMetadataLayer& Dataset::createGeorefMetadataLayer(
         GeorefMetadataProfile profile,
         const std::string& name,
         uint64_t chunkSize,
@@ -435,8 +435,8 @@ CompoundLayer& Dataset::createMetadataProfileCompoundLayer(
         throw UknownMetadataProfile{kGeorefMetadataProfileMapString.at(profile)};
     }
 
-    return createCompoundLayer(keyType, profile,
-                               name, definition, chunkSize, compressionLevel);
+    return createGeorefMetadataLayer(keyType, profile,
+                                     name, definition, chunkSize, compressionLevel);
 }
 
 //! Create a new Dataset.
@@ -537,7 +537,7 @@ Layer& Dataset::createSimpleLayer(
         return this->addLayer(SimpleLayer::create(*this, type, chunkSize,
             compressionLevel));
     case Surface_Correction:  //[[fallthrough]];
-    case Compound:  //[[fallthrough]];
+    case Georef_Metadata:  //[[fallthrough]];
     default:
         throw UnsupportedLayerType{};
     }
@@ -629,45 +629,45 @@ std::tuple<uint32_t, uint32_t> Dataset::geoToGrid(
     return {row, column};
 }
 
-//! Retrieve an optional compound layer by name.
+//! Retrieve an optional georeferenced metadata layer by name.
 /*!
 \param name
-    The name of the simple layer the compound layer has metadata for.
+    The name of the simple layer the georeferenced metadata layer has metadata for.
 
 \return
-    The specified compound layer, if it exists.  nullptr otherwise
+    The specified georeferenced metadata layer, if it exists.  nullptr otherwise
 */
-std::shared_ptr<CompoundLayer> Dataset::getCompoundLayer(
+std::shared_ptr<GeorefMetadataLayer> Dataset::getGeorefMetadataLayer(
     const std::string& name) & noexcept
 {
-    return std::dynamic_pointer_cast<CompoundLayer>(BAG::getLayer(m_layers, Compound, name));
+    return std::dynamic_pointer_cast<GeorefMetadataLayer>(BAG::getLayer(m_layers, Georef_Metadata, name));
 }
 
-//! Retrieve an optional compound layer by name.
+//! Retrieve an optional georeferenced metadata layer by name.
 /*!
 \param name
-    The name of the simple layer the compound layer has metadata for.
+    The name of the simple layer the georeferenced metadata layer has metadata for.
 
 \return
- x   The specified compound layer, if it exists.  nullptr otherwise
+ x   The specified georeferenced metadata layer, if it exists.  nullptr otherwise
 */
-std::shared_ptr<const CompoundLayer> Dataset::getCompoundLayer(const std::string& name) const & noexcept
+std::shared_ptr<const GeorefMetadataLayer> Dataset::getGeorefMetadataLayer(const std::string& name) const & noexcept
 {
-    return std::dynamic_pointer_cast<const CompoundLayer>(BAG::getLayer(m_layers, Compound, name));
+    return std::dynamic_pointer_cast<const GeorefMetadataLayer>(BAG::getLayer(m_layers, Georef_Metadata, name));
 }
 
-//! Retrieve all the compound layers.
+//! Retrieve all the georeferenced metadata layers.
 /*!
 \return
-    All the compound layers.
+    All the georeferenced metadata layers.
 */
-std::vector<std::shared_ptr<CompoundLayer>> Dataset::getCompoundLayers() & noexcept
+std::vector<std::shared_ptr<GeorefMetadataLayer>> Dataset::getGeorefMetadataLayers() & noexcept
 {
-    std::vector<std::shared_ptr<CompoundLayer>> layers;
+    std::vector<std::shared_ptr<GeorefMetadataLayer>> layers;
 
     for (const auto& layer : m_layers)
-        if (layer->getDescriptor()->getLayerType() == Compound) {
-            layers.emplace_back(std::dynamic_pointer_cast<CompoundLayer>(layer));
+        if (layer->getDescriptor()->getLayerType() == Georef_Metadata) {
+            layers.emplace_back(std::dynamic_pointer_cast<GeorefMetadataLayer>(layer));
         }
 
     return layers;
@@ -747,7 +747,7 @@ const Layer& Dataset::getLayer(uint32_t id) const &
     The layer type.
 \param name
     The optional, case-insensitive name.
-    If the layer type is Compound, the name must be the simple layer it refers to.
+    If the layer type is Georef_Metadata, the name must be the simple layer it refers to.
 
 \return
     The specified layer.
@@ -766,7 +766,7 @@ std::shared_ptr<Layer> Dataset::getLayer(
     The layer type.
 \param name
     The optional, case-insensitive name.
-    If the layer type is Compound, the name must be the simple layer it refers to.
+    If the layer type is Georef_Metadata, the name must be the simple layer it refers to.
 */
 std::shared_ptr<const Layer> Dataset::getLayer(
     LayerType type,
@@ -795,24 +795,24 @@ std::vector<std::shared_ptr<const Layer>> Dataset::getLayers() const &
 /*!
 \return
     The layer types.
-    If multiple compound layers exist, Compound_Layer will only be present once.
+    If multiple georeferenced metadata layers exist, Compound_Layer will only be present once.
 */
 std::vector<LayerType> Dataset::getLayerTypes() const
 {
     std::vector<LayerType> types;
     types.reserve(m_layers.size());
 
-    bool compoundLayerAdded = false;
+    bool georefMetadataLayerAdded = false;
 
     for (auto&& layer : m_layers)
     {
         const auto type = layer->getDescriptor()->getLayerType();
-        if (type == Compound)
+        if (type == Georef_Metadata)
         {
-            if (compoundLayerAdded)
+            if (georefMetadataLayerAdded)
                 continue;
             else
-                compoundLayerAdded = true;
+                georefMetadataLayerAdded = true;
         }
 
         types.push_back(type);
@@ -1178,14 +1178,14 @@ void Dataset::readDataset(
     // If the BAG is version 2.0+ ...
     if (bagVersion >= 2'000'000)
     {
-        // Add all existing CompoundLayers
-        id = H5Gopen2(bagGroup.getLocId(), COMPOUND_PATH, H5P_DEFAULT);
+        // Add all existing GeorefMetadataLayers
+        id = H5Gopen2(bagGroup.getLocId(), GEOREF_METADATA_PATH, H5P_DEFAULT);
         if (id >= 0)
         {
             H5Gclose(id);
 
             // Look for any subgroups of the Georef_metadata group.
-            const auto group = m_pH5file->openGroup(COMPOUND_PATH);
+            const auto group = m_pH5file->openGroup(GEOREF_METADATA_PATH);
             const hsize_t numObjects = group.getNumObjs();
 
             for (auto i=0; i<numObjects; ++i)
@@ -1194,8 +1194,8 @@ void Dataset::readDataset(
                 {
                     const auto name = group.getObjnameByIdx(i);
 
-                    auto descriptor = CompoundLayerDescriptor::open(*this, name);
-                    this->addLayer(CompoundLayer::open(*this, *descriptor));
+                    auto descriptor = GeorefMetadataLayerDescriptor::open(*this, name);
+                    this->addLayer(GeorefMetadataLayer::open(*this, *descriptor));
                 }
                 catch(...)
                 {}

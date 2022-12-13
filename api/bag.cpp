@@ -1,6 +1,6 @@
 #include "bag.h"
 #include "bag_c_types.h"
-#include "bag_compoundlayer.h"
+#include "bag_georefmetadatalayer.h"
 #include "bag_dataset.h"
 #include "bag_errors.h"
 #include "bag_layer.h"
@@ -550,7 +550,7 @@ BagError bagGetNumLayers(
     The layer type.
 \param layerName
     The case-insensitive name of the layer.
-    Optional unless checking for a compound layer.
+    Optional unless checking for a georeferenced metadata layer.
 \param bagError
     BAG_SUCCESS if successful.
     The error code, otherwise.
@@ -572,9 +572,9 @@ bool bagContainsLayer(
         return false;
     }
 
-    if (type == Compound && (!layerName || layerName[0] == '\0'))
+    if (type == Georef_Metadata && (!layerName || layerName[0] == '\0'))
     {
-        *bagError = BAG_COMPOUND_LAYER_NAME_MISSING;
+        *bagError = BAG_GEOREF_METADATA_LAYER_NAME_MISSING;
         return false;
     }
 
@@ -600,7 +600,7 @@ bool bagContainsLayer(
     The layer type.
 \param layerName
     The case-insensitive name of the layer.
-    Optional unless checking for a compound layer.
+    Optional unless checking for a georeferenced metadata layer.
 \param data
     The buffer the BAG is read into.
     data must be at least large enough to hold the specified number of rows and columns.
@@ -637,8 +637,8 @@ BagError bagRead(
     if (!x || !y)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    if (type == Compound && (!layerName || layerName[0] == '\0'))
-        return BAG_COMPOUND_LAYER_NAME_MISSING;
+    if (type == Georef_Metadata && (!layerName || layerName[0] == '\0'))
+        return BAG_GEOREF_METADATA_LAYER_NAME_MISSING;
 
     const auto layer = handle->dataset->getLayer(type, layerName);
     if (!layer)
@@ -677,7 +677,7 @@ BagError bagRead(
     The layer type.
 \param layerName
     The case-insensitive name of the layer.
-    Optional unless checking for a compound layer.
+    Optional unless checking for a georeferenced metadata layer.
 \param data
     The buffer to write to the BAG.
     data must be at least large enough to hold the specified number of rows and columns.
@@ -703,8 +703,8 @@ BagError bagWrite(
     if (!data)
         return BAG_SUCCESS;  // nothing to write
 
-    if (type == Compound && (!layerName || layerName[0] == '\0'))
-        return BAG_COMPOUND_LAYER_NAME_MISSING;
+    if (type == Georef_Metadata && (!layerName || layerName[0] == '\0'))
+        return BAG_GEOREF_METADATA_LAYER_NAME_MISSING;
 
     auto layer = handle->dataset->getLayer(type, layerName);
     if (!layer)
@@ -1043,7 +1043,7 @@ BagError bagComputeIndex(
     The layer type.
 \param layerName
     The case-insensitive name of the layer.
-    Optional unless checking for a compound layer.
+    Optional unless checking for a georeferenced metadata layer.
 \param bagError
     The error (if any) generated from this function.
 
@@ -1065,9 +1065,9 @@ uint8_t* bagAllocateBuffer(
     if (!bagError)
         return {};
 
-    if (type == Compound && (!layerName || layerName[0] == '\0'))
+    if (type == Georef_Metadata && (!layerName || layerName[0] == '\0'))
     {
-        *bagError = BAG_COMPOUND_LAYER_NAME_MISSING;
+        *bagError = BAG_GEOREF_METADATA_LAYER_NAME_MISSING;
         return {};
     }
 
@@ -2031,19 +2031,19 @@ BagError bagSetHomeFolder(const char* metadataFolder)
     return BAG_SUCCESS;
 }
 
-// CompoundLayer
-//! Create a compound layer.
+// GeorefMetadataLayer
+//! Create a georeferenced metadata layer.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param indexType
-    The type of index the compound layer will use to index the record.
+    The type of index the georeferenced metadata layer will use to index the record.
     Valid types are: DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64
 \param profile
-    The metadata profile to assign to the compound layer.
+    The metadata profile to assign to the georeferenced metadata layer.
 \param layerName
-    The case-insensitive name of the simple layer this compound layer contains metadata about.
+    The case-insensitive name of the simple layer this georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param definition
     The list of fields making up the record definition.
@@ -2055,7 +2055,7 @@ BagError bagSetHomeFolder(const char* metadataFolder)
     0 if successful.
     An error code otherwise.
 */
-BagError bagCreateCompoundLayer(
+BagError bagCreateGeorefMetadataLayer(
         BagHandle* handle,
         BAG_DATA_TYPE indexType,
         GEOREF_METADATA_PROFILE profile,
@@ -2083,8 +2083,8 @@ BagError bagCreateCompoundLayer(
 
     try
     {
-        handle->dataset->createCompoundLayer(indexType, profile, layerName, recordDef,
-            chunkSize, compressionLevel);
+        handle->dataset->createGeorefMetadataLayer(indexType, profile, layerName, recordDef,
+                                                   chunkSize, compressionLevel);
     }
     catch(const std::exception& /*e*/)
     {
@@ -2094,29 +2094,29 @@ BagError bagCreateCompoundLayer(
     return BAG_SUCCESS;
 }
 
-//! Convenience method for creating a compound layer with a known metadata profile.
+//! Convenience method for creating a georeferenced metadata layer with a known metadata profile.
 //! Will use the RecordDefinition appropriate to the known profile.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param indexType
-    The type of index the compound layer will use to index the record.
+    The type of index the georeferenced metadata layer will use to index the record.
     Valid types are: DT_UINT8, DT_UINT16, DT_UINT32, DT_UINT64
 \param profile
-    The metadata profile to assign to the compound layer.
+    The metadata profile to assign to the georeferenced metadata layer.
 \param layerName
-    The case-insensitive name of the simple layer this compound layer contains metadata about.
+    The case-insensitive name of the simple layer this georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 
 \return
     0 if successful.
     An error code otherwise.
  */
-BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle,
-                                                            BAG_DATA_TYPE indexType,
-                                                            GEOREF_METADATA_PROFILE profile,
-                                                            const char* layerName) {
+BAG_EXTERNAL BagError bagCreateMetadataProfileGeorefMetadataLayer(BagHandle* handle,
+                                                                  BAG_DATA_TYPE indexType,
+                                                                  GEOREF_METADATA_PROFILE profile,
+                                                                  const char* layerName) {
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2131,11 +2131,11 @@ BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle,
 
     try
     {
-        handle->dataset->createMetadataProfileCompoundLayer(profile,
-                                                            layerName,
-                                                            chunkSize,
-                                                            compressionLevel,
-                                                            indexType);
+        handle->dataset->createGeorefMetadataLayer(profile,
+                                                   layerName,
+                                                   chunkSize,
+                                                   compressionLevel,
+                                                   indexType);
     }
     catch(const std::exception& /*e*/)
     {
@@ -2145,13 +2145,13 @@ BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle,
     return BAG_SUCCESS;
 }
 
-//! Get the compound layer record definition.
+//! Get the georeferenced metadata layer record definition.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer this compound layer contains metadata about.
+    The case-insensitive name of the simple layer this georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param definition
     The list of fields making up the record definition.
@@ -2163,7 +2163,7 @@ BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle,
     0 if successful.
     An error code otherwise.
 */
-BagError bagGetCompoundLayerDefinition(
+BagError bagGetGeorefMetadataLayerDefinition(
     BagHandle* handle,
     const char* layerName,
     FieldDefinition** definition,
@@ -2175,11 +2175,11 @@ BagError bagGetCompoundLayerDefinition(
     if (!definition || !numFields)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    const auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
-    const auto& recordDef = compoundLayer->getValueTable().getDefinition();
+    const auto& recordDef = georefMetadataLayer->getValueTable().getDefinition();
 
     // Convert the RecordDefinition into a FieldDefinition*.
     *numFields = static_cast<uint32_t>(recordDef.size());
@@ -2194,19 +2194,19 @@ BagError bagGetCompoundLayerDefinition(
     return BAG_SUCCESS;
 }
 
-//! Get the compound layer records.
+//! Get the georeferenced metadata layer records.
 /*!
-    Read all the records from the compound layer.
+    Read all the records from the georeferenced metadata layer.
     Note that the first record is the no data value record.
 
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param records
-    The records read from the compound layer.
+    The records read from the georeferenced metadata layer.
     Cannot be NULL.
 \param numRecords
     The number of records.
@@ -2217,7 +2217,7 @@ BagError bagGetCompoundLayerDefinition(
     0 if successful.
     An error code otherwise.
 */
-BagError bagGetCompoundLayerRecords(
+BagError bagGetGeorefMetadataLayerRecords(
     BagHandle* handle,
     const char* layerName,
     BagCompoundDataType*** records,
@@ -2230,16 +2230,16 @@ BagError bagGetCompoundLayerRecords(
     if (!layerName || !records || !numRecords || !numFields)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    const auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
-    const auto& recs = compoundLayer->getValueTable().getRecords();
+    const auto& recs = georefMetadataLayer->getValueTable().getRecords();
     if (recs.size() == 1)  // No user defined records; just the single no data value record.
     {
         *numRecords = 0;
         *numFields = static_cast<uint32_t>(
-            compoundLayer->getValueTable().getDefinition().size());
+            georefMetadataLayer->getValueTable().getDefinition().size());
 
         *records = nullptr;
 
@@ -2275,16 +2275,16 @@ BagError bagGetCompoundLayerRecords(
     return BAG_SUCCESS;
 }
 
-//! Get a specific value from the compound layer.
+//! Get a specific value from the georeferenced metadata layer.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param recordIndex
-    The record index to be read from the compound layer.
+    The record index to be read from the georeferenced metadata layer.
     Valid values are 1 to number of records - 1.
     Index 0 contains the no data value so is not queried.
 \param fieldName
@@ -2298,7 +2298,7 @@ BagError bagGetCompoundLayerRecords(
     0 if successful.
     An error code otherwise.
 */
-BagError bagGetCompoundLayerValueByName(
+BagError bagGetGeorefMetadataLayerValueByName(
     BagHandle* handle,
     const char* layerName,
     uint32_t recordIndex,
@@ -2311,43 +2311,43 @@ BagError bagGetCompoundLayerValueByName(
     if (!value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    const auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     try
     {
-        const auto& val = compoundLayer->getValueTable().getValue(recordIndex,
+        const auto& val = georefMetadataLayer->getValueTable().getValue(recordIndex,
             fieldName);
 
         *value = getValue(val);
     }
     catch(const BAG::ValueNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_NO_VALUE_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_NO_VALUE_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
-//! Get a specific value from the compound layer.
+//! Get a specific value from the georeferenced metadata layer.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param recordIndex
-    The record index to be read from the compound layer.
+    The record index to be read from the georeferenced metadata layer.
     Valid values are 1 to number of records - 1.
     Index 0 contains the no data value so is not queried.
 \param fieldIndex
@@ -2360,7 +2360,7 @@ BagError bagGetCompoundLayerValueByName(
     0 if successful.
     An error code otherwise.
 */
-BagError bagGetCompoundLayerValueByIndex(
+BagError bagGetGeorefMetadataLayerValueByIndex(
     BagHandle* handle,
     const char* layerName,
     uint32_t recordIndex,
@@ -2373,40 +2373,40 @@ BagError bagGetCompoundLayerValueByIndex(
     if (!value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    const auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     try
     {
-        const auto& val = compoundLayer->getValueTable().getValue(recordIndex,
+        const auto& val = georefMetadataLayer->getValueTable().getValue(recordIndex,
             fieldIndex);
 
         *value = getValue(val);
     }
     catch(const BAG::ValueNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_NO_VALUE_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_NO_VALUE_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
-//! Retrieve the field index of a field name from a specified compound layer.
+//! Retrieve the field index of a field name from a specified georeferenced metadata layer.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param fieldName
     The name of the field.
@@ -2419,7 +2419,7 @@ BagError bagGetCompoundLayerValueByIndex(
     0 if successful.
     An error code otherwise.
 */
-BagError bagGetCompoundLayerFieldIndex(
+BagError bagGetGeorefMetadataLayerFieldIndex(
     BagHandle* handle,
     const char* layerName,
     const char* fieldName,
@@ -2431,30 +2431,30 @@ BagError bagGetCompoundLayerFieldIndex(
     if (!layerName || !fieldName || !fieldIndex)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    const auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     try
     {
         *fieldIndex = static_cast<uint32_t>(
-            compoundLayer->getValueTable().getFieldIndex(fieldName));
+            georefMetadataLayer->getValueTable().getFieldIndex(fieldName));
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
-//! Retrieve the field name of a field index from a specified compound layer.
+//! Retrieve the field name of a field index from a specified georeferenced metadata layer.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param fieldIndex
     The index of the field.
@@ -2466,7 +2466,7 @@ BagError bagGetCompoundLayerFieldIndex(
     0 if successful.
     An error code otherwise.
 */
-BagError bagGetCompoundLayerFieldName(
+BagError bagGetGeorefMetadataLayerFieldName(
     BagHandle* handle,
     const char* layerName,
     uint32_t fieldIndex,
@@ -2478,29 +2478,29 @@ BagError bagGetCompoundLayerFieldName(
     if (!layerName || !fieldName)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    const auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    const auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     try
     {
-        *fieldName = compoundLayer->getValueTable().getFieldName(fieldIndex);
+        *fieldName = georefMetadataLayer->getValueTable().getFieldName(fieldIndex);
     }
     catch(const BAG::FieldNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_FIELD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND;
     }
 
     return BAG_SUCCESS;
 }
 
-//! Add a record to the end of the specified compound layer.
+//! Add a record to the end of the specified georeferenced metadata layer.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param record
     The record to add.
@@ -2515,7 +2515,7 @@ BagError bagGetCompoundLayerFieldName(
     0 if successful.
     An error code otherwise.
 */
-BagError bagAddCompoundLayerRecord(
+BagError bagAddGeorefMetadataLayerRecord(
     BagHandle* handle,
     const char* layerName,
     const BagCompoundDataType* record,
@@ -2528,9 +2528,9 @@ BagError bagAddCompoundLayerRecord(
     if (!layerName || !record || !recordIndex)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::Record.
     BAG::Record rec(numFields);
@@ -2542,15 +2542,15 @@ BagError bagAddCompoundLayerRecord(
     try
     {
         *recordIndex = static_cast<uint32_t>(
-            compoundLayer->getValueTable().addRecord(rec));
+            georefMetadataLayer->getValueTable().addRecord(rec));
     }
     catch(const BAG::InvalidValue& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
+        return BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidValueKey&)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -2560,13 +2560,13 @@ BagError bagAddCompoundLayerRecord(
     return BAG_SUCCESS;
 }
 
-//! Add records to the end of the specified compound layer.
+//! Add records to the end of the specified georeferenced metadata layer.
 /*!
 \param handle
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param record
     The record to add.
@@ -2580,7 +2580,7 @@ BagError bagAddCompoundLayerRecord(
     0 if successful.
     An error code otherwise.
 */
-BagError bagAddCompoundLayerRecords(
+BagError bagAddGeorefMetadataLayerRecords(
     BagHandle* handle,
     const char* layerName,
     const BagCompoundDataType** records,
@@ -2593,9 +2593,9 @@ BagError bagAddCompoundLayerRecords(
     if (!layerName || !records)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType* into a BAG::Records.
     BAG::Records recs(numRecords);
@@ -2614,15 +2614,15 @@ BagError bagAddCompoundLayerRecords(
 
     try
     {
-        compoundLayer->getValueTable().addRecords(recs);
+        georefMetadataLayer->getValueTable().addRecords(recs);
     }
     catch(const BAG::InvalidValue& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
+        return BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidValueKey&)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -2638,7 +2638,7 @@ BagError bagAddCompoundLayerRecords(
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param recordIndex
     The record to update.
@@ -2653,7 +2653,7 @@ BagError bagAddCompoundLayerRecords(
     0 if successful.
     An error code otherwise.
 */
-BagError bagCompoundLayerSetValueByName(
+BagError bagGeorefMetadataLayerSetValueByName(
     BagHandle* handle,
     const char* layerName,
     uint32_t recordIndex,
@@ -2666,28 +2666,28 @@ BagError bagCompoundLayerSetValueByName(
     if (!layerName || !fieldName || !value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
     const auto val = getValue(*value);
 
     try
     {
-        compoundLayer->getValueTable().setValue(recordIndex, fieldName, val);
+        georefMetadataLayer->getValueTable().setValue(recordIndex, fieldName, val);
     }
     catch(const BAG::ValueNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::InvalidValue& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
+        return BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidValueKey&)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -2703,7 +2703,7 @@ BagError bagCompoundLayerSetValueByName(
     A handle to the BAG.
     Cannot be NULL.
 \param layerName
-    The case-insensitive name of the simple layer the compound layer contains metadata about.
+    The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
 \param recordIndex
     The record to update.
@@ -2717,7 +2717,7 @@ BagError bagCompoundLayerSetValueByName(
     0 if successful.
     An error code otherwise.
 */
-BagError bagCompoundLayerSetValueByIndex(
+BagError bagGeorefMetadataLayerSetValueByIndex(
     BagHandle* handle,
     const char* layerName,
     uint32_t recordIndex,
@@ -2730,28 +2730,28 @@ BagError bagCompoundLayerSetValueByIndex(
     if (!layerName || !value)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
-    auto compoundLayer = handle->dataset->getCompoundLayer(layerName);
-    if (!compoundLayer)
-        return BAG_COMPOUND_LAYER_MISSING;
+    auto georefMetadataLayer = handle->dataset->getGeorefMetadataLayer(layerName);
+    if (!georefMetadataLayer)
+        return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
     const auto val = getValue(*value);
 
     try
     {
-        compoundLayer->getValueTable().setValue(recordIndex, fieldIndex, val);
+        georefMetadataLayer->getValueTable().setValue(recordIndex, fieldIndex, val);
     }
     catch(const BAG::ValueNotFound& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const BAG::InvalidValue& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION;
+        return BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION;
     }
     catch(const BAG::InvalidValueKey&)
     {
-        return BAG_COMPOUND_LAYER_RECORD_NOT_FOUND;
+        return BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND;
     }
     catch(const std::exception& /*e*/)
     {
@@ -2801,7 +2801,7 @@ BagError bagCreateVRLayers(
     }
     catch(const BAG::LayerExists& /*e*/)
     {
-        return BAG_COMPOUND_LAYER_EXISTS;
+        return BAG_GEOREF_METADATA_LAYER_EXISTS;
     }
 
     return BAG_SUCCESS;

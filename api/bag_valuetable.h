@@ -15,7 +15,7 @@ namespace BAG {
 #pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
 #endif
 
-//! The interface for the values of the spatial metadata in the compound layer.
+//! The interface for the values of the spatial metadata in the georeferenced metadata layer.
 class BAG_API ValueTable final
 {
 public:
@@ -25,7 +25,7 @@ public:
     ValueTable& operator=(const ValueTable&) = delete;
     ValueTable& operator=(ValueTable&&) = delete;
 
-    // Don't overload == because there is a circular reference between CompoundLayer
+    // Don't overload == because there is a circular reference between GeorefMetadataLayer
     //   ValueTable and implementing == on ValueTable causes compilers problems.
 
     const Records& getRecords() const & noexcept;
@@ -46,7 +46,7 @@ public:
         const CompoundDataType& value);
 
 protected:
-    explicit ValueTable(const CompoundLayer& layer);
+    explicit ValueTable(const GeorefMetadataLayer& layer);
 
 private:
     std::vector<uint8_t> convertRecordToRaw(const Record& record) const;
@@ -59,11 +59,11 @@ private:
     void writeRecords(const std::vector<Record>& records);
 
     //! The layer these records pertain to.
-    const CompoundLayer& m_layer;
+    const GeorefMetadataLayer& m_layer;
     //! The stored values.
     Records m_records;
 
-    friend CompoundLayer;
+    friend GeorefMetadataLayer;
 };
 
 #ifdef _MSC_VER

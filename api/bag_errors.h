@@ -15,7 +15,7 @@
 #define BAG_GENERAL_ERROR_BASE                    0
 #define BAG_METADATA_ERROR_BASE                 400
 #define BAG_HDFV_ERROR_BASE                     600
-#define BAG_COMPOUND_LAYER_ERROR_BASE          1000
+#define BAG_GEOREF_METADATA_LAYER_ERROR_BASE   1000
 
 //! General error conditions, including success
 enum BAG_ERRORS {
@@ -94,13 +94,13 @@ enum BAG_ERRORS {
     BAG_HDF_INVALID_COMPRESSION_LEVEL          = 631, //!< HDF compression level not in acceptable range of 0 to 9
     BAG_HDF_WRITE_ATTRIBUTE_FAILURE            = 632, //!< HDF Unable to write to Attribute
 
-    BAG_COMPOUND_LAYER_MISSING                    = BAG_COMPOUND_LAYER_ERROR_BASE,      //!< The specified layer already exists
-    BAG_COMPOUND_LAYER_RECORD_NOT_FOUND           = BAG_COMPOUND_LAYER_ERROR_BASE + 1,  //!< Unable to find record.
-    BAG_COMPOUND_LAYER_FIELD_NOT_FOUND            = BAG_COMPOUND_LAYER_ERROR_BASE + 2,  //!< Unable to find field.
-    BAG_COMPOUND_LAYER_NO_VALUE_FOUND             = BAG_COMPOUND_LAYER_ERROR_BASE + 3,  //!< Unable to find the value.
-    BAG_COMPOUND_LAYER_INVALID_RECORD_DEFINITION  = BAG_COMPOUND_LAYER_ERROR_BASE + 4,  //!< The provided record does not match the definition in the compound layer.
-    BAG_COMPOUND_LAYER_NAME_MISSING               = BAG_COMPOUND_LAYER_ERROR_BASE + 5,  //!< A compound layer name is required
-    BAG_COMPOUND_LAYER_EXISTS                     = BAG_COMPOUND_LAYER_ERROR_BASE + 6,  //!< The specified layer already exists
+    BAG_GEOREF_METADATA_LAYER_MISSING                    = BAG_GEOREF_METADATA_LAYER_ERROR_BASE,      //!< The specified layer already exists
+    BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND           = BAG_GEOREF_METADATA_LAYER_ERROR_BASE + 1,  //!< Unable to find record.
+    BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND            = BAG_GEOREF_METADATA_LAYER_ERROR_BASE + 2,  //!< Unable to find field.
+    BAG_GEOREF_METADATA_LAYER_NO_VALUE_FOUND             = BAG_GEOREF_METADATA_LAYER_ERROR_BASE + 3,  //!< Unable to find the value.
+    BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION  = BAG_GEOREF_METADATA_LAYER_ERROR_BASE + 4,  //!< The provided record does not match the definition in the georeferenced metadata layer.
+    BAG_GEOREF_METADATA_LAYER_NAME_MISSING               = BAG_GEOREF_METADATA_LAYER_ERROR_BASE + 5,  //!< A georeferenced metadata layer name is required
+    BAG_GEOREF_METADATA_LAYER_EXISTS                     = BAG_GEOREF_METADATA_LAYER_ERROR_BASE + 6,  //!< The specified layer already exists
 
 
 };

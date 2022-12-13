@@ -6,8 +6,8 @@
 namespace BAG
 {
 
-class CompoundLayer;
-class CompoundLayerDescriptor;
+class GeorefMetadataLayer;
+class GeorefMetadataLayerDescriptor;
 class Dataset;
 class Descriptor;
 class InterleavedLegacyLayer;

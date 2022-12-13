@@ -171,11 +171,11 @@ void create_NOAA_OCS_Metadata(const std::string& simpleLayerName,
     {
         constexpr uint64_t chunkSize = 100;
         constexpr unsigned int compressionLevel = 1;
-        auto& compoundLayer = dataset->createMetadataProfileCompoundLayer(
+        auto& compoundLayer = dataset->createGeorefMetadataLayer(
                 BAG::GeorefMetadataProfile::NOAA_OCS_2022_10_METADATA_PROFILE,
                 simpleLayerName, chunkSize, compressionLevel);
 
-        // At this point, all entries in the compound layer point to index 0,
+        // At this point, all entries in the georeferenced metadata layer point to index 0,
         // which is a no data value.
 
         // Write a couple records.
@@ -230,7 +230,7 @@ void create_NOAA_OCS_Metadata(const std::string& simpleLayerName,
         uint32_t numColumns = 0;
         std::tie(numRows, numColumns) = dataset->getDescriptor().getDims();
 
-        // Set up the compound layer to point to the new records.
+        // Set up the georeferenced metadata layer to point to the new records.
         // Let's say the first 5 rows of elevation should use the first record
         // index, and the next 3 columns use the second record index.
 
@@ -242,7 +242,7 @@ void create_NOAA_OCS_Metadata(const std::string& simpleLayerName,
         uint32_t columnEnd = numColumns - 1;
 
         // Create the buffer.  The type depends on the indexType used when
-        // creating the compound layer.
+        // creating the georeferenced metadata layer.
         // The buffer contains the first record's index covering the first four
         // rows (across all the columns).
         size_t numElements = (rowEnd - rowStart + 1) * numColumns;
@@ -259,7 +259,7 @@ void create_NOAA_OCS_Metadata(const std::string& simpleLayerName,
         columnEnd = 2;
 
         // Create the buffer.  The type depends on the indexType used when
-        // creating the compound layer.
+        // creating the georeferenced metadata layer.
         // The buffer contains the second record's index covering the first four
         // rows (across all the columns).
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1);
@@ -278,7 +278,7 @@ void create_NOAA_OCS_Metadata(const std::string& simpleLayerName,
 
 void create_unknown_metadata(const std::string& elevationLayerName,
                              const std::shared_ptr<BAG::Dataset>& dataset) {
-    // Create compound layer of unknown metadata profile
+    // Create georeferenced metadata layer of unknown metadata profile
     BAG::RecordDefinition definition(2);
     definition[0].name = "dummy_int";
     definition[0].type = DT_UINT32;
@@ -289,11 +289,11 @@ void create_unknown_metadata(const std::string& elevationLayerName,
     constexpr unsigned int compressionLevel = 1;
 
     const BAG::DataType indexType = DT_UINT16;
-    auto &compoundLayer = dataset->createCompoundLayer(indexType, UNKNOWN_METADATA_PROFILE,
+    auto &compoundLayer = dataset->createGeorefMetadataLayer(indexType, UNKNOWN_METADATA_PROFILE,
                                                        elevationLayerName, definition, chunkSize,
                                                        compressionLevel);
     auto &valueTable = compoundLayer.getValueTable();
-    // Add some records to the compound layer
+    // Add some records to the georeferenced metadata layer
     using BAG::CompoundDataType;
     // First record
     BAG::Record record{
@@ -308,12 +308,12 @@ void create_unknown_metadata(const std::string& elevationLayerName,
     };
     const auto secondRecordIndex = valueTable.addRecord(record);
 
-    // Write record index values to compound layer raster
+    // Write record index values to georeferenced metadata layer raster
     uint32_t numRows = 0;
     uint32_t numColumns = 0;
     std::tie(numRows, numColumns) = dataset->getDescriptor().getDims();
 
-    // Set up the compound layer to point to the new records.
+    // Set up the georeferenced metadata layer to point to the new records.
     // Let's say the first 5 rows of elevation should use the first record
     // index, and the next 3 columns use the second record index.
 
@@ -325,7 +325,7 @@ void create_unknown_metadata(const std::string& elevationLayerName,
     uint32_t columnEnd = numColumns - 1;
 
     // Create the buffer.  The type depends on the indexType used when
-    // creating the compound layer.
+    // creating the georeferenced metadata layer.
     // The buffer contains the first record's index covering the first four
     // rows (across all the columns).
     size_t numElements = (rowEnd - rowStart + 1) * numColumns;
@@ -342,7 +342,7 @@ void create_unknown_metadata(const std::string& elevationLayerName,
     columnEnd = 2;
 
     // Create the buffer.  The type depends on the indexType used when
-    // creating the compound layer.
+    // creating the georeferenced metadata layer.
     // The buffer contains the second record's index covering the first four
     // rows (across all the columns).
     numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1);

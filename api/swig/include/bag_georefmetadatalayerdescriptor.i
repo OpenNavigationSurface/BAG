@@ -6,10 +6,10 @@
 #endif
 %}
 
-%module bag_compoundlayerdescriptor
+%module bag_georefmetadatalayerdescriptor
 
 %{
-#include "bag_compoundlayerdescriptor.h"
+#include "bag_georefmetadatalayerdescriptor.h"
 %}
 
 %import "bag_dataset.i"
@@ -19,7 +19,7 @@
 %include <std_string.i>
 %include <std_weak_ptr.i>
 %include <std_shared_ptr.i>
-%shared_ptr(BAG::CompoundLayerDescriptor)
+%shared_ptr(BAG::GeorefMetadataLayerDescriptor)
 %shared_ptr(BAG::Dataset)
 
 namespace std 
@@ -29,25 +29,25 @@ namespace std
 
 namespace BAG {
 
-class CompoundLayerDescriptor final : public LayerDescriptor
+class GeorefMetadataLayerDescriptor final : public LayerDescriptor
 {
 public:
-    static std::shared_ptr<CompoundLayerDescriptor> create(Dataset& dataset,
+    static std::shared_ptr<GeorefMetadataLayerDescriptor> create(Dataset& dataset,
         const std::string& name, GeorefMetadataProfile profile, DataType indexType,
         RecordDefinition definition, uint64_t chunkSize,
         int compressionLevel);
     %rename(openDataset) open(Dataset& dataset, const std::string& name);
-    static std::shared_ptr<CompoundLayerDescriptor> open(Dataset& dataset,
+    static std::shared_ptr<GeorefMetadataLayerDescriptor> open(Dataset& dataset,
         const std::string& name);
 
-    CompoundLayerDescriptor(const CompoundLayerDescriptor&) = delete;
-    CompoundLayerDescriptor(CompoundLayerDescriptor&&) = delete;
+    GeorefMetadataLayerDescriptor(const GeorefMetadataLayerDescriptor&) = delete;
+    GeorefMetadataLayerDescriptor(GeorefMetadataLayerDescriptor&&) = delete;
 
-    bool operator==(const CompoundLayerDescriptor &rhs) const noexcept;
-    bool operator!=(const CompoundLayerDescriptor &rhs) const noexcept;
+    bool operator==(const GeorefMetadataLayerDescriptor &rhs) const noexcept;
+    bool operator!=(const GeorefMetadataLayerDescriptor &rhs) const noexcept;
 
-    CompoundLayerDescriptor& operator=(const CompoundLayerDescriptor&) = delete;
-    CompoundLayerDescriptor& operator=(CompoundLayerDescriptor&&) = delete;
+    GeorefMetadataLayerDescriptor& operator=(const GeorefMetadataLayerDescriptor&) = delete;
+    GeorefMetadataLayerDescriptor& operator=(GeorefMetadataLayerDescriptor&&) = delete;
 
     std::weak_ptr<Dataset> getDataset() const &;
     const RecordDefinition& getDefinition() const & noexcept;

@@ -216,24 +216,24 @@ class TestCompatGDAL(unittest.TestCase):
         # Compare bag_array to gdal_array to make sure all data are identical
         self.assertTrue(np.array_equiv(bag_array, gdal_array))
 
-    def test_compound_layer(self) -> None:
+    def test_georefmetadata_layer(self) -> None:
         bag_filename = get_bag_path(Path(self.datapath, 'bag_compound_layer.bag'))
 
         # Open in BAG library
         bd = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READONLY)
         self.assertIsNotNone(bd)
 
-        bag_georef_elev: BAG.CompoundLayer = bd.getCompoundLayer("Elevation")
+        bag_georef_elev: BAG.GeorefMetadataLayer = bd.getGeorefMetadataLayer("Elevation")
         self.assertIsNotNone(bag_georef_elev)
         # Verify metadata profile
-        bag_georef_elev_desc: BAG.CompoundLayerDescriptor = bag_georef_elev.getDescriptor()
+        bag_georef_elev_desc: BAG.GeorefMetadataLayerDescriptor = bag_georef_elev.getDescriptor()
         self.assertEqual(BAG.NOAA_OCS_2022_10_METADATA_PROFILE, bag_georef_elev_desc.getProfile())
 
         # Open in GDAL
         gd = gdal.Open(bag_filename, gdal.GA_ReadOnly)
         self.assertEqual('BAG', gd.GetDriver().ShortName)
 
-        # Okay, we can open the main file. Let's open the compound layer subdataset
+        # Okay, we can open the main file. Let's open the georeferenced metadata layer subdataset
         compound_layer_gdal_name = f"BAG:{bag_filename}:georef_metadata:Elevation"
         gdal_georef_elev = gdal.Open(compound_layer_gdal_name)
         self.assertIsNotNone(gdal_georef_elev)

@@ -2,7 +2,7 @@
 #define BAG_DATASET_H
 
 #include "bag_compounddatatype.h"
-#include "bag_compoundlayerdescriptor.h"
+#include "bag_georefmetadatalayerdescriptor.h"
 #include "bag_config.h"
 #include "bag_descriptor.h"
 #include "bag_exceptions.h"
@@ -87,13 +87,13 @@ public:
 
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
         int compressionLevel) &;
-    CompoundLayer& createCompoundLayer(DataType keyType, GeorefMetadataProfile profile,
-                                       const std::string& name, const RecordDefinition& definition,
-                                       uint64_t chunkSize, int compressionLevel) &;
-    CompoundLayer& createMetadataProfileCompoundLayer(GeorefMetadataProfile profile,
-                                                      const std::string& name,
-                                                      uint64_t chunkSize, int compressionLevel,
-                                                      DataType keyType = DT_UINT16) &;
+    GeorefMetadataLayer& createGeorefMetadataLayer(DataType keyType, GeorefMetadataProfile profile,
+                                                   const std::string& name, const RecordDefinition& definition,
+                                                   uint64_t chunkSize, int compressionLevel) &;
+    GeorefMetadataLayer& createGeorefMetadataLayer(GeorefMetadataProfile profile,
+                                                   const std::string& name,
+                                                   uint64_t chunkSize, int compressionLevel,
+                                                   DataType keyType = DT_UINT16) &;
     SurfaceCorrections& createSurfaceCorrections(
         BAG_SURFACE_CORRECTION_TOPOGRAPHY type, uint8_t numCorrectors,
         uint64_t chunkSize, int compressionLevel) &;
@@ -104,9 +104,9 @@ public:
     TrackingList& getTrackingList() & noexcept;
     const TrackingList& getTrackingList() const & noexcept;
 
-    std::shared_ptr<CompoundLayer> getCompoundLayer(const std::string& name) & noexcept;
-    std::shared_ptr<const CompoundLayer> getCompoundLayer(const std::string& name) const & noexcept;
-    std::vector<std::shared_ptr<CompoundLayer>> getCompoundLayers() & noexcept;
+    std::shared_ptr<GeorefMetadataLayer> getGeorefMetadataLayer(const std::string& name) & noexcept;
+    std::shared_ptr<const GeorefMetadataLayer> getGeorefMetadataLayer(const std::string& name) const & noexcept;
+    std::vector<std::shared_ptr<GeorefMetadataLayer>> getGeorefMetadataLayers() & noexcept;
 
     std::shared_ptr<SurfaceCorrections> getSurfaceCorrections() & noexcept;
     std::shared_ptr<const SurfaceCorrections> getSurfaceCorrections() const & noexcept;
@@ -166,8 +166,8 @@ private:
     //! The optional VR tracking list.
     std::shared_ptr<VRTrackingList> m_pVRTrackingList;
 
-    friend CompoundLayer;
-    friend CompoundLayerDescriptor;
+    friend GeorefMetadataLayer;
+    friend GeorefMetadataLayerDescriptor;
     friend InterleavedLegacyLayer;
     friend InterleavedLegacyLayerDescriptor;
     friend LayerDescriptor;

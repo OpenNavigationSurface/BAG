@@ -114,19 +114,19 @@ BAG_EXTERNAL BagError bagSortTrackingListByCode(BagHandle* handle);
 BAG_EXTERNAL const BagMetadata* bagGetMetaData(BagHandle* handle);
 BAG_EXTERNAL BagError bagSetHomeFolder(const char* metadataFolder);
 
-/* CompoundLayer */
-BAG_EXTERNAL BagError bagCreateCompoundLayer(BagHandle* handle, BAG_DATA_TYPE indexType, GEOREF_METADATA_PROFILE profile, const char* layerName, const FieldDefinition* definition, uint32_t numFields);
-BAG_EXTERNAL BagError bagCreateMetadataProfileCompoundLayer(BagHandle* handle, BAG_DATA_TYPE indexType, GEOREF_METADATA_PROFILE profile, const char* layerName);
-BAG_EXTERNAL BagError bagGetCompoundLayerDefinition(BagHandle* handle, const char* layerName, FieldDefinition** definition, uint32_t* numDefinitions);
-BAG_EXTERNAL BagError bagGetCompoundLayerRecords(BagHandle* handle, const char* layerName, BagCompoundDataType*** records, uint32_t* numRecords, uint32_t* numFields);
-BAG_EXTERNAL BagError bagGetCompoundLayerValueByName(BagHandle* handle, const char* layerName, uint32_t recordIndex, const char* fieldName, BagCompoundDataType* value);
-BAG_EXTERNAL BagError bagGetCompoundLayerValueByIndex(BagHandle* handle, const char* layerName, uint32_t recordIndex, uint32_t fieldIndex, BagCompoundDataType* value);
-BAG_EXTERNAL BagError bagGetCompoundLayerFieldIndex(BagHandle* handle, const char* layerName, const char* fieldName, uint32_t* fieldIndex);
-BAG_EXTERNAL BagError bagGetCompoundLayerFieldName(BagHandle* handle, const char* layerName, uint32_t fieldIndex, const char** fieldName);
-BAG_EXTERNAL BagError bagAddCompoundLayerRecord(BagHandle* handle, const char* layerName, const BagCompoundDataType* record, uint32_t numFields, uint32_t* recordIndex);
-BAG_EXTERNAL BagError bagAddCompoundLayerRecords(BagHandle* handle, const char* layerName, const BagCompoundDataType** records, uint32_t numRecords, uint32_t numFields);
-BAG_EXTERNAL BagError bagCompoundLayerSetValueByName(BagHandle* handle, const char* layerName, uint32_t recordIndex, const char* fieldName, const BagCompoundDataType* value);
-BAG_EXTERNAL BagError bagCompoundLayerSetValueByIndex(BagHandle* handle, const char* layerName, uint32_t recordIndex, uint32_t fieldIndex, const BagCompoundDataType* value);
+/* GeorefMetadataLayer */
+BAG_EXTERNAL BagError bagCreateGeorefMetadataLayer(BagHandle* handle, BAG_DATA_TYPE indexType, GEOREF_METADATA_PROFILE profile, const char* layerName, const FieldDefinition* definition, uint32_t numFields);
+BAG_EXTERNAL BagError bagCreateMetadataProfileGeorefMetadataLayer(BagHandle* handle, BAG_DATA_TYPE indexType, GEOREF_METADATA_PROFILE profile, const char* layerName);
+BAG_EXTERNAL BagError bagGetGeorefMetadataLayerDefinition(BagHandle* handle, const char* layerName, FieldDefinition** definition, uint32_t* numDefinitions);
+BAG_EXTERNAL BagError bagGetGeorefMetadataLayerRecords(BagHandle* handle, const char* layerName, BagCompoundDataType*** records, uint32_t* numRecords, uint32_t* numFields);
+BAG_EXTERNAL BagError bagGetGeorefMetadataLayerValueByName(BagHandle* handle, const char* layerName, uint32_t recordIndex, const char* fieldName, BagCompoundDataType* value);
+BAG_EXTERNAL BagError bagGetGeorefMetadataLayerValueByIndex(BagHandle* handle, const char* layerName, uint32_t recordIndex, uint32_t fieldIndex, BagCompoundDataType* value);
+BAG_EXTERNAL BagError bagGetGeorefMetadataLayerFieldIndex(BagHandle* handle, const char* layerName, const char* fieldName, uint32_t* fieldIndex);
+BAG_EXTERNAL BagError bagGetGeorefMetadataLayerFieldName(BagHandle* handle, const char* layerName, uint32_t fieldIndex, const char** fieldName);
+BAG_EXTERNAL BagError bagAddGeorefMetadataLayerRecord(BagHandle* handle, const char* layerName, const BagCompoundDataType* record, uint32_t numFields, uint32_t* recordIndex);
+BAG_EXTERNAL BagError bagAddGeorefMetadataLayerRecords(BagHandle* handle, const char* layerName, const BagCompoundDataType** records, uint32_t numRecords, uint32_t numFields);
+BAG_EXTERNAL BagError bagGeorefMetadataLayerSetValueByName(BagHandle* handle, const char* layerName, uint32_t recordIndex, const char* fieldName, const BagCompoundDataType* value);
+BAG_EXTERNAL BagError bagGeorefMetadataLayerSetValueByIndex(BagHandle* handle, const char* layerName, uint32_t recordIndex, uint32_t fieldIndex, const BagCompoundDataType* value);
 
 
 /* Variable Resolution */

@@ -13,7 +13,8 @@ kSepSize: int = 3
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Demonstrate creation of compound metadata layers using Python API.')
+    parser = argparse.ArgumentParser(description='Demonstrate creation of georeferenced metadata layers using Python '
+                                                 'API.')
     parser.add_argument('xmlFileName', metavar='xmlFileName', help='File containing XML metadata as input')
     parser.add_argument('outFileName', metavar='outFileName', help='File to write BAG to')
     args = parser.parse_args()
@@ -83,7 +84,7 @@ def main():
     except Exception as e:
         return str(e)
 
-    # Add a compound layer (additional metadata) for elevation.
+    # Add a georeferenced metadata layer (additional metadata) for elevation.
     # Using Figure 4 from the specification as an example
     # see https://github.com/OpenNavigationSurface/BAG/issues/2
 
@@ -91,10 +92,10 @@ def main():
         simpleLayerName: str = elevationLayer.getDescriptor().getName()
         chunkSize: int = 100
         compressionLevel: int = 1
-        compoundLayer: BAG.CompoundLayer = dataset.createMetadataProfileCompoundLayer(
+        georefMetaLayer: BAG.GeorefMetadataLayer = dataset.createMetadataProfileGeorefMetadataLayer(
             BAG.NOAA_OCS_2022_10_METADATA_PROFILE,
             simpleLayerName, chunkSize, compressionLevel)
-        # At this point, all entries in the compound layer point to index 0,
+        # At this point, all entries in the georeferenced metadata layer point to index 0,
         # which is a no data value.
 
         # Write a couple records.
@@ -116,7 +117,7 @@ def main():
             'https://creativecommons.org/publicdomain/zero/1.0/'     # license_url
         )
 
-        valueTable: BAG.ValueTable = compoundLayer.getValueTable()
+        valueTable: BAG.ValueTable = georefMetaLayer.getValueTable()
 
         # Store the new record in memory and in the BAG.
         firstRecordIndex: int = valueTable.addRecord(record)
@@ -144,7 +145,7 @@ def main():
 
         numRows, numColumns = dataset.getDescriptor().getDims()
 
-        # Set up the compound layer to point to the new records.
+        # Set up the georeferenced metadata layer to point to the new records.
         # Let's say the first 5 rows of elevation should use the first record
         # index, and the next 3 columns use the second record index.
 
@@ -156,14 +157,14 @@ def main():
         columnEnd: int = numColumns - 1
 
         # Create the buffer.  The type depends on the indexType used when
-        # creating the compound layer.
+        # creating the georeferenced metadata layer.
         # The buffer contains the first record's index covering the first four
         # rows (across all the columns).
         numElements: int = (rowEnd - rowStart + 1) * numColumns
         firstBuffer: np.ndarray = np.full(numElements, firstRecordIndex, dtype=np.ushort)
 
         buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(firstBuffer)
-        compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+        georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             buffer)
 
         # Start at row 6, go to the last row.
@@ -174,18 +175,18 @@ def main():
         columnEnd = 2
 
         # Create the buffer.  The type depends on the indexType used when
-        # creating the compound layer.
+        # creating the georeferenced metadata layer.
         # The buffer contains the second record's index covering the first four
         # rows (across all the columns).
         numElements = (rowEnd - rowStart + 1) * (columnEnd - columnStart + 1)
         secondBuffer: np.ndarray = np.full(numElements, secondRecordIndex, dtype=np.ushort)
 
         buffer: BAG.UInt16LayerItems = BAG.UInt16LayerItems(secondBuffer)
-        compoundLayer.write(rowStart, columnStart, rowEnd, columnEnd,
+        georefMetaLayer.write(rowStart, columnStart, rowEnd, columnEnd,
                             buffer)
 
         # Read the data back.
-        # Get the compound layer records specified by the fifth and sixth rows,
+        # Get the georeferenced metadata layer records specified by the fifth and sixth rows,
         # second and third columns.
 
         rowStart = 4        # fifth row
@@ -193,7 +194,7 @@ def main():
         rowEnd = 5          # sixth row
         columnEnd = 2       # third column
 
-        buff = compoundLayer.read(rowStart, columnStart, rowEnd,
+        buff = georefMetaLayer.read(rowStart, columnStart, rowEnd,
                                   columnEnd)
         # Cast from uint8_t into unint16_t
         buffer_raw = bytes([b for b in buff])
@@ -236,7 +237,7 @@ def main():
     except Exception as e:
         return str(e)
 
-    print("BAG with compound layer created")
+    print("BAG with georeferenced metadata layer created")
 
     return os.EX_OK
 

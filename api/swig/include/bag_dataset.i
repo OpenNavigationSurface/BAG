@@ -13,7 +13,7 @@
 %}
 
 %import "bag_layer.i"
-%import "bag_compoundlayer.i"
+%import "bag_georefmetadatalayer.i"
 %import "bag_descriptor.i"
 %import "bag_simplelayer.i"
 %import "bag_surfacecorrections.i"
@@ -34,7 +34,7 @@
 %include <std_vector.i>
 namespace std
 {
-    %template(CompoundLayerVector) vector<shared_ptr<BAG::CompoundLayer>>;
+    %template(GeorefMetadataLayerVector) vector<shared_ptr<BAG::GeorefMetadataLayer>>;
     %template(LayerVector) vector<shared_ptr<BAG::Layer>>;
 }
 
@@ -72,10 +72,15 @@ public:
 
     Layer& createSimpleLayer(LayerType type, uint64_t chunkSize,
         int compressionLevel) &;
-    CompoundLayer& createCompoundLayer(DataType indexType, GeorefMetadataProfile profile,
+    GeorefMetadataLayer& createGeorefMetadataLayer(DataType indexType, GeorefMetadataProfile profile,
         const std::string& name, const RecordDefinition& definition,
         uint64_t chunkSize, int compressionLevel) &;
-    CompoundLayer& createMetadataProfileCompoundLayer(GeorefMetadataProfile profile,
+    %rename(createMetadataProfileGeorefMetadataLayer) createGeorefMetadataLayer(GeorefMetadataProfile profile,
+                                                                                const std::string& name,
+                                                                                uint64_t chunkSize,
+                                                                                int compressionLevel,
+                                                                                DataType keyType = DT_UINT16) &;
+    GeorefMetadataLayer& createGeorefMetadataLayer(GeorefMetadataProfile profile,
         const std::string& name,
         uint64_t chunkSize, int compressionLevel,
         DataType keyType = DT_UINT16) &;
@@ -89,8 +94,8 @@ public:
 
     TrackingList& getTrackingList() & noexcept;
 
-    std::shared_ptr<CompoundLayer> getCompoundLayer(const std::string& name) & noexcept;
-    std::vector<std::shared_ptr<CompoundLayer>> getCompoundLayers() & noexcept;
+    std::shared_ptr<GeorefMetadataLayer> getGeorefMetadataLayer(const std::string& name) & noexcept;
+    std::vector<std::shared_ptr<GeorefMetadataLayer>> getGeorefMetadataLayers() & noexcept;
 
     std::shared_ptr<SurfaceCorrections> getSurfaceCorrections() & noexcept;
 

@@ -64,7 +64,7 @@ DataType Layer::getDataType(LayerType layerType) noexcept
     case Num_Soundings:
         return DT_UINT32;
     case Surface_Correction:
-    case Compound:  //[[fallthrough]];
+    case Georef_Metadata:  //[[fallthrough]];
         return DT_COMPOUND;
     default:
         return DT_UNKNOWN_DATA_TYPE;
@@ -172,7 +172,7 @@ std::string Layer::getInternalPath(
         return NOMINAL_ELEVATION_PATH;
     case Surface_Correction:
         return VERT_DATUM_CORR_PATH;
-    case Compound:  // [[fallthrough]];
+    case Georef_Metadata:  // [[fallthrough]];
     case UNKNOWN_LAYER_TYPE:  // [[fallthrough]];
     default:
         throw UnsupportedLayerType{};

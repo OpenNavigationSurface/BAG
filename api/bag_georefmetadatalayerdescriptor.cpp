@@ -1,6 +1,6 @@
 
 #include "bag_dataset.h"
-#include "bag_compoundlayerdescriptor.h"
+#include "bag_georefmetadatalayerdescriptor.h"
 #include "bag_metadataprofiles.h"
 #include "bag_hdfhelper.h"
 #include "bag_private.h"
@@ -29,7 +29,7 @@ namespace BAG {
 \param compressionLevel
     The compression level the HDF5 DataSet will use.
 */
-CompoundLayerDescriptor::CompoundLayerDescriptor(
+GeorefMetadataLayerDescriptor::GeorefMetadataLayerDescriptor(
         Dataset& dataset,
         const std::string& name,
         GeorefMetadataProfile profile,
@@ -37,8 +37,8 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
         RecordDefinition definition,
         uint64_t chunkSize,
         int compressionLevel)
-    : LayerDescriptor(dataset.getNextId(), COMPOUND_PATH + name, name,
-        Compound, chunkSize, compressionLevel)
+    : LayerDescriptor(dataset.getNextId(), GEOREF_METADATA_PATH + name, name,
+                      Georef_Metadata, chunkSize, compressionLevel)
     , m_pBagDataset(dataset.shared_from_this())
     , m_profile(profile)
     , m_keyType(keyType)
@@ -47,7 +47,7 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
 {
 }
 
-//! Create a compound layer.
+//! Create a georeferenced metadata layer descriptor.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -64,9 +64,9 @@ CompoundLayerDescriptor::CompoundLayerDescriptor(
     The compression level the HDF5 DataSet will use.
 
 \return
-    The new compound layer.
+    The new georeferenced metadata layer descriptor.
 */
-std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
+std::shared_ptr<GeorefMetadataLayerDescriptor> GeorefMetadataLayerDescriptor::create(
             Dataset& dataset,
             const std::string& name,
             GeorefMetadataProfile profile,
@@ -75,12 +75,12 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
             uint64_t chunkSize,
             int compressionLevel)
 {
-    return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{dataset, name, profile, keyType,
-            std::move(definition), chunkSize, compressionLevel});
+    return std::shared_ptr<GeorefMetadataLayerDescriptor>(
+        new GeorefMetadataLayerDescriptor{dataset, name, profile, keyType,
+                                          std::move(definition), chunkSize, compressionLevel});
 }
 
-//! Open an existing compound layer.
+//! Open an existing georeferenced metadata layer descriptor.
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
@@ -88,15 +88,15 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::create(
     The name of the simple layer this layer has metadata for.
 
 \return
-    The existing compound layer.
+    The existing georeferenced metadata layer descriptor.
 */
-std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
+std::shared_ptr<GeorefMetadataLayerDescriptor> GeorefMetadataLayerDescriptor::open(
     Dataset& dataset,
     const std::string& name)
 {
     const auto& h5file = dataset.getH5file();
 
-    const std::string internalPath{COMPOUND_PATH + name + COMPOUND_KEYS};
+    const std::string internalPath{GEOREF_METADATA_PATH + name + COMPOUND_KEYS};
     const auto h5dataSet = ::H5::DataSet{h5file.openDataSet(internalPath)};
 
     // Determine keyType.
@@ -147,7 +147,7 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
         const auto metadataProfileAtt = h5dataSet.openAttribute(METADATA_PROFILE_TYPE);
         metadataProfileAtt.read(metadataProfileAtt.getDataType(), profileString);
     } else {
-        std::cerr << "Unable to find compound layer attribute '" << METADATA_PROFILE_TYPE <<
+        std::cerr << "Unable to find georeferenced metadata layer attribute '" << METADATA_PROFILE_TYPE <<
                   "' for simple layer '" << name << "', setting profile to '" << UNKOWN_METADATA_PROFILE_NAME <<
                   "'." << std::endl;
         profileString = UNKOWN_METADATA_PROFILE_NAME;
@@ -159,20 +159,20 @@ std::shared_ptr<CompoundLayerDescriptor> CompoundLayerDescriptor::open(
         // This is a recognized metadata profile (either a specific known profile or the unknown profile)
         profile = search->second;
     } else {
-        std::cerr << "WARNING: Unrecognized compound layer metadata profile '" << profileString <<
+        std::cerr << "WARNING: Unrecognized georeferenced metadata layer metadata profile '" << profileString <<
                   "' for simple layer '" << name << "', assuming value was '" << UNKOWN_METADATA_PROFILE_NAME <<
                   "'." << std::endl;
         profile = UNKNOWN_METADATA_PROFILE;
     }
 
-    return std::shared_ptr<CompoundLayerDescriptor>(
-        new CompoundLayerDescriptor{dataset, name, profile, keyType, definition,
-            chunkSize, compressionLevel});
+    return std::shared_ptr<GeorefMetadataLayerDescriptor>(
+        new GeorefMetadataLayerDescriptor{dataset, name, profile, keyType, definition,
+                                          chunkSize, compressionLevel});
 }
 
 
 //! \copydoc LayerDescriptor::getDataType
-DataType CompoundLayerDescriptor::getDataTypeProxy() const noexcept
+DataType GeorefMetadataLayerDescriptor::getDataTypeProxy() const noexcept
 {
     return m_keyType;
 }
@@ -182,13 +182,13 @@ DataType CompoundLayerDescriptor::getDataTypeProxy() const noexcept
 \return
     The BAG Dataset.
 */
-std::weak_ptr<Dataset> CompoundLayerDescriptor::getDataset() const &
+std::weak_ptr<Dataset> GeorefMetadataLayerDescriptor::getDataset() const &
 {
     return m_pBagDataset;
 }
 
 //! \copydoc LayerDescriptor::getElementSize
-uint8_t CompoundLayerDescriptor::getElementSizeProxy() const noexcept
+uint8_t GeorefMetadataLayerDescriptor::getElementSizeProxy() const noexcept
 {
     return m_elementSize;
 }
@@ -199,7 +199,7 @@ uint8_t CompoundLayerDescriptor::getElementSizeProxy() const noexcept
     The definition of a record/value.
 */
 const RecordDefinition&
-CompoundLayerDescriptor::getDefinition() const & noexcept
+GeorefMetadataLayerDescriptor::getDefinition() const & noexcept
 {
     return m_definition;
 }
@@ -209,7 +209,7 @@ CompoundLayerDescriptor::getDefinition() const & noexcept
 \return
     The metadata profile type.
  */
-GeorefMetadataProfile CompoundLayerDescriptor::getProfile() {
+GeorefMetadataProfile GeorefMetadataLayerDescriptor::getProfile() {
     return m_profile;
 }
 

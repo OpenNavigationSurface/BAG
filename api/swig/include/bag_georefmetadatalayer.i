@@ -6,10 +6,10 @@
 #endif
 %}
 
-%module bag_compoundlayer
+%module bag_georefmetadatalayer
 
 %{
-#include "bag_compoundlayer.h"
+#include "bag_georefmetadatalayer.h"
 %}
 
 #define final
@@ -20,25 +20,25 @@
 %import "bag_valuetable.i"
 
 %include <std_shared_ptr.i>
-%shared_ptr(BAG::CompoundLayer)
+%shared_ptr(BAG::GeorefMetadataLayer)
 
 namespace BAG {
 
-class CompoundLayerDescriptor;
+class GeorefMetadataLayerDescriptor;
 
-class CompoundLayer final : public Layer
+class GeorefMetadataLayer final : public Layer
 {
 public:
-    CompoundLayer(const CompoundLayer&) = delete;
-    CompoundLayer(CompoundLayer&&) = delete;
-    CompoundLayer& operator=(const CompoundLayer&) = delete;
-    CompoundLayer& operator=(CompoundLayer&&) = delete;
+    GeorefMetadataLayer(const GeorefMetadataLayer&) = delete;
+    GeorefMetadataLayer(GeorefMetadataLayer&&) = delete;
+    GeorefMetadataLayer& operator=(const GeorefMetadataLayer&) = delete;
+    GeorefMetadataLayer& operator=(GeorefMetadataLayer&&) = delete;
 
-    bool operator==(const CompoundLayer &rhs) const noexcept;
-    bool operator!=(const CompoundLayer &rhs) const noexcept;
+    bool operator==(const GeorefMetadataLayer &rhs) const noexcept;
+    bool operator!=(const GeorefMetadataLayer &rhs) const noexcept;
 
-    std::shared_ptr<CompoundLayerDescriptor> getDescriptor() & noexcept;
-    std::shared_ptr<const CompoundLayerDescriptor> getDescriptor() const & noexcept;
+    std::shared_ptr<GeorefMetadataLayerDescriptor> getDescriptor() & noexcept;
+    std::shared_ptr<const GeorefMetadataLayerDescriptor> getDescriptor() const & noexcept;
 
     ValueTable& getValueTable() & noexcept;
     %ignore getValueTable() const& noexcept;
@@ -47,7 +47,7 @@ public:
     //void writeVR(uint32_t indexStart, uint32_t indexEnd, const uint8_t* buffer);
 };
 
-%extend CompoundLayer
+%extend GeorefMetadataLayer
 {
     LayerItems readVR(
         uint32_t indexStart,

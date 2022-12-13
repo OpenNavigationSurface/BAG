@@ -54,7 +54,7 @@ inline bool operator==(const VRTrackingItem &lhs, const VRTrackingItem &rhs) noe
         lhs.list_series == rhs.list_series;
 }
 
-//! The type of a record definition (used with Compound Layers).
+//! The type of a record definition (used with Georef_Metadata Layers).
 inline bool operator==(const FieldDefinition &lhs, const FieldDefinition &rhs) noexcept {
     return lhs.type == rhs.type && (std::strcmp(lhs.name, rhs.name) == 0);
 }
@@ -89,7 +89,7 @@ const std::unordered_map<LayerType, std::string> kLayerTypeMapString {
     {Average_Elevation, "Average_Elevation"},
     {Nominal_Elevation, "Nominal_Elevation"},
     {Surface_Correction, "Surface_Correction"},
-    //{Compound, "Compound"},
+    //{Georef_Metadata, "Georef_Metadata"},
     {VarRes_Metadata, "Variable_Resolution_Metadata"},
     {VarRes_Refinement, "Variable_Resolution_Refinement"},
     {VarRes_Node, "Variable_Resolution_Node"},

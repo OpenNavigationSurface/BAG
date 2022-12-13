@@ -9,8 +9,8 @@ configure_file(${BAG_VERSION_H_IN} ${BAG_VERSION_H_OUT})
 set(BAG_SOURCE_FILES
     bag.cpp
     bag_attributeinfo.cpp
-    bag_compoundlayer.cpp
-    bag_compoundlayerdescriptor.cpp
+    bag_georefmetadatalayer.cpp
+    bag_georefmetadatalayerdescriptor.cpp
     bag_dataset.cpp
     bag_deleteh5dataset.cpp
     bag_descriptor.cpp
@@ -50,8 +50,8 @@ set(BAG_HEADER_FILES
     bag_attributeinfo.h
     bag_c_types.h
     bag_compounddatatype.h
-    bag_compoundlayer.h
-    bag_compoundlayerdescriptor.h
+    bag_georefmetadatalayer.h
+    bag_georefmetadatalayerdescriptor.h
     bag_config.h
     bag_dataset.h
     bag_deleteh5dataset.h

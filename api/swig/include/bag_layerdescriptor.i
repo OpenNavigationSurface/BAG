@@ -18,7 +18,7 @@
 %include <std_string.i>
 
 %shared_ptr(BAG::LayerDescriptor)
-%shared_ptr(BAG::CompoundLayerDescriptor)
+%shared_ptr(BAG::GeorefMetadataLayerDescriptor)
 %shared_ptr(BAG::InterleavedLegacyLayerDescriptor)
 %shared_ptr(BAG::SimpleLayerDescriptor)
 %shared_ptr(BAG::SurfaceCorrectionsDescriptor)

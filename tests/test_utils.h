@@ -58,7 +58,7 @@ struct RandomFileGuard final {
 
 void copyFile(const std::string& source, const std::string& dest);
 
-// Outputs needed to create compound layer:
+// Outputs needed to create georeferenced metadata layer:
 //  const string & elevationLayerName
 //  std::shared_ptr<BAG::Dataset> dataset
 std::pair<std::shared_ptr<BAG::Dataset>, std::string>
