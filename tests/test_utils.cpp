@@ -165,8 +165,8 @@ std::pair<std::shared_ptr<BAG::Dataset>, std::string>
     return std::pair<std::shared_ptr<BAG::Dataset>, std::string>{dataset, elevationLayerName};
 }
 
-void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
-                                      std::shared_ptr<BAG::Dataset> dataset) {
+void create_NOAA_OCS_Metadata(const std::string& simpleLayerName,
+                              std::shared_ptr<BAG::Dataset> dataset) {
     try
     {
         constexpr uint64_t chunkSize = 100;
@@ -194,7 +194,8 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
                 std::string{"2019-04-01 00:00:00.0Z"}, // survey_data_start
                 std::string{"2019-04-01 12:00:00.0Z"},  // survey_date_end
                 std::string("NOAA"),                   // source_institution
-                std::string("CD71EB77-5812-4735-B728-0DC1AE2A2F3B"),                // source_survey_id
+                std::string("CD71EB77-5812-4735-B728-0DC1AE2A2F3B"),         // source_survey_id
+                42,                                                           // source_survey_index
                 std::string("Creative Commons Zero Public Domain Dedication (CC0)"),  // license_same
                 std::string("https://creativecommons.org/publicdomain/zero/1.0/")      // license_url
         );
@@ -216,9 +217,10 @@ void create_NOAA_NBS_2022_06_Metadata(const std::string& simpleLayerName,
                 std::string{"2019-04-02 00:00:00.0Z"},  // survey_data_start
                 std::string{"2019-04-02 12:00:00.0Z"},   // survey_date_end
                 std::string("NOAA"),                    // source_institution
-                std::string("15B46F99-1D94-4669-92D8-AA86F533B097"),                        // source_survey_id
+                std::string("15B46F99-1D94-4669-92D8-AA86F533B097"),         // source_survey_id
+                23,                                                           // source_survey_index
                 std::string("Open Data Commons Public Domain Dedication and Licence (PDDL)"), // license_name
-                std::string("http://opendatacommons.org/licenses/pddl/1.0/")                   // license_url
+                std::string("http://opendatacommons.org/licenses/pddl/1.0/")     // license_url
         );
 
         // Store the new record in memory and in the BAG.

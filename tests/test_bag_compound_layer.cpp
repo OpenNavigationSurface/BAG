@@ -89,7 +89,7 @@ namespace {
 
     }
 
-    TEST_CASE("test dataset NOAA NBS 2022-06 metadata profile creation", "[dataset][create][compoundLayer][NOAA_NBS_2022_06]")
+    TEST_CASE("test dataset NOAA OCS 2022-10 metadata profile creation", "[dataset][create][compoundLayer][NOAA_OCS_2022_10]")
     {
         const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
                                            "/sample.xml"};
@@ -100,7 +100,7 @@ namespace {
                              tmpBagFileName);
         std::shared_ptr<BAG::Dataset> dataset = result.first;
         std::string elevationLayerName = result.second;
-        TestUtils::create_NOAA_NBS_2022_06_Metadata(elevationLayerName, dataset);
+        TestUtils::create_NOAA_OCS_Metadata(elevationLayerName, dataset);
         REQUIRE(dataset->getLayers().size() == 3);
         dataset->close();
 

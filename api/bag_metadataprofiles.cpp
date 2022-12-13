@@ -16,6 +16,7 @@ namespace BAG {
                                                std::string surveyDateEnd,
                                                std::string sourceInstitution,
                                                std::string sourceSurveyID,
+                                               uint32_t sourceSurveyIndex,
                                                std::string licenseName,
                                                std::string licenseURL) {
         return BAG::Record{
@@ -31,6 +32,7 @@ namespace BAG {
             CompoundDataType{surveyDateEnd},
             CompoundDataType{sourceInstitution},
             CompoundDataType{sourceSurveyID},
+            CompoundDataType{sourceSurveyIndex},
             CompoundDataType{licenseName},
             CompoundDataType{licenseURL}
         };

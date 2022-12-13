@@ -31,6 +31,7 @@ namespace BAG {
                                                        std::string surveyDateEnd,
                                                        std::string sourceInstitution,
                                                        std::string sourceSurveyID,
+                                                       uint32_t sourceSurveyIndex,
                                                        std::string licenseName,
                                                        std::string licenseURL);
 
@@ -49,6 +50,7 @@ namespace BAG {
             {"survey_date_end", DT_STRING},
             {"source_institution", DT_STRING},
             {"source_survey_id", DT_STRING},
+            {"source_survey_index", DT_UINT32},
             {"license_name", DT_STRING},
             {"license_url", DT_STRING}
     };

@@ -111,6 +111,7 @@ def main():
             '2019-04-01 12:00:00.0Z',                                # survey_date_end
             'NOAA',                                                  # source_institution
             'CD71EB77-5812-4735-B728-0DC1AE2A2F3B',                  # source_survey_id
+            42,                                                      # source_survey_index
             'Creative Commons Zero Public Domain Dedication (CC0)',  # license_name
             'https://creativecommons.org/publicdomain/zero/1.0/'     # license_url
         )
@@ -133,6 +134,7 @@ def main():
             '2019-04-02 12:00:00.0Z',                                         # survey_date_end
             'NOAA',                                                           # source_institution
             '15B46F99-1D94-4669-92D8-AA86F533B097',                           # source_survey_id
+            23,                                                               # source_survey_index
             'Open Data Commons Public Domain Dedication and Licence (PDDL)',  # license_name
             'http://opendatacommons.org/licenses/pddl/1.0/',                  # license_url
         )

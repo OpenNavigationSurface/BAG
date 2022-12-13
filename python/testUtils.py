@@ -39,7 +39,6 @@ class RandomFileGuard:
         return self.m_name
 
     def __del__(self):
-        #print(" RandomFileGuard.Py ")
         if os.path.exists(self.m_name):
             os.remove(self.m_name)
 
