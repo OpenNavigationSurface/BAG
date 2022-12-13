@@ -32,6 +32,12 @@ add_custom_target(Doxygen ALL DEPENDS ${DOXYGEN_INDEX_FILE})
 set(SPHINX_SOURCE ${CMAKE_CURRENT_SOURCE_DIR}/sphinx/source)
 set(SPHINX_BUILD ${CMAKE_CURRENT_BINARY_DIR}/sphinx)
 set(SPHINX_INDEX_FILE ${SPHINX_BUILD}/index.html)
+
+# Configure Sphinx conf.py and copy to output directory
+set(CONF_PY_IN ${SPHINX_SOURCE}/conf.py.in)
+set(CONF_PY_OUT ${SPHINX_SOURCE}/conf.py)
+configure_file(${CONF_PY_IN} ${CONF_PY_OUT})
+
 set(SPHINX_CPP_INDEX_IN ${SPHINX_SOURCE}/cpp-api/index.rst.in)
 set(SPHINX_CPP_INDEX_OUT ${SPHINX_SOURCE}/cpp-api/index.rst)
 configure_file(${SPHINX_CPP_INDEX_IN} ${SPHINX_CPP_INDEX_OUT} @ONLY)

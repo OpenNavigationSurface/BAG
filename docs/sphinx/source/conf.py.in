@@ -9,7 +9,7 @@
 project = 'Bathymetric Attributed Grid (BAG)'
 copyright = '2022, The Open Navigation Surface Project'
 author = 'The Open Navigation Surface Project'
-release = '2.0.1'
+release = '${PROJECT_VERSION}'
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
