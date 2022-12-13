@@ -10,7 +10,7 @@
 |:--------------------------|:------------|:---------------------------------------------------------------------------------------------------------------------------------|
 | significant_features      | Boolean     | See S-101 significant features detected.                                                                                         |
 | feature\_least\_depth     | Boolean     | See S-101 least depth of detected feature measured.                                                                              |
-| feature_size              | Float       | See S-101 feature size.                                                                                                          |
+| feature_size              | Float       | See S-101 feature size (1)                                                                                                       |
 | feature\_size\_var        | Float       | See further discussion (1)                                                                                                       |
 | coverage                  | Boolean     | See S-101 full seafloor coverage achieved                                                                                        |
 | bathy_coverage            | Boolean     | See further discussion (2)                                                                                                       |
