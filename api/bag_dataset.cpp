@@ -1184,7 +1184,7 @@ void Dataset::readDataset(
         {
             H5Gclose(id);
 
-            // Look for any subgroups of the Georef_metadata group.
+            // Look for any subgroups of the GEOREF_METADATA_PATH group.
             const auto group = m_pH5file->openGroup(GEOREF_METADATA_PATH);
             const hsize_t numObjects = group.getNumObjs();
 

@@ -37,7 +37,7 @@ constexpr int kMaxCompressionLevel = 9;
 #define SHOAL_ELEVATION_PATH            ROOT_PATH "/shoal_elevation"
 #define STANDARD_DEV_PATH	            ROOT_PATH "/standard_dev"
 #define NUM_SOUNDINGS_PATH              ROOT_PATH "/num_soundings"
-#define GEOREF_METADATA_PATH            ROOT_PATH "/Georef_metadata/"
+#define GEOREF_METADATA_PATH            ROOT_PATH "/georef_metadata/"
 
 //! Path names for optional VR BAG entities
 #define VR_TRACKING_LIST_PATH           ROOT_PATH "/varres_tracking_list"
