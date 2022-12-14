@@ -1,7 +1,7 @@
 [![image](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testreporting.yml/badge.svg)](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testreporting.yml)
 [![image](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testmatrix.yml/badge.svg)](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testmatrix.yml)
 [![image](https://ci.appveyor.com/api/projects/status/b4y9lmrhvhlntgo2?svg=true)](https://ci.appveyor.com/project/giumas/bag)
-[![image](https://raw.githubusercontent.com/OpenNavigationSurface/BAG/badges/refs/pull/57/merge/coverage.svg)](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testreporting.yml)
+[![image](https://raw.githubusercontent.com/OpenNavigationSurface/BAG/badges/master/coverage.svg)](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testreporting.yml)
 [![Documentation Status](https://readthedocs.org/projects/bag/badge/?version=stable)](https://bag.readthedocs.io/en/latest/?badge=stable)
 
 # Bathymetric Attributed Grid (BAG) - Open Navigation Surface Project
