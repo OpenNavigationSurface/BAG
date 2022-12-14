@@ -1,161 +1,237 @@
-# 
-# Hdf5 Settings
-#
-IF(MSVC)
-    add_definitions(-D H5_BUILT_AS_DYNAMIC_LIB) # Definition required on MSVC
-    find_package(HDF5 REQUIRED)
-    set(HDF5_INCLUDE_DIR ${HDF5_INCLUDE_DIRS} CACHE PATH "Location of hdf5 header files.")
-    set(HDF5_LIB ${HDF5_LIBRARIES})	
-ELSEIF(UNIX)
-    find_package(HDF5 REQUIRED)
-    set(HDF5_INCLUDE_DIR ${HDF5_INCLUDE_DIRS} CACHE PATH "Location of hdf5 header files.")
-    set(HDF5_LIB ${HDF5_LIBRARIES})
-ELSEIF(MINGW)
-    find_package(HDF5 REQUIRED)
-    if(HDF5_C_LIBRARY)
-        set(HDF5_LIB ${HDF5_C_LIBRARY})
-    else(HDF5_C_LIBRARY)
-        # The name of the Hdf5 release library.
-        SET(HDF5_LIB "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/lib/hdf5" CACHE STRING "The name of the hdf5 release library.")
-    endif(HDF5_C_LIBRARY)
-    # The location of the Hdf5 header files.
-    SET(HDF5_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/hdf5/installed/include" CACHE PATH "Location of hdf5 header files.")
-ENDIF()
-
-# 
-# beecrypt Settings
-#
-IF(MSVC)
-    # The location of the beecrypt header files.
-    SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/" CACHE PATH "Location of beecrypt header files.")
-    # The name of the beecrypt release library.
-    SET(BEECRYPT_LIB "optimized;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecrypt.lib;debug;${PROJECT_SOURCE_DIR}/extlibs/beecrypt/beecryptd.lib" CACHE STRING "The name of the beecrypt release library.")
-ELSEIF(UNIX)
-    # The location of the beecrypt header files.
-    FIND_PATH(BEECRYPT_INCLUDE_DIR beecrypt/aes.h)
-    # The name of the beecrypt release library.
-    FIND_LIBRARY(BEECRYPT_LIB beecrypt DOC "The name of the beecrypt release library.")
-ELSEIF(MINGW)
-    # The location of the beecrypt header files.
-    SET(BEECRYPT_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/include/" CACHE PATH "Location of beecrypt header files.")
-    # The name of the beecrypt release library.
-    SET(BEECRYPT_LIB "${PROJECT_SOURCE_DIR}/extlibs/beecrypt/installed/lib/beecrypt" CACHE STRING "The name of the beecrypt release library.")
-ENDIF()
-
-# 
-# libxml Settings
-#
-IF(MSVC)
-    FIND_PACKAGE(LibXml2)
-    SET(LIBXML_INCLUDE_DIR ${LIBXML2_INCLUDE_DIR} CACHE PATH "Location of libxml2 header files.")
-    SET(LIBXML_LIB ${LIBXML2_LIBRARIES} CACHE STRING "The name of the libxml2 release library.")
-ELSEIF(UNIX)
-    FIND_PACKAGE(LibXml2)
-    IF(LIBXML2_INCLUDE_DIR)
-        SET(LIBXML_INCLUDE_DIR ${LIBXML2_INCLUDE_DIR} CACHE PATH "Location of libxml2 header files.")
-        SET(LIBXML_LIB ${LIBXML2_LIBRARIES} CACHE STRING "The name of the libxml2 release library.")
-    ELSE(LIBXML2_INCLUDE_DIR)
-        SET(LIBXML_INCLUDE_DIR "/usr/include" CACHE PATH "Location of libxml2 header files.")
-        # The name of the libxml2 release library.
-        SET(LIBXML_LIB "libxml2" CACHE STRING "The name of the libxml2 release library.")
-    ENDIF()
-
-ELSEIF(MINGW)
-    # The location of the libxml2 header files.
-    FIND_PACKAGE(LibXml2)
-    IF(LIBXML2_INCLUDE_DIR)
-        SET(LIBXML_INCLUDE_DIR ${LIBXML2_INCLUDE_DIR} CACHE PATH "Location of libxml2 header files.")
-        SET(LIBXML_LIB ${LIBXML2_LIBRARIES} CACHE STRING "The name of the libxml2 release library.")
-    ELSE(LIBXML2_INCLUDE_DIR)
-        SET(LIBXML_INCLUDE_DIR "${PROJECT_SOURCE_DIR}/extlibs/libxml2/installed/include/" CACHE PATH "Location of libxml2 header files.")
-        # The name of the libxml2 release library.
-        SET(LIBXML_LIB "${PROJECT_SOURCE_DIR}/extlibs/libxml2/installed/lib/libxml2" CACHE STRING "The name of the libxml2 release library.")
-    ENDIF()
-ENDIF()
-
-include_directories (${HDF5_INCLUDE_DIR} ${BEECRYPT_INCLUDE_DIR} ${LIBXML_INCLUDE_DIR}) 
-
 # The debug build will have a 'd' postfix
-SET(CMAKE_DEBUG_POSTFIX  "d")
+set(CMAKE_DEBUG_POSTFIX "d")
 
-if(WIN32)
-	#Preset install dir
-	IF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-		SET(CMAKE_INSTALL_PREFIX "${PROJECT_SOURCE_DIR}/installed" CACHE PATH "CMAKE_INSTALL_PREFIX" FORCE)
-	ENDIF(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+# Pass version from CMake to bag_version.h
+set(BAG_VERSION_H_IN ${CMAKE_CURRENT_SOURCE_DIR}/bag_version.h.in)
+set(BAG_VERSION_H_OUT ${CMAKE_CURRENT_SOURCE_DIR}/bag_version.h)
+configure_file(${BAG_VERSION_H_IN} ${BAG_VERSION_H_OUT})
+
+set(BAG_SOURCE_FILES
+    bag.cpp
+    bag_attributeinfo.cpp
+    bag_georefmetadatalayer.cpp
+    bag_georefmetadatalayerdescriptor.cpp
+    bag_dataset.cpp
+    bag_deleteh5dataset.cpp
+    bag_descriptor.cpp
+    bag_hdfhelper.cpp
+    bag_interleavedlegacylayer.cpp
+    bag_interleavedlegacylayerdescriptor.cpp
+    bag_layer.cpp
+    bag_layerdescriptor.cpp
+    bag_legacy_crs.cpp
+    bag_metadata.cpp
+    bag_metadata_export.cpp
+    bag_metadata_import.cpp
+    bag_metadataprofiles.cpp
+    bag_metadatatypes.cpp
+    bag_simplelayer.cpp
+    bag_simplelayerdescriptor.cpp
+    bag_surfacecorrections.cpp
+    bag_surfacecorrectionsdescriptor.cpp
+    bag_trackinglist.cpp
+    bag_valuetable.cpp
+    bag_vrmetadata.cpp
+    bag_vrmetadatadescriptor.cpp
+    bag_vrnode.cpp
+    bag_vrnodedescriptor.cpp
+    bag_vrrefinements.cpp
+    bag_vrrefinementsdescriptor.cpp
+    bag_vrtrackinglist.cpp
+)
+source_group("Source Files" FILES ${BAG_SOURCE_FILES})
+
+set(BAG_PRIVATE_HEADER_FILES
+    bag_private.h
+)
+
+set(BAG_HEADER_FILES
+    bag.h
+    bag_attributeinfo.h
+    bag_c_types.h
+    bag_compounddatatype.h
+    bag_georefmetadatalayer.h
+    bag_georefmetadatalayerdescriptor.h
+    bag_config.h
+    bag_dataset.h
+    bag_deleteh5dataset.h
+    bag_descriptor.h
+    bag_errors.h
+    bag_exceptions.h
+    bag_fordec.h
+    bag_hdfhelper.h
+    bag_interleavedlegacylayer.h
+    bag_interleavedlegacylayerdescriptor.h
+    bag_layer.h
+    bag_layerdescriptor.h
+    bag_layeritems.h
+    bag_legacy_crs.h
+    bag_metadata.h
+    bag_metadata_export.h
+    bag_metadata_import.h
+    bag_metadataprofiles.h
+    bag_metadatatypes.h
+    bag_simplelayer.h
+    bag_simplelayerdescriptor.h
+    bag_surfacecorrections.h
+    bag_surfacecorrectionsdescriptor.h
+    bag_trackinglist.h
+    bag_vrmetadata.h
+    bag_vrmetadatadescriptor.h
+    bag_vrnode.h
+    bag_vrnodedescriptor.h
+    bag_vrrefinements.h
+    bag_vrrefinementsdescriptor.h
+    bag_vrtrackinglist.h
+    bag_types.h
+    bag_uint8array.h
+    bag_valuetable.h
+    bag_version.h
+)
+source_group("Header Files" FILES ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES})
+
+# Allow for inserting BAG as a nested library (not tested)
+if(BAG_BUILD_SHARED_LIBS)
+    add_library(baglib SHARED
+        ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES}
+    )
+else()
+    add_library(baglib STATIC
+        ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES}
+    )
 endif()
 
-#Use the version 1 interface for HDF5
-add_definitions(-D H5_USE_16_API)
+set_target_properties(baglib
+    PROPERTIES
+        CMAKE_CXX_EXTENSIONS OFF
+)
 
-IF(MSVC)
+target_compile_definitions(baglib
+    PRIVATE
+        $<$<CXX_COMPILER_ID:MSVC>:_USE_MATH_DEFINES>
+        $<$<CXX_COMPILER_ID:MSVC>:_CRT_SECURE_NO_WARNINGS>
+        $<$<CXX_COMPILER_ID:MSVC>:_CRT_NONSTDC_NO_DEPRECATE>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:BAG_DLL>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:BAG_EXPORTS>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<BOOL:BAG_BUILD_SHARED_LIBS>>:H5_BUILT_AS_DYNAMIC_LIB>
+)
 
-    #ignore some warnings generated by windows.
-    add_definitions(/D_CRT_SECURE_NO_WARNINGS /D _CRT_NONSTDC_NO_DEPRECATE)
-    
-	#if we are building a shared library, then we need to define these symbols.
-	IF(BUILD_SHARED_LIBS)
-		add_definitions(/D BAG_DLL /D BAG_EXPORTS)
-	ENDIF(BUILD_SHARED_LIBS)
-	
-	#if we are building against a shared HDF5, then we need to define this symbol.
-	IF(BUILD_WITH_SHARED_HDF5)
-		add_definitions(/D _HDF5USEDLL_)
-	ENDIF(BUILD_WITH_SHARED_HDF5)
-	
-ENDIF(MSVC)
+# MSVC compiler versions.
+# From https://docs.microsoft.com/en-us/cpp/error-messages/compiler-warnings/compiler-warnings-by-compiler-version?view=vs-2019
+# 19.00     2015
+# 19.10     2017
+# 19.20     2019
+target_compile_options(baglib
+    PRIVATE
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.10>>:/permissive- /W4 /WX>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.13>>:/experimental:external /external:W0 /external:templates->
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.13>>:/external:anglebrackets>
+        $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
+)
 
-#List all of the bag api source files.
-set (BAG_SOURCE_FILES 
- bag_attr.c
- bag_crypto.c
- bag_hdf.c
- bag_metadata.cpp
- bag_metadata_export.cpp
- bag_metadata_import.cpp
- bag_legacy.c
- bag_opt_group.c
- bag_opt_surfaces.c
- bag_reference_system.cpp
- bag_surface_correct.c
- bag_surfaces.c
- bag_tracking_list.c
- crc32.c
- onscrypto.c)
-source_group("Source Files" FILES ${BAG_SOURCE_FILES})
- 
-set (BAG_HEADER_FILES 
- bag.h
- bag_config.h
- bag_errors.h
- bag_metadata.h
- bag_legacy.h
- bag_opt_surfaces.h
- bag_private.h
- crc32.h
- dt_cc.h
- onscrypto.h
- stdtypes.h)
-source_group("Header Files" FILES ${BAG_HEADER_FILES})
- 
-add_library (bag ${LIB_TYPE} ${BAG_SOURCE_FILES} ${BAG_HEADER_FILES} )
+find_package(HDF5 COMPONENTS CXX REQUIRED)
+find_package(LibXml2 MODULE REQUIRED)
 
-target_link_libraries(bag ${HDF5_LIB})
-target_link_libraries(bag ${BEECRYPT_LIB})
-target_link_libraries(bag ${LIBXML_LIB})
+target_include_directories(baglib
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+    PRIVATE SYSTEM
+        ${HDF5_INCLUDE_DIRS}
+)
 
-IF(MSVC)
+# Windows is combining debug and release libraries unless we do this.
+# Initial attempt was:
+#   $<IF:$<CXX_COMPILER_ID:MSVC>,"${HDF5_hdf5_LIBRARY} ${HDF5_hdf5_cpp_LIBRARY}","${HDF5_LIBRARIES}">
+# But it will not parse correctly.
+if(MSVC)
+    target_link_libraries(baglib
+        PUBLIC
+            ${HDF5_hdf5_LIBRARY}
+            ${HDF5_hdf5_cpp_LIBRARY}
+        PRIVATE
+            LibXml2::LibXml2
+            HDF5::HDF5
+    )
 
-    #Apparently some versions of Visual Studio require us to link to ws2_32.lib
-    target_link_libraries(bag "ws2_32.lib")
-    
-ENDIF(MSVC)
+    if(NOT BAG_CI)
+        # Copy DLLs into the runtime output directory so running C++ tests is smooth.
+        # Find Zlib to copy the DLLs.
+        find_package(ZLIB REQUIRED)
 
-install(FILES ${BAG_HEADER_FILES} DESTINATION include)
+        # Find all the runtime dependencies (DLLs) using CMAKE_PREFIX_PATH.
 
-install(TARGETS bag
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION lib
-        ARCHIVE DESTINATION lib/static)
-        
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/configdata/ DESTINATION configdata)
+        set(THIRD_PARTY_LIBS
+            ${HDF5_hdf5_LIBRARY_DEBUG}
+            ${HDF5_hdf5_LIBRARY_RELEASE}
+            ${LIBXML2_LIBRARIES}
+            ${ZLIB_LIBRARY_DEBUG}
+            ${ZLIB_LIBRARY_RELEASE}
+        )
+
+        # Trim the path down to just the file name.
+        foreach(LIB ${THIRD_PARTY_LIBS})
+            get_filename_component(FILENAME ${LIB} NAME_WLE)
+            list(APPEND THIRD_PARTY_DLLS ${FILENAME}*.dll)
+        endforeach()
+
+        # Search through CMAKE_PREFIX_PATH for each DLL glob.
+        foreach(CPPATH ${CMAKE_PREFIX_PATH})
+            foreach(DLL ${THIRD_PARTY_DLLS})
+                set(PATH_DLL ${CPPATH}/**/${DLL})
+
+                file(GLOB FOUND_DLL LIST_DIRECTORIES false ${PATH_DLL})
+
+                list(LENGTH FOUND_DLL NUM_DLLS_FOUND)
+                if(${NUM_DLLS_FOUND} GREATER 0)
+                    list(APPEND FOUND_DLLS ${FOUND_DLL})
+                endif()
+            endforeach()
+        endforeach()
+
+        list(LENGTH FOUND_DLLS NUM_FOUND_DLLS)
+        if(${NUM_FOUND_DLLS} GREATER 0)
+            add_custom_command(TARGET baglib POST_BUILD
+                COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FOUND_DLLS} "${CMAKE_RUNTIME_OUTPUT_DIRECTORY}"
+            )
+        endif()
+    endif()
+else()
+    if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.20")
+        set(HDF5_PRIVATE HDF5::HDF5)
+    endif()
+    target_link_libraries(baglib
+        PUBLIC
+            ${HDF5_LIBRARIES}
+        PRIVATE
+            LibXml2::LibXml2
+            ${HDF5_PRIVATE}
+    )
+endif()
+
+if(BAG_BUILD_SWIG)
+    # Build SWIG bindings
+    add_subdirectory(swig)
+endif()
+
+if(BAG_CODE_COVERAGE)
+    target_code_coverage(baglib AUTO ALL)
+endif()
+
+set_property(GLOBAL PROPERTY BAGLIB_TARGET_PROP $<TARGET_FILE:baglib>)
+
+# Install
+install(FILES
+    ${BAG_HEADER_FILES} DESTINATION include
+)
+
+install(TARGETS baglib
+    RUNTIME DESTINATION bin
+    LIBRARY DESTINATION lib
+    ARCHIVE DESTINATION lib/static
+)
+
+install(DIRECTORY
+    ${PROJECT_SOURCE_DIR}/configdata/ DESTINATION configdata
+)
+

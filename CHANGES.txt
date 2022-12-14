@@ -1,4 +1,20 @@
 =========================
+BAG v.2.0.1 Release Notes
+=========================
+
+November 2022
+1.  Refactor API from C to C++14
+2.  Add Python API bindings using SWIG
+3.  Add support for spatial metadata as described here: https://github.com/OpenNavigationSurface/BAG/issues/2
+4.  Add integrated, automatically generated, documentation hosted at: https://bag.readthedocs.io/en/latest/
+5.  Add code coverage reporting for C++ unit tests
+6.  Update Format Specification Document (FSD):
+    a.  Add description of spatial metadata support
+    b.  Remove description of API details, focusing on an implementation-agnostic description of the BAG format
+    c.  Integrate description of variable resolution extension to FSD document
+7.  Add API How-to Guide to document how to accomplish common tasks using the C++ and Python APIs
+
+=========================
 BAG v.1.6.2 Release Notes
 =========================
 
@@ -49,7 +65,7 @@ BAG v.1.5.0 Release Notes
 1. Update BAG metadata schema to the latest official version from
 TC211.
 2. Update the definition of the coordinate system information.
-3. Restructure the Optional Surfaces’ Handle object and its API.
+3. Restructure the Optional Surfacesï¿½ Handle object and its API.
 4. Modify the Optional Vertical Correctors surface and its API.
 5. Additional Optional Surfaces: Node and Elevation Solution Groups.
 

@@ -1,0 +1,131 @@
+name: Test Reporting
+
+on:
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - appveyor.yml
+      - readme.*
+      - README.*
+      - '*.md'
+      - '*.svg'
+    branches: [ "master", "v2" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Debug
+  CC: clang
+  CXX: clang++
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04]
+    # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
+    # You can convert this to a matrix build if you need cross-platform coverage.
+    # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+    runs-on: ${{matrix.os}}
+
+    steps:
+
+    # Get current banch name to use it as dest directory
+    - name: Extract branch name
+      shell: bash
+      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      id: extract_branch
+
+    - name: Prepare environment
+      id: coverage
+      run: |
+        # Output values to be used by other steps
+        echo "##[set-output name=path;]${BADGE_PATH}"
+        echo "##[set-output name=branch;]${BRANCH}"
+      env:
+        BADGE_PATH: ${{ steps.extract_branch.outputs.branch }}/coverage.svg
+        BRANCH: badges
+
+    - name: Checkout
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ github.event.pull_request.head.repo.full_name }}
+        ref: ${{ github.event.pull_request.head.ref }}
+    
+    - name: Install dependencies
+      run: |
+        bash ./scripts/install-dependencies-cov.sh
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: |
+        export CC=${{env.CC}}
+        export CXX=${{env.CXX}}
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON
+
+    - name: Build
+      # Build your program with the given configuration
+      run: |
+        export CC=${{env.CC}}
+        export CXX=${{env.CXX}}
+        cmake --build build
+
+    - name: Run tests
+      run: |
+        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests_d -r junit -o build/tests/bag_tests-testreport.xml
+
+    - name: Test Reporter
+      uses: mikepenz/action-junit-report@v3
+      if: always() # always run even if the previous step fails
+      with:
+        report_paths: './build/tests/*-testreport.xml'
+
+    - name: Run test coverage
+      # Execute C++ tests
+      run: |
+        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ninja -C build ccov-all-export-lcov
+
+    - name: Test coverage reporter
+      uses: zgosalvez/github-actions-report-lcov@v1
+      with:
+        coverage-files: ./build/ccov/lcov.info
+        minimum-coverage: 60
+        artifact-name: code-coverage-report
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        working-directory: ./api
+
+    - name: Update coverage badge
+      run: |
+        source python-venv/bin/activate
+        llvm-cov report -instr-profile=build/ccov/all-merged.profdata `cat ./build/ccov/binaries.list` -ignore-filename-regex="tests/*" -ignore-filename-regex="bag.cpp" | tail -n 1 | awk '{ print $10 }' | xargs python ./scripts/coverage-badge.py -o /tmp/coverage.svg -c
+        deactivate
+
+    - name: Checkout badges branch
+      # Checkout badges branch of repo so that we can commit the coverage badge there
+      uses: actions/checkout@v3
+      with:
+        ref: ${{ steps.coverage.outputs.branch }}
+
+    - name: Create coverage badge destination directory
+      # Create the directory where badges will be saved, if needed
+      env:
+        BADGE_PATH: ${{ steps.coverage.outputs.path }}
+      run: mkdir -p "${BADGE_PATH%/*}"
+
+    - name: Commit badge
+      continue-on-error: true
+      env:
+        BADGE: ${{ steps.coverage.outputs.path }}
+      run: |
+        mv /tmp/coverage.svg "${BADGE}"
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add "${BADGE}"
+        git commit -m "Add/Update badge"
+
+    - name: Push badge commit
+      uses: ad-m/github-push-action@master
+      if: ${{ success() }}
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        branch: ${{ steps.coverage.outputs.branch }}

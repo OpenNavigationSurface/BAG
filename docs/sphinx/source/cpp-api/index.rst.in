@@ -1,0 +1,15 @@
+=================
+C++ API Reference
+=================
+
+.. doxygennamespace:: BAG
+    :path: @DOXYGEN_OUTPUT_XML_DIR@
+    :members:
+    :protected-members:
+    :private-members:
+
+Base datatypes and enums defined in C in ``bag_c_types.h``
+----------------------------------------------------------
+
+.. doxygenfile:: bag_c_types.h
+    :path: @DOXYGEN_OUTPUT_XML_DIR@

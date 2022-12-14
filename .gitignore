@@ -1,3 +1,6 @@
+# Generated source files
+api/bag_version.h
+
 # temp files
 *.sh~
 *.*~
@@ -16,14 +19,25 @@
 # Library building folders
 *.build
 *.xcodeproj
-build*/
+/build*/
 bin/
+docs/api/html/
 lib/
 installed/
 api/Debug
 api/Release
 examples/Debug
 examples/Release
+/python/__pycache__/
+/python/*.dll
+/python/*.pyd
+/python/bagPy.py
+/python/bagTestPy.py
+/stage/
+swig_wrapper/
+
+# Visual Studio session files.
+/.vs
 
 # CMake nonsense
 api/CMakeScripts
@@ -31,9 +45,12 @@ CMakeFiles
 CMakeScripts
 cmake_install.cmake
 CMakeCache.txt
+CMakeSettings.json
 
 # External libs building folders
 extlibs/hdf5*/
 extlibs/beecrypt/
 extlibs/libxml2/
 extlibs/zlib/
+
+
