@@ -5,7 +5,7 @@ BAG data are encoded as [HDF-5](https://www.hdfgroup.org/solutions/hdf5/) files.
 
 * HDF-5 Dataset: a multidimensional array of data elements, together with supporting metadata or attributes.
 
-An HDF-5 “Group” provides the top-level structure for the data contents of a BAG. The major subcomponents are defined using the HDF-5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters. “Attributes” are included were appropriate to provide “Dataset” specific metadata. The specific HDF-5 type definitions that define BAG encapsulation structure are illustrated in Fig. 1. Note that the digital signature is not shown in Fig. 1. As described in [Structure of the BAG Certification Block](FSD-BAGStructure.md#stucture-of-the-bag-certification-block), the digital signature byte stream is appended to the end of the HDF-5 group.
+An HDF-5 “Group” provides the top-level structure for the data contents of a BAG. The major subcomponents are defined using the HDF-5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters. “Attributes” are included were appropriate to provide “Dataset” specific metadata. The specific HDF-5 type definitions that define BAG encapsulation structure are illustrated in Fig. 1. Note that the digital signature is not shown in Fig. 1. As described in [Structure of the BAG Certification Block](FSD-BAGStructure.md#structure-of-the-bag-certification-block), the digital signature byte stream is appended to the end of the HDF-5 group.
 
 Figure 1 shows the structure of BAG data encapsulated using HDF-5:
 ```

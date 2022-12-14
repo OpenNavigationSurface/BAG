@@ -180,7 +180,7 @@ In addition to the basic DS required for the DSS, the BAG certification block co
 
 The DSS is not mandatory, in the sense that the API does not enforce checks for certification blocks or DS results as BAG files are opened, written or closed. A BAG without a certification block shall be considered valid. The BAG API provides means to construct and verify DS values, but does not address questions of key distribution, certificate generation or certificate signing. Users are urged to consult an appropriate reference (e.g., <a href="FSD-References.html#ref6">[6]</a>) for details of these processes.
 
-### Stucture of the BAG Certification Block
+### Structure of the BAG Certification Block
 
 The BAG DS information shall be maintained in a certification block of length 1024 bytes, appended to the end of the HDF-5 data.  The structure of the certification block shall be as shown in Fig. 7. The ID number shall be a ‘magic number’ to identify the block, and the version byte shall be used to identify the structure of the remainder of the block between different versions of the algorithm. The SigID number corresponds to the Signature ID described above, and shall be followed immediately by the DS values which shall be stored sequentially as a length byte followed by the digits of the element. The CRC-32 checksum shall be used to ensure that any accidental or intentional corruption of the certification block will be detectable. The block shall be stored in little endian format, and zero padded to the full size of the block.
 

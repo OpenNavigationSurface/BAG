@@ -1,0 +1,5 @@
+@import "classic.css";
+
+div.body p {
+    text-align: start;
+}

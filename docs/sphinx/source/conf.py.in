@@ -49,6 +49,9 @@ intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 
 html_theme = 'classic'
 html_static_path = ['_static']
+html_style = 'bag.css'
 
 # Config for integrating Doxygen C++ docs with Sphinx
 breathe_default_project = 'baglib'
+
+myst_heading_anchors = 3
