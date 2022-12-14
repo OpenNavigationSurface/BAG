@@ -32,7 +32,6 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        language: [ 'cpp', 'python' ]
         python-version: ["3.9"]
         os: [ubuntu-20.04]
         # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
@@ -104,7 +103,12 @@ jobs:
         cmake --install build
         python ./build/api/swig/python/setup.py install
 
-    - name: Perform CodeQL Analysis
+    - name: Perform CodeQL Analysis C++
       uses: github/codeql-action/analyze@v2
       with:
-        category: "/language:${{matrix.language}}"
+        category: "/language:cpp"
+    
+    - name: Perform CodeQL Analysis Python
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:python"
