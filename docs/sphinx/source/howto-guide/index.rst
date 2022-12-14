@@ -1,7 +1,6 @@
 ================
 API How-to Guide
 ================
-.. TODO: Change links to files in the BAG repo to refer to the main branch once v2 PR is merged
 
 .. reStructuredText newbie examples:
 .. A `regular link`_.
@@ -33,11 +32,11 @@ For more example usage, please refer to these sections of the BAG source code:
     show how to use the BAG API side-by-side with the GDAL API.
 
 .. _GDAL: https://gdal.org
-.. _BAG-GDAL compatibility tests: https://github.com/OpenNavigationSurface/BAG/blob/v2/python/test_compat_gdal.py
-.. _C++ unit tests: https://github.com/OpenNavigationSurface/BAG/blob/v2/tests
-.. _Python unit tests: https://github.com/OpenNavigationSurface/BAG/blob/v2/python
-.. _C++ examples: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples
-.. _Python examples: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples/python
+.. _BAG-GDAL compatibility tests: https://github.com/OpenNavigationSurface/BAG/blob/master/python/test_compat_gdal.py
+.. _C++ unit tests: https://github.com/OpenNavigationSurface/BAG/blob/master/tests
+.. _Python unit tests: https://github.com/OpenNavigationSurface/BAG/blob/master/python
+.. _C++ examples: https://github.com/OpenNavigationSurface/BAG/blob/master/examples
+.. _Python examples: https://github.com/OpenNavigationSurface/BAG/blob/master/examples/python
 
 A quick tour of the BAG API
 ===========================
@@ -169,7 +168,7 @@ using :cpp:class:`BAG::Metadata` (Python: :py:class:`bagPy.Metadata`) and its su
 example, we'll use `sample.xml`_ to populated metadata in the newly created BAG.
 
 .. _Format Specification Document: ../fsd/FSD-BAGStructure.html#metadata
-.. _sample.xml: https://github.com/OpenNavigationSurface/BAG/blob/b13ef862a791c6cf776251e6a3e05867acc1fb27/examples/sample-data/sample.xml
+.. _sample.xml: https://github.com/OpenNavigationSurface/BAG/blob/master/examples/sample-data/sample.xml
 
 .. NOTE::
     The spatial coverage of a BAG is defined by setting the southwest and northeast corners via the metadata element: ``/gmi:MI_Metadata/gmd:spatialRepresentationInfo/gmd:MD_Georectified/gmd:cornerPoints/gml:Point/gml:coordinates``.
@@ -195,8 +194,8 @@ with georeferenced metadata of a known format, it is possible to create a named 
 :cpp:enumerator:`NOAA_OCS_2022_10_METADATA_PROFILE`. For information on how to use a named metadata profile, see the
 examples `bag_georefmetadata_layer.cpp`_ and `bag_georefmetadata_layer.py`_ in the BAG source code.
 
-.. _bag_georefmetadata_layer.cpp: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples/bag_georefmetadata_layer.cpp
-.. _bag_georefmetadata_layer.py: https://github.com/OpenNavigationSurface/BAG/blob/v2/examples/python/bag_georefmetadata_layer.py
+.. _bag_georefmetadata_layer.cpp: https://github.com/OpenNavigationSurface/BAG/blob/master/examples/bag_georefmetadata_layer.cpp
+.. _bag_georefmetadata_layer.py: https://github.com/OpenNavigationSurface/BAG/blob/master/examples/python/bag_georefmetadata_layer.py
 
 **C++**:
 
