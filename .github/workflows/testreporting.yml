@@ -9,7 +9,7 @@ on:
       - README.*
       - '*.md'
       - '*.svg'
-    branches: [ "master", "v2" ]
+    branches: [ "master", "develop" ]
   pull_request:
     paths-ignore:
       - 'docs/**'
@@ -18,7 +18,7 @@ on:
       - README.*
       - '*.md'
       - '*.svg'
-    branches: [ "master", "v2" ]
+    branches: [ "master", "develop" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
