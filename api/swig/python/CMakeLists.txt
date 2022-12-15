@@ -26,7 +26,7 @@ swig_link_libraries(bagPy
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
-    if(${CMAKE_BUILD_TYPE} EQUAL Release OR ${CMAKE_BUILD_TYPE} EQUAL MinSizeRel)
+    if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel)
         set(BAGPY_LIB _bagPy.so)
     else()
         set(BAGPY_LIB _bagPyd.so)
@@ -36,7 +36,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
     add_custom_command(TARGET bagPy POST_BUILD
             COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "${BAGPY_LIB}")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES Linux)
-    if(${CMAKE_BUILD_TYPE} EQUAL Release OR ${CMAKE_BUILD_TYPE} EQUAL MinSizeRel)
+    if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel)
         set(BAGPY_LIB _bagPy.so)
     else()
         set(BAGPY_LIB _bagPyd.so)
