@@ -11,14 +11,16 @@
 #
 name: "CodeQL"
 
-on:
-  push:
-    branches: [ "master", "develop" ]
-  pull_request:
-    # The branches below must be a subset of the branches above
-    branches: [ "master", "develop" ]
-  schedule:
-    - cron: '23 5 * * 5'
+# Disable automatic running for now since this workflow does not currently complete/takes forever to do things
+# that similar workflows do quickly, for unknown reasons.
+on: workflow_dispatch
+  #push:
+  #  branches: [ "master", "develop" ]
+  #pull_request:
+  #  # The branches below must be a subset of the branches above
+  #  branches: [ "master", "develop" ]
+  #schedule:
+  #  - cron: '23 5 * * 5'
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

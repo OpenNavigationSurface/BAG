@@ -26,12 +26,23 @@ swig_link_libraries(bagPy
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
+    if(${CMAKE_BUILD_TYPE} EQUAL Release OR ${CMAKE_BUILD_TYPE} EQUAL MinSizeRel)
+        set(BAGPY_LIB _bagPy.so)
+    else()
+        set(BAGPY_LIB _bagPyd.so)
+    endif()
+    # Somehow CPython on macOS looks for native code to end in .so instead of .dylib so copy the
+    # compiled extension to a file ending in .so...
     add_custom_command(TARGET bagPy POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "_bagPy.so")
-    set(BAGPY_LIB _bagPy.so)
+            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "${BAGPY_LIB}")
 elseif(${CMAKE_SYSTEM_NAME} MATCHES Linux)
-    set(BAGPY_LIB _bagPy.so)
+    if(${CMAKE_BUILD_TYPE} EQUAL Release OR ${CMAKE_BUILD_TYPE} EQUAL MinSizeRel)
+        set(BAGPY_LIB _bagPy.so)
+    else()
+        set(BAGPY_LIB _bagPyd.so)
+    endif()
 elseif(${CMAKE_SYSTEM_NAME} MATCHES Windows)
+    # TODO: Adjust this for debug builds on Windows as above
     set(BAGPY_LIB _bagPy.pyd)
 endif()
 
