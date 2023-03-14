@@ -216,7 +216,6 @@ class TestCompatGDAL(unittest.TestCase):
         # Compare bag_array to gdal_array to make sure all data are identical
         self.assertTrue(np.array_equiv(bag_array, gdal_array))
 
-    @unittest.skip
     def test_georefmetadata_layer(self) -> None:
         """
         This test is disabled until GDAL is updated to read georeferenced metadata layer from the HDF5 file from
