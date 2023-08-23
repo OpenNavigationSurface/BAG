@@ -1,4 +1,11 @@
-find_package(Python3 COMPONENTS Interpreter Development REQUIRED)
+if(Python_LOOKUP_VERSION)
+    set(Python_FIND_STRATEGY VERSION)
+    find_package(Python ${Python_LOOKUP_VERSION} EXACT COMPONENTS Interpreter Development)
+else()
+    set(Python_FIND_STRATEGY LOCATION)
+    find_package(Python3 COMPONENTS Interpreter Development)
+endif()
+
 include_directories(../..)
 
 set_property(GLOBAL PROPERTY BAGPY_BINARY_DIR_PROP ${CMAKE_CURRENT_BINARY_DIR})
