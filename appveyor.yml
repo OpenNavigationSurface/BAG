@@ -38,6 +38,7 @@ install:
   - conda update -q conda
   - conda info -a
   - conda config --add channels conda-forge
+  - conda install tqdm
   - conda create -q -n test-environment python=%PYTHON_VERSION%
   - activate test-environment
   - conda install cmake ninja hdf5 gdal libxml2 swig=4.0.1 catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
