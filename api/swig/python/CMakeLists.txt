@@ -4,9 +4,14 @@ if(Python_LOOKUP_VERSION)
 else()
     set(Python_FIND_STRATEGY LOCATION)
     find_package(Python3 COMPONENTS Interpreter Development)
+    set(Python_LIBRARIES Python3::Python)
 endif()
 
-include_directories(../..)
+if(DEFINED Python_INCLUDE_DIRS)
+    include_directories("${CMAKE_SOURCE_DIR}/api" "${Python_INCLUDE_DIRS}")
+else()
+    include_directories("${CMAKE_SOURCE_DIR}/api")
+endif()
 
 set_property(GLOBAL PROPERTY BAGPY_BINARY_DIR_PROP ${CMAKE_CURRENT_BINARY_DIR})
 set(BAGPY_MODULE_NAME bagPy.py)
@@ -29,7 +34,7 @@ swig_add_library(bagPy TYPE SHARED LANGUAGE python
 
 swig_link_libraries(bagPy
     baglib
-    Python3::Python
+    ${Python_LIBRARIES}
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)

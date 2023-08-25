@@ -5,10 +5,13 @@
 ### Configure and build BAG
 
 ```shell
+Python_LOOKUP_VERSION=$(python -c "import sys; print(str(sys.version_info.major)+'.'+str(sys.version_info.minor)+'.'+str(sys.version_info.micro))")
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local \
- -DBAG_BUILD_TESTS:BOOL=ON -DCODE_COVERAGE:BOOL=ON \
+ -DPython_LOOKUP_VERSION=${Python_LOOKUP_VERSION} \
+ -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON \
  -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_EXAMPLES:BOOL=ON
-BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data; ninja -C build ccov-all
+cmake --build build
+BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data ninja -C build build ccov-all-export-lcov
 ```
 
 Where `/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data` should be replaced by the absolute path
