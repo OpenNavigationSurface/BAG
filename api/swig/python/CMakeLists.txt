@@ -1,3 +1,8 @@
+include(CMakePrintHelpers)
+cmake_print_variables(UseSWIG_MODULE_VERSION)
+cmake_print_variables(CMAKE_SWIG_OUTDIR)
+cmake_print_variables(SWIG_SUPPORT_FILES_DIRECTORY)
+
 if(Python_LOOKUP_VERSION)
     set(Python_FIND_STRATEGY VERSION)
     find_package(Python ${Python_LOOKUP_VERSION} EXACT COMPONENTS Interpreter Development)
@@ -30,6 +35,11 @@ endif()
 
 swig_add_library(bagPy TYPE SHARED LANGUAGE python
     SOURCES "bagpy.i"
+)
+
+cmake_print_properties(
+    TARGETS bagPy
+    PROPERTIES CMAKE_SWIG_OUTDIR SWIG_SUPPORT_FILES_DIRECTORY
 )
 
 swig_link_libraries(bagPy
