@@ -1,7 +1,7 @@
 #!/bin/bash
 pushd .
 sudo apt-get update -y
-sudo apt-get install -y llvm clang lcov cmake ninja-build libhdf5-dev libxml2-dev catch2 python3-venv
+sudo apt-get install -y llvm clang lcov cmake ninja-build libhdf5-dev libxml2-dev python3-venv
 # Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
 cd /tmp
 wget https://github.com/catchorg/Catch2/archive/v3.0.1.tar.gz
