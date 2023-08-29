@@ -3,6 +3,15 @@ cmake_policy(SET CMP0078 NEW)
 # Honor SWIG_MODULE_NAME via -module flag.
 cmake_policy(SET CMP0086 NEW)
 
+if(Python_LOOKUP_VERSION)
+    set(Python_FIND_STRATEGY VERSION)
+    find_package(Python ${Python_LOOKUP_VERSION} EXACT COMPONENTS Interpreter Development)
+else()
+    set(Python_FIND_STRATEGY LOCATION)
+    find_package(Python3 COMPONENTS Interpreter Development)
+    set(Python_LIBRARIES Python3::Python)
+endif()
+
 # Handle where to install the resulting Python package
 if (CALL_FROM_SETUP_PY)
     # The CMakeExtension will set CMAKE_INSTALL_PREFIX to the root
@@ -12,15 +21,6 @@ else()
     # The Python package is installed directly in the folder of the
     # detected interpreter (system, user, or virtualenv)
     set(BAGPY_INSTALL_PREFIX ${Python3_SITELIB})
-endif()
-
-if(Python_LOOKUP_VERSION)
-    set(Python_FIND_STRATEGY VERSION)
-    find_package(Python ${Python_LOOKUP_VERSION} EXACT COMPONENTS Interpreter Development)
-else()
-    set(Python_FIND_STRATEGY LOCATION)
-    find_package(Python3 COMPONENTS Interpreter Development)
-    set(Python_LIBRARIES Python3::Python)
 endif()
 
 if(DEFINED Python_INCLUDE_DIRS)
