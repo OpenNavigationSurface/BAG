@@ -56,6 +56,17 @@ if(BAG_CODE_COVERAGE)
     add_code_coverage_all_targets(EXCLUDE test/* api/bag.cpp api/bag.h)
 endif()
 
+# Generate setup.cfg and setup.py in case Python wheel is later generated
+# via `python setup.py bdist_wheel`.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/setup.cfg.in
+               ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/setup.cfg)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/setup.py.in
+               ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/setup.py)
+# Also copy pyproject.toml to build tree so that we can build Python wheels
+# if later requested...
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/pyproject.toml
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/)
+
 
 if(BAG_BUILD_PYTHON)
     set(BAG_BUILD_SWIG ON)

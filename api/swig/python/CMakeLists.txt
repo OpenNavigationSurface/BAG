@@ -1,7 +1,18 @@
-include(CMakePrintHelpers)
-cmake_print_variables(UseSWIG_MODULE_VERSION)
-cmake_print_variables(CMAKE_SWIG_OUTDIR)
-cmake_print_variables(SWIG_SUPPORT_FILES_DIRECTORY)
+# Generate standard target names.
+cmake_policy(SET CMP0078 NEW)
+# Honor SWIG_MODULE_NAME via -module flag.
+cmake_policy(SET CMP0086 NEW)
+
+# Handle where to install the resulting Python package
+#if (CALL_FROM_SETUP_PY)
+#    # The CMakeExtension will set CMAKE_INSTALL_PREFIX to the root
+#    # of the resulting wheel archive
+#    set(S2GEOMETRY_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX})
+#else()
+#    # The Python package is installed directly in the folder of the
+#    # detected interpreter (system, user, or virtualenv)
+#    set(S2GEOMETRY_INSTALL_PREFIX ${Python3_SITELIB})
+#endif()
 
 if(Python_LOOKUP_VERSION)
     set(Python_FIND_STRATEGY VERSION)
@@ -36,49 +47,47 @@ endif()
 swig_add_library(bagPy TYPE SHARED LANGUAGE python
     SOURCES "bagpy.i"
 )
-
-cmake_print_properties(
-    TARGETS bagPy
-    PROPERTIES CMAKE_SWIG_OUTDIR SWIG_SUPPORT_FILES_DIRECTORY
+set_target_properties(bagPy
+    PROPERTIES DEBUG_POSTFIX ""
 )
 
-swig_link_libraries(bagPy
-    baglib
+target_link_libraries(bagPy
     ${Python_LIBRARIES}
+    baglib
 )
 
-if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
-    if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel)
-        set(BAGPY_LIB _bagPy.so)
-    else()
-        set(BAGPY_LIB _bagPyd.so)
-    endif()
-    # Somehow CPython on macOS looks for native code to end in .so instead of .dylib so copy the
-    # compiled extension to a file ending in .so...
-    add_custom_command(TARGET bagPy POST_BUILD
-            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "${BAGPY_LIB}")
-elseif(${CMAKE_SYSTEM_NAME} MATCHES Linux)
-    if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel)
-        set(BAGPY_LIB _bagPy.so)
-    else()
-        set(BAGPY_LIB _bagPyd.so)
-    endif()
-elseif(${CMAKE_SYSTEM_NAME} MATCHES Windows)
-    # TODO: Adjust this for debug builds on Windows as above
-    set(BAGPY_LIB _bagPy.pyd)
-endif()
+#if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
+#    if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel)
+#        set(BAGPY_LIB _bagPy.so)
+#    else()
+#        set(BAGPY_LIB _bagPyd.so)
+#    endif()
+#    # Somehow CPython on macOS looks for native code to end in .so instead of .dylib so copy the
+#    # compiled extension to a file ending in .so...
+#    add_custom_command(TARGET bagPy POST_BUILD
+#            COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:bagPy> "${BAGPY_LIB}")
+#elseif(${CMAKE_SYSTEM_NAME} MATCHES Linux)
+#    if(${CMAKE_BUILD_TYPE} STREQUAL Release OR ${CMAKE_BUILD_TYPE} STREQUAL MinSizeRel)
+#        set(BAGPY_LIB _bagPy.so)
+#    else()
+#        set(BAGPY_LIB _bagPyd.so)
+#    endif()
+#elseif(${CMAKE_SYSTEM_NAME} MATCHES Windows)
+#    # TODO: Adjust this for debug builds on Windows as above
+#    set(BAGPY_LIB _bagPy.pyd)
+#endif()
 
 # Files to install with Python
-set(PYTHON_INSTALL_FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/${BAGPY_MODULE_NAME}
-        ${CMAKE_CURRENT_BINARY_DIR}/${BAGPY_LIB})
+#set(PYTHON_INSTALL_FILES
+#        ${CMAKE_CURRENT_BINARY_DIR}/${BAGPY_MODULE_NAME}
+#        ${CMAKE_CURRENT_BINARY_DIR}/${BAGPY_LIB})
 
 # Configure setup.py and copy to output directory
-set(SETUP_PY_IN ${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in)
-set(SETUP_PY_OUT ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
-configure_file(${SETUP_PY_IN} ${SETUP_PY_OUT})
+#set(SETUP_PY_IN ${CMAKE_CURRENT_SOURCE_DIR}/setup.py.in)
+#set(SETUP_PY_OUT ${CMAKE_CURRENT_BINARY_DIR}/setup.py)
+#configure_file(${SETUP_PY_IN} ${SETUP_PY_OUT})
 
 # Install target to call setup.py
-add_custom_target(install-python
-        DEPENDS _bagPy
-        COMMAND python ${SETUP_PY_OUT} install)
+#add_custom_target(install-python
+#        DEPENDS _bagPy
+#        COMMAND python ${SETUP_PY_OUT} install)

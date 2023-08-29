@@ -1,35 +1,35 @@
-import setuptools.command.install
-import shutil
-from distutils.sysconfig import get_python_lib
+import sys
+from pathlib import Path
 
+import cmake_build_extension
+import setuptools
 
-class CompiledLibInstall(setuptools.command.install.install):
-    """
-    Specialized install to install to python libs
-    """
+PY_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
 
-    def run(self):
-        """
-        Run method called by setup
-        :return:
-        """
-        # Get filenames from CMake variable
-        filenames = '${PYTHON_INSTALL_FILES}'.split(';')
-
-        # Directory to install to
-        install_dir = get_python_lib()
-
-        # Install files
-        [shutil.copy(filename, install_dir) for filename in filenames]
-
-
-if __name__ == '__main__':
-    setuptools.setup(
-        name='bagPy',
-        version='${PROJECT_VERSION}',
-        packages=['bagPy'],
-        license='BSD 3-Clause License',
-        author='Open Navigation Surface Working Group',
-        author_email='',
-        cmdclass={'install': CompiledLibInstall}
-    )
+setuptools.setup(
+    ext_modules=[
+        cmake_build_extension.CMakeExtension(
+            # This could be anything you like, it is used to create build folders
+            name="SwigBindings",
+            # Name of the resulting package name (import bagPy)
+            install_prefix="bagPy",
+            # Selects the folder where the main CMakeLists.txt is stored
+            # (it could be a subfolder)
+            source_dir="${CMAKE_SOURCE_DIR}",
+            cmake_configure_options=[
+                # This option points CMake to the right Python interpreter, and helps
+                # the logic of FindPython3.cmake to find the active version
+                f"-DPython_LOOKUP_VERSION={PY_VERSION}",
+                '-DCALL_FROM_SETUP_PY:BOOL=ON',
+                '-DBUILD_SHARED_LIBS:BOOL=ON',
+                '-DCMAKE_CXX_STANDARD=14',
+                '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
+                '-DBAG_BUILD_PYTHON:BOOL=ON'
+            ]
+        )
+    ],
+    cmdclass=dict(
+        # Enable the CMakeExtension entries defined above
+        build_ext=cmake_build_extension.BuildExtension,
+    ),
+)

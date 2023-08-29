@@ -4,13 +4,12 @@
 
 ### Configure and build BAG
 
+#### Build C++ library, tests, and example binaries:
 ```shell
-Python_LOOKUP_VERSION=$(python -c "import sys; print(str(sys.version_info.major)+'.'+str(sys.version_info.minor)+'.'+str(sys.version_info.micro))")
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local \
- -DPython_LOOKUP_VERSION=${Python_LOOKUP_VERSION} \
  -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON \
- -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_EXAMPLES:BOOL=ON
-cmake --build build
+ -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON
+cmake --build build -j 8
 BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data ninja -C build build ccov-all-export-lcov
 ```
 
@@ -29,6 +28,19 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 > Note: if you want to build documentation, add `-DBAG_BUILD_DOCS:BOOL=ON` to the CMake config. 
 > See the Read the Docs [conda environment](readthedocs/environment.yml) for dependencies needed
 > to build documentation.
+
+#### Build Python wheel
+After building the C++ library in the `build` directory as above, 
+you will be able to build a Python wheel as follows:
+```shell
+$ cd build/api/swig/python
+$ python -m pip wheel -w dist/ .
+```
+
+Then you can install the wheel with:
+```shell
+$ python -m pip 
+```
 
 ## Windows: Visual Studio 2022/2019
 
