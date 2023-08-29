@@ -20,4 +20,4 @@ python_requres = >=3.8
 
 [options.packages.find]
 where =
-    ${CMAKE_SOURCE_DIR}/api
+    ${CMAKE_SOURCE_DIR}/api/python
