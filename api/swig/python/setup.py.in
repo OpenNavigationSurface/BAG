@@ -4,7 +4,9 @@ from pathlib import Path
 import cmake_build_extension
 import setuptools
 
-PY_VERSION = f"{sys.version_info.major}.{sys.version_info.minor}"
+PY_VERSION_MIN = f"{sys.version_info.major}.{sys.version_info.minor}"
+PY_VERSION_MAX = f"{sys.version_info.major}.{sys.version_info.minor+1}"
+PY_VERSION = f"{PY_VERSION_MIN}...<{PY_VERSION_MAX}"
 
 setuptools.setup(
     ext_modules=[

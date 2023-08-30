@@ -8,7 +8,7 @@
 ```shell
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . \
  -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON \
- -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON
+ -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON && \
 cmake --build build -j 8
 BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data ninja -C build build ccov-all-export-lcov
 ```
@@ -38,7 +38,7 @@ $ python -m pip wheel -w ./wheel/ ./build/api/swig/python
 
 Then you can install the wheel with:
 ```shell
-$ python -m pip install dist/bagPy-*.whl
+$ python -m pip install ./wheel/bagPy-*.whl
 ```
 
 ## Windows: Visual Studio 2022/2019
