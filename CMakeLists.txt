@@ -24,6 +24,10 @@ if(POLICY CMP0115)
     cmake_policy(SET CMP0115 NEW)
 endif()
 
+if(WIN32)
+    set(CMAKE_OBJECT_PATH_MAX 1024)
+endif()
+
 # Options
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 option(BAG_BUILD_PYTHON "Build Python bindings using SWIG" OFF)
