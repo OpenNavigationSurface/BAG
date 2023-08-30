@@ -5,7 +5,7 @@ cmake_policy(SET CMP0086 NEW)
 
 if(Python_LOOKUP_VERSION)
     set(Python_FIND_STRATEGY VERSION)
-    find_package(Python ${Python_LOOKUP_VERSION} EXACT COMPONENTS Interpreter Development)
+    find_package(Python ${Python_LOOKUP_VERSION} COMPONENTS Interpreter Development)
 else()
     set(Python_FIND_STRATEGY LOCATION)
     find_package(Python3 COMPONENTS Interpreter Development)

@@ -33,8 +33,7 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 After building the C++ library in the `build` directory as above, 
 you will be able to build a Python wheel as follows:
 ```shell
-$ cd build/api/swig/python
-$ python -m pip wheel -w dist/ .
+$ python -m pip wheel -w ./wheel/ ./build/api/swig/python
 ```
 
 Then you can install the wheel with:
