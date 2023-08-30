@@ -24,7 +24,8 @@ setuptools.setup(
                 '-DBUILD_SHARED_LIBS:BOOL=ON',
                 '-DCMAKE_CXX_STANDARD=14',
                 '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
-                '-DBAG_BUILD_PYTHON:BOOL=ON'
+                '-DBAG_BUILD_PYTHON:BOOL=ON',
+                '-DCMAKE_OBJECT_PATH_MAX=1024'
             ]
         )
     ],
