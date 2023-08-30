@@ -1,5 +1,5 @@
 import sys
-from pathlib import Path
+import platform
 
 import cmake_build_extension
 import setuptools
@@ -7,6 +7,23 @@ import setuptools
 PY_VERSION_MIN = f"{sys.version_info.major}.{sys.version_info.minor}"
 PY_VERSION_MAX = f"{sys.version_info.major}.{sys.version_info.minor+1}"
 PY_VERSION = f"{PY_VERSION_MIN}...<{PY_VERSION_MAX}"
+
+cmake_configure_options = [
+    # This option points CMake to the right Python interpreter, and helps
+    # the logic of FindPython3.cmake to find the active version
+    f"-DPython_LOOKUP_VERSION={PY_VERSION}",
+    '-DCALL_FROM_SETUP_PY:BOOL=ON',
+    '-DBUILD_SHARED_LIBS:BOOL=ON',
+    '-DCMAKE_CXX_STANDARD=14',
+    '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
+    '-DBAG_BUILD_PYTHON:BOOL=ON',
+    '-DCMAKE_OBJECT_PATH_MAX=1024'
+]
+if platform.system() == 'Windows':
+    # Turn on BAG_CI so that build artifacts aren't collected into 'stage' sub-directory
+    # on Windows, which breaks wheel generation.
+    cmake_configure_options.append('-DBAG_CI:BOOL=ON')
+
 
 setuptools.setup(
     ext_modules=[
@@ -18,17 +35,7 @@ setuptools.setup(
             # Selects the folder where the main CMakeLists.txt is stored
             # (it could be a subfolder)
             source_dir="${CMAKE_SOURCE_DIR}",
-            cmake_configure_options=[
-                # This option points CMake to the right Python interpreter, and helps
-                # the logic of FindPython3.cmake to find the active version
-                f"-DPython_LOOKUP_VERSION={PY_VERSION}",
-                '-DCALL_FROM_SETUP_PY:BOOL=ON',
-                '-DBUILD_SHARED_LIBS:BOOL=ON',
-                '-DCMAKE_CXX_STANDARD=14',
-                '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
-                '-DBAG_BUILD_PYTHON:BOOL=ON',
-                '-DCMAKE_OBJECT_PATH_MAX=1024'
-            ]
+            cmake_configure_options=cmake_configure_options
         )
     ],
     cmdclass=dict(
