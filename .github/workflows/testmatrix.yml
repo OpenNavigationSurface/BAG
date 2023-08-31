@@ -66,8 +66,8 @@ jobs:
     - name: Install
       # Install into conda environment
       run: |
-        cmake --install build
-        python -m pip install ./wheel/bagPy-*.whl
+        sudo cmake --install build
+        sudo python -m pip install ./wheel/bagPy-*.whl
 
     - name: Tests
       # Execute C++ and Python tests
