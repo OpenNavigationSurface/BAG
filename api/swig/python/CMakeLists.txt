@@ -54,6 +54,7 @@ set_target_properties(bagPy
 target_link_libraries(bagPy
     ${Python_LIBRARIES}
     baglib
+    m
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)
