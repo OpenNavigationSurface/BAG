@@ -35,5 +35,5 @@ popd
 python3 -m venv python-venv --system-site-packages
 source python-venv/bin/activate
 pip install setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
-  unittest-xml-reporting pytest pytest-cov pytest-xdist 'GDAL==3.0.4'
+  unittest-xml-reporting pytest pytest-cov pytest-xdist numpy 'GDAL==3.0.4'
 deactivate
