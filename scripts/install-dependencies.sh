@@ -17,7 +17,7 @@ tar xf v3.0.1.tar.gz
 cd Catch2-3.0.1
 cmake -B build -G Ninja -S . -DCMAKE_INSTALL_PREFIX:PATH=/usr -DBUILD_TESTING:BOOL=OFF
 sudo cmake --build build --target install
-popd
+
 # Install HDF5
 cd /tmp
 wget https://github.com/HDFGroup/hdf5/releases/download/hdf5-1_14_2/hdf5-1_14_2.tar.gz
@@ -30,6 +30,7 @@ cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_P
   -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
 sudo cmake --build build --target install
 popd
+
 # Create Python venv and install dependencies
 python3 -m venv python-venv --system-site-packages
 source python-venv/bin/activate
