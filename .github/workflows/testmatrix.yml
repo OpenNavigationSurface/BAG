@@ -51,17 +51,13 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/miniconda/envs/test-environment -DBAG_BUILD_TESTS:BOOL=ON
+        export CC=${{env.CC}}
+        export CXX=${{env.CXX}}
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DBAG_BUILD_TESTS:BOOL=ON
 
     - name: Build
       # Build your program with the given configuration
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
         export CC=${{env.CC}}
         export CXX=${{env.CXX}}
         cmake --build build
@@ -70,18 +66,11 @@ jobs:
     - name: Install
       # Install into conda environment
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
         cmake --install build
-        python ./build/api/swig/python/setup.py install
         python -m pip install ./wheel/bagPy-*.whl
 
     - name: Tests
       # Execute C++ and Python tests
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
-        pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
+        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
