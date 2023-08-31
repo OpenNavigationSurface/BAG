@@ -4,6 +4,8 @@ GITHUB_WORKSPACE=$1
 PYTHON_VERSION=$2
 echo "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
 echo "PYTHON_VERSION: ${PYTHON_VERSION}"
+pushd .
+
 sudo apt-get update -y
 sudo apt-get install -y cmake g++ ninja-build libxml2-dev libgdal-dev swig4.0 zlib1g-dev
 # Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
@@ -32,5 +34,5 @@ popd
 python3 -m venv python-venv --system-site-packages
 source python-venv/bin/activate
 pip install setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
-  unittest-xml-reporting pytest pytest-cov pytest-xdist
+  unittest-xml-reporting pytest pytest-cov pytest-xdist 'GDAL==3.0.4'
 deactivate
