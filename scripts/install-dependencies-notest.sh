@@ -15,5 +15,5 @@ conda update -q conda
 conda info -a
 conda create -q -n test-environment python=${PYTHON_VERSION}
 conda activate test-environment
-conda install gxx_linux-64 cmake ninja hdf5-static libxml2 swig=4.0.1
+conda install gxx_linux-64 cmake ninja hdf5 libxml2 swig
 conda list --show-channel-urls

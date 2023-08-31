@@ -54,7 +54,7 @@ jobs:
         source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
         hash -r
         conda activate test-environment
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/miniconda/envs/test-environment -DBAG_BUILD_TESTS:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/miniconda/envs/test-environment -DBAG_BUILD_TESTS:BOOL=ON
 
     - name: Build
       # Build your program with the given configuration
@@ -65,6 +65,7 @@ jobs:
         export CC=${{env.CC}}
         export CXX=${{env.CXX}}
         cmake --build build
+        python -m pip wheel -w ./wheel/ ./build/api/swig/python
     
     - name: Install
       # Install into conda environment
@@ -74,6 +75,7 @@ jobs:
         conda activate test-environment
         cmake --install build
         python ./build/api/swig/python/setup.py install
+        python -m pip install ./wheel/bagPy-*.whl
 
     - name: Tests
       # Execute C++ and Python tests

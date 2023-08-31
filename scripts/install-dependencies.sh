@@ -15,5 +15,7 @@ conda update -q conda
 conda info -a
 conda create -q -n test-environment python=${PYTHON_VERSION}
 conda activate test-environment
-conda install gxx_linux-64 cmake ninja hdf5-static gdal libxml2 swig=4.0.1 catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
+conda install gxx_linux-64 cmake ninja hdf5 gdal libxml2 swig catch2 \
+   setuptools setuptools-scm[toml] wheel cmake-build-extension \
+   unittest-xml-reporting pytest pytest-cov pytest-xdist
 conda list --show-channel-urls
