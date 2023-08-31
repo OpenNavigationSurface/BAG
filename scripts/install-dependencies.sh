@@ -1,21 +1,36 @@
 #!/bin/bash
+set -ex # Abort on error.
 GITHUB_WORKSPACE=$1
 PYTHON_VERSION=$2
 echo "GITHUB_WORKSPACE: ${GITHUB_WORKSPACE}"
 echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 sudo apt-get update -y
-sudo apt-get install -y llvm clang lcov
-wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
-bash miniconda.sh -b -p ${GITHUB_WORKSPACE}/miniconda
-source "${GITHUB_WORKSPACE}/miniconda/etc/profile.d/conda.sh"
-hash -r
-conda config --set always_yes yes --set changeps1 no
-conda config --add channels conda-forge
-conda update -q conda
-conda info -a
-conda create -q -n test-environment python=${PYTHON_VERSION}
-conda activate test-environment
-conda install sysroot_linux-64 gxx_linux-64 cmake ninja hdf5 gdal libxml2 swig catch2 \
-   setuptools setuptools-scm[toml] wheel cmake-build-extension \
-   unittest-xml-reporting pytest pytest-cov pytest-xdist
-conda list --show-channel-urls
+sudo apt-get install -y cmake g++ ninja-build libxml2-dev libgdal-dev swig4.0 zlib1g-dev
+# Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
+cd /tmp
+wget https://github.com/catchorg/Catch2/archive/v3.0.1.tar.gz
+echo "8c4173c68ae7da1b5b505194a0c2d6f1b2aef4ec1e3e7463bde451f26bbaf4e7  v3.0.1.tar.gz" > catch2.sum
+shasum -a 256 -c catch2.sum
+tar xf v3.0.1.tar.gz
+cd Catch2-3.0.1
+cmake -B build -G Ninja -S . -DCMAKE_INSTALL_PREFIX:PATH=/usr -DBUILD_TESTING:BOOL=OFF
+sudo cmake --build build --target install
+popd
+# Install HDF5
+cd /tmp
+wget https://github.com/HDFGroup/hdf5/releases/download/hdf5-1_14_2/hdf5-1_14_2.tar.gz
+echo "120641d3ffedd4c730dc7862f544dc0d33382730841cebfcdc78fb9d0869b410  hdf5-1_14_2.tar.gz" > hdf5.sum
+shasum -a 256 -c hdf5.sum
+tar xf hdf5-1_14_2.tar.gz
+cd hdfsrc
+cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+  -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON \
+  -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
+sudo cmake --build build --target install
+popd
+# Create Python venv and install dependencies
+python3 -m venv python-venv --system-site-packages
+source python-venv/bin/activate
+pip install setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
+  unittest-xml-reporting pytest pytest-cov pytest-xdist
+deactivate
