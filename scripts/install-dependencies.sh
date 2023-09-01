@@ -7,7 +7,7 @@ echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 pushd .
 
 sudo apt-get update -y
-sudo apt-get install -y cmake g++ ninja-build libxml2-dev libgdal-dev swig4.0 zlib1g-dev
+sudo apt-get install -y cmake g++ ninja-build libxml2-dev swig4.0 zlib1g-dev
 # Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
 cd /tmp
 wget https://github.com/catchorg/Catch2/archive/v3.0.1.tar.gz
@@ -29,13 +29,27 @@ cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_P
   -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON \
   -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
 sudo cmake --build build --target install
-popd
 
+# Install GDAL
+cd /tmp
+wget https://github.com/OSGeo/gdal/releases/download/v3.6.4/gdal-3.6.4.tar.gz
+echo "f98a654f348a08ef2a09ac78bc9ac0707d7de2b7f942685f5953041399ee6959  gdal-3.6.4.tar.gz" > gdal.sum
+shasum -a 256 -c gdal.sum
+tar xf gdal-3.6.4.tar.gz
+cd gdal-3.6.4
+cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+  -DBUILD_APPS=OFF -DBUILD_TESTING=OFF -DGDAL_ENABLE_DRIVER_BAG=ON  \
+  -DGDAL_USE_PARQUET=OFF -DGDAL_USE_ARROW=OFF -DGDAL_USE_ARROWDATASET=OFF \
+  -DGDAL_ENABLE_HDF5_GLOBAL_LOCK:BOOL=ON -DBUILD_PYTHON_BINDINGS:BOOL=OFF -DBUILD_JAVA_BINDINGS:BOOL=OFF \
+  -DBUILD_CSHARP_BINDINGS:BOOL=OFF \
+sudo cmake --build build --target install
+
+popd
 # Create Python venv and install dependencies
 python3 -m venv python-venv --system-site-packages
 source python-venv/bin/activate
 pip install setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
   unittest-xml-reporting pytest pytest-cov pytest-xdist numpy
 # Install GDAL after numpy is installed so that gdal_array bindings will be installed.
-pip install 'GDAL==3.0.4'
+pip install 'GDAL==3.6.4'
 deactivate
