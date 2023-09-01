@@ -7,7 +7,7 @@ echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 pushd .
 
 sudo apt-get update -y
-sudo apt-get install -y cmake g++ ninja-build libxml2-dev swig4.0 zlib1g-dev
+sudo apt-get install -y cmake g++ ninja-build libxml2-dev swig4.0 zlib1g-dev libproj-dev
 # Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
 cd /tmp
 wget https://github.com/catchorg/Catch2/archive/v3.0.1.tar.gz
