@@ -117,7 +117,12 @@ mkdir \BAG
   - Check out a release tag, e.g., hdf5-1_12_2
   - Build (run in Developer PowerShell in project directory):
   ```
-  cmake -B build -G "Visual Studio 16 2019" -S . -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DCMAKE_BUILD_TYPE:STRING=Release -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON -DZLIB_INCLUDE_DIRS=\BAG\include -DZLIB_LIBRARY:PATH=\BAG\lib\zlibd.lib
+  cmake -B build -G "Visual Studio 16 2019" -S . ^
+   -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DCMAKE_BUILD_TYPE:STRING=Release ^
+   -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF ^
+   -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON ^
+   -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON ^
+   -DZLIB_INCLUDE_DIRS=\BAG\include -DZLIB_LIBRARY:PATH=\BAG\lib\zlibd.lib
   cmake --build build --config Release
   cmake --install build --config Release
   ```
@@ -132,7 +137,8 @@ mkdir \BAG
   - Check out the latest 3.x+ release, e.g., v3.0.1
   - Build (run in Developer PowerShell in project directory):
   ```
-  cmake -B build -G "Visual Studio 16 2019" -S . -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DBUILD_TESTING:BOOL=OFF
+  cmake -B build -G "Visual Studio 16 2019" -S . ^
+   -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DBUILD_TESTING:BOOL=OFF
   cmake --build build --target install
   ```
   
@@ -148,18 +154,32 @@ mkdir \BAG
   xcopy /s Lib \BAG\lib
   ```
  
- ### Configure BAG project for developing
+ ### Configure and build BAG project for developing
  Without Python bindings:
  ```
- cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG
+ cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release ^
+  -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG
  ```
- 
- With Python bindings:
+
+> Note: Use `-G "Visual Studio 17 2022"` for Visual Studio 2019.
+
+Build and install:
+```
+cmake --build build
+cmake --install build 
+```
+
+#### Build Python wheels:
+After building the C++ code, you can build a Python wheel of the `bagPy`
+bindings as follows:
  ```
- cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG -DBAG_BUILD_PYTHON=ON
+python -m pip wheel -w .\wheel\ .\build\api\swig\python
  ```
- 
-  > Note: Use `-G "Visual Studio 17 2022"` for Visual Studio 2019.
+
+Then install the wheel as follows:
+```
+for %%w in (.\wheel\bagPy-*.whl) do %PYTHON% -m pip install %%w
+```
 
 ### Running C++ tests in Visual Studio
 
