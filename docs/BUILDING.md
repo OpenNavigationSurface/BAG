@@ -31,7 +31,7 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 
 #### Build Python wheel
 After building the C++ library in the `build` directory as above, 
-you will be able to build a Python wheel as follows:
+you will be able to build a Python wheel for installing `bagPy` as follows:
 ```shell
 $ python -m pip wheel -w ./wheel/ ./build/api/swig/python
 ```
@@ -170,8 +170,8 @@ cmake --install build
 ```
 
 #### Build Python wheels:
-After building the C++ code, you can build a Python wheel of the `bagPy`
-bindings as follows:
+After building the C++ library in the `build` directory as above,
+you will be able to build a Python wheel for installing `bagPy` as follows:
  ```
 python -m pip wheel -w .\wheel\ .\build\api\swig\python
  ```

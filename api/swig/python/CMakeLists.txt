@@ -5,11 +5,10 @@ cmake_policy(SET CMP0086 NEW)
 
 if(Python_LOOKUP_VERSION)
     set(Python_FIND_STRATEGY VERSION)
-    find_package(Python ${Python_LOOKUP_VERSION} COMPONENTS Interpreter Development)
+    find_package(Python3 ${Python_LOOKUP_VERSION} COMPONENTS Interpreter Development.Module)
 else()
     set(Python_FIND_STRATEGY LOCATION)
-    find_package(Python3 COMPONENTS Interpreter Development)
-    set(Python_LIBRARIES Python3::Python)
+    find_package(Python3 COMPONENTS Interpreter Development.Module)
 endif()
 
 # Handle where to install the resulting Python package
@@ -23,8 +22,8 @@ else()
     set(BAGPY_INSTALL_PREFIX ${Python3_SITELIB})
 endif()
 
-if(DEFINED Python_INCLUDE_DIRS)
-    include_directories("${CMAKE_SOURCE_DIR}/api" "${Python_INCLUDE_DIRS}")
+if(DEFINED Python3_INCLUDE_DIRS)
+    include_directories("${CMAKE_SOURCE_DIR}/api" "${Python3_INCLUDE_DIRS}")
 else()
     include_directories("${CMAKE_SOURCE_DIR}/api")
 endif()
@@ -52,8 +51,8 @@ set_target_properties(bagPy
 )
 
 target_link_libraries(bagPy
-    ${Python_LIBRARIES}
-    baglib
+    PRIVATE baglib
+    PRIVATE Python3::Module
 )
 
 if(${CMAKE_SYSTEM_NAME} MATCHES Darwin)

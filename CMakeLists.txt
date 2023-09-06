@@ -1,5 +1,6 @@
-# CMake 3.15+ needed for SWIG version 4.0+ support.
-cmake_minimum_required(VERSION 3.15)
+# CMake 3.15+ needed for SWIG version 4.0+ support. 3.18+ needed for Development.Module
+# sub-component support for FindPyton.
+cmake_minimum_required(VERSION 3.18)
 project(OpenNavSurf-BAG LANGUAGES C CXX VERSION 2.0.1)
 set(CMAKE_CXX_STANDARD 14)
 
