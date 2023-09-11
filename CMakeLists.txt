@@ -76,12 +76,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/setup.py.in
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/pyproject.toml
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/)
 
-if(BAG_BUILD_BAG_LIB)
-    add_subdirectory(api)
-endif()
-
 if(BAG_BUILD_PYTHON)
     set(BAG_BUILD_SWIG ON)
+endif()
+
+if(BAG_BUILD_BAG_LIB)
+    # Make sure `api` is added after BAG_BUILD_SWIG is set, else Python wheel building will fail.
+    add_subdirectory(api)
 endif()
 
 if(BAG_BUILD_EXAMPLES)
