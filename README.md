@@ -34,6 +34,14 @@ Documentation for the BAG specification and library can be found [here](https://
 - [C++ API Reference](https://bag.readthedocs.io/en/stable/cpp-api/index.html)
 - [Python API Reference](https://bag.readthedocs.io/en/stable/python-api/index.html)
 
+# Installing the BAG library
+
+We are working to add binary packages for the BAG library to [conda-forge](https://conda-forge.org/).
+Until that time, conda packages of the BAG library are available for Linux (AMD64) and Windows (x64)
+[here](https://github.com/OpenNavigationSurface/BAG/releases/tag/release-2.0.1). To install,
+download the package file for your operating system and Python version, then run
+`conda install <FILE_NAME>.tar.bz2` to install into your conda environment.
+
 # Building and using the BAG library
 
 Comprehensive build instructions can be found [here](docs/BUILDING.md).
