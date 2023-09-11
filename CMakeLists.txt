@@ -29,7 +29,11 @@ if(WIN32)
     set(CMAKE_OBJECT_PATH_MAX 1024)
 endif()
 
+# Local modules
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules" ${CMAKE_MODULE_PATH})
+
 # Options
+option(BAG_BUILD_BAG_LIB "Build baglib" ON)
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 option(BAG_BUILD_PYTHON "Build Python bindings using SWIG" OFF)
 option(BAG_BUILD_TESTS "Build Tests" OFF)
@@ -72,12 +76,13 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/setup.py.in
 file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/pyproject.toml
         DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/)
 
+if(BAG_BUILD_BAG_LIB)
+    add_subdirectory(api)
+endif()
 
 if(BAG_BUILD_PYTHON)
     set(BAG_BUILD_SWIG ON)
 endif()
-
-add_subdirectory(api)
 
 if(BAG_BUILD_EXAMPLES)
     add_subdirectory(examples)
@@ -88,6 +93,5 @@ if(BAG_BUILD_TESTS)
 endif()
 
 if(BAG_BUILD_DOCS)
-    set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules" ${CMAKE_MODULE_PATH})
     add_subdirectory(docs)
 endif()

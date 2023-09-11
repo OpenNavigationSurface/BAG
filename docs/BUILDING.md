@@ -6,11 +6,11 @@
 
 #### Build C++ library, tests, and example binaries:
 ```shell
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . \
+$ cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . \
  -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON \
- -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON && \
-cmake --build build -j 8
-BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data ninja -C build build ccov-all-export-lcov
+ -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON
+$ cmake --build build -j 8
+$ BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data ninja -C build build ccov-all-export-lcov
 ```
 
 Where `/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data` should be replaced by the absolute path
@@ -39,6 +39,23 @@ $ python -m pip wheel -w ./wheel/ ./build/api/swig/python
 Then you can install the wheel with:
 ```shell
 $ python -m pip install ./wheel/bagPy-*.whl
+```
+
+### Build examples only
+Build examples only as follows:
+```shell
+$ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B bag-examples -S . \
+ -DBAG_BUILD_BAG_LIB:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON
+$ cmake --build bag-examples -j 8
+```
+
+> Note: This assumes you have either built `baglib` yourself, or installed
+> binaries via `conda`.
+
+Then run, for example `bag_georefmetadata_layer`: 
+```shell
+$ ./bag-examples/examples/bag_georefmetadata_layer \
+  examples/sample-data/bag_georefmetadata_layer.xml bag_georefmetadata.bag
 ```
 
 ## Windows: Visual Studio 2022/2019
