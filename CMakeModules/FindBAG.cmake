@@ -12,7 +12,6 @@ Imported Targets
 
 This module provides the following imported targets, if found:
 
-``BAG::BAG``
   The baglib library
 
 Result Variables
@@ -68,32 +67,6 @@ find_package_handle_standard_args(BAG
   BAG_INCLUDE_DIR
   VERSION_VAR BAG_VERSION
 )
-
-#if(BAG_FOUND)
-#  if(NOT TARGET BAG::BAG)
-#    add_library(BAG::BAG UNKNOWN IMPORTED)
-#  endif()
-#  if(BAG_LIBRARY_RELEASE)
-#    set_property(TARGET BAG::BAG APPEND PROPERTY
-#        IMPORTED_CONFIGURATIONS RELEASE
-#        )
-#    set_target_properties(BAG::BAG PROPERTIES
-#        IMPORTED_LOCATION_RELEASE "${BAG_LIBRARY_RELEASE}"
-#        )
-#  endif()
-#  if(BAG_LIBRARY_DEBUG)
-#    set_property(TARGET BAG::BAG APPEND PROPERTY
-#        IMPORTED_CONFIGURATIONS DEBUG
-#        )
-#    set_target_properties(BAG::BAG PROPERTIES
-#        IMPORTED_LOCATION_DEBUG "${BAG_LIBRARY_DEBUG}"
-#        )
-#  endif()
-#  set_target_properties(BAG::BAG PROPERTIES
-#      INTERFACE_COMPILE_OPTIONS "${PC_BAG_CFLAGS_OTHER}"
-#      INTERFACE_INCLUDE_DIRECTORIES "${BAG_INCLUDE_DIR}"
-#      )
-#endif()
 
 if(BAG_FOUND)
   set(BAG_LIBRARIES ${BAG_LIBRARY})
