@@ -34,13 +34,37 @@ Documentation for the BAG specification and library can be found [here](https://
 - [C++ API Reference](https://bag.readthedocs.io/en/stable/cpp-api/index.html)
 - [Python API Reference](https://bag.readthedocs.io/en/stable/python-api/index.html)
 
-# Installing the BAG library
+# Installing and using the BAG library
 
-We are working to add binary packages for the BAG library to [conda-forge](https://conda-forge.org/).
-Until that time, conda packages of the BAG library are available for Linux (AMD64) and Windows (x64)
-[here](https://github.com/OpenNavigationSurface/BAG/releases/tag/release-2.0.1). To install,
-download the package file for your operating system and Python version, then run
-`conda install <FILE_NAME>.tar.bz2` to install into your conda environment.
+The BAG library, and its dependencies, can be installed in a Conda environment
+(for example, [Anaconda](https://www.anaconda.com/download) or
+[Miniconda](https://docs.conda.io/projects/miniconda/en/latest/)).
+
+If you only want the C++ library, install 
+[libbaglib](https://anaconda.org/conda-forge/libbaglib).
+
+To install the Python bindings (along with the C++ library) install 
+[bagpy](https://anaconda.org/conda-forge/bagpy).
+
+Once installed, you can test C++ library by building the
+[BAG examples](examples/README.md) as a standalone project.
+
+Likewise, you can run the Python tests using the Conda-provided `bagpy`
+bindings by first installing the test dependencies into your conda environment:
+```shell
+pip install -r requirements.txt
+```
+
+Then run the tests (Linux and macOS):
+```shell
+BAG_SAMPLES_PATH=./examples/sample-data python -m pytest python/test_*.py
+```
+
+Under Windows, run:
+```shell
+set BAG_SAMPLES_PATH=examples\sample-data
+python -m pytest python/test_*.py
+```
 
 # Building and using the BAG library
 
