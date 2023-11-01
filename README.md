@@ -49,6 +49,9 @@ To install the Python bindings (along with the C++ library) install
 Once installed, you can test C++ library by building the
 [BAG examples](examples/README.md) as a standalone project.
 
+> Note: You can use [FindBAG.cmake](CMakeModules/FindBAG.cmake) in your
+> own projects to locate libbaglib installed via conda.
+
 Likewise, you can run the Python tests using the Conda-provided `bagpy`
 bindings by first installing the test dependencies into your conda environment:
 ```shell
