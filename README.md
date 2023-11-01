@@ -66,7 +66,7 @@ BAG_SAMPLES_PATH=./examples/sample-data python -m pytest python/test_*.py
 Under Windows, run:
 ```shell
 set BAG_SAMPLES_PATH=examples\sample-data
-python -m pytest python/test_*.py
+python -m pytest python\test_*.py
 ```
 
 # Building and using the BAG library
