@@ -1,3 +1,11 @@
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    # Build examples as standalone project
+    cmake_minimum_required(VERSION 3.18)
+    project(bag-example LANGUAGES C CXX)
+    set(CMAKE_CXX_STANDARD 14)
+    set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules" ${CMAKE_MODULE_PATH})
+endif()
+
 if(NOT BAG_BUILD_BAG_LIB)
   # Find installed BAGLIB as we did not build it
   find_package(BAG REQUIRED)
