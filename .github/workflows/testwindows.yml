@@ -41,6 +41,7 @@ jobs:
       uses: actions/checkout@v3
     
     - name: Install dependencies
+      shell: cmd
       run: |
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
         conda config --set always_yes yes --set changeps1 no
@@ -55,6 +56,7 @@ jobs:
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      shell: cmd
       run: >
         cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -DCMAKE_INSTALL_PREFIX=C:\Miniconda\envs\test-environment\Library
@@ -65,19 +67,20 @@ jobs:
         -DCMAKE_OBJECT_PATH_MAX=1024
 
     - name: Build
-      # Build your program with the given configuration
+      shell: cmd
       run: |
         conda activate test-environment
         cmake --build build
         python -m pip wheel -w .\wheel build\api\swig\python
     
     - name: Install
-      # Install into conda environment
+      shell: cmd
       run: |
         cmake --install build
         python -m pip install .\wheel\bagPy-*.whl
 
     - name: Tests
+      shell: cmd
       # Execute C++ and Python tests
       run: |
         set BAG_SAMPLES_PATH=%github.workspace%\examples\sample-data
