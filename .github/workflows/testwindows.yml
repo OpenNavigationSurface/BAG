@@ -44,16 +44,20 @@ jobs:
         c_compiler: [cl]
 
     steps:
-      - uses: conda-incubator/setup-miniconda@v2
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup conda environment
+        uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           activate-environment: bagbuild
 
-      - name: Checkout
-        uses: actions/checkout@v3
-
       - name: Install dependencies
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: bagbuild
         run: |
           conda config --set always_yes yes --set changeps1 no
           conda update -q conda
@@ -64,6 +68,9 @@ jobs:
           conda list --show-channel-urls
 
       - name: Configure CMake
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: bagbuild
         # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
         # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
         run: |     
@@ -78,16 +85,24 @@ jobs:
           -DCMAKE_OBJECT_PATH_MAX=1024
 
       - name: Build
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: bagbuild
         run: |
           python -m pip wheel -w ./wheel build/api/swig/python
 
       - name: Install
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: bagbuild
         run: |
           cmake --install build
           python -m pip install ./wheel/bagPy-*.whl
 
       - name: Tests
-        # Execute C++ and Python tests
+        uses: conda-incubator/setup-miniconda@v2
+        with:
+          activate-environment: bagbuild
         run: |
           export BAG_SAMPLES_PATH=${github.workspace}/examples/sample-data
           ./build/tests/bag_tests
