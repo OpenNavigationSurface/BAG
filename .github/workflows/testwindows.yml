@@ -1,4 +1,4 @@
-name: Test Matrix
+name: Test Matrix - Windows
 
 on:
   push:
@@ -58,6 +58,12 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       shell: cmd
       run: >
+        set CC=cl.exe
+        
+        set CXX=cl.exe
+        
+        conda activate test-environment
+        
         cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -DCMAKE_INSTALL_PREFIX=C:\Miniconda\envs\test-environment\Library
         -DHDF5_ROOT=C:\Miniconda\envs\test-environment\Library
@@ -76,6 +82,7 @@ jobs:
     - name: Install
       shell: cmd
       run: |
+        conda activate test-environment
         cmake --install build
         python -m pip install .\wheel\bagPy-*.whl
 
@@ -83,6 +90,7 @@ jobs:
       shell: cmd
       # Execute C++ and Python tests
       run: |
+        conda activate test-environment
         set BAG_SAMPLES_PATH=%github.workspace%\examples\sample-data
         .\build\tests\bag_tests
         conda activate test-environment
