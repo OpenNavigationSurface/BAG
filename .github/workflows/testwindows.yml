@@ -64,7 +64,7 @@ jobs:
       run: >
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
         
-        conda init
+        conda info -a
         
         conda activate test-environment
         
@@ -82,7 +82,6 @@ jobs:
       shell: cmd
       run: |
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
-        conda init
         conda activate test-environment
         cmake --build build
         python -m pip wheel -w .\wheel build\api\swig\python
@@ -91,7 +90,6 @@ jobs:
       shell: cmd
       run: |
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
-        conda init
         conda activate test-environment
         cmake --install build
         python -m pip install .\wheel\bagPy-*.whl
@@ -101,7 +99,6 @@ jobs:
       # Execute C++ and Python tests
       run: |
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
-        conda init
         conda activate test-environment
         set BAG_SAMPLES_PATH=%github.workspace%\examples\sample-data
         .\build\tests\bag_tests
