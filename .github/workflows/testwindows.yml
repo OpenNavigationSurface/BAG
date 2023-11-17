@@ -10,6 +10,8 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testmatrix.yml
+      - .github/workflows/testreporting.yml
     branches: [ "master" ]
   pull_request:
     paths-ignore:
@@ -20,6 +22,8 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testmatrix.yml
+      - .github/workflows/testreporting.yml
     branches: [ "master", "v2" ]
 
 env:
@@ -60,6 +64,8 @@ jobs:
       run: >
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
         
+        conda init
+        
         conda activate test-environment
         
         cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
@@ -75,6 +81,8 @@ jobs:
     - name: Build
       shell: cmd
       run: |
+        set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
+        conda init
         conda activate test-environment
         cmake --build build
         python -m pip wheel -w .\wheel build\api\swig\python
@@ -82,6 +90,8 @@ jobs:
     - name: Install
       shell: cmd
       run: |
+        set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
+        conda init
         conda activate test-environment
         cmake --install build
         python -m pip install .\wheel\bagPy-*.whl
@@ -90,6 +100,8 @@ jobs:
       shell: cmd
       # Execute C++ and Python tests
       run: |
+        set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
+        conda init
         conda activate test-environment
         set BAG_SAMPLES_PATH=%github.workspace%\examples\sample-data
         .\build\tests\bag_tests

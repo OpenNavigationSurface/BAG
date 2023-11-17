@@ -10,6 +10,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testwindows.yml
     branches: [ "master" ]
   pull_request:
     paths-ignore:
@@ -20,6 +21,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testwindows.yml
     branches: [ "master", "v2" ]
 
 env:
