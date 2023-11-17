@@ -49,7 +49,7 @@ jobs:
       run: |
         set 
         rem $CONDA is an environment variable pointing to the root of the miniconda directory
-        set %CONDA%\bin;%PATH%
+        set %CONDA%\bin;%GITHUB_PATH%
         set
 
     - name: Install dependencies
