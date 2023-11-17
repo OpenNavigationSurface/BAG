@@ -43,11 +43,18 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v3
-    
+
+    - name: Add conda to system path
+      shell: cmd
+      run: |
+          set
+          rem $CONDA is an environment variable pointing to the root of the miniconda directory
+          rem echo $CONDA/bin >> $GITHUB_PATH
+
     - name: Install dependencies
       shell: cmd
       run: |
-        set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
+        rem set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
         conda config --set always_yes yes --set changeps1 no
         conda update -q conda
         conda info -a
