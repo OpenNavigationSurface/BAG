@@ -52,8 +52,7 @@ jobs:
         conda update -q conda
         conda info -a
         conda config --add channels conda-forge
-        conda create -q -n test-environment python=%PYTHON_VERSION%
-        conda activate test-environment
+        conda activate base
         conda install cmake ninja hdf5 gdal libxml2 swig=4.0.1 catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
         conda list --show-channel-urls
 
@@ -66,7 +65,7 @@ jobs:
         
         conda info -a
         
-        conda activate test-environment
+        conda activate base
         
         cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
         -DCMAKE_C_COMPILER=cl.exe
@@ -82,7 +81,7 @@ jobs:
       shell: cmd
       run: |
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
-        conda activate test-environment
+        conda activate base
         cmake --build build
         python -m pip wheel -w .\wheel build\api\swig\python
     
@@ -90,7 +89,7 @@ jobs:
       shell: cmd
       run: |
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
-        conda activate test-environment
+        conda activate base
         cmake --install build
         python -m pip install .\wheel\bagPy-*.whl
 
@@ -99,7 +98,7 @@ jobs:
       # Execute C++ and Python tests
       run: |
         set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
-        conda activate test-environment
+        conda activate base
         set BAG_SAMPLES_PATH=%github.workspace%\examples\sample-data
         .\build\tests\bag_tests
         conda activate test-environment
