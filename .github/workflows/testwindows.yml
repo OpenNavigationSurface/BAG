@@ -1,0 +1,86 @@
+name: Test Matrix
+
+on:
+  push:
+    paths-ignore:
+      - 'docs/**'
+      - appveyor.yml
+      - readme.*
+      - README.*
+      - '*.md'
+      - '*.svg'
+      - '*.png'
+    branches: [ "master" ]
+  pull_request:
+    paths-ignore:
+      - 'docs/**'
+      - appveyor.yml
+      - readme.*
+      - README.*
+      - '*.md'
+      - '*.svg'
+      - '*.png'
+    branches: [ "master", "v2" ]
+
+env:
+  # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
+  BUILD_TYPE: Release
+
+jobs:
+  build:
+    runs-on: ${{matrix.os}}
+    strategy:
+      fail-fast: true
+      matrix:
+        python-version: ["3.11"]
+        os: [windows-latest]
+        c_compiler: [cl]
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v3
+    
+    - name: Install dependencies
+      run: |
+        set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
+        conda config --set always_yes yes --set changeps1 no
+        conda update -q conda
+        conda info -a
+        conda config --add channels conda-forge
+        conda create -q -n test-environment python=%PYTHON_VERSION%
+        conda activate test-environment
+        conda install cmake ninja hdf5 gdal libxml2 swig=4.0.1 catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
+        conda list --show-channel-urls
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: >
+        cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
+        -DCMAKE_INSTALL_PREFIX=C:\Miniconda\envs\test-environment\Library
+        -DHDF5_ROOT=C:\Miniconda\envs\test-environment\Library
+        -DBAG_BUILD_TESTS:BOOL=ON 
+        -DBAG_BUILD_PYTHON:BOOL=ON 
+        -DBAG_CI=ON
+        -DCMAKE_OBJECT_PATH_MAX=1024
+
+    - name: Build
+      # Build your program with the given configuration
+      run: |
+        conda activate test-environment
+        cmake --build build
+        python -m pip wheel -w .\wheel build\api\swig\python
+    
+    - name: Install
+      # Install into conda environment
+      run: |
+        cmake --install build
+        python -m pip install .\wheel\bagPy-*.whl
+
+    - name: Tests
+      # Execute C++ and Python tests
+      run: |
+        set BAG_SAMPLES_PATH=%github.workspace%\examples\sample-data
+        .\build\tests\bag_tests
+        conda activate test-environment
+        python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python\test_*.py
