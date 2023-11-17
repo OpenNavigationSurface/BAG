@@ -44,21 +44,14 @@ jobs:
         c_compiler: [cl]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-
-      - name: Setup conda environment
-        uses: conda-incubator/setup-miniconda@v2
+      - uses: actions/checkout@v3
+      - uses: conda-incubator/setup-miniconda@v2
         with:
           auto-update-conda: true
           python-version: ${{ matrix.python-version }}
           activate-environment: bagbuild
-
-      - name: Install dependencies
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: bagbuild
-        run: |
+      - run: |
+          echo "Installing dependencies..."
           conda config --set always_yes yes --set changeps1 no
           conda update -q conda
           conda info -a
@@ -66,44 +59,24 @@ jobs:
           conda activate base
           conda install cmake ninja hdf5 gdal libxml2 swig=4.0.1 catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
           conda list --show-channel-urls
-
-      - name: Configure CMake
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: bagbuild
-        # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
-        # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
-        run: |     
-          cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
-          -DCMAKE_C_COMPILER=cl.exe
-          -DCMAKE_CXX_COMPILER=cl.exe
-          -DCMAKE_INSTALL_PREFIX=/Miniconda/envs/bagbuild/Library
-          -DHDF5_ROOT=/Miniconda/envs/bagbuild/Library
-          -DBAG_BUILD_TESTS:BOOL=ON 
-          -DBAG_BUILD_PYTHON:BOOL=ON 
-          -DBAG_CI=ON
-          -DCMAKE_OBJECT_PATH_MAX=1024
-
-      - name: Build
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: bagbuild
-        run: |
+          echo "Configuring CMake..."
+          cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \ 
+            -DCMAKE_C_COMPILER=cl.exe \
+            -DCMAKE_CXX_COMPILER=cl.exe \
+            -DCMAKE_INSTALL_PREFIX=/Miniconda/envs/bagbuild/Library \
+            -DHDF5_ROOT=/Miniconda/envs/bagbuild/Library \
+            -DBAG_BUILD_TESTS:BOOL=ON \
+            -DBAG_BUILD_PYTHON:BOOL=ON \
+            -DBAG_CI=ON \
+            -DCMAKE_OBJECT_PATH_MAX=1024
+          echo "Building..."
+          cmake --build build
           python -m pip wheel -w ./wheel build/api/swig/python
-
-      - name: Install
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: bagbuild
-        run: |
+          echo "Installing..."
           cmake --install build
           python -m pip install ./wheel/bagPy-*.whl
-
-      - name: Tests
-        uses: conda-incubator/setup-miniconda@v2
-        with:
-          activate-environment: bagbuild
-        run: |
+          echo "Running C++ tests..."
           export BAG_SAMPLES_PATH=${github.workspace}/examples/sample-data
           ./build/tests/bag_tests
+          echo "Running Python tests..."
           python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
