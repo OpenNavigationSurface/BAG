@@ -58,13 +58,13 @@ jobs:
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       shell: cmd
       run: >
-        set CC=cl.exe
-        
-        set CXX=cl.exe
+        set PATH=C:\Miniconda;C:\Miniconda\Library\bin;C:\Miniconda\Scripts;%PATH%
         
         conda activate test-environment
         
         cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} 
+        -DCMAKE_C_COMPILER=cl.exe
+        -DCMAKE_CXX_COMPILER=cl.exe
         -DCMAKE_INSTALL_PREFIX=C:\Miniconda\envs\test-environment\Library
         -DHDF5_ROOT=C:\Miniconda\envs\test-environment\Library
         -DBAG_BUILD_TESTS:BOOL=ON 
