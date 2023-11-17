@@ -47,9 +47,10 @@ jobs:
     - name: Add conda to system path
       shell: cmd
       run: |
-          set
-          rem $CONDA is an environment variable pointing to the root of the miniconda directory
-          rem echo $CONDA/bin >> $GITHUB_PATH
+        set 
+        rem $CONDA is an environment variable pointing to the root of the miniconda directory
+        set %CONDA%\bin;%PATH%
+        set
 
     - name: Install dependencies
       shell: cmd
