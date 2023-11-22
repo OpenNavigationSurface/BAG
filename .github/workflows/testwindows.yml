@@ -31,7 +31,7 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  build:
+  windows_build:
     runs-on: ${{matrix.os}}
     defaults:
       run:
@@ -39,44 +39,70 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
-        python-version: ["3.11"]
-        os: [windows-latest]
-        c_compiler: [cl]
+        include:
+          - python-version: ["3.11"]
+            os: [windows-latest]
+            c_compiler: [cl]
+            platform:
+            VS_VERSION: Visual Studio 17
+            VS_VER: 2022
+            SDK: release-1911
+            MSVC_VER: 1920
+            ZLIB_URL: "https://github.com/madler/zlib/releases/download/v1.3/zlib13.zip"
+            LIBXML2_URL: "https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.12.0/libxml2-v2.12.0.zip"
+            HDF5_URL: "https://github.com/HDFGroup/hdf5/releases/download/hdf5-1_12_3/hdf5-1_12_3.zip"
+            CATCH2_URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v3.4.0.zip"
+
+    env:
+      ARCHITECTURE: "amd64"
+      VS_VERSION: ${{ matrix.VS_VERSION }}
+      VS_VER: ${{ matrix.VS_VER }}
+      SDK: ${{ matrix.SDK }}
+      MSVC_VER: ${{ matrix.MSVC_VER }}
+      platform: ${{ matrix.platform }}
+      ZLIB_URL: ${{ matrix.ZLIB_URL }}
+      LIBXML2_URL: ${{ matrix.LIBXML2_URL }}
+      HDF5_URL: ${{ matrix.HDF5_URL }}
+      CATCH2_URL: ${{ matrix.CATCH2_URL }}
 
     steps:
-      - uses: actions/checkout@v3
-      - uses: conda-incubator/setup-miniconda@v2
-        with:
-          auto-update-conda: true
-          python-version: ${{ matrix.python-version }}
-          activate-environment: bagbuild
-      - run: |
-          echo "Installing dependencies..."
-          conda config --set always_yes yes --set changeps1 no
-          conda update -q conda
-          conda info -a
-          conda config --add channels conda-forge
-          conda activate base
-          conda install cmake ninja hdf5 gdal libxml2 swig=4.0.1 catch2 unittest-xml-reporting pytest pytest-cov pytest-xdist
-          conda list --show-channel-urls
-          echo "Configuring CMake..."
-          cmake -Bbuild -S. -GNinja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} \ 
-            -DCMAKE_C_COMPILER=cl.exe \
-            -DCMAKE_CXX_COMPILER=cl.exe \
-            -DCMAKE_INSTALL_PREFIX=/Miniconda/envs/bagbuild/Library \
-            -DHDF5_ROOT=/Miniconda/envs/bagbuild/Library \
-            -DBAG_BUILD_TESTS:BOOL=ON \
-            -DBAG_BUILD_PYTHON:BOOL=ON \
-            -DBAG_CI=ON \
-            -DCMAKE_OBJECT_PATH_MAX=1024
-          echo "Building..."
-          cmake --build build
-          python -m pip wheel -w ./wheel build/api/swig/python
-          echo "Installing..."
-          cmake --install build
-          python -m pip install ./wheel/bagPy-*.whl
-          echo "Running C++ tests..."
-          export BAG_SAMPLES_PATH=${github.workspace}/examples/sample-data
-          ./build/tests/bag_tests
-          echo "Running Python tests..."
-          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set compiler environment
+        shell: cmd
+        run: |
+            if "%VS_VER%" == "2022" CALL "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=%ARCHITECTURE%
+            echo PATH=%PATH%>> %GITHUB_ENV%
+            echo INCLUDE=%INCLUDE%>> %GITHUB_ENV%
+            echo LIB=%LIB%>> %GITHUB_ENV%
+            echo LIBPATH=%LIBPATH%>> %GITHUB_ENV%
+
+      - name: Build
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'continue'
+          function exec
+          {
+              param ( [ScriptBlock] $ScriptBlock )
+              & $ScriptBlock 2>&1 | ForEach-Object -Process { "$_" }
+              if ($LastExitCode -ne 0) { exit $LastExitCode }
+          }
+          Install-Module Pscx -AllowClobber
+          Install-Module VSSetup -Scope CurrentUser
+          # Download dependencies
+          if(-Not (Test-Path -Path downloads)) { mkdir downloads }
+          cd downloads
+          $env:ZLIB_ZIP="zlib.zip"
+          if(-Not (Test-Path -Path $env:ZLIB_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:ZLIB_URL" -OutFile "$env:ZLIB_ZIP" }
+          # TODO: LIBXML2_URL, HDF5_URL, CATCH2_URL
+          # Unzip dependencies
+          cd ..
+          mkdir lib
+          mkdir src
+          cd src
+          exec { 7z x -ozlib ..\downloads\$env:ZLIB_ZIP }
+          cd zlib
+          cmake -B build -G $env:VS_VERSION -DCMAKE_INSTALL_PREFIX=..\..\src -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --target install
