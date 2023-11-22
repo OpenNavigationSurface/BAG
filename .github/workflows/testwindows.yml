@@ -104,5 +104,6 @@ jobs:
           cd src
           exec { 7z x ..\downloads\$env:ZLIB_ZIP }
           cd zlib-1.3
+          mkdir build
           cmake -B build -G $env:VS_VERSION -DCMAKE_INSTALL_PREFIX=..\..\src -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target install
