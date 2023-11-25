@@ -96,12 +96,15 @@ jobs:
           cd downloads
           $env:ZLIB_ZIP="zlib.zip"
           if(-Not (Test-Path -Path $env:ZLIB_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:ZLIB_URL" -OutFile "$env:ZLIB_ZIP" }
-          # TODO: LIBXML2_URL, HDF5_URL, CATCH2_URL
-          # Unzip dependencies
+          $env:LIBXML2_ZIP="libxml2.zip"
+          if(-Not (Test-Path -Path $env:LIBXML2_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:LIBXML2_URL" -OutFile "$env:LIBXML2_ZIP" }
+          # TODO: HDF5_URL, CATCH2_URL
+          # Unzip and build dependencies
           cd ..
           mkdir lib
           mkdir src
           cd src
+          # zlib
           exec { 7z x ..\downloads\$env:ZLIB_ZIP }
           cd zlib-1.3
           if(-Not (Test-Path -Path build)) { mkdir build }
@@ -109,3 +112,13 @@ jobs:
           pwd
           cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=..\..\src -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target install
+          dir -r ..\..\src
+          # libxml2
+          exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
+          cd libxml2-v2.12.0
+          if(-Not (Test-Path -Path build)) { mkdir build }
+          dir
+          pwd
+          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=..\..\src -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
+          cmake --build build --target install
+          dir -r ..\..\src
