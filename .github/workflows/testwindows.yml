@@ -91,8 +91,10 @@ jobs:
           }
           Install-Module Pscx -AllowClobber
           Install-Module VSSetup -Scope CurrentUser
-          # Debug
+          # Setup
           env
+          $env:BAG_INSTALL_PATH="$env:GITHUB_WORKSPACE\install"
+          if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
           dir $env:GITHUB_WORKSPACE
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
@@ -113,19 +115,19 @@ jobs:
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=..\..\src -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release
           cmake --build build --target install
           cd ..
           dir .
-          dir .\lib\
+          dir $env:BAG_INSTALL_PATH
           # libxml2
           exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
           cd libxml2-v2.12.0
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=..\..\src -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
+          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
           cmake --build build --target install
           cd ..
           dir .
-          dir .\lib\
+          dir $env:BAG_INSTALL_PATH
