@@ -114,6 +114,7 @@ jobs:
           cmake --build build --target install
           cd ..
           dir .
+          dir .\lib\
           # libxml2
           exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
           cd libxml2-v2.12.0
@@ -124,3 +125,4 @@ jobs:
           cmake --build build --target install
           cd ..
           dir .
+          dir .\lib\
