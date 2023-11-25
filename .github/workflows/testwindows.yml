@@ -91,6 +91,9 @@ jobs:
           }
           Install-Module Pscx -AllowClobber
           Install-Module VSSetup -Scope CurrentUser
+          # Debug
+          env
+          dir $env:GITHUB_WORKSPACE
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
           cd downloads
