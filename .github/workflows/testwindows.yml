@@ -154,7 +154,8 @@ jobs:
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
-          $env:BAG_INSTALL_PATH\Scripts\Activate.ps1
+          $activate_cmd = "$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+          Invoke-Command $activate_cmd
           pip install -r requirements.txt
           pip wheel --global-option=$env:CMAKE_INSTALL_PREFIX -w .\wheel\ .\build\api\swig\python
           pip install .\wheel\bagPy-*.whl
