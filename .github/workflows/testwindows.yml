@@ -123,7 +123,8 @@ jobs:
           exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
           cd libxml2-v2.12.0
           if(-Not (Test-Path -Path build)) { mkdir build }
-          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
+          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
+            -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
           cmake --build build --config Release --target install
           cd ..
           # HDF5
@@ -145,6 +146,7 @@ jobs:
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DBUILD_TESTING:BOOL=OFF
           cmake --build build --config Release --target install
-          dir .
-          dir $env:BAG_INSTALL_PATH
           cd ..
+          # Build BAG C++ API
+          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release --target install
