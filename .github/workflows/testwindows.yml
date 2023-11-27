@@ -95,6 +95,8 @@ jobs:
           $env:BAG_INSTALL_PATH="$env:GITHUB_WORKSPACE\install"
           # Debug: env
           if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
+          # Create Python venv in the same place as BAG_INSTALL_PATH
+          python -m venv $env:BAG_INSTALL_PATH
           # Debug: dir $env:GITHUB_WORKSPACE
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
@@ -152,5 +154,7 @@ jobs:
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
-          python -m pip wheel -w .\wheel\ .\build\api\swig\python
-          python -m pip install .\wheel\bagPy-*.whl
+          $env:BAG_INSTALL_PATH\Scripts\Activate.ps1
+          pip install -r requirements.txt
+          pip wheel --global-option=$env:CMAKE_INSTALL_PREFIX -w .\wheel\ .\build\api\swig\python
+          pip install .\wheel\bagPy-*.whl

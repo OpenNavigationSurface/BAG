@@ -1,0 +1,8 @@
+setuptools
+setuptools-scm[toml]
+wheel
+cmake-build-extension
+unittest-xml-reporting
+pytest
+pytest-cov
+pytest-xdist
