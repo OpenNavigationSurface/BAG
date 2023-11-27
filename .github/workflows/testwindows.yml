@@ -114,8 +114,8 @@ jobs:
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . --config Release -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH
-          cmake --build build --target install
+          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release --target install
           cd ..
           dir .
           dir $env:BAG_INSTALL_PATH
@@ -125,8 +125,8 @@ jobs:
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . --config Release -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
-          cmake --build build --target install
+          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
+          cmake --build build --config Release --target install
           cd ..
           dir .
           dir $env:BAG_INSTALL_PATH
