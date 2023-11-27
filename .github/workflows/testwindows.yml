@@ -148,5 +148,6 @@ jobs:
           cmake --build build --config Release --target install
           cd ..\..
           # Build BAG C++ API
-          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
+            -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
           cmake --build build --config Release --target install
