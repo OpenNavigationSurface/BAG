@@ -158,8 +158,8 @@ jobs:
           dir $activate_cmd
           echo "Attempting to activate Python environment using script: $activate_cmd ..."
           & $activate_cmd
-          pip install --upgrade pip
-          pip install -r requirements.txt
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
           $CMAKE_PREFIX_PATH="-DCMAKE_PREFIX_PATH=" + $env:BAG_INSTALL_PATH
-          pip wheel --config-settings=$CMAKE_PREFIX_PATH -w .\wheel\ .\build\api\swig\python
-          pip install .\wheel\bagPy-*.whl
+          python -m pip wheel --config-settings=$CMAKE_PREFIX_PATH -w .\wheel\ .\build\api\swig\python
+          python -m pip install .\wheel\bagPy-*.whl
