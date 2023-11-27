@@ -106,7 +106,6 @@ jobs:
           # TODO: HDF5_URL, CATCH2_URL
           # Unzip and build dependencies
           cd ..
-          mkdir lib
           mkdir src
           cd src
           # zlib
@@ -115,7 +114,7 @@ jobs:
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release
+          cmake -B build -G $env:VS_VERSION -S . --config Release -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH
           cmake --build build --target install
           cd ..
           dir .
@@ -126,7 +125,7 @@ jobs:
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
+          cmake -B build -G $env:VS_VERSION -S . --config Release -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
           cmake --build build --target install
           cd ..
           dir .
