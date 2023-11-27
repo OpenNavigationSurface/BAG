@@ -147,7 +147,10 @@ jobs:
             -DBUILD_TESTING:BOOL=OFF
           cmake --build build --config Release --target install -- /nologo /verbosity:minimal 
           cd ..\..
-          # Build BAG C++ API
+          # Build and install BAG C++ API
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
           cmake --build build --config Release --target install
+          # Build and install bagPy Python wheel
+          python -m pip wheel -w .\wheel\ .\build\api\swig\python
+          python -m pip install .\wheel\bagPy-*.whl
