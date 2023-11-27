@@ -92,8 +92,8 @@ jobs:
           Install-Module Pscx -AllowClobber
           Install-Module VSSetup -Scope CurrentUser
           # Setup
-          env
           $env:BAG_INSTALL_PATH="$env:GITHUB_WORKSPACE\install"
+          env
           if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
           dir $env:GITHUB_WORKSPACE
           # Download dependencies
@@ -114,7 +114,8 @@ jobs:
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release
+          $env:CMAKE_INSTALL_PREFIX="-DCMAKE_INSTALL_PREFIX=" + $env:BAG_INSTALL_PATH
+          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release --target install
           cd ..
           dir .
@@ -125,7 +126,7 @@ jobs:
           if(-Not (Test-Path -Path build)) { mkdir build }
           dir
           pwd
-          cmake -B build -G $env:VS_VERSION -S . -DCMAKE_INSTALL_PREFIX=$env:BAG_INSTALL_PATH -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
+          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
           cmake --build build --config Release --target install
           cd ..
           dir .
