@@ -155,6 +155,7 @@ jobs:
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
           $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+          dir $activate_cmd
           echo "Attempting to activate Python environment using script: $activate_cmd ..."
           Invoke-Command -FilePath $activate_cmd
           pip install -r requirements.txt
