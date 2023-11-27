@@ -157,7 +157,8 @@ jobs:
           $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
           dir $activate_cmd
           echo "Attempting to activate Python environment using script: $activate_cmd ..."
-          Invoke-Command -FilePath $activate_cmd
+          & $activate_cmd
           pip install -r requirements.txt
-          pip wheel --config-settings=$env:CMAKE_INSTALL_PREFIX -w .\wheel\ .\build\api\swig\python
+          $CMAKE_PREFIX_PATH="-DCMAKE_PREFIX_PATH=" + $env:BAG_INSTALL_PATH
+          pip wheel --config-settings=$CMAKE_PREFIX_PATH -w .\wheel\ .\build\api\swig\python
           pip install .\wheel\bagPy-*.whl
