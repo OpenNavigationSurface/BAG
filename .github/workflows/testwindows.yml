@@ -103,7 +103,9 @@ jobs:
           if(-Not (Test-Path -Path $env:ZLIB_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:ZLIB_URL" -OutFile "$env:ZLIB_ZIP" }
           $env:LIBXML2_ZIP="libxml2.zip"
           if(-Not (Test-Path -Path $env:LIBXML2_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:LIBXML2_URL" -OutFile "$env:LIBXML2_ZIP" }
-          # TODO: HDF5_URL, CATCH2_URL
+          $env:HDF5_ZIP="hdf5.zip"
+          if(-Not (Test-Path -Path $env:HDF5_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:HDF5_URL" -OutFile "$env:HDF5_ZIP" }
+          # TODO: CATCH2_URL
           # Unzip and build dependencies
           cd ..
           mkdir src
@@ -118,8 +120,6 @@ jobs:
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release
           cmake --build build --config Release --target install
           cd ..
-          dir .
-          dir $env:BAG_INSTALL_PATH
           # libxml2
           exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
           cd libxml2-v2.12.0
@@ -129,5 +129,17 @@ jobs:
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
           cmake --build build --config Release --target install
           cd ..
+          # HDF5
+          exec { 7z x ..\downloads\$env:HDF5_ZIP }
+          cd hdfsrc
+          if(-Not (Test-Path -Path build)) { mkdir build }
+          dir
+          pwd
+          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
+            -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF `
+            -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON `
+            -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
+          cmake --build build --config Release --target install
           dir .
           dir $env:BAG_INSTALL_PATH
+          cd ..
