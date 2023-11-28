@@ -168,6 +168,7 @@ jobs:
           # python -m pip install .\wheel\bagPy-*.whl
           # Run C++ tests
           $env:BAG_SAMPLES_PATH="$env:GITHUB_WORKSPACE\examples\sample-data"
+          dir $env:BAG_SAMPLES_PATH
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
           dir $test_path
           & $test_path
