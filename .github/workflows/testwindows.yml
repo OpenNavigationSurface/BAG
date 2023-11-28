@@ -162,7 +162,7 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           $env:CMAKE_PREFIX_PATH=$env:BAG_INSTALL_PATH
-          $env:LIBXML2_LIBRARY="$env:BAG_INSTALL_PATH\lib"
-          $env:LIBXML2_INCLUDE_DIR="$env:BAG_INSTALL_PATH\include"
+          $env:LIBXML2_LIBRARY="$env:BAG_INSTALL_PATH\Lib"
+          $env:LIBXML2_INCLUDE_DIR="$env:BAG_INSTALL_PATH\Include"
           python -m pip wheel -w .\wheel\ .\build\api\swig\python
           python -m pip install .\wheel\bagPy-*.whl
