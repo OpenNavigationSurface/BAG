@@ -4,23 +4,21 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
-      - appveyor.yml
       - readme.*
       - README.*
       - '*.md'
       - '*.svg'
       - .github/workflows/testwindows.yml
-    branches: [ "master", "v2" ]
+    branches: [ "master" ]
   pull_request:
     paths-ignore:
       - 'docs/**'
-      - appveyor.yml
       - readme.*
       - README.*
       - '*.md'
       - '*.svg'
       - .github/workflows/testwindows.yml
-    branches: [ "master", "v2" ]
+    branches: [ "master" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

@@ -4,7 +4,6 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
-      - appveyor.yml
       - readme.*
       - README.*
       - '*.md'
@@ -15,14 +14,13 @@ on:
   pull_request:
     paths-ignore:
       - 'docs/**'
-      - appveyor.yml
       - readme.*
       - README.*
       - '*.md'
       - '*.svg'
       - '*.png'
       - .github/workflows/testwindows.yml
-    branches: [ "master", "v2" ]
+    branches: [ "master" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)

@@ -195,7 +195,7 @@ python -m pip wheel -w .\wheel\ .\build\api\swig\python
 
 Then install the wheel as follows:
 ```
-for %%w in (.\wheel\bagPy-*.whl) do %PYTHON% -m pip install %%w
+for %%w in (.\wheel\bagPy-*.whl) do python -m pip install %%w
 ```
 
 ### Running C++ tests in Visual Studio
