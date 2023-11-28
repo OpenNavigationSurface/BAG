@@ -149,7 +149,6 @@ jobs:
             -DBUILD_TESTING:BOOL=OFF
           cmake --build build --config Release --target install -- /nologo /verbosity:minimal 
           cd ..\..
-          dir -r $env:BAG_INSTALL_PATH
           # Build and install BAG C++ API
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
@@ -167,6 +166,8 @@ jobs:
           # python -m pip wheel -w .\wheel\ .\build\api\swig\python
           # python -m pip install .\wheel\bagPy-*.whl
           # Run C++ tests
+          pwd
+          dir .
           $env:BAG_SAMPLES_PATH="$env:GITHUB_WORKSPACE\examples\sample-data"
           dir $env:BAG_SAMPLES_PATH
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
