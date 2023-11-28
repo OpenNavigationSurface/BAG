@@ -149,6 +149,7 @@ jobs:
             -DBUILD_TESTING:BOOL=OFF
           cmake --build build --config Release --target install -- /nologo /verbosity:minimal 
           cd ..\..
+          dir -r $env:BAG_INSTALL_PATH
           # Build and install BAG C++ API
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
