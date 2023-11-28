@@ -1,5 +1,6 @@
 import sys
 import platform
+import os
 
 import cmake_build_extension
 import setuptools
@@ -23,6 +24,8 @@ if platform.system() == 'Windows':
     # Turn on BAG_CI so that build artifacts aren't collected into 'stage' sub-directory
     # on Windows, which breaks wheel generation.
     cmake_configure_options.append('-DBAG_CI:BOOL=ON')
+if CMAKE_PREFIX_PATH := os.getenv('CMAKE_PREFIX_PATH'):
+    cmake_configure_options.append(f"-DCMAKE_PREFIX_PATH={CMAKE_PREFIX_PATH}")
 
 
 setuptools.setup(
