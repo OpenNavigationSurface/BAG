@@ -25,10 +25,13 @@ if platform.system() == 'Windows':
     # on Windows, which breaks wheel generation.
     cmake_configure_options.append('-DBAG_CI:BOOL=ON')
 if CMAKE_PREFIX_PATH := os.getenv('CMAKE_PREFIX_PATH'):
+    print(f"Setting CMake option: -DCMAKE_PREFIX_PATH={CMAKE_PREFIX_PATH}")
     cmake_configure_options.append(f"-DCMAKE_PREFIX_PATH={CMAKE_PREFIX_PATH}")
 if LIBXML2_LIBRARY := os.getenv('LIBXML2_LIBRARY'):
+    print(f"Setting CMake option: -DLIBXML2_LIBRARY={LIBXML2_LIBRARY}")
     cmake_configure_options.append(f"-DLIBXML2_LIBRARY={LIBXML2_LIBRARY}")
 if LIBXML2_INCLUDE_DIR := os.getenv('LIBXML2_INCLUDE_DIR'):
+    print(f"Setting CMake option: -DLIBXML2_INCLUDE_DIR={LIBXML2_INCLUDE_DIR}")
     cmake_configure_options.append(f"-DLIBXML2_INCLUDE_DIR={LIBXML2_INCLUDE_DIR}")
 
 setuptools.setup(
