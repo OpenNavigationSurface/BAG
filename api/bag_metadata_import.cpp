@@ -10,6 +10,7 @@
 
 #include <cstring>
 #include <iostream>
+#include <libxml/parser.h>
 #include <libxml/xmlschemas.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
