@@ -171,4 +171,5 @@ jobs:
           & $test_path
           # Run Python tests
           $py_tests=Resolve-Path ".\python\test_*.py"
-          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml $py_tests
+          # Ignore GDAL compatibility test for now since we do this for Linux build
+          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml --ignore-glob="*_gdal.py" $py_tests
