@@ -155,9 +155,9 @@ jobs:
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
-#          $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
-#          echo "Attempting to activate Python environment using script: $activate_cmd ..."
-#          & $activate_cmd
+          #$activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+          #echo "Attempting to activate Python environment using script: $activate_cmd ..."
+          #& $activate_cmd
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           $env:CMAKE_PREFIX_PATH=$env:BAG_INSTALL_PATH
