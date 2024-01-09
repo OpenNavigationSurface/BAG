@@ -66,7 +66,10 @@ jobs:
 
       - name: Checkout
         uses: actions/checkout@v4
-
+      - name: Set up Python ${{ matrix.python-version }}
+          uses: actions/setup-python@v4
+          with:
+            python-version: ${{ matrix.python-version }}
       - name: Set compiler environment
         shell: cmd
         run: |
@@ -161,7 +164,8 @@ jobs:
           # $env:LIBXML2_LIBRARY="$env:BAG_INSTALL_PATH\Lib"
           # $env:LIBXML2_INCLUDE_DIR="$env:BAG_INSTALL_PATH\Include\libxml2"
           python -m pip wheel -w .\wheel\ .\build\api\swig\python
-          python -m pip install .\wheel\bagPy-*.whl
+          $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
+          python -m pip install $whl_path
           # Run C++ tests
           $env:Path += ";$env:BAG_INSTALL_PATH\bin"
           echo $env:Path
