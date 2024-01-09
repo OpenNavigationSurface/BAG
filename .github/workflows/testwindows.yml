@@ -37,11 +37,11 @@ jobs:
     strategy:
       fail-fast: true
       matrix:
+        os: [windows-latest]
+        python-version: ["3.11"]
+        c_compiler: [cl]
         include:
-          - python-version: ["3.11"]
-            os: [windows-latest]
-            c_compiler: [cl]
-            VS_VERSION: Visual Studio 17
+          - VS_VERSION: Visual Studio 17
             VS_VER: 2022
             SDK: release-1911
             MSVC_VER: 1920
