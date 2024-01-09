@@ -172,6 +172,7 @@ jobs:
           & $test_path
           # Run Python tests
           #$env:Path += ";$env:BAG_INSTALL_PATH\Lib\site-packages\bagPy\bin"
+          cp $env:BAG_INSTALL_PATH\Lib\site-packages\bagPy\bin\baglib.dll $env:BAG_INSTALL_PATH\Lib\site-packages\bagPy
           # DEBUG
           dir -r $env:BAG_INSTALL_PATH
           # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
