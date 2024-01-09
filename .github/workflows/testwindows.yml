@@ -170,15 +170,17 @@ jobs:
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
           & $test_path
           # Run Python tests
-          # Ignore GDAL compatibility test for now since we do this for Linux build
-          $py_tests=Resolve-Path ".\python\test_compound*.py"
-          $py_tests+=Resolve-Path ".\python\test_d*.py"
-          $py_tests+=Resolve-Path ".\python\test_i*.py"
-          $py_tests+=Resolve-Path ".\python\test_m*.py"
-          $py_tests+=Resolve-Path ".\python\test_r*.py"
-          $py_tests+=Resolve-Path ".\python\test_s*.py"
-          $py_tests+=Resolve-Path ".\python\test_t*.py"
-          $py_tests+=Resolve-Path ".\python\test_v*.py"
+          $env:Path += ";$env:BAG_INSTALL_PATH\Lib\site-packages\bagPy\bin"
           # DEBUG
           dir -r $env:BAG_INSTALL_PATH
-          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml $py_tests
+          # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
+          #   on Windows is a hassle.
+          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
+            .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
+            .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
+            .\python\test_metadata.py .\python\test_record.py .\python\test_simplelayer.py `
+            .\python\test_simplelayerdescriptor.py .\python\test_surfacecorrections.py `
+            .\python\test_surfacecorrectionsdescriptor.py .\python\test_trackinglist.py .\python\test_valuetable.py `
+            .\python\test_vrmetadata.py .\python\test_vrmetadatadescriptor.py .\python\test_vrnode.py `
+            .\python\test_vrnodedescriptor.py .\python\test_vrrefinements.py .\python\test_vrrefinementsdescriptor.py `
+            .\python\test_vrtrackinglist.py
