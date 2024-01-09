@@ -93,7 +93,7 @@ jobs:
           # Debug: env
           if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
           # Create Python venv in the same place as BAG_INSTALL_PATH
-          # TODO: python -m venv $env:BAG_INSTALL_PATH
+          python -m venv $env:BAG_INSTALL_PATH
           # Debug: dir $env:GITHUB_WORKSPACE
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
@@ -151,17 +151,17 @@ jobs:
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
           cmake --build build --config Release --target install
           # TODO: Build and install bagPy Python wheel
-          # $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
-          # dir $activate_cmd
-          # echo "Attempting to activate Python environment using script: $activate_cmd ..."
-          # & $activate_cmd
-          # python -m pip install --upgrade pip
-          # python -m pip install -r requirements.txt
+          $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+          dir $activate_cmd
+          echo "Attempting to activate Python environment using script: $activate_cmd ..."
+          & $activate_cmd
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
           # $env:CMAKE_PREFIX_PATH=$env:BAG_INSTALL_PATH
           # $env:LIBXML2_LIBRARY="$env:BAG_INSTALL_PATH\Lib"
           # $env:LIBXML2_INCLUDE_DIR="$env:BAG_INSTALL_PATH\Include\libxml2"
-          # python -m pip wheel -w .\wheel\ .\build\api\swig\python
-          # python -m pip install .\wheel\bagPy-*.whl
+          python -m pip wheel -w .\wheel\ .\build\api\swig\python
+          python -m pip install .\wheel\bagPy-*.whl
           # Run C++ tests
           $env:Path += ";$env:BAG_INSTALL_PATH\bin"
           echo $env:Path
