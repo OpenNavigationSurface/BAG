@@ -170,8 +170,15 @@ jobs:
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
           & $test_path
           # Run Python tests
-          $py_tests=Resolve-Path ".\python\test_*.py" -Relative
+          # Ignore GDAL compatibility test for now since we do this for Linux build
+          $py_tests=Resolve-Path ".\python\test_compound*.py"
+          $py_tests+=Resolve-Path ".\python\test_d*.py"
+          $py_tests+=Resolve-Path ".\python\test_i*.py"
+          $py_tests+=Resolve-Path ".\python\test_m*.py"
+          $py_tests+=Resolve-Path ".\python\test_r*.py"
+          $py_tests+=Resolve-Path ".\python\test_s*.py"
+          $py_tests+=Resolve-Path ".\python\test_t*.py"
+          $py_tests+=Resolve-Path ".\python\test_v*.py"
           # DEBUG
           dir -r $env:BAG_INSTALL_PATH
-          # Ignore GDAL compatibility test for now since we do this for Linux build
-          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml --ignore=".\python\test_compat_gdal.py" $py_tests
+          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml $py_tests
