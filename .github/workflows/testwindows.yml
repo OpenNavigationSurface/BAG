@@ -150,13 +150,14 @@ jobs:
           cmake --build build --config Release --target install -- /nologo /verbosity:minimal 
           cd ..\..
           # Build and install BAG C++ API
-          cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
-            -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
+          cmake -G $env:VS_VERSION -DCMAKE_BUILD_TYPE=Release -B build -S . `
+            $env:CMAKE_INSTALL_PREFIX -DBUILD_SHARED_LIBS=ON `
+            -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
-          $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
-          echo "Attempting to activate Python environment using script: $activate_cmd ..."
-          & $activate_cmd
+#          $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+#          echo "Attempting to activate Python environment using script: $activate_cmd ..."
+#          & $activate_cmd
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           $env:CMAKE_PREFIX_PATH=$env:BAG_INSTALL_PATH
@@ -170,12 +171,11 @@ jobs:
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
           & $test_path
           # Run Python tests
-          $env:Path += ";$env:BAG_INSTALL_PATH\Lib\site-packages\bagPy\bin"
+          #$env:Path += ";$env:BAG_INSTALL_PATH\Lib\site-packages\bagPy\bin"
           # DEBUG
           dir -r $env:BAG_INSTALL_PATH
           # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
           #   on Windows is a hassle.
-          python -m pip install msvc-runtime
           python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
             .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
             .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
