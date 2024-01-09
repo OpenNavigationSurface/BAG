@@ -153,16 +153,13 @@ jobs:
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON
           cmake --build build --config Release --target install
-          # TODO: Build and install bagPy Python wheel
+          # Build and install bagPy Python wheel
           $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
-          dir $activate_cmd
           echo "Attempting to activate Python environment using script: $activate_cmd ..."
           & $activate_cmd
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
           $env:CMAKE_PREFIX_PATH=$env:BAG_INSTALL_PATH
-          # $env:LIBXML2_LIBRARY="$env:BAG_INSTALL_PATH\Lib"
-          # $env:LIBXML2_INCLUDE_DIR="$env:BAG_INSTALL_PATH\Include\libxml2"
           python -m pip wheel -w .\wheel\ .\build\api\swig\python
           $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
           python -m pip install $whl_path
@@ -172,3 +169,6 @@ jobs:
           $env:BAG_SAMPLES_PATH="$env:GITHUB_WORKSPACE\examples\sample-data"
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
           & $test_path
+          # Run Python tests
+          $py_tests=Resolve-Path ".\python\test_*.py"
+          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml $py_tests
