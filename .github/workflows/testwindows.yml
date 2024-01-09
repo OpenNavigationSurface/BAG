@@ -175,6 +175,7 @@ jobs:
           dir -r $env:BAG_INSTALL_PATH
           # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
           #   on Windows is a hassle.
+          python -m pip install msvc-runtime
           python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
             .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
             .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
