@@ -18,8 +18,8 @@ SRC_DIR=$SRC/bag
 
 echo "Building bag_read_fuzzer..."
 $CXX $CXXFLAGS \
-          -I$SRC_DIR/api \
-          $(dirname $0)/bag_read_fuzzer.cpp -o $OUT/bag_read_fuzzer \
-          $LIB_FUZZING_ENGINE \
-          -L/usr/local/lib/static -llibbaglib \
-          -Wl,-Bdynamic -ldl -lpthread
+  -I$SRC_DIR/api \
+  fuzzers/bag_read_fuzzer.cpp -o $OUT/bag_read_fuzzer \
+  $LIB_FUZZING_ENGINE \
+  -L/usr/local/lib/static -lbaglib \
+  -Wl,-Bdynamic -ldl -lpthread -lxml2
