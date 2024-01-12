@@ -6,8 +6,9 @@ cd $SRC/bag
 
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . \
   -DCMAKE_PREFIX_PATH='/usr;/usr/local;/usr/local/HDF_Group/HDF5/1.14.3/' \
+  -DBAG_BUILD_SHARED_LIBS:BOOL=OFF \
   -DBAG_BUILD_TESTS:BOOL=OFF -DBAG_CODE_COVERAGE:BOOL=OFF \
-  -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON
+  -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=OFF
 
 cmake --build build --config Release --target install
 
