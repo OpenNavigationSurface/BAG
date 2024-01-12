@@ -14,3 +14,12 @@ cmake --build build --config Release --target install
 
 export export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/usr/local/HDF_Group/HDF5/1.14.3/lib
 
+SRC_DIR=$SRC/bag
+
+echo "Building bag_read_fuzzer..."
+$CXX $CXXFLAGS \
+          -I$SRC_DIR/api \
+          $(dirname $0)/bag_read_fuzzer.cpp -o $OUT/bag_read_fuzzer \
+          $LIB_FUZZING_ENGINE \
+          -L/usr/local/lib/static -llibbaglib \
+          -Wl,-Bdynamic -ldl -lpthread
