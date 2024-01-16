@@ -7,7 +7,7 @@
 using BAG::Dataset;
 
 
-extern int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
+extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 
     char filename[256];
     sprintf(filename, "/tmp/libfuzzer.%d", getpid());
