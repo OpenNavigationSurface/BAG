@@ -20,6 +20,7 @@ $CXX $CXXFLAGS \
   -I$SRC_DIR/api \
   fuzzers/bag_read_fuzzer.cpp -o $OUT/bag_read_fuzzer \
   $LIB_FUZZING_ENGINE \
-  -L$SRC_DIR/build -lbaglib \
+  -L/usr/local/lib/static -lbaglib \
+  -L/usr/local/HDF_Group/HDF5/1.14.3/lib -lhdf5_cpp \
   -Wl,-Bstatic -lhdf5 \
   -Wl,-Bdynamic -ldl -lpthread -lxml2
