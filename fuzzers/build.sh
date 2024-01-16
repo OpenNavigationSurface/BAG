@@ -2,7 +2,8 @@
 
 echo "Building BAG for fuzzing..."
 
-cd $SRC/bag
+SRC_DIR=$SRC/bag
+cd $SRC_DIR
 
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . \
   -DCMAKE_PREFIX_PATH='/usr;/usr/local;/usr/local/HDF_Group/HDF5/1.14.3/' \
@@ -12,14 +13,13 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . \
 
 cmake --build build --config Release --target install
 
-export export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/usr/local/HDF_Group/HDF5/1.14.3/lib
-
-SRC_DIR=$SRC/bag
+export LD_LIBRARY_PATH=/usr/lib:/usr/local/lib:/usr/local/HDF_Group/HDF5/1.14.3/lib
 
 echo "Building bag_read_fuzzer..."
 $CXX $CXXFLAGS \
   -I$SRC_DIR/api \
   fuzzers/bag_read_fuzzer.cpp -o $OUT/bag_read_fuzzer \
   $LIB_FUZZING_ENGINE \
-  -L/usr/local/lib/static -lbaglib \
+  -L$SRC_DIR/build -lbaglib \
+  -Wl,-Bstatic -lhdf5 \
   -Wl,-Bdynamic -ldl -lpthread -lxml2
