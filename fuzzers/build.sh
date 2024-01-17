@@ -23,4 +23,5 @@ $CXX $CXXFLAGS \
   -L/usr/local/lib/static -lbaglib \
   -L/usr/local/HDF_Group/HDF5/1.14.3/lib -lhdf5_cpp \
   -L/usr/local/HDF_Group/HDF5/1.14.3/lib -lhdf5 \
-  -Wl,-Bdynamic -ldl -lpthread -lxml2 -lz
+  -L/usr/lib/x86_64-linux-gnu -lxml2 \
+  -Wl,-Bdynamic -ldl -lpthread -lz
