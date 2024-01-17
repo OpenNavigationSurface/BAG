@@ -25,5 +25,5 @@ $CXX $CXXFLAGS \
   -L/opt/lib -lhdf5_cpp \
   -L/opt/lib -lhdf5 \
   -L/opt/lib -lxml2 \
-  -Wl,-Bstatic -lxml2 -lz \
+  -Wl,-Bstatic -lxml2 -lhdf5 -lhdf5_cpp -lbaglib \
   -Wl,-Bdynamic -ldl -lpthread
