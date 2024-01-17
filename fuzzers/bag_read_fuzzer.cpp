@@ -10,7 +10,7 @@ using BAG::Dataset;
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *buf, size_t len) {
 
     char filename[256];
-    sprintf(filename, "/tmp/libfuzzer.%d", getpid());
+    snprintf(filename, 255, "/tmp/libfuzzer.%d", getpid());
 
     // Save input file to temporary file so that we can read it.
     FILE *fp = fopen(filename, "wb");
