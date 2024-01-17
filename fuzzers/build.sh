@@ -24,5 +24,5 @@ $CXX $CXXFLAGS \
   -L/usr/local/HDF_Group/HDF5/1.14.3/lib -lhdf5_cpp \
   -L/usr/local/HDF_Group/HDF5/1.14.3/lib -lhdf5 \
   -L/usr/lib/x86_64-linux-gnu -lxml2 \
-  -Wl,-Bstatic -lxml2 \
-  -Wl,-Bdynamic -ldl -lpthread -lz
+  -Wl,-Bstatic -lxml2 -lz -licuuc -licui18n -licudata \
+  -Wl,-Bdynamic -ldl -lpthread
