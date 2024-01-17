@@ -21,10 +21,12 @@
 #include "bag_vrrefinements.h"
 #include "bag_vrrefinementsdescriptor.h"
 
+#include <iostream>
 #include <algorithm>
 #include <array>
 #include <cctype>
 #include <H5Cpp.h>
+#include <H5Exception.h>
 #include <map>
 #include <memory>
 #include <regex>
@@ -33,6 +35,8 @@
 
 
 namespace BAG {
+
+using std::cerr;
 
 namespace {
 
@@ -264,7 +268,13 @@ std::shared_ptr<Dataset> Dataset::open(
 #endif
 
     std::shared_ptr<Dataset> pDataset{new Dataset};
-    pDataset->readDataset(fileName, openMode);
+    try
+    {
+        pDataset->readDataset(fileName, openMode);
+    } catch (H5::FileIException &fileExcept)
+    {
+        return nullptr;
+    }
 
     return pDataset;
 }
