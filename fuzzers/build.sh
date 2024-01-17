@@ -21,9 +21,9 @@ $CXX $CXXFLAGS \
   -I$SRC_DIR/api \
   fuzzers/bag_read_fuzzer.cpp -o $OUT/bag_read_fuzzer \
   $LIB_FUZZING_ENGINE \
-  -L/opt/local/lib/static -lbaglib \
-  -L/opt/local/HDF_Group/HDF5/1.14.3/lib -lhdf5_cpp \
-  -L/opt/local/HDF_Group/HDF5/1.14.3/lib -lhdf5 \
+  -L/opt/lib/static -lbaglib \
+  -L/opt/lib -lhdf5_cpp \
+  -L/opt/lib -lhdf5 \
   -L/opt/lib -lxml2 \
   -Wl,-Bstatic -lxml2 -lz \
   -Wl,-Bdynamic -ldl -lpthread
