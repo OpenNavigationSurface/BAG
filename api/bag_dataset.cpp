@@ -273,6 +273,7 @@ std::shared_ptr<Dataset> Dataset::open(
         pDataset->readDataset(fileName, openMode);
     } catch (H5::FileIException &fileExcept)
     {
+        std::cerr << "\nUnable to open BAG file: " << fileName << " due to error: " << fileExcept.getCDetailMsg();
         return nullptr;
     }
 
