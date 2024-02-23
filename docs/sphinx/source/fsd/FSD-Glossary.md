@@ -12,7 +12,7 @@
 | DSA | Digital Signature Algorithm |
 | DSS | Digital Signature Standard |
 | FSD | File Specification Document |
-| HDF-5 | Hierarchical Data Format, Version 5 |
+| HDF5 | Hierarchical Data Format, Version 5 |
 | IEEE | Institute of Electrical and Electronic Engineers, Inc. |
 | NS | Navigation Surface [2,3] |
 | ONS | Open Navigation Surface |

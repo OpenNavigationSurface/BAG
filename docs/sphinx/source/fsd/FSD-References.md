@@ -8,7 +8,7 @@
 
 <a href="#ref4">[4]</a> Raymond, E. A., 2000.  The Cathedral and the Bazaar.  ([XHTML](http://www.catb.org/~esr/writings/cathedral-bazaar/cathedral-bazaar); note that other versions, including PostScript and XML are available from the same location.).
 
-<a href="#ref5">[5]</a> Calder, B.R., and the Open Navigation Surface Working Group (2004). Digital Security Scheme for the Bathymetric Attributed Grid (BAG), Version 1.1, February 2004.  ([online](http://www.opennavsurf.org/papers/ons_digitalsig.pdf)).
+<a href="#ref5">[5]</a> Calder, B.R., and the Open Navigation Surface Working Group (2004). Digital Security Scheme for the Bathymetric Attributed Grid (BAG), Version 1.1, February 2004.  ([online](https://www.opennavsurf.org/assets/papers/ons_digitalsig.pdf)).
 
 <a href="#ref6">[6]</a> Schneier, B.  Applied Cryptography, 2ed.  Wiley, 1995.
 

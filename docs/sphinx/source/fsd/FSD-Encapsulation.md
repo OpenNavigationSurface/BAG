@@ -1,13 +1,13 @@
 # Encapsulation
-BAG data are encoded as [HDF-5](https://www.hdfgroup.org/solutions/hdf5/) files. HDF-5 is a hierarchical data format product consisting of a data format specification and a supporting library implementation. HDF-5 provides two primary structures: groups and datasets. They are defined as:
+BAG data are encoded as [HDF5](https://www.ogc.org/standard/HDF5/) files. HDF5 is a hierarchical data format product consisting of a data format specification and a supporting library implementation, it is also an OGC Community Standard. HDF5 provides two primary structures: groups and datasets. They are defined as:
 
-* HDF-5 Group: a grouping structure containing instances of zero or more groups or data sets, together with supporting metadata.
+* HDF5 Group: a grouping structure containing instances of zero or more groups or data sets, together with supporting metadata.
 
-* HDF-5 Dataset: a multidimensional array of data elements, together with supporting metadata or attributes.
+* HDF5 Dataset: a multidimensional array of data elements, together with supporting metadata or attributes.
 
-An HDF-5 “Group” provides the top-level structure for the data contents of a BAG. The major subcomponents are defined using the HDF-5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters. “Attributes” are included were appropriate to provide “Dataset” specific metadata. The specific HDF-5 type definitions that define BAG encapsulation structure are illustrated in Fig. 2.1. Note that the digital signature is not shown in Fig. 2.1. As described in [Structure of the BAG Certification Block](FSD-BAGStructure.md#structure-of-the-bag-certification-block), the digital signature byte stream is appended to the end of the HDF-5 group.
+An HDF5 “Group” provides the top-level structure for the data contents of a BAG. The major subcomponents are defined using the HDF5 “Dataset” types, and “Attribute” types.  Within each “Dataset”, further structural decomposition is specified via the DATATYPE and DATASPACE parameters. “Attributes” are included were appropriate to provide “Dataset” specific metadata. The specific HDF5 type definitions that define the BAG encapsulation structure are illustrated in Fig. 2.1. Note that the digital signature is not shown in Fig. 2.1. As described in [Structure of the BAG Certification Block](FSD-BAGStructure.md#structure-of-the-bag-certification-block), the digital signature byte stream is appended to the end of the HDF5 group.
 
-Figure 2.1 shows the structure of BAG data encapsulated using HDF-5:
+Figure 2.1 shows the structure of BAG data encapsulated using HDF5:
 ```
 $ h5dump -A examples/sample-data/sample.bag
 HDF5 "examples/sample-data/sample.bag" {
@@ -136,7 +136,7 @@ GROUP "/" {
 }
 }
 ```
-**Figure 2.1: Structure of BAG data encapsulated using HDF-5.**
+**Figure 2.1: Structure of BAG data encapsulated using HDF5.**
 
 Table 2.1 defines the contents of the HDF data elements belonging to the `BAG_root` Group.  
 
@@ -154,87 +154,87 @@ Table 2.1 defines the contents of the HDF data elements belonging to the `BAG_ro
 | elevation_solution | Dataset | Detailed in table 11                | No |
  | georef_metadata    | Dataset | Detailed in table 12                | No |
 
-Table 2.2 defines the metadata items used with in the BAG library. These items must be present and properly defined for BAG data to be read. Note that this listing of metadata items does not specify the mandatory metadata items required by the ISO 19915 standard.
+Table 2.2 defines the metadata items used within the BAG library. These items must be present and properly defined for BAG data to be read. Note that this listing of metadata items does not specify the mandatory metadata items required by the ISO 19115 Standard.
 
 **Table 2.2: Group level metadata - grid parameters.**
 
-| Entity Name | XML Tag Nesting | Data Type | Domain |
-| :------------- | :------------------- | :----------- | :-------- |
-| **CoordSys** | | | |
-| Coordinate System code | Reference System Info/projection/Identifier/code |  Non Null String | Geodetic |
-| | | | GEOREF |
-| | | | Geocentric |
-| | | | Local_Cartesian |
-| | | | MGRS |
-| | | | UTM |
-| | | | UPS |
-| | | | Albers_Equal_Area_Conic |
-| | | | Azimuthal_Equidistant |
-| | | | BNG |
-| | | | Bonne |
-| | | | Cassini |
-| | | | Cylindrical_Equal_Area |
-| | | | Eckert4 |
-| | | | Eckert6 |
-| | | | Equidistant_Cylindrical |
-| | | | Gnomonic |
-| | | | Lambert_Conformal_Conic |
-| | | | Mercator |
-| | | | Miller_Cylindrical |
-| | | | Mollweide |
-| | | | Neys |
-| | | | NZMG |
-| | | | Oblique_Mercator |
-| | | | Orthographic |
-| | | | Polar_Stereo |
-| | | | Polyconic |
-| | | | Sinusoidal |
-| | | | Stereographic |
-| | | | Transverse_Cylindrical_Equal_Area |
-| | | | Transverse_Mercator |
-| | | | Van_der_Grinten |
-| Zone | Reference System Info/projection Parameters/zone | integer | [-60,-1] U [1,60] |
-| Standard Parallel | Reference System Info/ projection Parameters/ standard Parallel | Decimal Latitude | 0 to 2 decimal numbers of range: [-90.0,+90.0] |
-| Longitude Of Central Meridian | Reference System Info/ projection Parameters/ longitude Of Central Meridian | Decimal Longitude | range: [-180.0, +180.0] |
-| Latitude Of Projection Origin | Reference System Info/ projection Parameters/ latitude Of Projection Origin | Decimal Latitude | range: [-90.0,+90.0] |
-| False Easting | Reference System Info/ projection Parameters/ false Easting | Non Negative Decimal | [0.0, …), decimal is guaranteed at least 18 digits |
-| False Northing | Reference System Info/ projection Parameters/ false Northing | Non Negative Decimal | [0.0, …), decimal is guaranteed at least 18 digits |
-| False Easting Northing Units | Reference System Info/ projection Parameters/ false Easing Northing Units | Unit Of Measure | string |
-| Scale Factor at Equator | Reference System Info/ projection Parameters/ scale Factor At Equator | Positive Decimal | [0.0, …) |
-| Height of Prospective Point Above Surface | Reference System Info/ projection Parameters/ height Of Prospective Point Above Surface | Positive Decimal | [0.0, …) |
-| Longitude of Projection Center | Reference System Info/ projection Parameters/ longitude Of Projection Center | Decimal Longitude | range: [-180.0, +180.0] |
-| Latitude of Projection Center | Reference System Info/ projection Parameters/ latitude Of Projection Center | Decimal Latitude | range: [-90.0,+90.0] |
-| Scale Factor at Center Line | Reference System Info/ projection Parameters/ scale Factor At Center Line | Positive Decimal | [0.0, …) |
-| Straight Vertical Longitude from Pole | Reference System Info/ projection Parameters/ straight Vertical Longitude From Pole | Decimal Longitude | range: [-180.0, +180.0] |
-| Scale Factor at Projection Origin | Reference System Info/ projection Parameters/ scale Factor At Projection Origin | Positive Decimal | [0.0, …) |
-| Oblique Line Azimuth Parameter | Reference System Info/ projection Parameters/ oblique Line Azimuth Parameter | Oblique Line Azimuth | AzimuthAngle, azimuthMeasurePointLongitude |
-| Oblique Line Point Parameter | Reference System Info/ projection Parameters/ oblique Line Point Parameter | Oblique Line Point | obliqueLineLatitude, obliqueLineLongitude |
-| Semi-Major Axis | Reference System Info/ Ellipsoid Parameters/ semi Major Axis | Positive Decimal | [0.0, …) |
-| Axis Units | Reference System Info/ Ellipsoid Parameters/ axis Units | Unit Of Measure | String |
-| **Spatial Extent** | | | |            
-| Horizontal Datum | Reference System Info/ datum/ Identifier/ code | Non Null String | NAD83 – North American 1983 |
-| | | | WGS72 – World Geodetic System 1972 |
-| | | | WGS84 – World Geodetic System 1984 |
-| Number of Dimensions | Spatial Representation Info/ number Of Dimensions | Positive Integer | [0,1,2,…) |
-| Resolution per Spatial Dimension | Spatial Representation Info/ Dimension/ resolution/value | Decimal | (0.0, 1.0e18) Guaranteed 18 digits with optional ‘.’, or leading signs, '+/-'. |
-| Size per Dimension | Spatial Representation Info/ Dimension/ dimension Size | nonnegative integer | [0,1,2,...,2^16-1] |
-| Corner Points | Spatial Representation Info/ corner Points/ Point/ coordinates | Coordinates | 1 to 4 nodes of pointPropertyType decimal degrees or meters |
-| West Bounding Longitude | Data Identification/ extent/ geographic Element/ west Bound Longitude | Approximate Longitude | [-180.00, 180.00], maximum 2 fractional digits |
-| East Bounding Longitude | Data Identification/ extent/ geographic Element/ east Bound Longitude | Approximate Longitude | [-180.00, 180.00], maximum 2 fractional digits |
-| South Bounding Latitude | Data Identification/ extent/ geographic Element/ south Bound Latitude | Approximate Latitude | [-90.00, 90.00], maximum 2 fractional digits |
-| North Bounding Latitude | Data Identification/ extent/ geographic Element/ north Bound Latitude | Approximate Latitude | [-90.00, 90.00] , maximum 2 fractional digits |
-| **Bag Metadata Extension** | | | |            
-| Tracking List ID | Data Quality/Lineage/process Step/tracking Id | Positive Integer | Short (2byte) integer |
-| Vertical Uncertainty Type | Data Identification/vertical Uncertainty Type | Character String | Unknown                  = 0, |
-| | | | Raw_Std_Dev          = 1, |
-| | | | CUBE_Std_Dev       = 2, |
-| | | | Product_Uncert        = 3, |
-| | | | Historical_Std_Dev  = 4 |
-| Depth Correction Type | Data Identification/ depth Correction Type | Character String | Unknown                  = 0, |
-| | | | Raw_Std_Dev          = 1, |
-| | | | CUBE_Std_Dev       = 2, |
-| | | | Product_Uncert        = 3, |
-| | | | Historical_Std_Dev  = 4 |
+| Entity Name | XML Tag Nesting                                                                         | Data Type             | Domain |
+| :------------- |:----------------------------------------------------------------------------------------|:----------------------| :-------- |
+| **CoordSys** |                                                                                         |                       | |
+| Coordinate System code | Reference System Info/projection/Identifier/code                                        | Non-Null String       | Geodetic |
+| |                                                                                         |                       | GEOREF |
+| |                                                                                         |                       | Geocentric |
+| |                                                                                         |                       | Local_Cartesian |
+| |                                                                                         |                       | MGRS |
+| |                                                                                         |                       | UTM |
+| |                                                                                         |                       | UPS |
+| |                                                                                         |                       | Albers_Equal_Area_Conic |
+| |                                                                                         |                       | Azimuthal_Equidistant |
+| |                                                                                         |                       | BNG |
+| |                                                                                         |                       | Bonne |
+| |                                                                                         |                       | Cassini |
+| |                                                                                         |                       | Cylindrical_Equal_Area |
+| |                                                                                         |                       | Eckert4 |
+| |                                                                                         |                       | Eckert6 |
+| |                                                                                         |                       | Equidistant_Cylindrical |
+| |                                                                                         |                       | Gnomonic |
+| |                                                                                         |                       | Lambert_Conformal_Conic |
+| |                                                                                         |                       | Mercator |
+| |                                                                                         |                       | Miller_Cylindrical |
+| |                                                                                         |                       | Mollweide |
+| |                                                                                         |                       | Neys |
+| |                                                                                         |                       | NZMG |
+| |                                                                                         |                       | Oblique_Mercator |
+| |                                                                                         |                       | Orthographic |
+| |                                                                                         |                       | Polar_Stereo |
+| |                                                                                         |                       | Polyconic |
+| |                                                                                         |                       | Sinusoidal |
+| |                                                                                         |                       | Stereographic |
+| |                                                                                         |                       | Transverse_Cylindrical_Equal_Area |
+| |                                                                                         |                       | Transverse_Mercator |
+| |                                                                                         |                       | Van_der_Grinten |
+| Zone | Reference System Info/projection Parameters/zone                                        | integer               | [-60,-1] U [1,60] |
+| Standard Parallel | Reference System Info/ projection Parameters/ standard Parallel                         | Decimal Latitude      | 0 to 2 decimal numbers of range: [-90.0,+90.0] |
+| Longitude Of Central Meridian | Reference System Info/ projection Parameters/ longitude Of Central Meridian             | Decimal Longitude     | range: [-180.0, +180.0] |
+| Latitude Of Projection Origin | Reference System Info/ projection Parameters/ latitude Of Projection Origin             | Decimal Latitude      | range: [-90.0,+90.0] |
+| False Easting | Reference System Info/ projection Parameters/ false Easting                             | Non-Negative Decimal  | [0.0, …), decimal is guaranteed at least 18 digits |
+| False Northing | Reference System Info/ projection Parameters/ false Northing                            | Non-Negative Decimal  | [0.0, …), decimal is guaranteed at least 18 digits |
+| False Easting Northing Units | Reference System Info/ projection Parameters/ false Easing Northing Units               | Unit Of Measure       | string |
+| Scale Factor at Equator | Reference System Info/ projection Parameters/ scale Factor At Equator                   | Positive Decimal      | [0.0, …) |
+| Height of Prospective Point Above Surface | Reference System Info/ projection Parameters/ height Of Prospective Point Above Surface | Positive Decimal      | [0.0, …) |
+| Longitude of Projection Center | Reference System Info/ projection Parameters/ longitude Of Projection Center            | Decimal Longitude     | range: [-180.0, +180.0] |
+| Latitude of Projection Center | Reference System Info/ projection Parameters/ latitude Of Projection Center             | Decimal Latitude      | range: [-90.0,+90.0] |
+| Scale Factor at Center Line | Reference System Info/ projection Parameters/ scale Factor At Center Line               | Positive Decimal      | [0.0, …) |
+| Straight Vertical Longitude from Pole | Reference System Info/ projection Parameters/ straight Vertical Longitude From Pole     | Decimal Longitude     | range: [-180.0, +180.0] |
+| Scale Factor at Projection Origin | Reference System Info/ projection Parameters/ scale Factor At Projection Origin         | Positive Decimal      | [0.0, …) |
+| Oblique Line Azimuth Parameter | Reference System Info/ projection Parameters/ oblique Line Azimuth Parameter            | Oblique Line Azimuth  | AzimuthAngle, azimuthMeasurePointLongitude |
+| Oblique Line Point Parameter | Reference System Info/ projection Parameters/ oblique Line Point Parameter              | Oblique Line Point    | obliqueLineLatitude, obliqueLineLongitude |
+| Semi-Major Axis | Reference System Info/Ellipsoid Parameters/ semi Major Axis                             | Positive Decimal      | [0.0, …) |
+| Axis Units | Reference System Info/ Ellipsoid Parameters/ axis Units                                 | Unit Of Measure       | String |
+| **Spatial Extent** |                                                                                         |                       | |            
+| Horizontal Datum | Reference System Info/ datum/ Identifier/ code                                          | Non-Null String       | NAD83 – North American 1983 |
+| |                                                                                         |                       | WGS72 – World Geodetic System 1972 |
+| |                                                                                         |                       | WGS84 – World Geodetic System 1984 |
+| Number of Dimensions | Spatial Representation Info/ number Of Dimensions                                       | Positive Integer      | [0,1,2,…) |
+| Resolution per Spatial Dimension | Spatial Representation Info/ Dimension/ resolution/value                                | Decimal               | (0.0, 1.0e18) Guaranteed 18 digits with optional ‘.’, or leading signs, '+/-'. |
+| Size per Dimension | Spatial Representation Info/ Dimension/ dimension Size                                  | nonnegative integer   | [0,1,2,...,2^16-1] |
+| Corner Points | Spatial Representation Info/ corner Points/ Point/ coordinates                          | Coordinates           | 1 to 4 nodes of pointPropertyType decimal degrees or meters |
+| West Bounding Longitude | Data Identification/ extent/ geographic Element/ west Bound Longitude                   | Approximate Longitude | [-180.00, 180.00], maximum 2 fractional digits |
+| East Bounding Longitude | Data Identification/ extent/ geographic Element/ east Bound Longitude                   | Approximate Longitude | [-180.00, 180.00], maximum 2 fractional digits |
+| South Bounding Latitude | Data Identification/ extent/ geographic Element/ south Bound Latitude                   | Approximate Latitude  | [-90.00, 90.00], maximum 2 fractional digits |
+| North Bounding Latitude | Data Identification/ extent/ geographic Element/ north Bound Latitude                   | Approximate Latitude  | [-90.00, 90.00] , maximum 2 fractional digits |
+| **Bag Metadata Extension** |                                                                                         |                       | |            
+| Tracking List ID | Data Quality/Lineage/process Step/tracking Id                                           | Positive Integer      | Short (2byte) integer |
+| Vertical Uncertainty Type | Data Identification/vertical Uncertainty Type                                           | Character String      | Unknown                  = 0, |
+| |                                                                                         |                       | Raw_Std_Dev          = 1, |
+| |                                                                                         |                       | CUBE_Std_Dev       = 2, |
+| |                                                                                         |                       | Product_Uncert        = 3, |
+| |                                                                                         |                       | Historical_Std_Dev  = 4 |
+| Depth Correction Type | Data Identification/ depth Correction Type                                              | Character String      | Unknown                  = 0, |
+| |                                                                                         |                       | Raw_Std_Dev          = 1, |
+| |                                                                                         |                       | CUBE_Std_Dev       = 2, |
+| |                                                                                         |                       | Product_Uncert        = 3, |
+| |                                                                                         |                       | Historical_Std_Dev  = 4 |
 
 
 **Table 2.3: Elevation dataset attributes.**
@@ -313,11 +313,11 @@ Table 2.2 defines the metadata items used with in the BAG library. These items m
 
 **Table 2.10: Georef_metadata extension dataset attributes.**
 
-| Entity Name    | Data Type  | Domain                                                                                                    |
-|:---------------|:-----------|:----------------------------------------------------------------------------------------------------------|
- | <LAYER_NAME_1> | HDF5 group | HDF5 group whose name corresponds to the BAG layer this geoferenced metadata layer provides metadata for. |
- | ...            | ...        | ...                                                                                                       |
- | <LAYER_NAME_N> | HDF5 group | HDF5 group whose name corresponds to the BAG layer this geoferenced metadata layer provides metadata for. |
+| Entity Name    | Data Type  | Domain                                                                                                      |
+|:---------------|:-----------|:------------------------------------------------------------------------------------------------------------|
+ | <LAYER_NAME_1> | HDF5 group | HDF5 group whose name corresponds to the BAG layer this georeferenced metadata layer provides metadata for. |
+ | ...            | ...        | ...                                                                                                         |
+ | <LAYER_NAME_N> | HDF5 group | HDF5 group whose name corresponds to the BAG layer this georeferenced metadata layer provides metadata for. |
 
 
 Each HDF5 group in `georef_metadata` must correspond to an existing BAG layer of the same name. Each `georef_metadata`
@@ -357,7 +357,7 @@ The raster values of a `georef_metadata` are interpreted to correspond to the en
 the metadata to be associated with one or more points in raster space. The `NoData` value is 0, hence the first entry
 in the "values" table will always contain 0 or NULL values.
 
-Figure 2.2 shows structure of BAG `georef_metadata` for an elevation layer encapsulated using HDF-5.
+Figure 2.2 shows structure of BAG `georef_metadata` for an elevation layer encapsulated using HDF5.
 ```
 $ h5dump -A examples/sample-data/bag_georefmetadata_layer.bag -g /BAG_root/georef_metadata examples/sample-data/bag_georefmetadata_layer.bag
 HDF5 "examples/sample-data/bag_georefmetadata_layer.bag" {
@@ -503,6 +503,6 @@ GROUP "/BAG_root/georef_metadata" {
 }
 }
 ```
-**Figure 2.2: Structure of BAG Georef_metadata for an elevation layer encapsulated using HDF-5. Note, `key` datatable is truncated in several places using ellipses ("...").**
+**Figure 2.2: Structure of BAG Georef_metadata for an elevation layer encapsulated using HDF5. Note, `key` datatable is truncated in several places using ellipses ("...").**
 
 ## [Next: Axiomatic Definitions](FSD-AxiomaticDefs.md)
