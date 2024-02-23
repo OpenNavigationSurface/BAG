@@ -2,7 +2,7 @@
 
 ## List of Extensions
 
-**Table 1. List of Extensions to the BAG format**
+**Table 6.1. List of Extensions to the BAG format**
 
 | Extension name                                                                | Notes                                                                               |
 |:------------------------------------------------------------------------------|:------------------------------------------------------------------------------------|

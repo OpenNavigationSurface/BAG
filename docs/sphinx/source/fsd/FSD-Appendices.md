@@ -4,7 +4,7 @@
 
 ### NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)
 
-**Table 1: Definition of NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)**
+**Table 9.1: Definition of NOAA Office of Coast Survey Metadata profile, October 2022 (NOAA-OCS-2022.10)**
 
 | Column Name               | Column Type | Note                                                                                                                             |
 |:--------------------------|:------------|:---------------------------------------------------------------------------------------------------------------------------------|

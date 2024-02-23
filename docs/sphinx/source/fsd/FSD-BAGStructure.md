@@ -20,19 +20,19 @@ Several top-level requirements what would become the BAG file format were identi
 
 ## BAG File Layout
 
-Fig. 1 provides a conceptual view of the contents of each of the mandatory data elements of a BAG. The elevation grid contains the two-dimensional array of bathymetry data. The uncertainty grid is co-located with the elevation grid and contains a two-dimensional array describing the vertical uncertainty of the elevation grid. The tracking list details hydrographer modifications, and the certification section specifies authenticity and intended use of data.
+Fig. 1.1 provides a conceptual view of the contents of each of the mandatory data elements of a BAG. The elevation grid contains the two-dimensional array of bathymetry data. The uncertainty grid is co-located with the elevation grid and contains a two-dimensional array describing the vertical uncertainty of the elevation grid. The tracking list details hydrographer modifications, and the certification section specifies authenticity and intended use of data.
 
 ![Mandatory elements of a BAG](FSD-BAGStructure-fig1.png)
 
-**Figure 1: Mandatory elements of a BAG.**
+**Figure 1.1: Mandatory elements of a BAG.**
 
-Fig. 2 shows the structural layout of the mandatory elements of the BAG. The version tag is a simple text string that specifies the version of the format at the time the BAG was created. The metadata, elevation, uncertainty, and change-list are each HDF-5 datasets with a dataset substructure appropriate for the information being stored. The signature section is simply a byte stream appended after the end of the HDF-5 file using standard C file access mechanisms. The rationale for adding the signature byte stream after the end of the HDF-5 file is to ensure that the contents of the signature do not modify the file that it is trying to protect.
+Fig. 1.2 shows the structural layout of the mandatory elements of the BAG. The version tag is a simple text string that specifies the version of the format at the time the BAG was created. The metadata, elevation, uncertainty, and change-list are each HDF-5 datasets with a dataset substructure appropriate for the information being stored. The signature section is simply a byte stream appended after the end of the HDF-5 file using standard C file access mechanisms. The rationale for adding the signature byte stream after the end of the HDF-5 file is to ensure that the contents of the signature do not modify the file that it is trying to protect.
 
 ![BAG File Structure](FSD-BAGStructure-fig2.png)
 
-**Figure 2: BAG file structure.**
+**Figure 1.2: BAG file structure.**
 
-For BAG version 1.1.0, optional datasets were added and are shown in Fig. 5 (see Nominal Elevation section below), for the addition of optional surface layers.  These optional surface layers are each HDF-5 datasets defined at the root level of the BAG and follow the same substructure as the elevation and uncertainty datasets. Further [extensions](FSD-Extensions.md) for auxiliary information on depth reconstructions and [variable resolution layers](FSD-Extension-VRGrid.md) (from release 1.6.0) have also been defined.
+For BAG version 1.1.0, optional datasets were added and are shown in Fig. 1.5 (see Nominal Elevation section below), for the addition of optional surface layers.  These optional surface layers are each HDF-5 datasets defined at the root level of the BAG and follow the same substructure as the elevation and uncertainty datasets. Further [extensions](FSD-Extensions.md) for auxiliary information on depth reconstructions and [variable resolution layers](FSD-Extension-VRGrid.md) (from release 1.6.0) have also been defined.
 
 From version 1.1.0, a BAG has a single fixed node-spacing (referred to as grid resolution), and represents a contiguous region of the surface of the earth. A future version of BAG may allow for storage of multiple grids. For all practical purposes, grid size is constrained only by available disk space. Row and column values are dimensioned as unsigned 32-bit integers, and HDF-5 places no fixed upper limit on row or column dimension or on file size. The [Axiomatic Definitions](FSD-AxiomaticDefs.md) chapter details the coordinate system and standard units of measure used by the BAG library.
 
@@ -44,15 +44,15 @@ With the evolution of digital data, also comes the necessity to accurately track
 
 ### Standard Object Model
 
-During the first meeting of the Open Navigation Surface Working Group in January 2004, it was concluded that the ISO metadata standards 19915 and 19115-2 would be used as the common framework to store the metadata information needed by the BAG format. A sub-working group was selected and assigned to work on creating the appropriate metadata profile to describe the BAG file contents. The profile was created and is depicted in Fig. 3. This profile describes the minimum required fields for a valid BAG file. However, the user is not limited to this profile, and may include any of the other components described in the 19115 standard.
+During the first meeting of the Open Navigation Surface Working Group in January 2004, it was concluded that the ISO metadata standards 19915 and 19115-2 would be used as the common framework to store the metadata information needed by the BAG format. A sub-working group was selected and assigned to work on creating the appropriate metadata profile to describe the BAG file contents. The profile was created and is depicted in Fig. 1.3. This profile describes the minimum required fields for a valid BAG file. However, the user is not limited to this profile, and may include any of the other components described in the 19115 standard.
 
 ![UML model for BAG metadata](FSD-BAGStructure-fig3.png)
 
-**Figure 3: UML model for BAG metadata profile.**
+**Figure 1.3: UML model for BAG metadata profile.**
 
-The ISO 19115 object model provided most of the needed classes and attributes required to fully describe the BAG content. There were three extensions made to the model to allow for detailed description of the data. First, the `verticalUncertaintyType` attribute was added to allow the BAG file to accurately describe the source and meaning of the encoded `Uncertainty` grid layer. Table 1 shows the list of supported values as of the 1.1 release.
+The ISO 19115 object model provided most of the needed classes and attributes required to fully describe the BAG content. There were three extensions made to the model to allow for detailed description of the data. First, the `verticalUncertaintyType` attribute was added to allow the BAG file to accurately describe the source and meaning of the encoded `Uncertainty` grid layer. Table 1.1 shows the list of supported values as of the 1.1 release.
 
-**Table 1: Table of uncertainty types.**
+**Table 1.1: Table of uncertainty types.**
 
 | Enumerated Value | Description |
 | :-------------------- | :------------ |
@@ -65,9 +65,9 @@ The ISO 19115 object model provided most of the needed classes and attributes re
 
 Secondly, the `trackingId` extension allows internal Tracking List entries to be associated with a unique entry in the metadata so that the changes can be properly attributed, described and easily referenced.
  
-Thirdly, the `depthCorrectionType` extension was added to allow the BAG file to accurately describe the correction performed on the data. Table 2 shows the list of supported values as of the 1.1 release.
+Thirdly, the `depthCorrectionType` extension was added to allow the BAG file to accurately describe the correction performed on the data. Table 1.2 shows the list of supported values as of the 1.1 release.
 
-**Table 2: Table of depth correction types.**
+**Table 1.2: Table of depth correction types.**
 
 | Enumerated Value | Description |
 | :-------------------- | :------------ |
@@ -101,13 +101,13 @@ The units of the elevation values are meters, and the sign convention is for z t
 
 The uncertainty section of the BAG contains a two-dimensional matrix of values that specify the vertical uncertainty at each node. The elevation grid and the uncertainty grid are explicitly co-aligned. The values are expressed as positive quantities in units of meters.
 
-As detailed in Table 1, the uncertainty grid supports multiple definitions of vertical uncertainty. This allows BAGs to span the expected range of data products from raw, full resolution grid to final compiled product. For example, a BAG at the stage of final survey data processing should contain uncertainty information germane to the survey data itself and intended to be used for information compilation. A BAG intended for navigational purposes would need to specify the overall uncertainty to the mariner–--these two values for uncertainty may be quite different.
+As detailed in Table 1.1, the uncertainty grid supports multiple definitions of vertical uncertainty. This allows BAGs to span the expected range of data products from raw, full resolution grid to final compiled product. For example, a BAG at the stage of final survey data processing should contain uncertainty information germane to the survey data itself and intended to be used for information compilation. A BAG intended for navigational purposes would need to specify the overall uncertainty to the mariner–--these two values for uncertainty may be quite different.
 
 A recipient of a BAG file can refer to the uncertainty definition in the Metadata to gain an understanding of how the uncertainty was computed. The uncertainty values are encoded as four byte (32-bit) floats within an HDF-5 dataset. The unknown state for uncertainty is defined to be 0.0.
 
 ## Tracking List
 
-The tracking list contains a simple list of the original elevation and uncertainty values from any node of the surface that has been modified to account for hydrographer overrides of the basic surface definition (e.g., as originally computed by an algorithmic method). The tracking list dataset and corresponding information contained in the metadata exist to provide an audit trail record of changes made to the data by manual intervention. The contents of the tracking list dataset are shown in Fig. 4.
+The tracking list contains a simple list of the original elevation and uncertainty values from any node of the surface that has been modified to account for hydrographer overrides of the basic surface definition (e.g., as originally computed by an algorithmic method). The tracking list dataset and corresponding information contained in the metadata exist to provide an audit trail record of changes made to the data by manual intervention. The contents of the tracking list dataset are shown in Fig. 1.4.
 
 | Field | Datatype |
 | :----- |:---------|
@@ -118,7 +118,7 @@ The tracking list contains a simple list of the original elevation and uncertain
 | track_code | U8       |
 | list_series | U16      |
 
-**Figure 4: Tracking list item - field names and datatypes**
+**Figure 1.4: Tracking list item - field names and datatypes**
 
 The `row` and `col` fields describe the node that has been modified. The `depth` and `uncertainty` fields contain the original values prior to manual intervention. The `track_code` field provides a reason code for the manual modification of a grid surface node. 
 
@@ -130,11 +130,11 @@ Extensions are optional and not required for an HDF file to be qualified as a BA
 
 ### Nominal Elevation
 
-Note Fig. 5 shows an extension made to the BAG API, starting with version 1.5.1, regarding the addition of optional datasets. `Nominal_Elevation` is one of the optional layers that can be included in the BAG.
+Note Fig. 1.5 shows an extension made to the BAG API, starting with version 1.5.1, regarding the addition of optional datasets. `Nominal_Elevation` is one of the optional layers that can be included in the BAG.
 
 ![Nominal Elevation optional datasets](FSD-BAGStructure-fig5.png)
 
-**Figure 5: Example of BAG with optional dataset of nominal elevation.**
+**Figure 1.5: Example of BAG with optional dataset of nominal elevation.**
 
 `Nominal Elevation` is the term used by some hydrographic organisations to refer to an elevation value that is corrected for sound speed such that an echosounder (typically a single-beam system) that uses a fixed, assumed, speed of sound will indicate the same depth as that provided in the Nominal Elevation layer.  Often, this is used where the echosounder cannot have a speed of sound profile applied, or where obtaining such a profile would be impossible, or prohibitively expensive. The speed of sound used for “nominal” should be documented in the metadata.
 
@@ -152,11 +152,11 @@ The node group has two components: hypothesis strength and number of hypotheses.
  
 ### Georeferenced Metadata Raster Attribute Table
 
-An optional georeferenced metadata raster attribute table is a raster and table pair where the raster value indicates the row of the table where a group of metadata is valid (Fig. 6). This construct requires definition of the metadata fields available in the table. Standard georeferenced metadata profile definitions can be found in [Appendix A](FSD-Appendices.md). There can be multiple metadata raster attribute tables, each associated with a given BAG layer (e.g., Elevation, Uncertainty, etc.) and each with its own distinct metadata profile. All metadata layers are found in a node under `BAG_root` called `georef_metadata`, and then each raster table pair is found in its own node with the name of the profile.  The raster in the profile node is named `keys`, and shall match the shape of the required elevation layer. The no data value for this layer is 0, and the first row (zeroth row) of the table is ignored. The table in the profile node is named `values` and must have the rows indicated by the raster. Variable resolution keys are stored in an array the same length as, and corrisponding to, `varres_refinements` with an index indicating the table row in the same fashion as the raster.
+An optional georeferenced metadata raster attribute table is a raster and table pair where the raster value indicates the row of the table where a group of metadata is valid (Fig. 1.6). This construct requires definition of the metadata fields available in the table. Standard georeferenced metadata profile definitions can be found in [Appendix A](FSD-Appendices.md). There can be multiple metadata raster attribute tables, each associated with a given BAG layer (e.g., Elevation, Uncertainty, etc.) and each with its own distinct metadata profile. All metadata layers are found in a node under `BAG_root` called `georef_metadata`, and then each raster table pair is found in its own node with the name of the profile.  The raster in the profile node is named `keys`, and shall match the shape of the required elevation layer. The no data value for this layer is 0, and the first row (zeroth row) of the table is ignored. The table in the profile node is named `values` and must have the rows indicated by the raster. Variable resolution keys are stored in an array the same length as, and corrisponding to, `varres_refinements` with an index indicating the table row in the same fashion as the raster.
 
 ![Nominal Elevation optional datasets](FSD-BAGStructure-fig6.png)
 
-**Figure 6: Example of BAG with optional georeferenced metadata.**
+**Figure 1.6: Example of BAG with optional georeferenced metadata.**
  
 ## Certification
 
@@ -182,10 +182,10 @@ The DSS is not mandatory, in the sense that the API does not enforce checks for 
 
 ### Structure of the BAG Certification Block
 
-The BAG DS information shall be maintained in a certification block of length 1024 bytes, appended to the end of the HDF-5 data.  The structure of the certification block shall be as shown in Fig. 7. The ID number shall be a ‘magic number’ to identify the block, and the version byte shall be used to identify the structure of the remainder of the block between different versions of the algorithm. The SigID number corresponds to the Signature ID described above, and shall be followed immediately by the DS values which shall be stored sequentially as a length byte followed by the digits of the element. The CRC-32 checksum shall be used to ensure that any accidental or intentional corruption of the certification block will be detectable. The block shall be stored in little endian format, and zero padded to the full size of the block.
+The BAG DS information shall be maintained in a certification block of length 1024 bytes, appended to the end of the HDF-5 data.  The structure of the certification block shall be as shown in Fig. 1.7. The ID number shall be a ‘magic number’ to identify the block, and the version byte shall be used to identify the structure of the remainder of the block between different versions of the algorithm. The SigID number corresponds to the Signature ID described above, and shall be followed immediately by the DS values which shall be stored sequentially as a length byte followed by the digits of the element. The CRC-32 checksum shall be used to ensure that any accidental or intentional corruption of the certification block will be detectable. The block shall be stored in little endian format, and zero padded to the full size of the block.
 
 ![BAG Digital Signature Block](FSD-BAGStructure-fig7.png)
 
-**Figure 7: Structure of the BAG Digital Signature Scheme certification block.**
+**Figure 1.7: Structure of the BAG Digital Signature Scheme certification block.**
 
 ## [Next: Encapsulation](FSD-Encapsulation.md)

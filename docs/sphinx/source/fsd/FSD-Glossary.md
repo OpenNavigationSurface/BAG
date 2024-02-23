@@ -1,6 +1,6 @@
 # Glossary of Acronyms
 
-**Table 1: Glossary of Acronyms**
+**Table 7.1: Glossary of Acronyms**
 
 | Acronym | Definition |
 | :----------| :---------- |

@@ -2,7 +2,7 @@
 
 ## Authors
 
-**Table 1:** Authors
+**Table E1.1:** Authors
 
 | Name               | Affiliation                                                                 | Contact (optional) |
 |:-------------------|:----------------------------------------------------------------------------|:-------------------|
@@ -15,7 +15,7 @@
 Current version: 1.2.1
 Date: 2022-11-03
 
-**Table 2:** Revision History
+**Table E1.2:** Revision History
 
 | Version | Description                                                                                                                                                                                  | Date | Author |
 |:--------|:---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------| :--- | :----- |
@@ -85,7 +85,7 @@ template for these extensions.
 ## Variable Resolution Grid Data Model
 This document focuses on a particular variant of variable resolution
 grids, and specifically on piece-wise regular grids. The fundamental
-model, Figure 1, is of a low resolution “base” grid which represents a
+model, Fig. E1.1, is of a low resolution “base” grid which represents a
 best estimate of the depth within a significant area (along with an
 associated uncertainty and other metrics), each cell of which may be
 optionally refined with a higher-resolution regular grid containing
@@ -131,7 +131,7 @@ file.
 
 ![General structure of the variable resolution data surface](FSD-Extension-VRGrid-fig1.png))
 
-**Figure 1: General structure of the variable resolution data surface.** The 
+**Figure E1.1: General structure of the variable resolution data surface.** The 
 low resolution surface is georeferenced on the southwest corner, and is point 
 referenced. Although not shown here, refined nodes may occupy the east/north 
 bound of the enclosing cell, but not the west/south bound. Note here that 
@@ -223,7 +223,7 @@ The metadata layer determines where to find the refinements for a
 particular low resolution cell, plus the size of the refined grid, the
 grid spacings, and the offset for georeferencing. The layers are stored
 at `/BAG_Root/varres_metadata`, and consists of HDF5-coded fields 
-described in Table 3. The index value in each instance of the object 
+described in Table E1.3. The index value in each instance of the object 
 determines where in the refinement and node-group layers to find the 
 first refinement associated with the respective low resolution cell; 
 the remaining `dimensions_x` × `dimensions_y` refinements follow in 
@@ -233,7 +233,7 @@ case, `dimensions_x` and `dimensions_y` shall be set to zero, while
 `resolution_x`, `resolution_y`, `sw_corner_x`, and `sw_corner_y` shall all 
 be set to -1.0 by default.
 
-**Table 3:** HDF5 metadata fields stored in `/BAG_Root/varres_metadata`
+**Table E1.3:** HDF5 metadata fields stored in `/BAG_Root/varres_metadata`
 the metadata layer. Low resolution cells with index set to `0xFFFFFFFF`
 indicate that no refinements exist for the cell.
 
@@ -249,13 +249,13 @@ indicate that no refinements exist for the cell.
 
 The refinement layer provides the depth and uncertainty estimates for
 the refined grids, and is stored at `/BAG_Root/varres_refinements`, which
-consists of the row-major concatenation HDF5-fields described in Table 4. 
+consists of the row-major concatenation HDF5-fields described in Table E1.4. 
 The interpretation of the depth and uncertainty definition is determined 
 from the overall file metadata in the same way as for the conventional 
 elevation and uncertainty layers. The conventional BAG_NULL_ELEVATION and 
 BAG_NULL_UNCERTAINTY values are used where data is not available.
 
-**Table 4:** Implementation of HDF5 metadata fields for refined VR nodes
+**Table E1.4:** Implementation of HDF5 metadata fields for refined VR nodes
 as stored in `/BAG_Root/varres_refinements` for refined VR nodes. The value
 `1000000` is used where no data are provided.
 
@@ -268,13 +268,13 @@ The tracking list layer provides the variable resolution version of the
 basic BAG tracking list (which is not used with variable resolution BAG
 files). The layer is stored at `/BAG_Root/varres_tracking_list` and
 consists of a series of instances of the HDF5-encoded metadata described in
-Table 5. The row and col locations refer to the low
+Table E1.5. The row and col locations refer to the low
 resolution cells, while the `sub_row` and `sub_col` locations refer to the
 refined grid within the cell. In both instances, the indexing is such
 that (0,0) is the most southwest node. The track-code and list-series
 elements are interpreted as for the basic BAG tracking list.
 
-**Table 5:** Implementation of HDF5 metadata fields stored in
+**Table E1.5:** Implementation of HDF5 metadata fields stored in
 `/BAG_Root/varres_tracking_list` used for the refined grid tracking list data.
 
 | Field         | Datatype | Description                                        |
@@ -293,12 +293,12 @@ be useful to users interpreting data from the variable resolution grid
 for intermediate processing steps; it is the variable resolution
 equivalent of the NodeGroup optional layer. The layer is stored at
 `/BAG_Root/varres_nodes` and consists of multiple instances of the
-HDF5-encoded metadata described in Table 6. The ordering for the
+HDF5-encoded metadata described in Table E1.6. The ordering for the
 instances are as for the refinement layer. The values used for the
 node-group are as computed by the CHRT algorithm, which are equivalent
 to the interpretation in the basic BAG NodeGroup layer.
 
-**Table 6:** Implementation of HDF5 metadata fields stored in
+**Table E1.6:** Implementation of HDF5 metadata fields stored in
 `/BAG_Root/varres_nodes` used for the node-group layer. Ordering of these is
 as for the refinement layer.
 
