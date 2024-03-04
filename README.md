@@ -29,10 +29,10 @@ The BAG specification and library are produced by the
 
 Documentation for the BAG specification and library can be found [here](https://bag.readthedocs.io/en/stable/index.html), in particular:
 
-- [Format Specification Document](https://bag.readthedocs.io/en/stable/fsd/index.html)
-- [How-to Guide](https://bag.readthedocs.io/en/stable/howto-guide/index.html)
-- [C++ API Reference](https://bag.readthedocs.io/en/stable/cpp-api/index.html)
-- [Python API Reference](https://bag.readthedocs.io/en/stable/python-api/index.html)
+- [Format Specification Document](https://bag.readthedocs.io/en/master/fsd/index.html)
+- [How-to Guide](https://bag.readthedocs.io/en/master/howto-guide/index.html)
+- [C++ API Reference](https://bag.readthedocs.io/en/master/cpp-api/index.html)
+- [Python API Reference](https://bag.readthedocs.io/en/master/python-api/index.html)
 
 # Installing and using the BAG library
 
