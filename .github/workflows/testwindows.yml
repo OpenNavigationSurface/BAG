@@ -174,12 +174,12 @@ jobs:
           #   work on Windows, while Conda wheels on Windows do)
           # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
           #   on Windows is a hassle.
-          #python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
-          #  .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
-          #  .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
-          #  .\python\test_metadata.py .\python\test_record.py .\python\test_simplelayer.py `
-          #  .\python\test_simplelayerdescriptor.py .\python\test_surfacecorrections.py `
-          #  .\python\test_surfacecorrectionsdescriptor.py .\python\test_trackinglist.py .\python\test_valuetable.py `
-          #  .\python\test_vrmetadata.py .\python\test_vrmetadatadescriptor.py .\python\test_vrnode.py `
-          #  .\python\test_vrnodedescriptor.py .\python\test_vrrefinements.py .\python\test_vrrefinementsdescriptor.py `
-          #  .\python\test_vrtrackinglist.py
+          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
+            .\python\test_compat_bag15.py .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
+            .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
+            .\python\test_metadata.py .\python\test_record.py .\python\test_simplelayer.py `
+            .\python\test_simplelayerdescriptor.py .\python\test_surfacecorrections.py `
+            .\python\test_surfacecorrectionsdescriptor.py .\python\test_trackinglist.py .\python\test_valuetable.py `
+            .\python\test_vrmetadata.py .\python\test_vrmetadatadescriptor.py .\python\test_vrnode.py `
+            .\python\test_vrnodedescriptor.py .\python\test_vrrefinements.py .\python\test_vrrefinementsdescriptor.py `
+            .\python\test_vrtrackinglist.py
