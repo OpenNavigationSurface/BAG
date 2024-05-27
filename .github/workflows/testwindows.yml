@@ -166,7 +166,7 @@ jobs:
           $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
           python -m pip install $whl_path
           # Debug: Print contents of site-packages
-          Get-ChildItem -Recurse $env:BAG_INSTALL_PATH\lib\site-packages
+          Get-ChildItem -Recurse $env:VENV_PATH\Lib\site-packages
           # Run C++ tests
           $env:Path += ";$env:BAG_INSTALL_PATH\bin"
           echo $env:Path
