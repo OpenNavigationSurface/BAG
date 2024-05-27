@@ -93,10 +93,11 @@ jobs:
           Install-Module VSSetup -Scope CurrentUser
           # Setup
           $env:BAG_INSTALL_PATH="$env:GITHUB_WORKSPACE\install"
+          $env:VENV_PATH="$env:GITHUB_WORKSPACE\venv"
           # Debug: env
           if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
-          # Create Python venv in the same place as BAG_INSTALL_PATH
-          python -m venv $env:BAG_INSTALL_PATH
+          # Create Python venv
+          python -m venv $env:VENV_PATH
           # Debug: dir $env:GITHUB_WORKSPACE
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
@@ -155,7 +156,7 @@ jobs:
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
-          $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+          $activate_cmd="$env:VENV_PATH\Scripts\Activate.ps1"
           echo "Attempting to activate Python environment using script: $activate_cmd ..."
           & $activate_cmd
           python -m pip install --upgrade pip
