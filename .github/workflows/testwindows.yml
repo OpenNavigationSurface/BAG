@@ -164,6 +164,8 @@ jobs:
           python -m pip wheel -w .\wheel\ .\build\api\swig\python
           $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
           python -m pip install $whl_path
+          # Debug: Print contents of site-packages
+          Get-ChildItem -Recurse $env:BAG_INSTALL_PATH\lib\site-packages
           # Run C++ tests
           $env:Path += ";$env:BAG_INSTALL_PATH\bin"
           echo $env:Path
