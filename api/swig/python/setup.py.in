@@ -38,7 +38,7 @@ init_py = inspect.cleandoc(
                 cookie.close()
 
     with build_extension_env():
-        from . import bagPy
+        from . import _bagPy
     """
 )
 
