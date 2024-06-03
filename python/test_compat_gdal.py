@@ -319,7 +319,7 @@ class TestCompatGDAL(unittest.TestCase):
         gdal_uncrt = gd.GetRasterBand(2)
         gdal_uncrt.WriteArray(uncrt_array)
         # Close GDAL dataset
-        gd = None
+        gd.Close()
 
         # Re-open in GDAL, but read-only
         gd = gdal.Open(bag_filename, gdal.GA_ReadOnly)
@@ -329,6 +329,7 @@ class TestCompatGDAL(unittest.TestCase):
         self.assertIsNotNone(gdal_elev)
         gdal_uncrt = gd.GetRasterBand(2)
         self.assertIsNotNone(gdal_uncrt)
+        gd.Close()
 
         # Open BAG with BAG library
         bd = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READONLY)
@@ -339,6 +340,7 @@ class TestCompatGDAL(unittest.TestCase):
         self.assertIsNotNone(bag_uncert)
         bag_descriptor = bd.getDescriptor()
         self.assertIsNotNone(bag_descriptor)
+        bd.close()
 
         # Check BAG version
         self.assertEqual('1.6.2', bag_descriptor.getVersion())
