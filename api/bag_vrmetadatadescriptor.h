@@ -44,9 +44,9 @@ public:
     VRMetadataDescriptor& setMinResolution(float minResX, float minResY) & noexcept;
 
 protected:
-    VRMetadataDescriptor(uint32_t id, uint64_t chunkSize,
+    VRMetadataDescriptor(uint32_t id, uint32_t rows, uint32_t cols, uint64_t chunkSize,
         int compressionLevel);
-    explicit VRMetadataDescriptor(const Dataset& dataset);
+    explicit VRMetadataDescriptor(const Dataset& dataset, uint32_t rows, uint32_t cols);
 
     static std::shared_ptr<VRMetadataDescriptor> create(const Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);

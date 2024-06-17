@@ -21,12 +21,13 @@ namespace BAG {
 class BAG_API GeorefMetadataLayerDescriptor final : public LayerDescriptor
 {
 public:
-    static std::shared_ptr<GeorefMetadataLayerDescriptor> create(Dataset& dataset,
-                                                                 const std::string& name, GeorefMetadataProfile profile, DataType keyType,
-                                                                 RecordDefinition definition, uint64_t chunkSize,
-                                                                 int compressionLevel);
-    static std::shared_ptr<GeorefMetadataLayerDescriptor> open(Dataset& dataset,
-                                                               const std::string& name);
+    static std::shared_ptr<GeorefMetadataLayerDescriptor>
+        create(Dataset& dataset,
+            const std::string& name, GeorefMetadataProfile profile, DataType keyType,
+            RecordDefinition definition, uint32_t rows, uint32_t cols,
+            uint64_t chunkSize, int compressionLevel);
+    static std::shared_ptr<GeorefMetadataLayerDescriptor>
+        open(Dataset& dataset, const std::string& name);
 
     GeorefMetadataLayerDescriptor(const GeorefMetadataLayerDescriptor&) = delete;
     GeorefMetadataLayerDescriptor(GeorefMetadataLayerDescriptor&&) = delete;
@@ -52,7 +53,8 @@ public:
 
 protected:
     GeorefMetadataLayerDescriptor(Dataset& dataset, const std::string& name, GeorefMetadataProfile profile,
-                                  DataType keyType, RecordDefinition definition, uint64_t chunkSize,
+                                  DataType keyType, RecordDefinition definition,
+                                  uint32_t rows, uint32_t cols, uint64_t chunkSize,
                                   int compressionLevel);
 
 private:

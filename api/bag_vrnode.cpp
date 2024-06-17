@@ -166,9 +166,17 @@ std::shared_ptr<VRNode> VRNode::open(
     descriptor.setMinMaxNSamples(minNSamples, maxNSamples);
 
     auto h5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-        new ::H5::DataSet{h5file.openDataSet(VR_REFINEMENT_PATH)},
+        new ::H5::DataSet{h5file.openDataSet(VR_NODE_PATH)},
             DeleteH5dataSet{});
 
+    // We need to know the dimensions of the array on file so that we can update the
+    // descriptor for the layer.
+    hsize_t dims[2]; // Should be 1D, but you never know ...
+    int ndims = h5dataSet->getSpace().getSimpleExtentDims(dims, nullptr);
+    if (ndims != 1) {
+        throw InvalidVRRefinementDimensions{};
+    }
+    descriptor.setDims(1, dims[0]);
     return std::make_unique<VRNode>(dataset,
         descriptor, std::move(h5dataSet));
 }
@@ -354,7 +362,14 @@ void VRNode::writeProxy(
             throw DatasetNotFound{};
 
         auto pDataset = this->getDataset().lock();
+        // TODO: Confirm that this is what we want --- this resets the dimensions of the
+        // overall BAG, rather than the layer, which means that it's going to set the
+        // metadata size of the mandatory layers to 1xN ... which is odd.
         pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
+        // So that the read() call checks correctly against the size of the array, rather
+        // than the dimensions of the mandatory layer, we need to keep track of the size
+        // of the layer in the layer-specific descriptor.
+        pDescriptor->setDims(1, newMaxLength);
     }
 
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);

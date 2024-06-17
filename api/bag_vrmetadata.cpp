@@ -373,6 +373,12 @@ void VRMetadata::writeProxy(
         auto pDataset = this->getDataset().lock();
         pDataset->getDescriptor().setDims(static_cast<uint32_t>(newDims[0]),
             static_cast<uint32_t>(newDims[1]));
+        // The file descriptor is global (and the size of the mandatory layers) and specified
+        // in the metadata; each layer has its own size, however, which we need to update.  In
+        // this case, the VRMetadataDescriptor has the same dimensions as the mandatory layer
+        // (since there should be a refinement for each fixed-resolution cell), so it's formally
+        // redundant.  But we want to make sure that it's consistent, so ...
+        pDescriptor->setDims(fileDims[0], fileDims[1]);
     }
 
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());

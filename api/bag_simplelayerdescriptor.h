@@ -16,10 +16,11 @@ class BAG_API SimpleLayerDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<SimpleLayerDescriptor> create(const Dataset& dataset,
-        LayerType type, uint64_t chunkSize, int compressionLevel);
+        LayerType type, uint32_t rows, uint32_t cols,
+        uint64_t chunkSize, int compressionLevel);
 
     static std::shared_ptr<SimpleLayerDescriptor> open(const Dataset& dataset,
-        LayerType type);
+        LayerType type, uint32_t rows, uint32_t cols);
 
     SimpleLayerDescriptor(const SimpleLayerDescriptor&) = delete;
     SimpleLayerDescriptor(SimpleLayerDescriptor&&) = delete;
@@ -36,9 +37,11 @@ public:
     }
 
 protected:
-    SimpleLayerDescriptor(uint32_t id, LayerType type, uint64_t chunkSize,
+    SimpleLayerDescriptor(uint32_t id, LayerType type,
+        uint32_t rows, uint32_t cols, uint64_t chunkSize,
         int compressionLevel);
-    SimpleLayerDescriptor(const Dataset& dataset, LayerType type);
+    SimpleLayerDescriptor(const Dataset& dataset, LayerType type,
+        uint32_t rows, uint32_t cols);
 
 private:
     DataType getDataTypeProxy() const noexcept override;

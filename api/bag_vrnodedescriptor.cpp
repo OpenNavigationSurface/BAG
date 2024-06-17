@@ -17,11 +17,13 @@ namespace BAG {
 */
 VRNodeDescriptor::VRNodeDescriptor(
     uint32_t id,
+    uint32_t rows, uint32_t cols,
     uint64_t chunkSize,
     int compressionLevel)
     : LayerDescriptor(id, VR_NODE_PATH,
-        kLayerTypeMapString.at(VarRes_Node), VarRes_Node, chunkSize,
-        compressionLevel)
+        kLayerTypeMapString.at(VarRes_Node), VarRes_Node,
+        rows, cols,
+        chunkSize, compressionLevel)
 {
 }
 
@@ -31,8 +33,9 @@ VRNodeDescriptor::VRNodeDescriptor(
     The BAG Dataset this layer belongs to.
 */
 VRNodeDescriptor::VRNodeDescriptor(
-    const Dataset& dataset)
-    : LayerDescriptor(dataset, VarRes_Node, VR_NODE_PATH)
+    const Dataset& dataset,
+    uint32_t rows, uint32_t cols)
+    : LayerDescriptor(dataset, VarRes_Node, rows, cols, VR_NODE_PATH)
 {
 }
 
@@ -55,7 +58,7 @@ std::shared_ptr<VRNodeDescriptor> VRNodeDescriptor::create(
     int compressionLevel)
 {
     return std::shared_ptr<VRNodeDescriptor>(
-        new VRNodeDescriptor{dataset.getNextId(), chunkSize,
+        new VRNodeDescriptor{dataset.getNextId(), 1, 0, chunkSize,
             compressionLevel});
 }
 
@@ -65,12 +68,11 @@ std::shared_ptr<VRNodeDescriptor> VRNodeDescriptor::create(
     The BAG Dataset this layer belongs to.
 */
 std::shared_ptr<VRNodeDescriptor> VRNodeDescriptor::open(
-    const Dataset& dataset)
+    const Dataset& dataset, uint32_t rows, uint32_t cols)
 {
     return std::shared_ptr<VRNodeDescriptor>(
-        new VRNodeDescriptor{dataset});
+        new VRNodeDescriptor{dataset, rows, cols});
 }
-
 
 //! \copydoc LayerDescriptor::getDataType
 DataType VRNodeDescriptor::getDataTypeProxy() const noexcept

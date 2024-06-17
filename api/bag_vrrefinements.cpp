@@ -59,10 +59,10 @@ T readAttribute(
     The layer's descriptor.
     Will never be nullptr.
 */
-    std::shared_ptr<VRRefinementsDescriptor> VRRefinements::getDescriptor() & noexcept
-    {
-        return std::dynamic_pointer_cast<VRRefinementsDescriptor>(Layer::getDescriptor());
-    }
+std::shared_ptr<VRRefinementsDescriptor> VRRefinements::getDescriptor() & noexcept
+{
+    return std::dynamic_pointer_cast<VRRefinementsDescriptor>(Layer::getDescriptor());
+}
 
 //! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
 /*!
@@ -70,9 +70,10 @@ T readAttribute(
     The layer's descriptor.
     Will never be nullptr.
 */
-    std::shared_ptr<const VRRefinementsDescriptor> VRRefinements::getDescriptor() const & noexcept {
-        return std::dynamic_pointer_cast<const VRRefinementsDescriptor>(Layer::getDescriptor());
-    }
+std::shared_ptr<const VRRefinementsDescriptor> VRRefinements::getDescriptor() const & noexcept
+{
+    return std::dynamic_pointer_cast<const VRRefinementsDescriptor>(Layer::getDescriptor());
+}
 
 //! Constructor.
 /*!
@@ -151,6 +152,12 @@ std::unique_ptr<VRRefinements> VRRefinements::open(
         new ::H5::DataSet{h5file.openDataSet(VR_REFINEMENT_PATH)},
             DeleteH5dataSet{});
 
+    hsize_t dims[2];
+    int ndims = h5dataSet->getSpace().getSimpleExtentDims(dims, nullptr);
+    if (ndims != 1) {
+        throw InvalidVRRefinementDimensions{};
+    }
+    descriptor.setDims(1, dims[0]);
     return std::unique_ptr<VRRefinements>(new VRRefinements{dataset,
         descriptor, std::move(h5dataSet)});
 }
@@ -321,7 +328,14 @@ void VRRefinements::writeProxy(
             throw DatasetNotFound{};
 
         auto pDataset = this->getDataset().lock();
+        // TODO: Confirm that this is what we want --- this resets the dimensions of the
+        // overall BAG, rather than the layer, which means that it's going to set the
+        // metadata size of the mandatory layers to 1xN ... which is odd.
         pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
+        // So that the read() call checks correctly against the size of the array, rather
+        // than the dimensions of the mandatory layer, we need to keep track of the size
+        // of the layer in the layer-specific descriptor.
+        pDescriptor->setDims(1, newMaxLength);
     }
 
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);

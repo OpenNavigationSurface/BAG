@@ -43,14 +43,15 @@ public:
         uint32_t maxNumHypotheses) & noexcept;
 
 protected:
-    VRNodeDescriptor(uint32_t id, uint64_t chunkSize,
+    VRNodeDescriptor(uint32_t id, uint32_t rows, uint32_t cols, uint64_t chunkSize,
         int compressionLevel);
-    explicit VRNodeDescriptor(const Dataset& dataset);
+    explicit VRNodeDescriptor(const Dataset& dataset, uint32_t rows, uint32_t cols);
 
     static std::shared_ptr<VRNodeDescriptor> create(const Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);
 
-    static std::shared_ptr<VRNodeDescriptor> open(const Dataset& dataset);
+    static std::shared_ptr<VRNodeDescriptor> open(const Dataset& dataset,
+        uint32_t rows, uint32_t cols);
 
 private:
     DataType getDataTypeProxy() const noexcept override;

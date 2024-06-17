@@ -46,11 +46,11 @@ SimpleLayer::SimpleLayer(
 std::shared_ptr<SimpleLayer> SimpleLayer::create(
     Dataset& dataset,
     LayerType type,
+    uint32_t rows, uint32_t cols,
     uint64_t chunkSize,
     int compressionLevel)
 {
-    auto descriptor = SimpleLayerDescriptor::create(dataset, type, chunkSize,
-        compressionLevel);
+    auto descriptor = SimpleLayerDescriptor::create(dataset, type, rows, cols, chunkSize, compressionLevel);
     auto h5dataSet = SimpleLayer::createH5dataSet(dataset, *descriptor);
 
     return std::make_shared<SimpleLayer>(dataset, *descriptor, std::move(h5dataSet));
@@ -74,6 +74,12 @@ std::shared_ptr<SimpleLayer> SimpleLayer::open(
     auto h5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
         new ::H5::DataSet{h5file.openDataSet(descriptor.getInternalPath())},
         DeleteH5dataSet{});
+    
+    // Configure the layer dimensions in the descriptor (we implicitally expect the layer
+    // to be two-dimensional)
+    hsize_t dims[2];
+    h5dataSet->getSpace().getSimpleExtentDims(dims);
+    descriptor.setDims(dims[0], dims[1]);
 
     // Read the min/max attribute values.
     const auto possibleMinMax = dataset.getMinMax(descriptor.getLayerType());
@@ -101,7 +107,7 @@ SimpleLayer::createH5dataSet(
     const SimpleLayerDescriptor& descriptor)
 {
     uint32_t dim0 = 0, dim1 = 0;
-    std::tie(dim0, dim1) = dataset.getDescriptor().getDims();
+    std::tie(dim0, dim1) = descriptor.getDims();
     const std::array<hsize_t, kRank> fileDims{dim0, dim1};
 
     ::H5::DataSpace h5dataSpace{kRank, fileDims.data(), fileDims.data()};

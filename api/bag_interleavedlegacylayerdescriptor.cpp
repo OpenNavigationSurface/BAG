@@ -20,9 +20,10 @@ namespace BAG {
 InterleavedLegacyLayerDescriptor::InterleavedLegacyLayerDescriptor(
     uint32_t id,
     LayerType layerType,
-    GroupType groupType)
+    GroupType groupType,
+    uint32_t rows, uint32_t cols)
     : LayerDescriptor(id, Layer::getInternalPath(layerType),
-        kLayerTypeMapString.at(layerType), layerType, 0, 0)
+        kLayerTypeMapString.at(layerType), layerType, rows, cols, 0, 0)
     , m_groupType(groupType)
     , m_elementSize(Layer::getElementSize(Layer::getDataType(layerType)))
 {
@@ -45,8 +46,10 @@ InterleavedLegacyLayerDescriptor::InterleavedLegacyLayerDescriptor(
 InterleavedLegacyLayerDescriptor::InterleavedLegacyLayerDescriptor(
     const Dataset& dataset,
     LayerType layerType,
-    GroupType groupType)
+    GroupType groupType,
+    uint32_t rows, uint32_t cols)
     : LayerDescriptor(dataset, layerType,
+        rows, cols,
         groupType == NODE
             ? NODE_GROUP_PATH
             : groupType == ELEVATION
@@ -76,9 +79,11 @@ std::shared_ptr<InterleavedLegacyLayerDescriptor> InterleavedLegacyLayerDescript
     LayerType layerType,
     GroupType groupType)
 {
+    uint32_t rows, cols;
+    std::tie(rows, cols) = dataset.getDescriptor().getDims();
     return std::shared_ptr<InterleavedLegacyLayerDescriptor>(
         new InterleavedLegacyLayerDescriptor{dataset.getNextId(), layerType,
-            groupType});
+            groupType, rows, cols});
 }
 
 //! Open an interleaved layer descriptor.
@@ -99,8 +104,10 @@ std::shared_ptr<InterleavedLegacyLayerDescriptor> InterleavedLegacyLayerDescript
     LayerType layerType,
     GroupType groupType)
 {
+    uint32_t rows, cols;
+    std::tie<uint32_t, uint32_t>(rows, cols) = dataset.getDescriptor().getDims();
     return std::shared_ptr<InterleavedLegacyLayerDescriptor>(
-        new InterleavedLegacyLayerDescriptor{dataset, layerType, groupType});
+        new InterleavedLegacyLayerDescriptor{dataset, layerType, groupType, rows, cols});
 }
 
 

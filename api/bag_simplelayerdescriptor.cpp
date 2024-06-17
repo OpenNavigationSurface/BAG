@@ -19,10 +19,11 @@ namespace BAG {
 SimpleLayerDescriptor::SimpleLayerDescriptor(
     uint32_t id,
     LayerType type,
+    uint32_t rows, uint32_t cols,
     uint64_t chunkSize,
     int compressionLevel)
     : LayerDescriptor(id, Layer::getInternalPath(type),
-        kLayerTypeMapString.at(type), type, chunkSize, compressionLevel)
+        kLayerTypeMapString.at(type), type, rows, cols, chunkSize, compressionLevel)
     , m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
 {
 }
@@ -36,8 +37,9 @@ SimpleLayerDescriptor::SimpleLayerDescriptor(
 */
 SimpleLayerDescriptor::SimpleLayerDescriptor(
     const Dataset& dataset,
-    LayerType type)
-    : LayerDescriptor(dataset, type)
+    LayerType type,
+    uint32_t rows, uint32_t cols)
+    : LayerDescriptor(dataset, type, rows, cols)
     , m_elementSize(Layer::getElementSize(Layer::getDataType(type)))
 {
 }
@@ -59,11 +61,12 @@ SimpleLayerDescriptor::SimpleLayerDescriptor(
 std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
     const Dataset& dataset,
     LayerType type,
+    uint32_t rows, uint32_t cols,
     uint64_t chunkSize,
     int compressionLevel)
 {
     return std::shared_ptr<SimpleLayerDescriptor>(
-        new SimpleLayerDescriptor{dataset.getNextId(), type, chunkSize,
+        new SimpleLayerDescriptor{dataset.getNextId(), type, rows, cols, chunkSize,
         compressionLevel});
 }
 
@@ -79,10 +82,10 @@ std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::create(
 */
 std::shared_ptr<SimpleLayerDescriptor> SimpleLayerDescriptor::open(
     const Dataset& dataset,
-    LayerType type)
+    LayerType type, uint32_t rows, uint32_t cols)
 {
     return std::shared_ptr<SimpleLayerDescriptor>(
-        new SimpleLayerDescriptor{dataset, type});
+        new SimpleLayerDescriptor{dataset, type, rows, cols});
 }
 
 

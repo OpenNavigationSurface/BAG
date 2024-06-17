@@ -64,8 +64,8 @@ public:
 protected:
     static std::shared_ptr<GeorefMetadataLayer> create(DataType keyType,
                                                        const std::string& name, GeorefMetadataProfile profile, Dataset& dataset,
-                                                       const RecordDefinition& definition, uint64_t chunkSize,
-                                                       int compressionLevel);
+                                                       const RecordDefinition& definition,
+                                                       uint64_t chunkSize, int compressionLevel);
     static std::shared_ptr<GeorefMetadataLayer> open(Dataset& dataset,
                                                      GeorefMetadataLayerDescriptor& descriptor);
 
