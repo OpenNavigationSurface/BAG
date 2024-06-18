@@ -4,6 +4,7 @@
 #include "bag_vrrefinements.h"
 #include "bag_vrrefinementsdescriptor.h"
 
+#include <iostream>
 #include <array>
 #include <cstring>  //memset
 #include <H5Cpp.h>
@@ -154,10 +155,10 @@ std::unique_ptr<VRRefinements> VRRefinements::open(
 
     hsize_t dims[2];
     int ndims = h5dataSet->getSpace().getSimpleExtentDims(dims, nullptr);
-    if (ndims != 1) {
+    if (ndims != 2) {
         throw InvalidVRRefinementDimensions{};
     }
-    descriptor.setDims(1, dims[0]);
+    descriptor.setDims(dims[0], dims[1]);
     return std::unique_ptr<VRRefinements>(new VRRefinements{dataset,
         descriptor, std::move(h5dataSet)});
 }
@@ -244,18 +245,20 @@ UInt8Array VRRefinements::readProxy(
     const hsize_t columns = (columnEnd - columnStart) + 1;
     const hsize_t offset = columnStart;
 
-    const auto fileDataSpace = m_pH5dataSet->getSpace();
-    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
+    const std::array<hsize_t, kRank> sizes{1, columns};
+    const std::array<hsize_t, kRank> offsets{0, offset};
 
-    const auto bufferSize = pDescriptor->getReadBufferSize(1,
-        static_cast<uint32_t>(columns));
+    const auto h5fileDataSpace = m_pH5dataSet->getSpace();
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, sizes.data(), offsets.data());
+
+    const auto bufferSize = pDescriptor->getReadBufferSize(1, columns);
     UInt8Array buffer{bufferSize};
 
-    const ::H5::DataSpace memDataSpace{1, &columns, &columns};
+    const ::H5::DataSpace memDataSpace{kRank, sizes.data(), sizes.data()};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -313,6 +316,7 @@ void VRRefinements::writeProxy(
     const int numDims = fileDataSpace.getSimpleExtentDims(fileLength.data(),
         maxFileLength.data());
     if (numDims != 1)
+        std::cout << "Number of dimensions for VRRefinements = " << numDims << std::endl;
         throw InvalidVRRefinementDimensions{};
 
     if (fileLength[0] < (columnEnd + 1))
