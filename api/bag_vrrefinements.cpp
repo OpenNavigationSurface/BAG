@@ -251,11 +251,8 @@ UInt8Array VRRefinements::readProxy(
     h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, sizes.data(), offsets.data());
 
     const auto bufferSize = pDescriptor->getReadBufferSize(1, columns);
-    UInt8Array buffer{bufferSize*2};
-    {
-        std::cout << "Reading " << columns << " VRRefinements into array of size " << buffer.size() << "B" << std::endl;
-    }
-
+    UInt8Array buffer{bufferSize};
+    
     const ::H5::DataSpace memDataSpace{kRank, sizes.data(), sizes.data()};
 
     const auto memDataType = makeDataType();
