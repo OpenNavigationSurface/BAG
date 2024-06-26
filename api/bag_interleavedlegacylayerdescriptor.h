@@ -43,9 +43,9 @@ public:
 
 protected:
     InterleavedLegacyLayerDescriptor(uint32_t id, LayerType layerType,
-        GroupType groupType);
+        GroupType groupType, uint32_t rows, uint32_t cols);
     InterleavedLegacyLayerDescriptor(const Dataset& dataset, LayerType layerType,
-        GroupType groupType);
+        GroupType groupType, uint32_t rows, uint32_t cols);
 
 private:
     static void validateTypes(LayerType layerType, GroupType groupType);
