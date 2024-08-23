@@ -14,6 +14,7 @@ namespace BAG {
 */
 void DeleteH5dataSet::operator()(::H5::DataSet* ptr) noexcept
 {
+    ptr->close();
     delete ptr;
 }
 

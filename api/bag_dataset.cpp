@@ -1208,8 +1208,10 @@ void Dataset::readDataset(
                     auto descriptor = GeorefMetadataLayerDescriptor::open(*this, name);
                     this->addLayer(GeorefMetadataLayer::open(*this, *descriptor));
                 }
-                catch(...)
-                {}
+                catch(std::exception &e)
+                {
+                    std::cerr << e.what() << std::endl;
+                }
             }
         }
     }

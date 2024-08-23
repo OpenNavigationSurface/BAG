@@ -1,5 +1,13 @@
 # Build instructions
 
+## Dev container
+
+### Build BAG development dev container using Docker
+From the BAG repository root, run:
+```shell
+docker buildx build -t dev/debian/baglib:latest -f Dockerfile.dev .
+```
+
 ## Linux / macOS
 
 ### Configure and build BAG

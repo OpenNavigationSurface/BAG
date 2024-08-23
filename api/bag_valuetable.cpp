@@ -10,6 +10,7 @@
 #include <algorithm>
 #include <array>
 #include <H5Cpp.h>
+#include <iostream>
 
 
 namespace BAG {
@@ -167,7 +168,16 @@ ValueTable::ValueTable(
     const ::H5::DataSpace memDataSpace;
     memDataSpace.setExtentSimple(1, &numRecords);
 
-    h5valueDataSet.read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
+    try
+    {
+        h5valueDataSet.read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
+    } catch(H5::DataSetIException &e) {
+        std::ostringstream os;
+        os << "Error reading georef_metadata values: " << e.getFuncName() << ": " << e.getDetailMsg();
+        auto mesg = os.str();
+        std::cerr << mesg << std::endl;
+        throw std::runtime_error(mesg);
+    }
 
     // Convert the raw memory into Records.
     size_t rawIndex = 0;
