@@ -56,27 +56,29 @@ The ISO 19115 object model provided most of the needed classes and attributes re
 
 | Enumerated Value | Description                                                                                                                             |
 | :-------------------- |:----------------------------------------------------------------------------------------------------------------------------------------|
-| Unknown | "Unknown" - The uncertainty layer is an unknown type                                                                                    |
-| Raw_Std_Dev | "Raw Standard Deviation" - Raw standard deviation of soundings that contributed to the node                                             |
-| CUBE_Std_Dev | "CUBE Standard Deviation" - Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE’s standard output of uncertainty) |
-| Product_Uncert | "Product Uncertainty" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures).                        |
-| Historical_Std_Dev | "Historical Standard Deviation" – Estimated standard deviation based on historical/archive data.                                        |
+| BAG_VertUncertCode_rawStdDev | "Raw Standard Deviation" - Raw standard deviation of soundings that contributed to the node                                             |
+| BAG_VertUncertCode_cubeStdDev | "CUBE Standard Deviation" - Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE’s standard output of uncertainty) |
+| BAG_VertUncertCode_productUncert | "Product Uncertainty" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures).                        |
+| BAG_VertUncertCode_noaaProduct_2024 | "Product Uncertainty 2024" - NOAA standard product uncertainty version 2024 (https://repository.library.noaa.gov/view/noaa/61830)   |
+| BAG_VertUncertCode_historicalStdDev | "Historical Standard Deviation" – Estimated standard deviation based on historical/archive data.                                        |
+| BAG_VertUncertCode_averageTPE | "Average TPE" - Average of all of the contributing sounding TPE's within the node.   |
+| BAG_VertUncertCode_unknown | "Unknown" - The uncertainty layer is an unknown type                                                                                    |
 
 
 Secondly, the `trackingId` extension allows internal Tracking List entries to be associated with a unique entry in the metadata so that the changes can be properly attributed, described and easily referenced.
  
-Thirdly, the `depthCorrectionType` extension was added to allow the BAG file to accurately describe the correction performed on the data. Table 1.2 shows the list of supported values as of the 1.1 release.
+Thirdly, the `depthCorrectionType` extension was added to allow the BAG file to accurately describe the correction performed on the data. Table 1.2 shows the list of supported values as of the 2.0 release.
 
 **Table 1.2: Table of depth correction types.**
 
 | Enumerated Value | Description |
 | :-------------------- | :------------ |
-| True_Depth | “True Depth” – Depth corrected for sound velocity |
-| Nominal_Depth_Meters | “Nominal at 1500m/s”- Depth at assumed sound velocity of 1500m/s |
-| Nominal_Depth_Feet | “Nominal at 4800ft/s” – Depth at assumed sound velocity of 4800ft/s |
-| Corrected_Carters | “Corrected via Carter’s Tables” – Corrected depth using Carter’s tables |
-| Corrected_Matthews | “Corrected via Matthew’s Tables” – Corrected depth using Matthew’s tables |
-| Unknown | “Unknown” – Unknown depth correction type or mixture of above types |
+| BAG_DepthCorrectCode_trueDepth | “True Depth” – Depth corrected for sound velocity |
+| BAG_DepthCorrectCode_nominalDepthMetre | “Nominal at 1500m/s”- Depth at assumed sound velocity of 1500m/s |
+| BAG_DepthCorrectCode_nominalDepthFeet | “Nominal at 4800ft/s” – Depth at assumed sound velocity of 4800ft/s |
+| BAG_DepthCorrectCode_correctedCarters | “Corrected via Carter’s Tables” – Corrected depth using Carter’s tables |
+| BAG_DepthCorrectCode_correctedMatthews | “Corrected via Matthew’s Tables” – Corrected depth using Matthew’s tables |
+| BAG_DepthCorrectCode_unknown | “Unknown” – Unknown depth correction type or mixture of above types |
 
 
 ### Common Encoding
