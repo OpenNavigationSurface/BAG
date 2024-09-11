@@ -9,7 +9,7 @@ version: 2
 build:
   os: ubuntu-24.04
   tools:
-    python: "mambaforge-latest"
+    python: "3"
   commands:
     - cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
     - cmake --build build -v
