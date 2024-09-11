@@ -13,8 +13,8 @@ build:
   commands:
     - bash docs/readthedocs/build.bash
 
-conda:
-  environment: docs/readthedocs/environment.yml
+#conda:
+#  environment: docs/readthedocs/environment.yml
 
 # Build documentation in the docs/ directory with Sphinx
 #sphinx:
