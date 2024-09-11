@@ -1,7 +1,7 @@
 #!/usr/bin/bash
 set -eu -o pipefail
 conda init bash
-source activate base
+source ${HOME}/.bashrc
 conda env create -q --file docs/readthedocs/environment.yml
 conda activate readthedocs
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
