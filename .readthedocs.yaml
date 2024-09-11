@@ -5,6 +5,9 @@
 # Required
 version: 2
 
+conda:
+  environment: docs/readthedocs/environment.yml
+
 # Set the version of Python and other tools you might need
 build:
   os: ubuntu-22.04
@@ -12,9 +15,6 @@ build:
     python: "3.9"
   commands:
     - bash docs/readthedocs/build.bash
-
-#conda:
-#  environment: docs/readthedocs/environment.yml
 
 # Build documentation in the docs/ directory with Sphinx
 #sphinx:
