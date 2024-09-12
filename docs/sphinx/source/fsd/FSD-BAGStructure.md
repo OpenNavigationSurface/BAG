@@ -56,13 +56,13 @@ The ISO 19115 object model provided most of the needed classes and attributes re
 
 | Enumerated Value | Description                                                                                                                             |
 | :-------------------- |:----------------------------------------------------------------------------------------------------------------------------------------|
-| BAG_VertUncertCode_rawStdDev | "Raw Standard Deviation" - Raw standard deviation of soundings that contributed to the node                                             |
-| BAG_VertUncertCode_cubeStdDev | "CUBE Standard Deviation" - Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE’s standard output of uncertainty) |
-| BAG_VertUncertCode_productUncert | "Product Uncertainty" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures).                        |
-| BAG_VertUncertCode_noaaProduct_2024 | "Product Uncertainty 2024" - NOAA standard product uncertainty version 2024 (https://repository.library.noaa.gov/view/noaa/61830)   |
-| BAG_VertUncertCode_historicalStdDev | "Historical Standard Deviation" – Estimated standard deviation based on historical/archive data.                                        |
-| BAG_VertUncertCode_averageTPE | "Average TPE" - Average of all of the contributing sounding TPE's within the node.   |
-| BAG_VertUncertCode_unknown | "Unknown" - The uncertainty layer is an unknown type                                                                                    |
+| rawStdDev | "Raw Standard Deviation" - Raw standard deviation of soundings that contributed to the node                                             |
+| cubeStdDev | "CUBE Standard Deviation" - Standard deviation of soundings captured by a CUBE hypothesis (i.e., CUBE’s standard output of uncertainty) |
+| productUncert | "Product Uncertainty" - NOAA standard product uncertainty V1.0 (a blend of CUBE uncertainty and other measures).                        |
+| noaaProduct_2024 | "Product Uncertainty 2024" - NOAA standard product uncertainty version 2024 (https://repository.library.noaa.gov/view/noaa/61830)   |
+| historicalStdDev | "Historical Standard Deviation" – Estimated standard deviation based on historical/archive data.                                        |
+| averageTPE | "Average TPE" - Average of all of the contributing sounding TPE's within the node.   |
+| unknown | "Unknown" - The uncertainty layer is an unknown type                                                                                    |
 
 
 Secondly, the `trackingId` extension allows internal Tracking List entries to be associated with a unique entry in the metadata so that the changes can be properly attributed, described and easily referenced.
@@ -73,12 +73,12 @@ Thirdly, the `depthCorrectionType` extension was added to allow the BAG file to 
 
 | Enumerated Value | Description |
 | :-------------------- | :------------ |
-| BAG_DepthCorrectCode_trueDepth | “True Depth” – Depth corrected for sound velocity |
-| BAG_DepthCorrectCode_nominalDepthMetre | “Nominal at 1500m/s”- Depth at assumed sound velocity of 1500m/s |
-| BAG_DepthCorrectCode_nominalDepthFeet | “Nominal at 4800ft/s” – Depth at assumed sound velocity of 4800ft/s |
-| BAG_DepthCorrectCode_correctedCarters | “Corrected via Carter’s Tables” – Corrected depth using Carter’s tables |
-| BAG_DepthCorrectCode_correctedMatthews | “Corrected via Matthew’s Tables” – Corrected depth using Matthew’s tables |
-| BAG_DepthCorrectCode_unknown | “Unknown” – Unknown depth correction type or mixture of above types |
+| trueDepth | “True Depth” – Depth corrected for sound velocity |
+| nominalDepthMetre | “Nominal at 1500m/s”- Depth at assumed sound velocity of 1500m/s |
+| nominalDepthFeet | “Nominal at 4800ft/s” – Depth at assumed sound velocity of 4800ft/s |
+| correctedCarters | “Corrected via Carter’s Tables” – Corrected depth using Carter’s tables |
+| correctedMatthews | “Corrected via Matthew’s Tables” – Corrected depth using Matthew’s tables |
+| unknown | “Unknown” – Unknown depth correction type or mixture of above types |
 
 
 ### Common Encoding
