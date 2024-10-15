@@ -1,5 +1,13 @@
 # Build instructions
 
+## Docker
+You can build a development Linux container using 
+[Dockerfile.dev](../Dockerfile.dev) by running the following command from the
+repository root directory:
+```shell
+docker buildx build -t dev/debian/baglib:latest -f Dockerfile.dev .
+```
+
 ## Linux / macOS
 
 ### Configure and build BAG
