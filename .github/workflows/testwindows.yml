@@ -38,7 +38,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [windows-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         c_compiler: [cl]
         include:
           - VS_VERSION: Visual Studio 17
@@ -93,10 +93,11 @@ jobs:
           Install-Module VSSetup -Scope CurrentUser
           # Setup
           $env:BAG_INSTALL_PATH="$env:GITHUB_WORKSPACE\install"
+          $env:VENV_PATH="$env:GITHUB_WORKSPACE\venv"
           # Debug: env
           if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
-          # Create Python venv in the same place as BAG_INSTALL_PATH
-          python -m venv $env:BAG_INSTALL_PATH
+          # Create Python venv
+          python -m venv $env:VENV_PATH
           # Debug: dir $env:GITHUB_WORKSPACE
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
@@ -155,7 +156,7 @@ jobs:
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
-          $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+          $activate_cmd="$env:VENV_PATH\Scripts\Activate.ps1"
           echo "Attempting to activate Python environment using script: $activate_cmd ..."
           & $activate_cmd
           python -m pip install --upgrade pip
@@ -164,6 +165,8 @@ jobs:
           python -m pip wheel -w .\wheel\ .\build\api\swig\python
           $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
           python -m pip install $whl_path
+          # Debug: Print contents of site-packages
+          Get-ChildItem -Recurse $env:VENV_PATH\Lib\site-packages
           # Run C++ tests
           $env:Path += ";$env:BAG_INSTALL_PATH\bin"
           echo $env:Path
@@ -174,12 +177,12 @@ jobs:
           #   work on Windows, while Conda wheels on Windows do)
           # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
           #   on Windows is a hassle.
-          #python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
-          #  .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
-          #  .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
-          #  .\python\test_metadata.py .\python\test_record.py .\python\test_simplelayer.py `
-          #  .\python\test_simplelayerdescriptor.py .\python\test_surfacecorrections.py `
-          #  .\python\test_surfacecorrectionsdescriptor.py .\python\test_trackinglist.py .\python\test_valuetable.py `
-          #  .\python\test_vrmetadata.py .\python\test_vrmetadatadescriptor.py .\python\test_vrnode.py `
-          #  .\python\test_vrnodedescriptor.py .\python\test_vrrefinements.py .\python\test_vrrefinementsdescriptor.py `
-          #  .\python\test_vrtrackinglist.py
+          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
+            .\python\test_compat_bag15.py .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
+            .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
+            .\python\test_metadata.py .\python\test_record.py .\python\test_simplelayer.py `
+            .\python\test_simplelayerdescriptor.py .\python\test_surfacecorrections.py `
+            .\python\test_surfacecorrectionsdescriptor.py .\python\test_trackinglist.py .\python\test_valuetable.py `
+            .\python\test_vrmetadata.py .\python\test_vrmetadatadescriptor.py .\python\test_vrnode.py `
+            .\python\test_vrnodedescriptor.py .\python\test_vrrefinements.py .\python\test_vrrefinementsdescriptor.py `
+            .\python\test_vrtrackinglist.py
