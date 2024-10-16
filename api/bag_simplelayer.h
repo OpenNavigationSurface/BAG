@@ -46,7 +46,7 @@ public:
 
 protected:
     static std::shared_ptr<SimpleLayer> create(Dataset& dataset,
-        LayerType type, uint64_t chunkSize, int compressionLevel);
+        LayerType type, uint32_t rows, uint32_t cols, uint64_t chunkSize, int compressionLevel);
 
     static std::shared_ptr<SimpleLayer> open(Dataset& dataset,
         SimpleLayerDescriptor& descriptor);

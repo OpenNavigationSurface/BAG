@@ -166,11 +166,18 @@ std::shared_ptr<VRNode> VRNode::open(
     descriptor.setMinMaxNSamples(minNSamples, maxNSamples);
 
     auto h5dataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
-        new ::H5::DataSet{h5file.openDataSet(VR_REFINEMENT_PATH)},
+        new ::H5::DataSet{h5file.openDataSet(VR_NODE_PATH)},
             DeleteH5dataSet{});
 
-    return std::make_unique<VRNode>(dataset,
-        descriptor, std::move(h5dataSet));
+    // We need to know the dimensions of the array on file so that we can update the
+    // descriptor for the layer.
+    hsize_t dims[2]; // Should be 1D, but you never know ...
+    int ndims = h5dataSet->getSpace().getSimpleExtentDims(dims, nullptr);
+    if (ndims != 2) {
+        throw InvalidVRRefinementDimensions{};
+    }
+    descriptor.setDims(dims[0], dims[1]);
+    return std::make_unique<VRNode>(dataset, descriptor, std::move(h5dataSet));
 }
 
 
@@ -263,18 +270,20 @@ UInt8Array VRNode::readProxy(
     const hsize_t columns = (columnEnd - columnStart) + 1;
     const hsize_t offset = columnStart;
 
-    const auto fileDataSpace = m_pH5dataSet->getSpace();
-    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
+    const std::array<hsize_t, kRank> sizes{1, columns};
+    const std::array<hsize_t, kRank> offsets{0, offset};
 
-    const auto bufferSize = pDescriptor->getReadBufferSize(1,
-        static_cast<uint32_t>(columns));
+    const auto h5fileDataSpace = m_pH5dataSet->getSpace();
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, sizes.data(), offsets.data());
+
+    const auto bufferSize = pDescriptor->getReadBufferSize(1, columns);
     UInt8Array buffer{bufferSize};
 
-    const ::H5::DataSpace memDataSpace{1, &columns, &columns};
+    const ::H5::DataSpace memDataSpace{kRank, sizes.data(), sizes.data()};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -354,7 +363,14 @@ void VRNode::writeProxy(
             throw DatasetNotFound{};
 
         auto pDataset = this->getDataset().lock();
+        // TODO: Confirm that this is what we want --- this resets the dimensions of the
+        // overall BAG, rather than the layer, which means that it's going to set the
+        // metadata size of the mandatory layers to 1xN ... which is odd.
         pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
+        // So that the read() call checks correctly against the size of the array, rather
+        // than the dimensions of the mandatory layer, we need to keep track of the size
+        // of the layer in the layer-specific descriptor.
+        pDescriptor->setDims(1, newMaxLength);
     }
 
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);

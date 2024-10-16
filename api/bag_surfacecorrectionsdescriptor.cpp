@@ -54,7 +54,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     int compressionLevel)
     : LayerDescriptor(id, Layer::getInternalPath(Surface_Correction),
         kLayerTypeMapString.at(Surface_Correction), Surface_Correction,
-        chunkSize, compressionLevel)
+        0, 0, chunkSize, compressionLevel) // Dims default to 0,0 like derived type
     , m_surfaceType(type)
     , m_elementSize(BAG::getElementSize(type))
     , m_numCorrectors(numCorrectors)
@@ -68,7 +68,7 @@ SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
 */
 SurfaceCorrectionsDescriptor::SurfaceCorrectionsDescriptor(
     const Dataset& dataset)
-    : LayerDescriptor(dataset, Surface_Correction)
+    : LayerDescriptor(dataset, Surface_Correction, 0, 0) // Dims set in body
 {
     const auto h5dataSet = dataset.getH5file().openDataSet(
         Layer::getInternalPath(Surface_Correction));
@@ -279,6 +279,7 @@ SurfaceCorrectionsDescriptor& SurfaceCorrectionsDescriptor::setDims(
 {
     m_numRows = numRows;
     m_numColumns = numColumns;
+    LayerDescriptor::setDims(numRows, numColumns);
     return *this;
 }
 
