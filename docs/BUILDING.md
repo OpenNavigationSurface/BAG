@@ -8,6 +8,18 @@ repository root directory:
 docker buildx build -t dev/debian/baglib:latest -f Dockerfile.dev .
 ```
 
+To manually build and test inside the development container, run:
+```shell
+docker run -ti -v ./:/tmp/bag:rw dev/debian/baglib:latest /bin/bash
+./scripts/dev-cont-build-bag.sh
+```
+
+After running `dev-cont-build-bag.sh` once, you can iteratively run Python 
+tests by running:
+```shell
+python3 -m pytest python/test_*.py
+```
+
 ## Linux / macOS
 
 ### Configure and build BAG
