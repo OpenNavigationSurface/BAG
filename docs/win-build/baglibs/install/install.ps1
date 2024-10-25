@@ -32,26 +32,26 @@ exec { 7z x ..\downloads\$env:ZLIB_ZIP }
 cd zlib-1.3
 if(-Not (Test-Path -Path build)) { mkdir build }
 $env:CMAKE_INSTALL_PREFIX="-DCMAKE_INSTALL_PREFIX=" + $env:BAG_INSTALL_PATH
-cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Debug
-cmake --build build --config Debug --target install -- /nologo /verbosity:minimal 
+cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release
+cmake --build build --config Release --target install -- /nologo /verbosity:minimal
 cd ..
 # libxml2
 exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
 cd libxml2-v2.12.0
 if(-Not (Test-Path -Path build)) { mkdir build }
-cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Debug `
+cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
 -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
-cmake --build build --config Debug --target install -- /nologo /verbosity:minimal 
+cmake --build build --config Release --target install -- /nologo /verbosity:minimal
 cd ..
 # HDF5
 exec { 7z x ..\downloads\$env:HDF5_ZIP }
 cd hdfsrc
 if(-Not (Test-Path -Path build)) { mkdir build }
-cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Debug `
+cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
 -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF `
 -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON `
 -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
-cmake --build build --config Debug --target install -- /nologo /verbosity:minimal 
+cmake --build build --config Release --target install -- /nologo /verbosity:minimal
 cd ..
 # Catch2
 exec { 7z x ..\downloads\$env:CATCH2_ZIP }
@@ -59,9 +59,9 @@ cd Catch2-3.4.0
 if(-Not (Test-Path -Path build)) { mkdir build }
 # Debug: dir
 # Debug: pwd
-cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Debug `
+cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
 -DBUILD_TESTING:BOOL=OFF
-cmake --build build --config Debug --target install -- /nologo /verbosity:minimal 
+cmake --build build --config Release --target install -- /nologo /verbosity:minimal
 cd ..
 
 # Cleanup

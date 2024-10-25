@@ -60,6 +60,38 @@ $ ./bag-examples/examples/bag_georefmetadata_layer \
 
 ## Windows: Visual Studio 2022/2019
 
+### Locally build dependencies
+
+Run `docs\win-build\baglibs\downloads\download.ps1` to download dependencies. 
+
+Then to build dependencies run `docs\win-build\baglibs\install\install.ps1`.
+
+> Note: You must run `install.ps1` from an admin shell since libxml2 creates symlinks and
+> Windows doesn't allow this from normal user shells.
+
+Now, the build BAG, do the following:
+```pwsh
+. "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\Launch-VsDevShell.ps1"
+$env:CC=cl.exe
+$env:CXX=cl.exe
+cmake -G "Visual Studio 17 2022" -B build -S .  -DCMAKE_BUILD_TYPE=Release `
+  -DCMAKE_PREFIX_PATH=docs\win-build\baglibs\install `
+  -DCMAKE_INSTALL_PREFIX=docs\win-build\baglibs\install -DBUILD_SHARED_LIBS=ON `
+  -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
+cmake --build build --config Release --target install
+$env:PATH=$env:PATH + ";build\api\Release;docs\win-build\baglibs\install\bin"
+$env:BAG_SAMPLES_PATH="examples\sample-data"
+build\tests\bag_tests.exe
+python -m venv win-venv
+& .\win-venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip wheel -w .\wheel\ .\build\api\swig\python
+$whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
+python -m pip install $whl_path
+python -m pytest .\python\test_dataset.py
+```
+
 ### Dependencies from Miniconda
 
 #### Install miniconda & BAG dependencies
@@ -78,7 +110,7 @@ conda activate bag-dev-env
 conda install cmake ninja hdf5 libxml2 swig catch2
 ```
 
-> Note: if usnig a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
+> Note: if using a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
 
 #### Configure and build BAG
 
