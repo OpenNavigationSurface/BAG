@@ -72,8 +72,8 @@ Then to build dependencies run `docs\win-build\baglibs\install\install.ps1`.
 Now, the build BAG, do the following:
 ```pwsh
 . "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\Launch-VsDevShell.ps1"
-$env:CC=cl.exe
-$env:CXX=cl.exe
+$env:CC="cl.exe"
+$env:CXX="cl.exe"
 cmake -G "Visual Studio 17 2022" -B build -S .  -DCMAKE_BUILD_TYPE=Release `
   -DCMAKE_PREFIX_PATH=docs\win-build\baglibs\install `
   -DCMAKE_INSTALL_PREFIX=docs\win-build\baglibs\install -DBUILD_SHARED_LIBS=ON `
@@ -81,11 +81,13 @@ cmake -G "Visual Studio 17 2022" -B build -S .  -DCMAKE_BUILD_TYPE=Release `
 cmake --build build --config Release --target install
 $env:PATH=$env:PATH + ";build\api\Release;docs\win-build\baglibs\install\bin"
 $env:BAG_SAMPLES_PATH="examples\sample-data"
-build\tests\bag_tests.exe
+build\tests\Release\bag_tests.exe
 python -m venv win-venv
 & .\win-venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
+$env:CMAKE_PREFIX_PATH="$PWD\docs\win-build\baglibs\install"
+# TODO: Below is broken as we don't have SWIG installed yet...
 python -m pip wheel -w .\wheel\ .\build\api\swig\python
 $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
 python -m pip install $whl_path
