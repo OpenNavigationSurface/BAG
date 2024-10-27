@@ -66,12 +66,16 @@ Run `docs\win-build\baglibs\downloads\download.ps1` to download dependencies.
 
 Then to build dependencies run `docs\win-build\baglibs\install\install.ps1`.
 
+Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to 
+`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.0`.
+
 > Note: You must run `install.ps1` from an admin shell since libxml2 creates symlinks and
 > Windows doesn't allow this from normal user shells.
 
 Now, the build BAG, do the following:
 ```pwsh
-. "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\Launch-VsDevShell.ps1"
+$env:ARCHITECTURE="amd64"
+. "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\Launch-VsDevShell.ps1" -Arch $env:ARCHITECTURE
 $env:CC="cl.exe"
 $env:CXX="cl.exe"
 cmake -G "Visual Studio 17 2022" -B build -S .  -DCMAKE_BUILD_TYPE=Release `
@@ -87,7 +91,7 @@ python -m venv win-venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 $env:CMAKE_PREFIX_PATH="$PWD\docs\win-build\baglibs\install"
-# TODO: Below is broken as we don't have SWIG installed yet...
+$env:SWIG_EXECUTABLE="$PWD\docs\win-build\baglibs\install\swigwin-4.3.0\swig.exe"
 python -m pip wheel -w .\wheel\ .\build\api\swig\python
 $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
 python -m pip install $whl_path
