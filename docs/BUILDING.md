@@ -95,6 +95,7 @@ $env:SWIG_EXECUTABLE="$PWD\docs\win-build\baglibs\install\swigwin-4.3.0\swig.exe
 python -m pip wheel -w .\wheel\ .\build\api\swig\python
 $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
 python -m pip install $whl_path
+$env:BAG_BIN = "$PWD\docs\win-build\baglibs\install\bin"
 python -m pytest .\python\test_dataset.py
 ```
 

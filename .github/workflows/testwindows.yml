@@ -173,10 +173,10 @@ jobs:
           $env:BAG_SAMPLES_PATH="$env:GITHUB_WORKSPACE\examples\sample-data"
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
           & $test_path
-          # Run Python tests (disable for now until we figure out why vanilla Python wheels don't seem to
-          #   work on Windows, while Conda wheels on Windows do)
+          # Run Python tests
           # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
           #   on Windows is a hassle.
+          $env:BAG_BIN="$env:BAG_INSTALL_PATH\bin"
           python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
             .\python\test_compat_bag15.py .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
             .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
