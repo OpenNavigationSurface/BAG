@@ -94,11 +94,9 @@ jobs:
           # Setup
           $env:BAG_INSTALL_PATH="$env:GITHUB_WORKSPACE\install"
           $env:VENV_PATH="$env:GITHUB_WORKSPACE\venv"
-          # Debug: env
           if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
           # Create Python venv
           python -m venv $env:VENV_PATH
-          # Debug: dir $env:GITHUB_WORKSPACE
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
           cd downloads
@@ -144,8 +142,6 @@ jobs:
           exec { 7z x ..\downloads\$env:CATCH2_ZIP }
           cd Catch2-3.4.0
           if(-Not (Test-Path -Path build)) { mkdir build }
-          # Debug: dir
-          # Debug: pwd
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DBUILD_TESTING:BOOL=OFF
           cmake --build build --config Release --target install -- /nologo /verbosity:minimal 
@@ -165,8 +161,6 @@ jobs:
           python -m pip wheel -w .\wheel\ .\build\api\swig\python
           $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
           python -m pip install $whl_path
-          # Debug: Print contents of site-packages
-          Get-ChildItem -Recurse $env:VENV_PATH\Lib\site-packages
           # Run C++ tests
           $env:Path += ";$env:BAG_INSTALL_PATH\bin"
           echo $env:Path
