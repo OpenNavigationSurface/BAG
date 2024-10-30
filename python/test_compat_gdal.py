@@ -15,6 +15,8 @@ import bagMetadataSamples
 
 logger = logging.getLogger(__file__)
 
+# Enable exceptions (to make sure we are ready for GDAL 4 when exceptions will be enabled by default)
+gdal.UseExceptions()
 
 def cmp_bag_compound_rectype_to_gdal_rat_fieldtype(bag_type: int, gdal_type: int) -> bool:
     """
@@ -305,30 +307,38 @@ class TestCompatGDAL(unittest.TestCase):
         bag_filename = get_bag_path(Path(self.tmp_dir, 'created_by_gdal.bag'))
         bag_rows = 100
         bag_cols = 100
-        gd = gdal.GetDriverByName('BAG').Create(bag_filename,
-                                                xsize=bag_cols, ysize=bag_rows, bands=2, eType=gdalconst.GDT_Float32)
-        self.assertIsNotNone(gd)
-        gd.SetGeoTransform([687905.0, 10.0, 0.0, 5555615.0, 0.0, -10.0])
-        gd.SetProjection(bagMetadataSamples.kBAG_CRS_WKT)
-        # Write elevation data
-        elev_array = np.random.default_rng(12345).random((bag_rows, bag_cols)) * 100
-        gdal_elev = gd.GetRasterBand(1)
-        gdal_elev.WriteArray(elev_array)
-        # Write uncertainty data
-        uncrt_array = np.random.default_rng(54321).random((bag_rows, bag_cols))
-        gdal_uncrt = gd.GetRasterBand(2)
-        gdal_uncrt.WriteArray(uncrt_array)
-        # Close GDAL dataset
-        gd = None
+        with gdal.GetDriverByName('BAG').Create(bag_filename,
+                                                xsize=bag_cols, ysize=bag_rows, bands=2,
+                                                eType=gdalconst.GDT_Float32) as gd:
+            self.assertIsNotNone(gd)
+            gd.SetGeoTransform([687905.0, 10.0, 0.0, 5555615.0, 0.0, -10.0])
+            gd.SetProjection(bagMetadataSamples.kBAG_CRS_WKT)
+            # Write elevation data
+            elev_array = np.random.default_rng(12345).random((bag_rows, bag_cols)) * 100
+            gdal_elev = gd.GetRasterBand(1)
+            gdal_elev.WriteArray(elev_array)
+            # Write uncertainty data
+            uncrt_array = np.random.default_rng(54321).random((bag_rows, bag_cols))
+            gdal_uncrt = gd.GetRasterBand(2)
+            gdal_uncrt.WriteArray(uncrt_array)
 
         # Re-open in GDAL, but read-only
-        gd = gdal.Open(bag_filename, gdal.GA_ReadOnly)
-        self.assertIsNotNone(gd)
-        self.assertEqual('BAG', gd.GetDriver().ShortName)
-        gdal_elev = gd.GetRasterBand(1)
-        self.assertIsNotNone(gdal_elev)
-        gdal_uncrt = gd.GetRasterBand(2)
-        self.assertIsNotNone(gdal_uncrt)
+        with gdal.Open(bag_filename, gdal.GA_ReadOnly) as gd:
+            self.assertIsNotNone(gd)
+            self.assertEqual('BAG', gd.GetDriver().ShortName)
+            gdal_elev = gd.GetRasterBand(1)
+            self.assertIsNotNone(gdal_elev)
+            gdal_uncrt = gd.GetRasterBand(2)
+            self.assertIsNotNone(gdal_uncrt)
+            # Save elevation and uncertainty band as numpy arrays for later comparison to data read using bagPy
+            #   Note: Make sure rows and columns are the same in BAG and GDAL representations
+            #   Note: re-fetch array and flip it so that subsequent comparisons to BAG data succeed
+            gdal_elev_array = get_gdal_band_as_array(gdal_elev)
+            gdal_uncrt_array = get_gdal_band_as_array(gdal_uncrt)
+            # Save geotransformer from GDAL for later comparison to bagPy
+            gdal_gt = gd.GetGeoTransform()
+            # Save elevation band datatype for later comparison to bagPy
+            gdal_dt = gdal_elev.DataType
 
         # Open BAG with BAG library
         bd = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READONLY)
@@ -339,17 +349,15 @@ class TestCompatGDAL(unittest.TestCase):
         self.assertIsNotNone(bag_uncert)
         bag_descriptor = bd.getDescriptor()
         self.assertIsNotNone(bag_descriptor)
+        bd.close()
 
         # Check BAG version
         self.assertEqual('1.6.2', bag_descriptor.getVersion())
 
-        # Make sure rows and columns are the same in BAG and GDAL representations
-        #   Note: re-fetch array and flip it so that subsequent comparisons to BAG data succeed
-        gdal_elev_array = get_gdal_band_as_array(gdal_elev)
         self.assertTrue(cmp_bag_gdal_raster_rows_cols(bag_descriptor, gdal_elev_array))
 
         # Compare BAG and GDAL resolutions are the same
-        gdal_gt = gd.GetGeoTransform()
+        # gdal_gt = gd.GetGeoTransform()
         gdal_pixel_width, gdal_pixel_height = get_gdal_resolution(gdal_gt)
         self.assertTrue(cmp_bag_gdal_raster_res(bag_descriptor, gdal_pixel_width, gdal_pixel_height))
 
@@ -359,7 +367,7 @@ class TestCompatGDAL(unittest.TestCase):
         # Make sure raster data types are the same
         bag_elev_desc = bag_elev.getDescriptor()
         self.assertEqual(BAG.DT_FLOAT32, bag_elev_desc.getDataType())
-        self.assertEqual(gdalconst.GDT_Float32, gdal_elev.DataType)
+        self.assertEqual(gdalconst.GDT_Float32, gdal_dt)
 
         # Get BAG elevation data as a 2D numpy array
         bag_elev_array = get_bag_layer_as_array(bag_descriptor, bag_elev)
@@ -371,7 +379,6 @@ class TestCompatGDAL(unittest.TestCase):
         bag_uncrt_array = get_bag_layer_as_array(bag_descriptor, bag_uncert)
 
         # Compare BAG uncertainty array to GDAL uncertainty array to make sure all data are identical
-        gdal_uncrt_array = get_gdal_band_as_array(gdal_uncrt)
         self.assertTrue(np.array_equiv(bag_uncrt_array, gdal_uncrt_array))
 
 
