@@ -1057,7 +1057,7 @@ std::tuple<double, double> Dataset::gridToGeo(
 }
 
 void handleAbrt(int signum) {
-    std::cerr << "\nUnrecoverable HDF5 Error ";
+    std::cerr << "\nUnrecoverable HDF5 Error \n";
     exit(signum);
 }
 
