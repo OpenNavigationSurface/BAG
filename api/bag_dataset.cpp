@@ -1075,7 +1075,8 @@ hid_t GopenProtector2(hid_t loc_id, const char *name, hid_t dapl_id) {
         id = -1;
     }
     return id;
-  
+}
+
 void handleAbrt(int signum) {
     std::cerr << "\nUnrecoverable HDF5 Error \n";
     exit(signum);
