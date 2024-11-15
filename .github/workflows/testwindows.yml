@@ -38,7 +38,7 @@ jobs:
       fail-fast: true
       matrix:
         os: [windows-latest]
-        python-version: ["3.11"]
+        python-version: ["3.12"]
         c_compiler: [cl]
         include:
           - VS_VERSION: Visual Studio 17
@@ -93,11 +93,10 @@ jobs:
           Install-Module VSSetup -Scope CurrentUser
           # Setup
           $env:BAG_INSTALL_PATH="$env:GITHUB_WORKSPACE\install"
-          # Debug: env
+          $env:VENV_PATH="$env:GITHUB_WORKSPACE\venv"
           if(-Not (Test-Path -Path $env:BAG_INSTALL_PATH)) { mkdir $env:BAG_INSTALL_PATH }
-          # Create Python venv in the same place as BAG_INSTALL_PATH
-          python -m venv $env:BAG_INSTALL_PATH
-          # Debug: dir $env:GITHUB_WORKSPACE
+          # Create Python venv
+          python -m venv $env:VENV_PATH
           # Download dependencies
           if(-Not (Test-Path -Path downloads)) { mkdir downloads }
           cd downloads
@@ -143,8 +142,6 @@ jobs:
           exec { 7z x ..\downloads\$env:CATCH2_ZIP }
           cd Catch2-3.4.0
           if(-Not (Test-Path -Path build)) { mkdir build }
-          # Debug: dir
-          # Debug: pwd
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DBUILD_TESTING:BOOL=OFF
           cmake --build build --config Release --target install -- /nologo /verbosity:minimal 
@@ -155,7 +152,7 @@ jobs:
             -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
           cmake --build build --config Release --target install
           # Build and install bagPy Python wheel
-          $activate_cmd="$env:BAG_INSTALL_PATH\Scripts\Activate.ps1"
+          $activate_cmd="$env:VENV_PATH\Scripts\Activate.ps1"
           echo "Attempting to activate Python environment using script: $activate_cmd ..."
           & $activate_cmd
           python -m pip install --upgrade pip
@@ -170,16 +167,16 @@ jobs:
           $env:BAG_SAMPLES_PATH="$env:GITHUB_WORKSPACE\examples\sample-data"
           $test_path="$env:GITHUB_WORKSPACE\build\tests\Release\bag_tests.exe"
           & $test_path
-          # Run Python tests (disable for now until we figure out why vanilla Python wheels don't seem to
-          #   work on Windows, while Conda wheels on Windows do)
+          # Run Python tests
           # Ignore GDAL compatibility test for now since we do this for Linux build and installing GDAL
           #   on Windows is a hassle.
-          #python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
-          #  .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
-          #  .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
-          #  .\python\test_metadata.py .\python\test_record.py .\python\test_simplelayer.py `
-          #  .\python\test_simplelayerdescriptor.py .\python\test_surfacecorrections.py `
-          #  .\python\test_surfacecorrectionsdescriptor.py .\python\test_trackinglist.py .\python\test_valuetable.py `
-          #  .\python\test_vrmetadata.py .\python\test_vrmetadatadescriptor.py .\python\test_vrnode.py `
-          #  .\python\test_vrnodedescriptor.py .\python\test_vrrefinements.py .\python\test_vrrefinementsdescriptor.py `
-          #  .\python\test_vrtrackinglist.py
+          $env:BAG_BIN="$env:BAG_INSTALL_PATH\bin"
+          python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml `
+            .\python\test_compat_bag15.py .\python\test_compounddatatype.py .\python\test_dataset.py .\python\test_descriptor.py `
+            .\python\test_interleavedlegacylayer.py .\python\test_interleavedlegacylayerdescriptor.py `
+            .\python\test_metadata.py .\python\test_record.py .\python\test_simplelayer.py `
+            .\python\test_simplelayerdescriptor.py .\python\test_surfacecorrections.py `
+            .\python\test_surfacecorrectionsdescriptor.py .\python\test_trackinglist.py .\python\test_valuetable.py `
+            .\python\test_vrmetadata.py .\python\test_vrmetadatadescriptor.py .\python\test_vrnode.py `
+            .\python\test_vrnodedescriptor.py .\python\test_vrrefinements.py .\python\test_vrrefinementsdescriptor.py `
+            .\python\test_vrtrackinglist.py
