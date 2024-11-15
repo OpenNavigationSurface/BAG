@@ -92,32 +92,8 @@ Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to
 > Note: You must run `install.ps1` from an admin shell since libxml2 creates symlinks and
 > Windows doesn't allow this from normal user shells.
 
-Now, the build BAG, do the following:
-```pwsh
-$env:ARCHITECTURE="amd64"
-. "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\Launch-VsDevShell.ps1" -Arch $env:ARCHITECTURE
-$env:CC="cl.exe"
-$env:CXX="cl.exe"
-cmake -G "Visual Studio 17 2022" -B build -S .  -DCMAKE_BUILD_TYPE=Release `
-  -DCMAKE_PREFIX_PATH=docs\win-build\baglibs\install `
-  -DCMAKE_INSTALL_PREFIX=docs\win-build\baglibs\install -DBUILD_SHARED_LIBS=ON `
-  -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
-cmake --build build --config Release --target install
-$env:PATH=$env:PATH + ";build\api\Release;docs\win-build\baglibs\install\bin"
-$env:BAG_SAMPLES_PATH="examples\sample-data"
-build\tests\Release\bag_tests.exe
-python -m venv win-venv
-& .\win-venv\Scripts\Activate.ps1
-python -m pip install --upgrade pip
-python -m pip install -r requirements.txt
-$env:CMAKE_PREFIX_PATH="$PWD\docs\win-build\baglibs\install"
-$env:SWIG_EXECUTABLE="$PWD\docs\win-build\baglibs\install\swigwin-4.3.0\swig.exe"
-python -m pip wheel -w .\wheel\ .\build\api\swig\python
-$whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
-python -m pip install $whl_path
-$env:BAG_BIN = "$PWD\docs\win-build\baglibs\install\bin"
-python -m pytest .\python\test_dataset.py
-```
+Now, the build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
+run the C++ and Python tests.
 
 ### Dependencies from Miniconda
 
