@@ -20,7 +20,7 @@ class TestCompatBAG15(unittest.TestCase):
         shutil.rmtree(self.tmp_dir)
 
     def test_open_read_only(self) -> None:
-        bag_filename = str(Path(self.datapath, 'sample.bag'))
+        bag_filename = str(Path(self.datapath, 'sample-1.5.0.bag'))
 
         dataset = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READONLY)
         self.assertIsNotNone(dataset)
@@ -36,7 +36,7 @@ class TestCompatBAG15(unittest.TestCase):
         dataset.close()
 
     def test_open_read_write(self):
-        bag_filename = str(Path(self.datapath, 'sample.bag'))
+        bag_filename = str(Path(self.datapath, 'sample-1.5.0.bag'))
 
         dataset = BAG.Dataset.openDataset(bag_filename, BAG.BAG_OPEN_READ_WRITE)
         self.assertIsNotNone(dataset)
