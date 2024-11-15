@@ -26,11 +26,11 @@ RUN pip install --break-system-packages \
 
 # Install HDF5
 RUN cd /tmp && \
-  wget https://github.com/HDFGroup/hdf5/releases/download/hdf5-1_14_2/hdf5-1_14_2.tar.gz && \
-  echo "120641d3ffedd4c730dc7862f544dc0d33382730841cebfcdc78fb9d0869b410  hdf5-1_14_2.tar.gz" > hdf5.sum && \
+  wget https://github.com/HDFGroup/hdf5/releases/download/hdf5_1.14.5/hdf5-1.14.5.tar.gz && \
+  echo "ec2e13c52e60f9a01491bb3158cb3778c985697131fc6a342262d32a26e58e44  hdf5-1.14.5.tar.gz" > hdf5.sum && \
   shasum -a 256 -c hdf5.sum && \
-  tar xf hdf5-1_14_2.tar.gz && \
-  cd hdfsrc && \
+  tar xf hdf5-1.14.5.tar.gz && \
+  cd hdf5-1.14.5 && \
   cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX:PATH=/usr \
     -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON \
     -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON && \
@@ -46,6 +46,29 @@ RUN cd /tmp && \
   cmake -B build -G Ninja -S . -DCMAKE_INSTALL_PREFIX:PATH=/usr -DBUILD_TESTING:BOOL=OFF && \
   cmake --build build --target install
 
+# Install GDAL
+RUN cd /tmp && \
+  wget https://github.com/OSGeo/gdal/releases/download/v3.9.3/gdal-3.9.3.tar.gz && \
+  echo "f293d8ccc6b98f617db88f8593eae37f7e4b32d49a615b2cba5ced12c7bebdae  gdal-3.9.3.tar.gz" > gdal.sum && \
+  shasum -a 256 -c gdal.sum && \
+  tar xf gdal-3.9.3.tar.gz && \
+  cd gdal-3.9.3 && \
+  cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+      -DBUILD_APPS=OFF -DBUILD_TESTING=OFF -DGDAL_ENABLE_DRIVER_BAG=ON  \
+      -DGDAL_USE_PARQUET=OFF -DGDAL_USE_ARROW=OFF -DGDAL_USE_ARROWDATASET=OFF \
+      -DGDAL_ENABLE_HDF5_GLOBAL_LOCK:BOOL=ON -DBUILD_PYTHON_BINDINGS:BOOL=OFF -DBUILD_JAVA_BINDINGS:BOOL=OFF \
+      -DBUILD_CSHARP_BINDINGS:BOOL=OFF && \
+  cmake --build build --target install
+
 RUN ldconfig
+
+# Create Python venv and install dependencies
+RUN python3 -m pip install --break-system-packages --upgrade pip && \
+    python3 -m pip install --break-system-packages setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
+      unittest-xml-reporting pytest pytest-cov pytest-xdist numpy && \
+    # Install GDAL after numpy is installed so that gdal_array bindings will be installed.
+    python3 -m pip install --break-system-packages 'GDAL==3.9.3'
+
+WORKDIR /tmp/bag
 
 ENTRYPOINT ["/bin/bash", "-c"]
