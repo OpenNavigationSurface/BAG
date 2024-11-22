@@ -1,6 +1,7 @@
 import sys
 import platform
 import os
+import inspect
 
 import cmake_build_extension
 import setuptools
@@ -8,6 +9,7 @@ import setuptools
 PY_VERSION_MIN = f"{sys.version_info.major}.{sys.version_info.minor}"
 PY_VERSION_MAX = f"{sys.version_info.major}.{sys.version_info.minor+1}"
 PY_VERSION = f"{PY_VERSION_MIN}...<{PY_VERSION_MAX}"
+
 
 cmake_configure_options = [
     # This option points CMake to the right Python interpreter, and helps
@@ -33,6 +35,9 @@ if LIBXML2_LIBRARY := os.getenv('LIBXML2_LIBRARY'):
 if LIBXML2_INCLUDE_DIR := os.getenv('LIBXML2_INCLUDE_DIR'):
     print(f"Setting CMake option: -DLIBXML2_INCLUDE_DIR={LIBXML2_INCLUDE_DIR}")
     cmake_configure_options.append(f"-DLIBXML2_INCLUDE_DIR={LIBXML2_INCLUDE_DIR}")
+if SWIG_EXECUTABLE := os.getenv('SWIG_EXECUTABLE'):
+    print(f"Setting CMake option: -DSWIG_EXECUTABLE={SWIG_EXECUTABLE}")
+    cmake_configure_options.append(f"-DSWIG_EXECUTABLE={SWIG_EXECUTABLE}")
 
 setuptools.setup(
     ext_modules=[

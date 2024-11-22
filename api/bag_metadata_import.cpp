@@ -859,6 +859,7 @@ bool decodeDataQualityInfo(
     else if (schemaVersion == 2)
     {
         //gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level
+        delete[] dataQualityInfo.scope;
         dataQualityInfo.scope = getContentsAsCharStar(node,
             "gmd:DQ_DataQuality/gmd:scope/gmd:DQ_Scope/gmd:level/gmd:MD_ScopeCode");
 
@@ -986,6 +987,7 @@ bool decodeSpatialRepresentationInfo(
             "gmd:MD_Georectified/gmd:axisDimensionProperties/gmd:MD_Dimension/gmd:dimensionName/gmd:MD_DimensionNameTypeCode[@codeListValue='column']/parent::*/parent::*/gmd:resolution/gco:Measure", "uom");
 
         //gmd:MD_Georectified/gmd:cellGeometry
+        delete[] spatialRepresentationInfo.cellGeometry;
         spatialRepresentationInfo.cellGeometry = getContentsAsCharStar(node,
             "gmd:MD_Georectified/gmd:cellGeometry/gmd:MD_CellGeometryCode");
 
@@ -1660,18 +1662,22 @@ BagError bagImportMetadataFromXmlV2(
         return BAG_METADTA_NOT_INITIALIZED;
 
     //gmd:fileIdentifier
+    delete[] metadata.fileIdentifier;
     metadata.fileIdentifier = getContentsAsCharStar(*pRoot,
         "/gmi:MI_Metadata/gmd:fileIdentifier/gco:CharacterString");
 
     //gmd:language
+    delete[] metadata.language;
     metadata.language = getContentsAsCharStar(*pRoot,
         "/gmi:MI_Metadata/gmd:language/gmd:LanguageCode");
 
     //gmd:characterSet
+    delete[] metadata.characterSet;
     metadata.characterSet = getContentsAsCharStar(*pRoot,
         "/gmi:MI_Metadata/gmd:characterSet/gmd:MD_CharacterSetCode");
 
     //gmd:hierarchyLevel
+    delete[] metadata.hierarchyLevel;
     metadata.hierarchyLevel = getContentsAsCharStar(*pRoot,
         "/gmi:MI_Metadata/gmd:hierarchyLevel/gmd:MD_ScopeCode");
 
@@ -1686,14 +1692,17 @@ BagError bagImportMetadataFromXmlV2(
     }
 
     //gmd:dateStamp
+    delete[] metadata.dateStamp;
     metadata.dateStamp = getContentsAsCharStar(*pRoot,
         "/gmi:MI_Metadata/gmd:dateStamp/gco:Date");
 
     //gmd:metadataStandardName
+    delete[] metadata.metadataStandardName;
     metadata.metadataStandardName = getContentsAsCharStar(*pRoot,
         "/gmi:MI_Metadata/gmd:metadataStandardName/gco:CharacterString");
 
     //gmd:metadataStandardVersion
+    delete[] metadata.metadataStandardVersion;
     metadata.metadataStandardVersion = getContentsAsCharStar(*pRoot,
         "/gmi:MI_Metadata/gmd:metadataStandardVersion/gco:CharacterString");
 
@@ -1849,7 +1858,9 @@ BagError bagImportMetadataFromXmlBuffer(
     if (!pDocument)
         return BAG_METADTA_NOT_INITIALIZED;
 
-    return bagImportMetadataFromXml(*pDocument, metadata, doValidation);
+    const BagError err = bagImportMetadataFromXml(*pDocument, metadata, doValidation);
+    xmlFreeDoc(pDocument);
+    return err;
 }
 
 //************************************************************************
@@ -1880,7 +1891,9 @@ BagError bagImportMetadataFromXmlFile(
     if (!pDocument)
         return BAG_METADTA_NOT_INITIALIZED;
 
-    return bagImportMetadataFromXml(*pDocument, metadata, doValidation);
+    const BagError err = bagImportMetadataFromXml(*pDocument, metadata, doValidation);
+    xmlFreeDoc(pDocument);
+    return err;
 }
 
 }  // namespace BAG

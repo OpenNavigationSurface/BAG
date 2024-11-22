@@ -46,6 +46,8 @@ If you only want the C++ library, install
 To install the Python bindings (along with the C++ library) install 
 [bagpy](https://anaconda.org/conda-forge/bagpy).
 
+> Note: the `bagpy` package on [PyPI](https://pypi.org) is unrelated to the BAG library. Do not do run `pip install bagpy` install, only install via conda using the link above.
+
 Once installed, you can test C++ library by building the
 [BAG examples](examples/README.md) as a standalone project.
 

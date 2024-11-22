@@ -20,6 +20,7 @@ set(examples
     bag_read
     bag_vr_create
     bag_vr_read
+    driver
 )
 
 foreach(example ${examples})

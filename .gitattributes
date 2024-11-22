@@ -1,0 +1,6 @@
+# default to \n line endings
+* text=auto eol=lf
+
+# Exceptions
+*.ps1 text eol=crlf
+

@@ -1,5 +1,25 @@
 # Build instructions
 
+## Docker
+You can build a development Linux container using 
+[Dockerfile.dev](../Dockerfile.dev) by running the following command from the
+repository root directory:
+```shell
+docker buildx build -t dev/debian/baglib:latest -f Dockerfile.dev .
+```
+
+To manually build and test inside the development container, run:
+```shell
+docker run -ti -v ./:/tmp/bag:rw dev/debian/baglib:latest /bin/bash
+./scripts/dev-cont-build-bag.sh
+```
+
+After running `dev-cont-build-bag.sh` once, you can iteratively run Python 
+tests by running:
+```shell
+python3 -m pytest python/test_*.py
+```
+
 ## Linux / macOS
 
 ### Configure and build BAG
@@ -60,6 +80,21 @@ $ ./bag-examples/examples/bag_georefmetadata_layer \
 
 ## Windows: Visual Studio 2022/2019
 
+### Locally build dependencies
+
+Run `docs\win-build\baglibs\downloads\download.ps1` to download dependencies. 
+
+Then to build dependencies run `docs\win-build\baglibs\install\install.ps1`.
+
+Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to 
+`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.0`.
+
+> Note: You must run `install.ps1` from an admin shell since libxml2 creates symlinks and
+> Windows doesn't allow this from normal user shells.
+
+Now, the build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
+run the C++ and Python tests.
+
 ### Dependencies from Miniconda
 
 #### Install miniconda & BAG dependencies
@@ -78,7 +113,7 @@ conda activate bag-dev-env
 conda install cmake ninja hdf5 libxml2 swig catch2
 ```
 
-> Note: if usnig a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
+> Note: if using a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
 
 #### Configure and build BAG
 
