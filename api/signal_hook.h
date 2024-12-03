@@ -66,7 +66,7 @@ struct BagAbortHook {
         #define TERM_STRING "a critical error occurred within BAG or a dependency (probably libxml or HDF5), exiting to prevent corruption or unexpected behavior\n"\
                             "the signal that caused this error was: SIG"
 
-#ifdef __USE_GNU
+#if defined(__USE_GNU) && defined(_GNU_SOURCE)
         const char* signal_abbrev = sigabbrev_np(signal);
 #else
         const char* signal_abbrev = "<unknown>";
