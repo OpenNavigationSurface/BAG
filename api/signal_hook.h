@@ -4,6 +4,11 @@
 #include <iostream>
 #include <ostream>
 #include <string>
+
+// from https://man7.org/linux/man-pages/man2/sigaction.2.html
+// and https://man7.org/linux/man-pages/man7/feature_test_macros.7.html
+#ifdef _POSIX_C_SOURCE
+
 #include <string.h>
 #include <signal.h>
 #include <array>
@@ -27,11 +32,24 @@ int add_cleanup_function(void (*f)(int)) {
     return 0;
 }
 
+
 static void bag_handler(int signal);
 
 struct BagAbortHook;
 
 static BagAbortHook* current_hook;
+
+static int bag_string_length(const char* string) {
+    int length = 0;
+    while(true) {
+        if (string[length] == 0) {
+            break;
+        }
+        length++;
+    }
+
+    return length;
+}
 
 struct BagAbortHook {
     BagAbortHook* previous;
@@ -57,19 +75,12 @@ struct BagAbortHook {
             signal_abbrev = "<bad signal number>";
         }
 
+        // I think this works, it seems to? write needs an fd
         int stderr_fd = stderr->_fileno;
 
-        // strlen is not async signal safe, so it can't be used here
-        int signal_abbrev_length = 0;
-        for(;;signal_abbrev_length++) {
-            if (signal_abbrev[signal_abbrev_length] == 0) {
-                break;
-            }
-        }
-
-        //fputs(", FILE *__restrict stream);
-        write(stderr_fd, TERM_STRING, sizeof (TERM_STRING) - 1);
-        write(stderr_fd, signal_abbrev, signal_abbrev_length);
+        // strlen is not async signal safe, so it can't be used here, but bag_string_length works instead
+        write(stderr_fd, TERM_STRING, bag_string_length(TERM_STRING));
+        write(stderr_fd, signal_abbrev, bag_string_length(signal_abbrev));
         write(stderr_fd, "\n", 1);
     }
 
@@ -175,5 +186,29 @@ static void bag_handler(int signal) {
         _exit(-2);
     }
 }
+
+#else // this isn't linux with sigaction, so make a BagAbortHook that does nothing
+
+static bool bag_warning_printed = false;
+
+static void print_disabled_warning() {
+    if (!bag_warning_printed) {
+        bag_warning_printed = true;
+        std::cout << "WARNING: BagAbortHook and add_cleanup_function are disabled because _POSIX_C_SOURCE does not say that sigaction is available" << std::endl;
+    }
+}
+
+int add_cleanup_function(void (*f)(int)) {
+    print_disabled_warning();
+}
+
+
+class BagAbortHook {
+    BagAbortHook() {
+        print_disabled_warning();
+    }
+};
+
+#endif
 
 #endif
