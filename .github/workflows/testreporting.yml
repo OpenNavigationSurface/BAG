@@ -29,7 +29,7 @@ env:
 jobs:
   build:
     env:
-      PUBLISH_COVERAGE: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+      PUBLISH_COVERAGE: ${{ github.event_name != 'pull_request' && github.ref == 'refs/heads/master' }}
     strategy:
       matrix:
         os: [ubuntu-22.04]
@@ -39,6 +39,11 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
+
+    - name: Display GitHub context variables
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
 
     # Get current banch name to use it as dest directory
     - name: Extract branch name
