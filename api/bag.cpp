@@ -21,7 +21,6 @@
 #include "bag_vrtrackinglist.h"
 #include <array>
 #include <cstdio>
-#include <unistd.h>
 
 #ifdef _MSC_VER
 #pragma warning(push)
