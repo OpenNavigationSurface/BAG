@@ -64,8 +64,27 @@ struct BagAbortHook {
         char* signal_name;
 
         #define TERM_STRING "a critical error occurred within BAG or a dependency (probably libxml or HDF5), exiting to prevent corruption or unexpected behavior\n"\
-                            "the signal that caused this error was: SIG"
+                            "the signal that caused this error was: "
 
+        // I can't figure out how to tell if sigabbrev_np exists so I'll
+        // just print the ones it probably is
+        const char* signal_abbrev = "<unknown>";
+
+        if(signal == SIGSEGV) {
+            signal_abbrev = "SIGSEGV";
+        } else if(signal == SIGABRT) {
+            signal_abbrev = "SIGABRT";
+        } else if(signal == SIGFPE) {
+            signal_abbrev = "SIGFPE";
+        } else if(signal == SIGKILL) {
+            signal_abbrev = "SIGKILL";
+        } else if(signal == SIGILL) {
+            signal_abbrev = "SIGILL";
+        } else if(signal == SIGBUS) {
+            signal_abbrev = "SIGBUS";
+        }
+
+        /*
 #if defined(__USE_GNU) && defined(_GNU_SOURCE)
         const char* signal_abbrev = sigabbrev_np(signal);
 #else
@@ -74,6 +93,7 @@ struct BagAbortHook {
         if (!signal_abbrev) {
             signal_abbrev = "<bad signal number>";
         }
+        */
 
         // I think this works, it seems to? write needs an fd
         int stderr_fd = stderr->_fileno;
@@ -114,8 +134,8 @@ struct BagAbortHook {
         _exit(-1);
     }
 
-    std::array<int, 5> handled_signals() {
-        return { SIGABRT, SIGILL, SIGBUS, SIGFPE, SIGSEGV };
+    std::array<int, 6> handled_signals() {
+        return { SIGABRT, SIGILL, SIGBUS, SIGFPE, SIGSEGV, SIGKILL };
     }
 
     BagAbortHook() {
