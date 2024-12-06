@@ -223,7 +223,7 @@ int add_cleanup_function(void (*f)(int)) {
 }
 
 
-class BagAbortHook {
+struct BagAbortHook {
     BagAbortHook() {
         print_disabled_warning();
     }
