@@ -52,6 +52,7 @@
 #include "bag_metadatatypes.h"
 #include "bag_version.h"
 
+#define DUMMY_TEST 1
 
 typedef struct BagHandle* Handle;
 
