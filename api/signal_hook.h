@@ -218,7 +218,7 @@ static void print_disabled_warning() {
     }
 }
 
-int add_cleanup_function(void (*f)(int)) {
+int add_cleanup_function(void (*)(int)) {
     print_disabled_warning();
 }
 
