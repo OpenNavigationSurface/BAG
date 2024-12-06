@@ -43,7 +43,9 @@ jobs:
     - name: Display GitHub context variables
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
+      run: |
+        echo "PUBLISH_COVERAGE: ${PUBLISH_COVERAGE}"
+        echo "$GITHUB_CONTEXT"
 
     # Get current banch name to use it as dest directory
     - name: Extract branch name
