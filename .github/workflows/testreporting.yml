@@ -94,7 +94,7 @@ jobs:
 
     - name: Test Reporter
       uses: mikepenz/action-junit-report@v5
-      if: ${{ env.PUBLISH_COVERAGE && (success() || failure()) }} # always run even if the previous step fails
+      if: ${{ env.PUBLISH_COVERAGE == "true" && (success() || failure()) }} # always run even if the previous step fails
       with:
         report_paths: './build/tests/*-testreport.xml'
 
@@ -104,8 +104,8 @@ jobs:
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ninja -C build ccov-all-export-lcov
 
     - name: Test coverage reporter
-      uses: zgosalvez/github-actions-report-lcov@v1
-      if: ${{ env.PUBLISH_COVERAGE }}
+      uses: zgosalvez/github-actions-report-lcov@v3
+      if: ${{ env.PUBLISH_COVERAGE == "true" }}
       with:
         coverage-files: ./build/ccov/lcov.info
         minimum-coverage: 60
@@ -114,28 +114,28 @@ jobs:
         working-directory: ./api
 
     - name: Update coverage badge
-      if: ${{ env.PUBLISH_COVERAGE }}
+      if: ${{ env.PUBLISH_COVERAGE == "true" }}
       run: |
         source python-venv/bin/activate
         llvm-cov report -instr-profile=build/ccov/all-merged.profdata `cat ./build/ccov/binaries.list` -ignore-filename-regex="tests/*" -ignore-filename-regex="bag.cpp" | tail -n 1 | awk '{ print $10 }' | xargs python ./scripts/coverage-badge.py -o /tmp/coverage.svg -c
         deactivate
 
     - name: Checkout badges branch
-      if: ${{ env.PUBLISH_COVERAGE }}
+      if: ${{ env.PUBLISH_COVERAGE == "true" }}
       # Checkout badges branch of repo so that we can commit the coverage badge there
       uses: actions/checkout@v3
       with:
         ref: ${{ steps.coverage.outputs.branch }}
 
     - name: Create coverage badge destination directory
-      if: ${{ env.PUBLISH_COVERAGE }}
+      if: ${{ env.PUBLISH_COVERAGE == "true" }}
       # Create the directory where badges will be saved, if needed
       env:
         BADGE_PATH: ${{ steps.coverage.outputs.path }}
       run: mkdir -p "${BADGE_PATH%/*}"
 
     - name: Commit badge
-      if: ${{ env.PUBLISH_COVERAGE }}
+      if: ${{ env.PUBLISH_COVERAGE == "true" }}
       continue-on-error: true
       env:
         BADGE: ${{ steps.coverage.outputs.path }}
@@ -147,7 +147,7 @@ jobs:
         git commit -m "Add/Update badge"
 
     - name: Push badge commit
-      if: ${{ env.PUBLISH_COVERAGE && success() }}
+      if: ${{ env.PUBLISH_COVERAGE == "true" && success() }}
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
