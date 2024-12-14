@@ -1,11 +1,37 @@
 # Build instructions
 
+## Documentation
+Documentation are automatically created and published at 
+[readthedocs](https://bag.readthedocs.io). However, if you would like to 
+build the documentation locally, this can easily be done using scripts
+for [Linux](readthedocs/build.bash) or [macOS](readthedocs/build-macos.bash).
+Make sure to run these from the root of the repository.
+
+Once the docs are built, you can access them in the directory 
+`_readthedocs/html`.
+
+To build a PDF of the FSD, run:
+```shell
+cd _readthedocs/html/fsd
+pandoc --pdf-engine=xelatex \
+  index.html FSD-BAGStructure.html FSD-Encapsulation.html \
+  FSD-AxiomaticDefs.html FSD-BAGARB.html FSD-RevisionControl.html \
+  FSD-Extensions.html FSD-Glossary.html FSD-References.html \
+  FSD-Appendices.html RevisionHistory.html -o BAG_FSD_2.0.3.pdf 
+```
+
 ## Docker
 You can build a development Linux container using 
 [Dockerfile.dev](../Dockerfile.dev) by running the following command from the
 repository root directory:
 ```shell
 docker buildx build -t dev/debian/baglib:latest -f Dockerfile.dev .
+```
+
+To build for a specific architecture, such as AMD64, run:
+```shell
+docker buildx build --platform=linux/amd64 \
+  -t dev/debian/amd64/baglib:latest -f Dockerfile.dev .
 ```
 
 To manually build and test inside the development container, run:

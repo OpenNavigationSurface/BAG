@@ -135,8 +135,8 @@ file.
 low resolution surface is georeferenced on the southwest corner, and is point 
 referenced. Although not shown here, refined nodes may occupy the east/north 
 bound of the enclosing cell, but not the west/south bound. Note here that 
-*N<sub>H,N</sub>*(*i*, *j*) = 8, since refined depths are computed at the 
-intersections of the grid lines, and ∆*<sub>H,N</sub>*(*i*,*j*) > 0 is 
+delta*N<sub>H,N</sub>*(*i*, *j*) = 8, since refined depths are computed at the 
+intersections of the grid lines, and delta*<sub>H,N</sub>*(*i*,*j*) > 0 is 
 required to avoid duplication of points on the edges of the low resolution 
 cells. 
 

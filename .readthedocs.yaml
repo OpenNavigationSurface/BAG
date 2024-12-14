@@ -12,7 +12,7 @@ conda:
 build:
   os: ubuntu-22.04
   tools:
-    python: "3.9"
+    python: "3.10"
   commands:
     - bash docs/readthedocs/build.bash
 
@@ -21,8 +21,8 @@ build:
 #   configuration: docs/readthedocs/conf.py
 
 # If using Sphinx, optionally build your docs in additional formats such as PDF
-formats:
-  - pdf
+#formats:
+#  - pdf
 
 # Optionally declare the Python requirements required to build your docs
 #python:
