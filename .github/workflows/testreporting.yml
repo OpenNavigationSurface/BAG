@@ -104,7 +104,7 @@ jobs:
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ninja -C build ccov-all-export-lcov
 
     - name: Test coverage reporter
-      uses: zgosalvez/github-actions-report-lcov@v3
+      uses: zgosalvez/github-actions-report-lcov@v4
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       with:
         coverage-files: ./build/ccov/lcov.info
@@ -123,7 +123,7 @@ jobs:
     - name: Checkout badges branch
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       # Checkout badges branch of repo so that we can commit the coverage badge there
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
       with:
         ref: ${{ steps.coverage.outputs.branch }}
 
