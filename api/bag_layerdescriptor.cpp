@@ -30,6 +30,7 @@ LayerDescriptor::LayerDescriptor(
     std::string internalPath,
     std::string name,
     LayerType type,
+    uint32_t rows, uint32_t cols,
     uint64_t chunkSize,
     int compressionLevel)
     : m_id(id)
@@ -39,6 +40,7 @@ LayerDescriptor::LayerDescriptor(
     , m_compressionLevel(compressionLevel)
     , m_chunkSize(chunkSize)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
+    , m_dims({rows, cols})
 {
 }
 
@@ -56,11 +58,13 @@ LayerDescriptor::LayerDescriptor(
 LayerDescriptor::LayerDescriptor(
     const Dataset& dataset,
     LayerType type,
+    uint32_t rows, uint32_t cols,
     std::string internalPath,
     std::string name)
     : m_id(dataset.getNextId())
     , m_layerType(type)
     , m_minMax(std::numeric_limits<float>::max(), std::numeric_limits<float>::lowest())
+    , m_dims({rows, cols})
 {
     m_internalPath = internalPath.empty()
         ? Layer::getInternalPath(type)
@@ -169,6 +173,16 @@ const std::string& LayerDescriptor::getName() const & noexcept
     return m_name;
 }
 
+//! Retrieve the dimensions (shape) of the layer
+/*!
+\return
+    The row and column spacing/resolution of the grid
+*/
+const std::tuple<uint32_t, uint32_t>& LayerDescriptor::getDims() const & noexcept
+{
+    return m_dims;
+}
+
 //! Get the size of a buffer for reading a specified number rows and columns.
 /*!
 \param rows
@@ -201,6 +215,12 @@ LayerDescriptor& LayerDescriptor::setMinMax(
     float max) & noexcept
 {
     m_minMax = {min, max};
+    return *this;
+}
+
+LayerDescriptor& LayerDescriptor::setDims(uint32_t rows, uint32_t cols) & noexcept
+{
+    m_dims = {rows, cols};
     return *this;
 }
 

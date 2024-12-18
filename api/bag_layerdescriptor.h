@@ -53,14 +53,18 @@ public:
     LayerType getLayerType() const noexcept;
     std::tuple<float, float> getMinMax() const noexcept;
     const std::string& getName() const & noexcept;
+    const std::tuple<uint32_t, uint32_t>& getDims() const & noexcept;
 
     LayerDescriptor& setName(std::string inName) & noexcept;
     LayerDescriptor& setMinMax(float min, float max) & noexcept;
+    LayerDescriptor& setDims(uint32_t rows, uint32_t cols) & noexcept;
 
 protected:
     LayerDescriptor(uint32_t id, std::string internalPath, std::string name,
-        LayerType type, uint64_t chunkSize, int compressionLevel);
+        LayerType type, uint32_t rows, uint32_t cols, uint64_t chunkSize,
+        int compressionLevel);
     LayerDescriptor(const Dataset& dataset, LayerType type,
+        uint32_t rows, uint32_t cols,
         std::string internalPath = {}, std::string name = {});
 
     size_t getReadBufferSize(uint32_t rows, uint32_t columns) const noexcept;
@@ -85,6 +89,8 @@ private:
     uint64_t m_chunkSize = 0;
     //! The minimum and maximum value of this dataset.
     std::tuple<float, float> m_minMax{};
+    //! The dimensions of the layer
+    std::tuple<uint32_t, uint32_t> m_dims{};
 
     friend GeorefMetadataLayer;
     friend InterleavedLegacyLayer;
