@@ -7,7 +7,7 @@ echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 pushd .
 
 sudo apt-get update -y
-sudo apt-get install -y cmake g++ ninja-build libxml2-dev swig4.0 zlib1g-dev libproj-dev
+sudo apt-get install -y cmake g++ ninja-build swig4.0 zlib1g-dev libproj-dev
 # Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
 cd /tmp
 wget https://github.com/catchorg/Catch2/archive/refs/tags/v3.4.0.tar.gz
@@ -17,6 +17,17 @@ tar xf v3.4.0.tar.gz
 cd Catch2-3.4.0
 cmake -B build -G Ninja -S . -DCMAKE_INSTALL_PREFIX:PATH=/usr -DBUILD_TESTING:BOOL=OFF
 sudo cmake --build build --target install
+
+# Install libxml2
+cd /tmp
+wget https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.13.5/libxml2-v2.13.5.tar.gz
+echo "37cdec8cd20af8ab0decfa2419b09b4337c2dbe9da5615d2a26f547449fecf2a  libxml2-v2.13.5.tar.gz" > libxml2.sum
+shasum -a 256 -c libxml2.sum
+tar xf libxml2-v2.13.5.tar.gz
+cd libxml2-v2.13.5
+cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+  -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
+cmake --build build --target install
 
 # Install HDF5
 cd /tmp

@@ -5,7 +5,7 @@ RUN apt-get update && \
     swig python3-dev python3-doc python3-venv python3-pip doxygen \
     curl zip unzip tar \
     libglib2.0-dev \
-    libxml2-dev \
+#    libxml2-dev \
     libutfcpp-dev \
     libproj-dev \
     libgsf-1-dev \
@@ -23,6 +23,17 @@ RUN pip install --break-system-packages \
     myst-parser \
     sphinx-automodapi \
     graphviz
+
+# Install libxml2
+RUN cd /tmp && \
+  wget https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.13.5/libxml2-v2.13.5.tar.gz && \
+  echo "37cdec8cd20af8ab0decfa2419b09b4337c2dbe9da5615d2a26f547449fecf2a  libxml2-v2.13.5.tar.gz" > libxml2.sum && \
+  shasum -a 256 -c libxml2.sum && \
+  tar xf libxml2-v2.13.5.tar.gz && \
+  cd libxml2-v2.13.5 && \
+  cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX:PATH=/usr \
+    -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF && \
+  cmake --build build --target install
 
 # Install HDF5
 RUN cd /tmp && \
