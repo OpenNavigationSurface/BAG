@@ -46,8 +46,8 @@ jobs:
             SDK: release-1911
             MSVC_VER: 1920
             ZLIB_URL: "https://github.com/madler/zlib/releases/download/v1.3/zlib13.zip"
-            LIBXML2_URL: "https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.12.0/libxml2-v2.12.0.zip"
-            HDF5_URL: "https://github.com/HDFGroup/hdf5/releases/download/hdf5-1_12_3/hdf5-1_12_3.zip"
+            LIBXML2_URL: "https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.13.5/libxml2-v2.13.5.zip"
+            HDF5_URL: "https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.zip"
             CATCH2_URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v3.4.0.zip"
 
     env:
@@ -122,7 +122,7 @@ jobs:
           cd ..
           # libxml2
           exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
-          cd libxml2-v2.12.0
+          cd libxml2-v2.13.5
           if(-Not (Test-Path -Path build)) { mkdir build }
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
@@ -130,7 +130,7 @@ jobs:
           cd ..
           # HDF5
           exec { 7z x ..\downloads\$env:HDF5_ZIP }
-          cd hdfsrc
+          cd hdf5-hdf5_1.14.5
           if(-Not (Test-Path -Path build)) { mkdir build }
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF `

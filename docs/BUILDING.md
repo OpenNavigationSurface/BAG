@@ -108,17 +108,14 @@ $ ./bag-examples/examples/bag_georefmetadata_layer \
 
 ### Locally build dependencies
 
-Run `docs\win-build\baglibs\downloads\download.ps1` to download dependencies. 
+First, from the directory `docs\win-build\baglibs\downloads` run `.\download.ps1` to download dependencies. 
 
-Then to build dependencies run `docs\win-build\baglibs\install\install.ps1`.
+Then, from the directory `docs\win-build\baglibs\install`  run `.\install.ps1` to build dependencies.
 
 Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to 
 `docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.0`.
 
-> Note: You must run `install.ps1` from an admin shell since libxml2 creates symlinks and
-> Windows doesn't allow this from normal user shells.
-
-Now, the build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
+Now, to build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
 run the C++ and Python tests.
 
 ### Dependencies from Miniconda
