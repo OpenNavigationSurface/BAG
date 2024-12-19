@@ -27,7 +27,7 @@ tar xf libxml2-v2.13.5.tar.gz
 cd libxml2-v2.13.5
 cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr \
   -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
-cmake --build build --target install
+sudo cmake --build build --target install
 
 # Install HDF5
 cd /tmp
