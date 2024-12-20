@@ -216,12 +216,12 @@ void Metadata::loadFromFile(const std::string& fileName)
 void Metadata::loadFromBuffer(const std::string& xmlBuffer)
 {
     BagError err;
-    // BAG stores metadata XML document in HDF5 as a null-terminated C-style string. In recent
+    // BAG stores its metadata XML document in HDF5 as a null-terminated C-style string. In recent
     // versions of libxml2 (ca. 1.12+), the xmlParseMemory() function blows up if there are any
-    // characters (including whitespace) between the closing '>' of the closing XML element in
-    // and the null termination character. Since we don't know what version of libxml2 people
-    // are linking against, lets strip all such characters before trying to load the metadata
-    // XML document, which works fine on older versions of libxml2.
+    // characters (including whitespace) between the closing '>' of the closing XML element of the
+    // metadata document and the null termination character. Since we don't know what version of
+    // libxml2 people are linking against, let's strip all trailing characters, which have no semantic
+    // meaning as far as the XML parser is concerned, before trying to load the metadata XML document.
     auto pos = xmlBuffer.rfind('>');
     if (pos != std::string::npos) {
         auto xmlBuffer_stripped = xmlBuffer.substr(0, pos+1);
@@ -229,7 +229,7 @@ void Metadata::loadFromBuffer(const std::string& xmlBuffer)
         static_cast<int>(xmlBuffer_stripped.size()), *m_pMetaStruct, false);
     } else {
         // This branch is only needed if the metadata XML doesn't contain an XML element, i.e.
-        // it isn't a well-formed XML document.
+        // if it isn't a well-formed XML document.
         err = bagImportMetadataFromXmlBuffer(xmlBuffer.c_str(),
         static_cast<int>(xmlBuffer.size()), *m_pMetaStruct, false);
     }
