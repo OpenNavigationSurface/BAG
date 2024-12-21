@@ -441,7 +441,7 @@ struct BAG_API InvalidVRRefinementDimensions final : virtual std::exception
 {
     const char* what() const noexcept override
     {
-        return "The variable resolution refinement layer is not 1 dimensional.";
+        return "The variable resolution refinement layer is inconsistent with specification.";
     }
 };
 

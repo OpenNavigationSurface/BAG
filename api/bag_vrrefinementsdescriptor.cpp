@@ -17,11 +17,13 @@ namespace BAG {
 */
 VRRefinementsDescriptor::VRRefinementsDescriptor(
     uint32_t id,
+    uint32_t rows, uint32_t cols,
     uint64_t chunkSize,
     int compressionLevel)
     : LayerDescriptor(id, VR_REFINEMENT_PATH,
-        kLayerTypeMapString.at(VarRes_Refinement), VarRes_Refinement, chunkSize,
-        compressionLevel)
+        kLayerTypeMapString.at(VarRes_Refinement), VarRes_Refinement,
+        rows, cols,
+        chunkSize, compressionLevel)
 {
 }
 
@@ -31,8 +33,8 @@ VRRefinementsDescriptor::VRRefinementsDescriptor(
     The BAG Dataset this layer belongs to.
 */
 VRRefinementsDescriptor::VRRefinementsDescriptor(
-    const Dataset& dataset)
-    : LayerDescriptor(dataset, VarRes_Refinement, VR_REFINEMENT_PATH)
+    const Dataset& dataset, uint32_t rows, uint32_t cols)
+    : LayerDescriptor(dataset, VarRes_Refinement, rows, cols, VR_REFINEMENT_PATH)
 {
 }
 
@@ -54,7 +56,7 @@ std::shared_ptr<VRRefinementsDescriptor> VRRefinementsDescriptor::create(
     int compressionLevel)
 {
     return std::shared_ptr<VRRefinementsDescriptor>(
-        new VRRefinementsDescriptor{dataset.getNextId(), chunkSize,
+        new VRRefinementsDescriptor{dataset.getNextId(), 1, 0, chunkSize,
             compressionLevel});
 }
 
@@ -67,10 +69,10 @@ std::shared_ptr<VRRefinementsDescriptor> VRRefinementsDescriptor::create(
     The existing variable resolution refinements descriptor.
 */
 std::shared_ptr<VRRefinementsDescriptor> VRRefinementsDescriptor::open(
-    const Dataset& dataset)
+    const Dataset& dataset, uint32_t rows, uint32_t cols)
 {
     return std::shared_ptr<VRRefinementsDescriptor>(
-        new VRRefinementsDescriptor{dataset});
+        new VRRefinementsDescriptor{dataset, rows, cols});
 }
 
 

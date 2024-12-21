@@ -993,7 +993,7 @@ bool addSpatialRepresentation(xmlNode &parentNode, const BagSpatialRepresentatio
         xmlSetProp(pPointNode, XMLCast("gml:id"), XMLCast("id1"));
 
         char pointsString[88];
-        sprintf(pointsString, "%.12lf,%.12lf %.12lf,%.12lf", spatialRepresentationInfo.llCornerX, spatialRepresentationInfo.llCornerY, spatialRepresentationInfo.urCornerX, spatialRepresentationInfo.urCornerY);
+        snprintf(pointsString, 88, "%.12lf,%.12lf %.12lf,%.12lf", spatialRepresentationInfo.llCornerX, spatialRepresentationInfo.llCornerY, spatialRepresentationInfo.urCornerX, spatialRepresentationInfo.urCornerY);
 
         xmlNode *pCoordNode = xmlNewChild(pPointNode, pGmlNamespace, XMLCast("coordinates"), EncodedString(*parentNode.doc, pointsString));
         xmlSetProp(pCoordNode, XMLCast("decimal"), XMLCast("."));

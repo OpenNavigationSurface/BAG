@@ -824,7 +824,7 @@ BagError bagGetErrorString(
         strncpy(str, "Metadata One or more elements of the requested coverage are missing from the XML file", MAX_STR-1);
         break;
     case BAG_METADTA_INVLID_DIMENSIONS:
-        sprintf(str, "Metadata The number of dimensions is incorrect (not equal to %d)", RANK);
+        snprintf(str, MAX_STR, "Metadata The number of dimensions is incorrect (not equal to %d)", RANK);
         break;
     case BAG_METADTA_BUFFER_EXCEEDED:
         strncpy(str, "Metadata supplied buffer is too large to be stored in the internal array", MAX_STR-1);
@@ -866,7 +866,7 @@ BagError bagGetErrorString(
         strncpy(str, "HDF Bag is not an HDF5 File", MAX_STR-1);
         break;
     case BAG_HDF_RANK_INCOMPATIBLE:
-        sprintf(str, "HDF Bag's rank is incompatible with expected Rank of the Datasets: %d", RANK);
+        snprintf(str, MAX_STR, "HDF Bag's rank is incompatible with expected Rank of the Datasets: %d", RANK);
         break;
     case BAG_HDF_TYPE_NOT_FOUND:
         strncpy(str, "HDF Bag surface Datatype parameter not available", MAX_STR-1);
