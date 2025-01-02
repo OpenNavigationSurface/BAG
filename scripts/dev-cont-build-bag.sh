@@ -5,7 +5,7 @@ set -ex # Abort on error.
 
 # Configure CMake
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . \
-  -DCMAKE_INSTALL_PREFIX=/usr -DBAG_BUILD_TESTS:BOOL=ON
+  -DCMAKE_INSTALL_PREFIX=/usr -DBAG_BUILD_TESTS:BOOL=ON -DBAG_BUILD_EXAMPLES:BOOL=ON
 # Build
 cmake --build build
 python3 -m pip wheel -w ./wheel/ ./build/api/swig/python
