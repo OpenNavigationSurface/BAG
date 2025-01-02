@@ -314,9 +314,10 @@ void VRRefinements::writeProxy(
     ::H5::DataSpace fileDataSpace = m_pH5dataSet->getSpace();
     const int numDims = fileDataSpace.getSimpleExtentDims(fileLength.data(),
         maxFileLength.data());
-    if (numDims != 1)
+    if (numDims != 1) {
         std::cout << "Number of dimensions for VRRefinements = " << numDims << std::endl;
         throw InvalidVRRefinementDimensions{};
+    }
 
     if (fileLength[0] < (columnEnd + 1))
     {
