@@ -152,9 +152,12 @@ std::unique_ptr<VRRefinements> VRRefinements::open(
         new ::H5::DataSet{h5file.openDataSet(VR_REFINEMENT_PATH)},
             DeleteH5dataSet{});
 
+    // We need to know the dimensions of the array on file so that we can update the
+    // descriptor for the layer.
     hsize_t dims[2];
     int ndims = h5dataSet->getSpace().getSimpleExtentDims(dims, nullptr);
-    if (ndims != 2) {
+    if (!(ndims == 1 || ndims == 2)) {
+        // Should be 1D according to BAG spec, but some implementations use a 2D array.
         throw InvalidVRRefinementDimensions{};
     }
     descriptor.setDims(dims[0], dims[1]);
