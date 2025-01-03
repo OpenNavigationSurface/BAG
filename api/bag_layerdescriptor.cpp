@@ -173,12 +173,14 @@ const std::string& LayerDescriptor::getName() const & noexcept
     return m_name;
 }
 
-//! Retrieve the dimensions (shape) of the layer
+//! Retrieve the dimensions (shape) of the layer.
+//! Return dimensions as uint32_t rather than the underlying uint64_t to maintain compatibility with the rest of the
+//! BAG API, which assumes rows and cols are uint32_t.
 /*!
 \return
     The row and column spacing/resolution of the grid
 */
-const std::tuple<uint64_t, uint64_t>& LayerDescriptor::getDims() const & noexcept
+std::tuple<uint32_t, uint32_t> LayerDescriptor::getDims() const & noexcept
 {
     return m_dims;
 }

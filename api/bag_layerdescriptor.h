@@ -53,7 +53,7 @@ public:
     LayerType getLayerType() const noexcept;
     std::tuple<float, float> getMinMax() const noexcept;
     const std::string& getName() const & noexcept;
-    const std::tuple<uint64_t, uint64_t>& getDims() const & noexcept;
+    std::tuple<uint32_t, uint32_t> getDims() const & noexcept;
 
     LayerDescriptor& setName(std::string inName) & noexcept;
     LayerDescriptor& setMinMax(float min, float max) & noexcept;
