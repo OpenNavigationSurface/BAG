@@ -30,7 +30,7 @@ LayerDescriptor::LayerDescriptor(
     std::string internalPath,
     std::string name,
     LayerType type,
-    uint32_t rows, uint32_t cols,
+    uint64_t rows, uint64_t cols,
     uint64_t chunkSize,
     int compressionLevel)
     : m_id(id)
@@ -58,7 +58,7 @@ LayerDescriptor::LayerDescriptor(
 LayerDescriptor::LayerDescriptor(
     const Dataset& dataset,
     LayerType type,
-    uint32_t rows, uint32_t cols,
+    uint64_t rows, uint64_t cols,
     std::string internalPath,
     std::string name)
     : m_id(dataset.getNextId())
@@ -178,7 +178,7 @@ const std::string& LayerDescriptor::getName() const & noexcept
 \return
     The row and column spacing/resolution of the grid
 */
-const std::tuple<uint32_t, uint32_t>& LayerDescriptor::getDims() const & noexcept
+const std::tuple<uint64_t, uint64_t>& LayerDescriptor::getDims() const & noexcept
 {
     return m_dims;
 }
@@ -194,8 +194,8 @@ const std::tuple<uint32_t, uint32_t>& LayerDescriptor::getDims() const & noexcep
     A buffer that can hold rows x columns of values of this layer.
 */
 size_t LayerDescriptor::getReadBufferSize(
-    uint32_t rows,
-    uint32_t columns) const noexcept
+    uint64_t rows,
+    uint64_t columns) const noexcept
 {
     return rows * columns * this->getElementSize();
 }
@@ -218,7 +218,7 @@ LayerDescriptor& LayerDescriptor::setMinMax(
     return *this;
 }
 
-LayerDescriptor& LayerDescriptor::setDims(uint32_t rows, uint32_t cols) & noexcept
+LayerDescriptor& LayerDescriptor::setDims(uint64_t rows, uint64_t cols) & noexcept
 {
     m_dims = {rows, cols};
     return *this;

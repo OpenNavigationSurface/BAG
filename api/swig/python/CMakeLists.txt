@@ -31,7 +31,7 @@ endif()
 set_property(GLOBAL PROPERTY BAGPY_BINARY_DIR_PROP ${CMAKE_CURRENT_BINARY_DIR})
 set(BAGPY_MODULE_NAME bagPy.py)
 
-set(CMAKE_SWIG_FLAGS "-Wextra" "-v" "-py3")
+set(CMAKE_SWIG_FLAGS "-Wextra" "-v" "-DSWIGWORDSIZE64")
 
 set_source_files_properties("bagpy.i" PROPERTIES
     SWIG_MODULE_NAME bagPy

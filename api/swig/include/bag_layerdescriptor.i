@@ -54,13 +54,13 @@ public:
     //! Intentionally omit exposing of std::tuple method (unsupported by SWIG),
     //! so it can be exposed with std::pair below.
     //std::tuple<float, float> getMinMax() const noexcept;
-    //const std::tuple<uint32_t, uint32_t>& getDims() const & noexcept;
+    //const std::tuple<uint64_t, uint64_t>& getDims() const & noexcept;
 
     const std::string& getName() const & noexcept;
 
     LayerDescriptor& setName(std::string inName) & noexcept;
     LayerDescriptor& setMinMax(float min, float max) & noexcept;
-    LayerDescriptor& setDims(uint32_t rows, uint32_t cols) & noexcept;
+    LayerDescriptor& setDims(uint64_t rows, uint64_t cols) & noexcept;
 };
 
 %extend LayerDescriptor
@@ -72,11 +72,11 @@ public:
         return std::pair<float, float>(min, max);
     }
 
-    std::pair<uint32_t, uint32_t> getDims() const noexcept
+    std::pair<uint64_t, uint64_t> getDims() const noexcept
     {
-        uint32_t rows=0, cols=0;
+        uint64_t rows=0, cols=0;
         std::tie(rows, cols) = self->getDims();
-        return std::pair<uint32_t, uint32_t>(rows, cols);
+        return std::pair<uint64_t, uint64_t>(rows, cols);
     }
 }
 
