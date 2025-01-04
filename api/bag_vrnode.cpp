@@ -173,8 +173,9 @@ std::shared_ptr<VRNode> VRNode::open(
     // descriptor for the layer.
     hsize_t dims[2];
     int ndims = h5dataSet->getSpace().getSimpleExtentDims(dims, nullptr);
-    if (!(ndims == 1 || ndims == 2)) {
-        // Should be 1D according to BAG spec, but some implementations use a 2D array.
+    if (ndims != 2) {
+        // Should be 1D according to BAG spec, but some implementations use a 2D array,
+        // so for compatibility's sake, use 2D.
         throw InvalidVRRefinementDimensions{};
     }
     descriptor.setDims(dims[0], dims[1]);
@@ -197,9 +198,9 @@ VRNode::createH5dataSet(
     const Dataset& dataset,
     const VRNodeDescriptor& descriptor)
 {
-    const hsize_t fileLength = 0;
-    const hsize_t kMaxFileLength = H5S_UNLIMITED;
-    const ::H5::DataSpace h5fileDataSpace{1, &fileLength, &kMaxFileLength};
+    std::array<hsize_t, kRank> fileDims{0, 0};
+    const std::array<hsize_t, kRank> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
+    const ::H5::DataSpace h5fileDataSpace{kRank, fileDims.data(), kMaxFileDims.data()};
 
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
@@ -209,7 +210,8 @@ VRNode::createH5dataSet(
     const auto compressionLevel = descriptor.getCompressionLevel();
     if (chunkSize > 0)
     {
-        h5createPropList.setChunk(1, &chunkSize);
+        const std::array<hsize_t, kRank> chunkDims{chunkSize, chunkSize};
+        h5createPropList.setChunk(kRank, chunkDims.data());
 
         if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
             h5createPropList.setDeflate(compressionLevel);
@@ -348,8 +350,9 @@ void VRNode::writeProxy(
     ::H5::DataSpace fileDataSpace = m_pH5dataSet->getSpace();
     const int numDims = fileDataSpace.getSimpleExtentDims(fileLength.data(),
         maxFileLength.data());
-    if (numDims != 1)
+    if (numDims != kRank) {
         throw InvalidVRRefinementDimensions{};
+    }
 
     if (fileLength[0] < (columnEnd + 1))
     {
