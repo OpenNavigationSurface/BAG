@@ -17,7 +17,7 @@ pandoc --pdf-engine=xelatex \
   index.html FSD-BAGStructure.html FSD-Encapsulation.html \
   FSD-AxiomaticDefs.html FSD-BAGARB.html FSD-RevisionControl.html \
   FSD-Extensions.html FSD-Glossary.html FSD-References.html \
-  FSD-Appendices.html RevisionHistory.html -o BAG_FSD_2.0.3.pdf 
+  FSD-Appendices.html RevisionHistory.html -o BAG_FSD_$VERSION.pdf 
 ```
 
 ## Docker

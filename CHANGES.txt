@@ -1,4 +1,29 @@
 =========================
+BAG v.2.0.4 Release Notes
+=========================
+
+January 2025
+-  Bugfix release to add compatibility with newer versions of libxml2 (2.12+), which fails to parse XML document
+   buffers that have null or whitespace characters after the closing element of the document.
+   See [here](https://gitlab.gnome.org/GNOME/libxml2/-/issues/638) for more information.
+
+=========================
+BAG v.2.0.3 Release Notes
+=========================
+
+September 2024
+-  This release adds metadata enumeration element for NOAA Product Uncertainty 2.0
+   (https://github.com/OpenNavigationSurface/BAG/issues/112).
+
+=========================
+BAG v.2.0.2 Release Notes
+=========================
+
+December 2023
+-  This release has no functional changes. It merely changes how libxml2 components are imported to fix broken
+   builds against libxml2 2.12+.
+
+=========================
 BAG v.2.0.1 Release Notes
 =========================
 
