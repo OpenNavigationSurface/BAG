@@ -1,11 +1,37 @@
 # Build instructions
 
+## Documentation
+Documentation are automatically created and published at 
+[readthedocs](https://bag.readthedocs.io). However, if you would like to 
+build the documentation locally, this can easily be done using scripts
+for [Linux](readthedocs/build.bash) or [macOS](readthedocs/build-macos.bash).
+Make sure to run these from the root of the repository.
+
+Once the docs are built, you can access them in the directory 
+`_readthedocs/html`.
+
+To build a PDF of the FSD, run:
+```shell
+cd _readthedocs/html/fsd
+pandoc --pdf-engine=xelatex \
+  index.html FSD-BAGStructure.html FSD-Encapsulation.html \
+  FSD-AxiomaticDefs.html FSD-BAGARB.html FSD-RevisionControl.html \
+  FSD-Extensions.html FSD-Glossary.html FSD-References.html \
+  FSD-Appendices.html RevisionHistory.html -o BAG_FSD_$VERSION.pdf 
+```
+
 ## Docker
 You can build a development Linux container using 
 [Dockerfile.dev](../Dockerfile.dev) by running the following command from the
 repository root directory:
 ```shell
 docker buildx build -t dev/debian/baglib:latest -f Dockerfile.dev .
+```
+
+To build for a specific architecture, such as AMD64, run:
+```shell
+docker buildx build --platform=linux/amd64 \
+  -t dev/debian/amd64/baglib:latest -f Dockerfile.dev .
 ```
 
 To manually build and test inside the development container, run:
@@ -82,17 +108,14 @@ $ ./bag-examples/examples/bag_georefmetadata_layer \
 
 ### Locally build dependencies
 
-Run `docs\win-build\baglibs\downloads\download.ps1` to download dependencies. 
+First, from the directory `docs\win-build\baglibs\downloads` run `.\download.ps1` to download dependencies. 
 
-Then to build dependencies run `docs\win-build\baglibs\install\install.ps1`.
+Then, from the directory `docs\win-build\baglibs\install`  run `.\install.ps1` to build dependencies.
 
 Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to 
 `docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.0`.
 
-> Note: You must run `install.ps1` from an admin shell since libxml2 creates symlinks and
-> Windows doesn't allow this from normal user shells.
-
-Now, the build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
+Now, to build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
 run the C++ and Python tests.
 
 ### Dependencies from Miniconda
