@@ -182,7 +182,10 @@ const std::string& LayerDescriptor::getName() const & noexcept
 */
 std::tuple<uint32_t, uint32_t> LayerDescriptor::getDims() const & noexcept
 {
-    return m_dims;
+    return std::tuple<uint32_t, uint32_t>{
+      static_cast<uint32_t>(std::get<0>(m_dims)),
+      static_cast<uint32_t>(std::get<1>(m_dims))
+    };
 }
 
 //! Get the size of a buffer for reading a specified number rows and columns.
