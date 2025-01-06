@@ -378,7 +378,8 @@ void VRNode::writeProxy(
         // So that the read() call checks correctly against the size of the array, rather
         // than the dimensions of the mandatory layer, we need to keep track of the size
         // of the layer in the layer-specific descriptor.
-//        pDescriptor->setDims(1, newMaxLength);
+        pDescriptor->setDims(static_cast<uint32_t>(newDims[0]),
+                             static_cast<uint32_t>(newDims[1]));
     }
 
     fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
