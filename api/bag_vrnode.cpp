@@ -326,11 +326,10 @@ void VRNode::writeAttributesProxy() const
 }
 
 //! \copydoc Layer::write
-//! Ignore rows since the data is 1 dimensional.
 void VRNode::writeProxy(
-    uint32_t /*rowStart*/,
+    uint32_t rowStart,
     uint32_t columnStart,
-    uint32_t /*rowEnd*/,
+    uint32_t rowEnd,
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
@@ -339,26 +338,31 @@ void VRNode::writeProxy(
     if (!pDescriptor)
         throw InvalidLayerDescriptor{};
 
-    const hsize_t columns = (columnEnd - columnStart) + 1;
-    const hsize_t offset = columnStart;
-    const ::H5::DataSpace memDataSpace{1, &columns, &columns};
-
-    // Expand the file data space if needed.
-    std::array<hsize_t, H5S_MAX_RANK> fileLength{};
-    std::array<hsize_t, H5S_MAX_RANK> maxFileLength{};
+    const auto rows = (rowEnd - rowStart) + 1;
+    const auto columns = (columnEnd - columnStart) + 1;
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
+    const ::H5::DataSpace memDataSpace{kRank, count.data(), count.data()};
 
     ::H5::DataSpace fileDataSpace = m_pH5dataSet->getSpace();
-    const int numDims = fileDataSpace.getSimpleExtentDims(fileLength.data(),
-        maxFileLength.data());
+
+    // Expand the file data space if needed.
+    std::array<hsize_t, kRank> fileDims{};
+    std::array<hsize_t, kRank> maxFileDims{};
+
+    const int numDims = fileDataSpace.getSimpleExtentDims(fileDims.data(),
+                                                          maxFileDims.data());
     if (numDims != kRank) {
         throw InvalidVRRefinementDimensions{};
     }
 
-    if (fileLength[0] < (columnEnd + 1))
+    if ((fileDims[0] < (rowEnd + 1)) ||
+        (fileDims[1] < (columnEnd + 1)))
     {
-        const auto newMaxLength = std::max<hsize_t>(fileLength[0], columnEnd + 1);
-
-        m_pH5dataSet->extend(&newMaxLength);
+        const std::array<hsize_t, kRank> newDims{
+                std::max<hsize_t>(fileDims[0], rowEnd + 1),
+                std::max<hsize_t>(fileDims[1], columnEnd + 1)};
+        m_pH5dataSet->extend(newDims.data());
 
         fileDataSpace = m_pH5dataSet->getSpace();
 
@@ -366,18 +370,18 @@ void VRNode::writeProxy(
         if (this->getDataset().expired())
             throw DatasetNotFound{};
 
-        auto pDataset = this->getDataset().lock();
+//        auto pDataset = this->getDataset().lock();
         // TODO: Confirm that this is what we want --- this resets the dimensions of the
         // overall BAG, rather than the layer, which means that it's going to set the
         // metadata size of the mandatory layers to 1xN ... which is odd.
-        pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
+//        pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
         // So that the read() call checks correctly against the size of the array, rather
         // than the dimensions of the mandatory layer, we need to keep track of the size
         // of the layer in the layer-specific descriptor.
-        pDescriptor->setDims(1, newMaxLength);
+//        pDescriptor->setDims(1, newMaxLength);
     }
 
-    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
+    fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     const auto memDataType = makeDataType();
 

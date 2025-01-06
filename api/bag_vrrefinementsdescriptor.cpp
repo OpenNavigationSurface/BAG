@@ -56,7 +56,7 @@ std::shared_ptr<VRRefinementsDescriptor> VRRefinementsDescriptor::create(
     int compressionLevel)
 {
     return std::shared_ptr<VRRefinementsDescriptor>(
-        new VRRefinementsDescriptor{dataset.getNextId(), 1, 0, chunkSize,
+        new VRRefinementsDescriptor{dataset.getNextId(), 1, 1, chunkSize,
             compressionLevel});
 }
 

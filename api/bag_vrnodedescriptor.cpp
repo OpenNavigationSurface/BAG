@@ -58,7 +58,7 @@ std::shared_ptr<VRNodeDescriptor> VRNodeDescriptor::create(
     int compressionLevel)
 {
     return std::shared_ptr<VRNodeDescriptor>(
-        new VRNodeDescriptor{dataset.getNextId(), 1, 0, chunkSize,
+        new VRNodeDescriptor{dataset.getNextId(), 1, 1, chunkSize,
             compressionLevel});
 }
 
