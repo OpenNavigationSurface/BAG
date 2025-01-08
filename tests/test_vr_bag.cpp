@@ -26,14 +26,20 @@ TEST_CASE("test VR BAG reading", "[dataset][open][VR]")
 
     CHECK(dataset->getLayerTypes().size() == kNumExpectedLayers);
 
+    const uint32_t kExpectedRows = 4;
+    const uint32_t kExpectedCols = 6;
     CHECK(dataset->getDescriptor().getVersion() == "1.6.2");
+    auto dims = dataset->getDescriptor().getDims();
+    CHECK(std::get<0>(dims) == kExpectedRows);
+    CHECK(std::get<1>(dims) == kExpectedCols);
 
     auto vrMeta = dataset->getVRMetadata();
     REQUIRE(vrMeta);
     const auto vrMetaDesc = vrMeta->getDescriptor();
     auto vrMetaDescDims = vrMetaDesc->getDims();
-    CHECK(std::get<0>(vrMetaDescDims) == 4);
-    CHECK(std::get<1>(vrMetaDescDims) == 6);
+    // VR metadata descriptor dims should be the same as BAG dataset dims...
+    CHECK(std::get<0>(vrMetaDescDims) == kExpectedRows);
+    CHECK(std::get<1>(vrMetaDescDims) == kExpectedCols);
 
     auto vrRef = dataset->getVRRefinements();
     REQUIRE(vrRef);
