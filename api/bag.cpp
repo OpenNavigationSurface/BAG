@@ -19,6 +19,8 @@
 #include "bag_vrrefinements.h"
 #include "bag_vrrefinementsdescriptor.h"
 #include "bag_vrtrackinglist.h"
+#include <array>
+#include <cstdio>
 
 #ifdef _MSC_VER
 #pragma warning(push)
@@ -32,13 +34,12 @@
 #include <sstream>
 #include <string>
 #include <string.h>
+#include "signal_hook.h"
 
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
 
-
-namespace {
 
 //! Convert a BAG::CompoundDataType (C++) into a BagCompoundDataType (C).
 /*!
@@ -111,8 +112,6 @@ BAG::CompoundDataType getValue(
     }
 }
 
-}  // namespace
-
 //! Open the specified BAG.
 /*!
 \param handle
@@ -134,6 +133,8 @@ BagError bagFileOpen(
     BAG_OPEN_MODE accessMode,
     const char* fileName)
 {
+    auto bag_hook = BagAbortHook();
+
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -169,6 +170,7 @@ BagError bagFileOpen(
 BagError bagFileClose(
     BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 

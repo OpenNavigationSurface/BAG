@@ -276,6 +276,17 @@ std::shared_ptr<Dataset> Dataset::open(
     {
         std::cerr << "\nUnable to open BAG file: " << fileName << " due to error: " << fileExcept.getCDetailMsg();
         return nullptr;
+    } catch (H5::GroupIException &groupExcept) {
+        std::cerr << "\nAn group exception occurred opening the dataset. Error was in "
+            << groupExcept.getFuncName()
+            << ". A detailed message follows:"
+            << std::endl << groupExcept.getDetailMsg() << std::endl;
+    } catch (H5::Exception &otherException)
+    {
+        std::cerr << "\nAn unknown exception occurred opening the dataset. Error was in "
+            << otherException.getFuncName()
+            << ". A detailed message follows:"
+            << std::endl << otherException.getDetailMsg() << std::endl;
     }
 
     return pDataset;
