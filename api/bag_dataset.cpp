@@ -1073,10 +1073,17 @@ void Dataset::readDataset(
     OpenMode openMode)
 {
     signal(SIGABRT, handleAbrt);
-    m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
-        fileName.c_str(),
-        (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
-        DeleteH5File{});
+    try {
+        m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
+                                                                        fileName.c_str(),
+                                                                        (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
+                                                                DeleteH5File{});
+    }
+    catch( ::H5::FileIException& e )
+    {
+        std::cerr << "Unable to read BAG file, error was: " << e.getCDetailMsg() << std::endl;
+        e.printErrorStack();
+    }
 
     m_pMetadata = std::make_unique<Metadata>(*this);
 
