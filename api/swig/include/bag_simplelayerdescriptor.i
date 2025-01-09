@@ -28,11 +28,12 @@ class SimpleLayerDescriptor final : public LayerDescriptor
 {
 public:
     static std::shared_ptr<SimpleLayerDescriptor> create(const Dataset& dataset,
-        LayerType type, uint64_t chunkSize, int compressionLevel);
+        LayerType type, uint32_t rows, uint32_t cols,
+        uint64_t chunkSize, int compressionLevel);
 
-    %rename(openDataset) open(const Dataset&, LayerType);
+    %rename(openDataset) open(const Dataset&, LayerType, uint32_t rows, uint32_t cols);
     static std::shared_ptr<SimpleLayerDescriptor> open(
-        const Dataset& dataset, LayerType type);
+        const Dataset& dataset, LayerType type, uint32_t rows, uint32_t cols);
 
     SimpleLayerDescriptor(const SimpleLayerDescriptor&) = delete;
     SimpleLayerDescriptor(SimpleLayerDescriptor&&) = delete;

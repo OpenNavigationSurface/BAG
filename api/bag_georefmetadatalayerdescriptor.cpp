@@ -35,10 +35,11 @@ GeorefMetadataLayerDescriptor::GeorefMetadataLayerDescriptor(
         GeorefMetadataProfile profile,
         DataType keyType,
         RecordDefinition definition,
+        uint32_t rows, uint32_t cols,
         uint64_t chunkSize,
         int compressionLevel)
     : LayerDescriptor(dataset.getNextId(), GEOREF_METADATA_PATH + name, name,
-                      Georef_Metadata, chunkSize, compressionLevel)
+                      Georef_Metadata, rows, cols, chunkSize, compressionLevel)
     , m_pBagDataset(dataset.shared_from_this())
     , m_profile(profile)
     , m_keyType(keyType)
@@ -72,12 +73,14 @@ std::shared_ptr<GeorefMetadataLayerDescriptor> GeorefMetadataLayerDescriptor::cr
             GeorefMetadataProfile profile,
             DataType keyType,
             RecordDefinition definition,
+            uint32_t rows, uint32_t cols,
             uint64_t chunkSize,
             int compressionLevel)
 {
     return std::shared_ptr<GeorefMetadataLayerDescriptor>(
         new GeorefMetadataLayerDescriptor{dataset, name, profile, keyType,
-                                          std::move(definition), chunkSize, compressionLevel});
+                                          std::move(definition), rows, cols,
+                                          chunkSize, compressionLevel});
 }
 
 //! Open an existing georeferenced metadata layer descriptor.
@@ -165,8 +168,13 @@ std::shared_ptr<GeorefMetadataLayerDescriptor> GeorefMetadataLayerDescriptor::op
         profile = UNKNOWN_METADATA_PROFILE;
     }
 
+    std::array<hsize_t, 2> dims;
+    h5dataSet.getSpace().getSimpleExtentDims(dims.data(), nullptr);
+
     return std::shared_ptr<GeorefMetadataLayerDescriptor>(
         new GeorefMetadataLayerDescriptor{dataset, name, profile, keyType, definition,
+                                          static_cast<const uint32_t>(dims[0]),
+                                          static_cast<const uint32_t>(dims[1]),
                                           chunkSize, compressionLevel});
 }
 

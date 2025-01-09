@@ -1249,7 +1249,7 @@ bool decodeReferenceSystemInfoFromSpatial(
                 {
                     char buffer[2048];
 
-                    sprintf(buffer, "%d", epsg);
+                    snprintf(buffer, 2048, "%d", epsg);
                     referenceSystemInfo->definition = copyString(buffer);
                     referenceSystemInfo->type = copyString("EPSG");
 

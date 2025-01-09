@@ -104,8 +104,13 @@ std::shared_ptr<GeorefMetadataLayer> GeorefMetadataLayer::create(
         keyType != DT_UINT64)
         throw InvalidKeyType{};
 
+    // The keys array should be the same dimensions as the mandatory elevation layer, so read
+    // from the file global descriptor, and set.
+    uint32_t rows = 0, cols = 0;
+    std::tie<uint32_t, uint32_t>(rows, cols) = dataset.getDescriptor().getDims();
     auto pDescriptor = GeorefMetadataLayerDescriptor::create(dataset, name, profile, keyType,
-                                                             definition, chunkSize, compressionLevel);
+                                                             definition, rows, cols,
+                                                             chunkSize, compressionLevel);
 
     // Create the H5 Group to hold keys & values.
     const auto& h5file = dataset.getH5file();
@@ -122,7 +127,8 @@ std::shared_ptr<GeorefMetadataLayer> GeorefMetadataLayer::create(
     auto h5valueDataSet = GeorefMetadataLayer::createH5valueDataSet(dataset, *pDescriptor);
 
     auto layer = std::make_shared<GeorefMetadataLayer>(dataset,
-                                                       *pDescriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
+                                                       *pDescriptor, std::move(h5keyDataSet),
+                                                       std::move(h5vrKeyDataSet),
                                                        std::move(h5valueDataSet));
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
@@ -150,6 +156,12 @@ std::shared_ptr<GeorefMetadataLayer> GeorefMetadataLayer::open(
         new ::H5::DataSet{h5file.openDataSet(internalPath + COMPOUND_KEYS)},
         DeleteH5dataSet{});
 
+    // The keys array has the dimensions of the layer, so we can read and reset the
+    // descriptor dimensions, in case they were inconsistent (or not set).
+    std::array<hsize_t, kRank> dims;
+    h5keyDataSet->getSpace().getSimpleExtentDims(dims.data(), nullptr);
+    descriptor.setDims(dims[0], dims[1]);
+
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> h5vrKeyDataSet{};
     if (dataset.getVRMetadata())
         h5vrKeyDataSet = std::unique_ptr<::H5::DataSet, DeleteH5dataSet>(
@@ -161,7 +173,9 @@ std::shared_ptr<GeorefMetadataLayer> GeorefMetadataLayer::open(
         DeleteH5dataSet{});
 
     auto layer = std::make_shared<GeorefMetadataLayer>(dataset,
-                                                       descriptor, std::move(h5keyDataSet), std::move(h5vrKeyDataSet),
+                                                       descriptor,
+                                                       std::move(h5keyDataSet),
+                                                       std::move(h5vrKeyDataSet),
                                                        std::move(h5valueDataSet));
 
     layer->setValueTable(std::unique_ptr<ValueTable>(new ValueTable{*layer}));
@@ -188,7 +202,9 @@ GeorefMetadataLayer::createH5keyDataSet(
     std::unique_ptr<::H5::DataSet, DeleteH5dataSet> pH5dataSet;
 
     {
-        // Use the dimensions from the descriptor.
+        // Use the dimensions from the descriptor.  We could do this from the specific
+        // descriptor for the layer, too, which should mirror the size of the file global
+        // descriptor used here.
         uint32_t dim0 = 0, dim1 = 0;
         std::tie(dim0, dim1) = dataset.getDescriptor().getDims();
         const std::array<hsize_t, kRank> fileDims{dim0, dim1};

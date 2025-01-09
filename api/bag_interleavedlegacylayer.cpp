@@ -51,6 +51,10 @@ std::shared_ptr<InterleavedLegacyLayer> InterleavedLegacyLayer::open(
         descriptor.setMinMax(std::get<1>(possibleMinMax),
             std::get<2>(possibleMinMax));
 
+    std::array<hsize_t, 2> dims;
+    h5dataSet->getSpace().getSimpleExtentDims(dims.data(), nullptr);
+    descriptor.setDims(dims[0], dims[1]);
+
     return std::make_shared<InterleavedLegacyLayer>(dataset,
         descriptor, std::move(h5dataSet));
 }
