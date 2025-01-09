@@ -15,7 +15,7 @@ using BAG::VRMetadataDescriptor;
 
 
 // Test basic reading of an existing VR BAG from https://github.com/OSGeo/gdal/blob/master/autotest/gdrivers/data/bag/test_vr.bag
-TEST_CASE("test VR BAG reading", "[dataset][open][VR]")
+TEST_CASE("test VR BAG reading GDAL", "[dataset][open][VR][GDAL]")
 {
     const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
                                   "/test_vr.bag"};
@@ -47,4 +47,39 @@ TEST_CASE("test VR BAG reading", "[dataset][open][VR]")
     auto vrRefDescDims = vrRefDesc->getDims();
     CHECK(std::get<0>(vrRefDescDims) == 1);
     CHECK(std::get<1>(vrRefDescDims) == 556);
+}
+
+// Test basic reading of an existing VR BAG from the National Bathymetric Source archive (https://www.nauticalcharts.noaa.gov/learn/nbs.html)
+TEST_CASE("test VR BAG reading NBS", "[dataset][open][VR][NBS]")
+{
+    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+                                  "/Sample_VR_BAG-gzip.bag"};
+
+    const size_t kNumExpectedLayers = 4;
+    const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+    REQUIRE(dataset);
+
+    CHECK(dataset->getLayerTypes().size() == kNumExpectedLayers);
+
+    const uint32_t kExpectedRows = 4;
+    const uint32_t kExpectedCols = 4;
+    CHECK(dataset->getDescriptor().getVersion() == "1.6.0");
+    auto dims = dataset->getDescriptor().getDims();
+    CHECK(std::get<0>(dims) == kExpectedRows);
+    CHECK(std::get<1>(dims) == kExpectedCols);
+
+    auto vrMeta = dataset->getVRMetadata();
+    REQUIRE(vrMeta);
+    const auto vrMetaDesc = vrMeta->getDescriptor();
+    auto vrMetaDescDims = vrMetaDesc->getDims();
+    // VR metadata descriptor dims should be the same as BAG dataset dims...
+    CHECK(std::get<0>(vrMetaDescDims) == kExpectedRows);
+    CHECK(std::get<1>(vrMetaDescDims) == kExpectedCols);
+
+    auto vrRef = dataset->getVRRefinements();
+    REQUIRE(vrRef);
+    const auto vrRefDesc = vrRef->getDescriptor();
+    auto vrRefDescDims = vrRefDesc->getDims();
+    CHECK(std::get<0>(vrRefDescDims) == 1);
+    CHECK(std::get<1>(vrRefDescDims) == 3750);
 }
