@@ -16,13 +16,16 @@
 #include <cstdio>
 #include <unistd.h>
 
-static void (*cleanup_functions[128])(int);
+#define HOOK_HANDLERS_COUNT 255
+#define HOOK_CLEANUP_FUNCTIONS_COUNT 50
+
+static void (*cleanup_functions[HOOK_CLEANUP_FUNCTIONS_COUNT])(int);
 static int cleanup_functions_count = 0;
 
 // Returns 0 on success, 1 if too many functions have been set
 // This is not thread safe, only call it from a single thread
 int add_cleanup_function(void (*f)(int)) {
-    if (cleanup_functions_count >= 128) {
+    if (cleanup_functions_count >= HOOK_CLEANUP_FUNCTIONS_COUNT) {
         return 1;
     }
 
@@ -53,18 +56,14 @@ static int bag_string_length(const char* string) {
 
 struct BagAbortHook {
     BagAbortHook* previous;
-    //void (*old_handler[255])(int);
-    //void (*current_handler[255])(int);
-    struct sigaction old_handlers[255];
-    //void (*old_handlers[255])(int);
+    struct sigaction old_handlers[HOOK_HANDLERS_COUNT];
 
     // returns after done printing the exit message
     void print_error_msg(int signal) {
         // if the handlers are the same, don't call "bag handler" twice
         char* signal_name;
 
-        #define TERM_STRING "a critical error occurred within BAG or a dependency (probably libxml or HDF5), exiting to prevent corruption or unexpected behavior\n"\
-                            "the signal that caused this error was: "
+        #define TERM_STRING "a critical error occurred within BAG or a dependency (probably libxml or HDF5), exiting to prevent corruption or unexpected behavior. The signal that caused this error was: "
 
         // I can't figure out how to tell if sigabbrev_np exists so I'll
         // just print the ones it probably is
@@ -84,18 +83,7 @@ struct BagAbortHook {
             signal_abbrev = "SIGBUS";
         }
 
-        /*
-#if defined(__USE_GNU) && defined(_GNU_SOURCE)
-        const char* signal_abbrev = sigabbrev_np(signal);
-#else
-        const char* signal_abbrev = "<unknown>";
-#endif
-        if (!signal_abbrev) {
-            signal_abbrev = "<bad signal number>";
-        }
-        */
-
-        // I think this works, it seems to? write needs an fd
+        // I think this works, it seems to? write needs a file descriptor
         int stderr_fd = stderr->_fileno;
 
         // strlen is not async signal safe, so it can't be used here, but bag_string_length works instead
@@ -105,9 +93,7 @@ struct BagAbortHook {
     }
 
     void call_cleanup_functions(int signal) {
-        //std::cout << "calling cleanup functions" << std::endl;
         for(int i = 0; i < cleanup_functions_count; i++) {
-            //std::cout << "calling cleanup function:" << i << std::endl;
             cleanup_functions[i](signal);
         }
     }
@@ -126,11 +112,9 @@ struct BagAbortHook {
 
         // if there was a handler before this, that isn't the BAG handler,
         // call that one
-
         this->call_previous_handler(signal);
 
         // if nothing has exited in the previous handlers, exit here
-        //std::cout << "exiting" << std::endl;
         _exit(-1);
     }
 
@@ -139,16 +123,14 @@ struct BagAbortHook {
     }
 
     BagAbortHook() {
-        std::cout << "made hook" << std::endl;
         // set these all to null so that when restoring them
         // we know which ones were added
-        for (int i = 0; i < 255; i++) {
+        for (int i = 0; i < HOOK_HANDLERS_COUNT; i++) {
             this->old_handlers[i].sa_handler = nullptr;
         }
 
         struct sigaction old_action;
         for (auto sn : this->handled_signals()) {
-            //std::cout << "setting action for signal " << sn << std::endl;
             struct sigaction new_action;
             new_action.sa_flags = 0;
             new_action.sa_handler = bag_handler;
@@ -163,17 +145,6 @@ struct BagAbortHook {
             // Actually, I think it does support it but apparently signal is
             // pretty outdated: https://stackoverflow.com/questions/231912/what-is-the-difference-between-sigaction-and-signal
             auto r = sigaction(sn, &new_action, &old_action);
-            //auto old_handler = signal(sn, bag_handler);
-
-            /*if (old_handler == SIG_ERR) {
-                std::cout << "got SIG_ERR setting signal handler?" << std::endl;
-            } else if (old_handler == SIG_DFL) {
-                std::cout << "old handler was DFL" << std::endl;
-            } else if (old_handler == SIG_IGN) {
-                std::cout << "old handler was IGN" << std::endl;
-            }*/
-
-            //std::cout << "setting action returned:" << old_handler << std::endl;
 
             this->old_handlers[sn] = old_action;
         }
@@ -182,12 +153,9 @@ struct BagAbortHook {
     }
 
     ~BagAbortHook() {
-        std::cout << "resetting to original handlers" << std::endl;
         // reset the handlers back to what they were
         for (auto sn : this->handled_signals()) {
             struct sigaction old_action = this->old_handlers[sn];
-            //auto old_action = this->old_handlers[sn];
-            //signal(sn, old_action);
             sigaction(sn, &old_action, nullptr);
         }
 
@@ -196,7 +164,6 @@ struct BagAbortHook {
 };
 
 static void bag_handler(int signal) {
-    //std::cout << "handler" << std::endl;
     if (current_hook) {
         current_hook->handle(signal);
     } else {

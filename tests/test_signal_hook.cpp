@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     volatile int* p = nullptr;
 
     int v = *p;
+    
 
     std::cout << "v is:" << v << std::endl;
 
