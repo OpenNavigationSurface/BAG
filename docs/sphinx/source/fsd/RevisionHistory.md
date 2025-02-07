@@ -12,4 +12,3 @@
 | 1.6.2 CR1                       | Added clarification on the interpretation of datum transform parameters | 2017-08-29 |
 | 1.6.3                           | Restored the "extension layers" information from 1.5.1 that inexplicably were lost in the move to 1.6.0 | 2018-05-02 |
 | 2.0.1                           | Added support for georeferenced metadata; Migrate C API to C++14; Add Python API. | 2022-12-01 |
-| ![Block Marker](thin-strip.gif) | | ![Block Marker](thin-strip.gif) |

@@ -3,7 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - python=3.12
-  - gxx_linux-64
+  - clangxx_osx-arm64
   - cmake
   - ninja
   - hdf5-static
