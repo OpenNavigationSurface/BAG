@@ -121,7 +121,7 @@ run the C++ and Python tests.
 Once the build is complete and tests pass, you can import and use `bagPy` in
 the python environment that was just created. You will need to add the contents
 of the `BAG_BIN` directory to the list of DLL search paths, just like the test
-config [script does](/python/conftest.py), otherwise you will get a DLL load
+config [script does](../python/conftest.py), otherwise you will get a DLL load
 error when you try to import `bagPy`.
 
 ### Dependencies from Miniconda
