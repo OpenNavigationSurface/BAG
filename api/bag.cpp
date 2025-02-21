@@ -206,6 +206,7 @@ BagError bagCreateFromFile(
     const char* fileName,
     const char* metadataFile)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -259,6 +260,7 @@ BagError bagCreateFromBuffer(
     uint8_t* metadataBuffer,
     uint32_t metadataBufferSize)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -305,6 +307,7 @@ BagError bagCreateLayer(
     BagHandle* handle,
     BAG_LAYER_TYPE type)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -346,6 +349,7 @@ BagError bagGetGridDimensions(
     uint32_t* rows,
     uint32_t* cols)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -380,6 +384,7 @@ BagError bagGetSpacing(
     double* rowSpacing,
     double* columnSpacing)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -423,6 +428,7 @@ BagError bagGetGeoCover(
     double* urx,
     double* ury)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -463,6 +469,7 @@ BagError bagGetMinMaxSimple(
     float* minValue,
     float* maxValue)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -500,6 +507,7 @@ BagError bagSetMinMaxSimple(
     float minValue,
     float maxValue)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -532,6 +540,7 @@ BagError bagGetNumLayers(
     BagHandle* handle,
     uint32_t* numLayers)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -568,6 +577,7 @@ bool bagContainsLayer(
     const char* layerName,
     BagError* bagError)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
     {
         *bagError = BAG_INVALID_BAG_HANDLE;
@@ -630,6 +640,7 @@ BagError bagRead(
     double* x,
     double* y)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -699,6 +710,7 @@ BagError bagWrite(
     const char* layerName,
     const uint8_t* data)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -745,6 +757,7 @@ BagError bagGetErrorString(
     BagError code,
     uint8_t** error)
 {
+    auto bag_hook = BagAbortHook();
     constexpr int MAX_STR = 255;
     constexpr int RANK = 2;
 
@@ -983,6 +996,7 @@ BagError bagComputePostion(
     double* x,
     double* y)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1021,6 +1035,7 @@ BagError bagComputeIndex(
     uint32_t* row,
     uint32_t* col)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1061,6 +1076,7 @@ uint8_t* bagAllocateBuffer(
     const char* layerName,
     BagError* bagError)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return {};
 
@@ -1097,6 +1113,7 @@ uint8_t* bagAllocateBuffer(
 */
 uint8_t* bagAllocate(uint32_t numBytes)
 {
+    auto bag_hook = BagAbortHook();
     return new uint8_t[numBytes];
 }
 
@@ -1107,6 +1124,7 @@ uint8_t* bagAllocate(uint32_t numBytes)
 */
 void bagFree(uint8_t* buffer)
 {
+    auto bag_hook = BagAbortHook();
     delete[] buffer;
 }
 
@@ -1132,6 +1150,7 @@ BagError bagReadCorrectorVerticalDatum(
     uint8_t corrector,
     uint8_t* datum)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1195,6 +1214,7 @@ BagError bagWriteCorrectorVerticalDatum(
     uint8_t corrector,
     const uint8_t* inDatum)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1274,6 +1294,7 @@ BagError bagReadCorrectedLayer(
     BAG_LAYER_TYPE type,
     float** data)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1341,6 +1362,7 @@ BagError bagReadCorrectedRegion(
     BAG_LAYER_TYPE type,
     float** data)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1390,6 +1412,7 @@ BagError bagReadCorrectedRow(
     BAG_LAYER_TYPE type,
     float** data)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1447,6 +1470,7 @@ BagError bagReadCorrectedNode(
     BAG_LAYER_TYPE type,
     float** data)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1486,6 +1510,7 @@ BagError bagGetNumSurfaceCorrectors(
     BagHandle* handle,
     uint8_t* numCorrectors)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1524,6 +1549,7 @@ BagError bagGetSurfaceCorrectionTopography(
     BagHandle* handle,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY* type)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1565,6 +1591,7 @@ BagError bagCreateCorrectorLayer(
     uint8_t numCorrectors,
     BAG_SURFACE_CORRECTION_TOPOGRAPHY topography)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1600,6 +1627,7 @@ BagError bagWriteCorrectorDefinition(
     BagHandle* handle,
     BagVerticalCorrectorDef* def)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1648,6 +1676,7 @@ BagError bagReadCorrectorDefinition(
     BagHandle* handle,
     BagVerticalCorrectorDef* def)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1688,6 +1717,7 @@ BagError bagTrackingListLength(
     BagHandle* handle,
     uint32_t* length)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1726,6 +1756,7 @@ BagError bagReadTrackingListNode(
     BagTrackingItem** items,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1775,6 +1806,7 @@ BagError bagReadTrackingListCode(
     BagTrackingItem** items,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1824,6 +1856,7 @@ BagError bagReadTrackingListSeries(
     BagTrackingItem** items,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1866,6 +1899,7 @@ BagError bagWriteTrackingListItem(
     BagHandle* handle,
     BagTrackingItem* item)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1900,6 +1934,7 @@ BagError bagWriteTrackingListItem(
 */
 BagError bagSortTrackingListByNode(BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1936,6 +1971,7 @@ BagError bagSortTrackingListByNode(BagHandle* handle)
 */
 BagError bagSortTrackingListBySeries(BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -1972,6 +2008,7 @@ BagError bagSortTrackingListBySeries(BagHandle* handle)
 */
 BagError bagSortTrackingListByCode(BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2008,6 +2045,7 @@ BagError bagSortTrackingListByCode(BagHandle* handle)
 */
 const BagMetadata* bagGetMetaData(BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return nullptr;
 
@@ -2025,6 +2063,7 @@ const BagMetadata* bagGetMetaData(BagHandle* handle)
 */
 BagError bagSetHomeFolder(const char* metadataFolder)
 {
+    auto bag_hook = BagAbortHook();
     if (!metadataFolder)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
@@ -2065,6 +2104,7 @@ BagError bagCreateGeorefMetadataLayer(
         const FieldDefinition* definition,
         uint32_t numFields)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2118,7 +2158,10 @@ BagError bagCreateGeorefMetadataLayer(
 BAG_EXTERNAL BagError bagCreateMetadataProfileGeorefMetadataLayer(BagHandle* handle,
                                                                   BAG_DATA_TYPE indexType,
                                                                   GEOREF_METADATA_PROFILE profile,
-                                                                  const char* layerName) {
+     
+                                                                 const char* layerName) {
+                                                                    
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2171,6 +2214,7 @@ BagError bagGetGeorefMetadataLayerDefinition(
     FieldDefinition** definition,
     uint32_t* numFields)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2226,6 +2270,7 @@ BagError bagGetGeorefMetadataLayerRecords(
     uint32_t* numRecords,
     uint32_t* numFields)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2307,6 +2352,7 @@ BagError bagGetGeorefMetadataLayerValueByName(
     const char* fieldName,
     BagCompoundDataType* value)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2369,6 +2415,7 @@ BagError bagGetGeorefMetadataLayerValueByIndex(
     uint32_t fieldIndex,
     BagCompoundDataType* value)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2427,6 +2474,7 @@ BagError bagGetGeorefMetadataLayerFieldIndex(
     const char* fieldName,
     uint32_t* fieldIndex)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2474,6 +2522,7 @@ BagError bagGetGeorefMetadataLayerFieldName(
     uint32_t fieldIndex,
     const char** fieldName)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2524,6 +2573,7 @@ BagError bagAddGeorefMetadataLayerRecord(
     uint32_t numFields,
     uint32_t* recordIndex)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2589,6 +2639,7 @@ BagError bagAddGeorefMetadataLayerRecords(
     uint32_t numRecords,
     uint32_t numFields)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2662,6 +2713,7 @@ BagError bagGeorefMetadataLayerSetValueByName(
     const char* fieldName,
     const BagCompoundDataType* value)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2726,6 +2778,7 @@ BagError bagGeorefMetadataLayerSetValueByIndex(
     uint32_t fieldIndex,
     const BagCompoundDataType* value)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2781,6 +2834,7 @@ BagError bagCreateVRLayers(
     BagHandle* handle,
     bool makeNode)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2831,6 +2885,7 @@ BagError bagVRMetadataGetMinDimensions(
     uint32_t* minX,
     uint32_t* minY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2873,6 +2928,7 @@ BagError bagVRMetadataGetMaxDimensions(
     uint32_t* maxX,
     uint32_t* maxY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2915,6 +2971,7 @@ BagError bagVRMetadataGetMinResolution(
     float* minX,
     float* minY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2957,6 +3014,7 @@ BagError bagVRMetadataGetMaxResolution(
     float* maxX,
     float* maxY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -2996,6 +3054,7 @@ BagError bagVRMetadataSetMinDimensions(
     uint32_t minX,
     uint32_t minY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3049,6 +3108,7 @@ BagError bagVRMetadataSetMaxDimensions(
     uint32_t maxX,
     uint32_t maxY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3102,6 +3162,7 @@ BagError bagVRMetadataSetMinResolution(
     float minX,
     float minY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3155,6 +3216,7 @@ BagError bagVRMetadataSetMaxResolution(
     float maxX,
     float maxY)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3211,6 +3273,7 @@ BagError bagVRNodeGetMinMaxHypStrength(
     float* minHypStr,
     float* maxHypStr)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3252,6 +3315,7 @@ BagError bagVRNodeGetMinMaxNumHypotheses(
     uint32_t* minNumHyp,
     uint32_t* maxNumHyp)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3293,6 +3357,7 @@ BagError bagVRNodeGetMinMaxNSamples(
     uint32_t* minNSamples,
     uint32_t* maxNSamples)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3332,6 +3397,7 @@ BagError bagVRNodeSetMinMaxHypStrength(
     float minHypStr,
     float maxHypStr)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3385,6 +3451,7 @@ BagError bagVRNodeSetMinMaxNumHypotheses(
     uint32_t minNumHyp,
     uint32_t maxNumHyp)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3438,6 +3505,7 @@ BagError bagVRNodeSetMinMaxNSamples(
     uint32_t minNSamples,
     uint32_t maxNSamples)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3494,6 +3562,7 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxDepth(
     float* minDepth,
     float* maxDepth)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3535,6 +3604,7 @@ BAG_EXTERNAL BagError bagVRRefinementGetMinMaxUncertainty(
     float* minUncert,
     float* maxUncert)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3574,6 +3644,7 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxDepth(
     float minDepth,
     float maxDepth)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3627,6 +3698,7 @@ BAG_EXTERNAL BagError bagVRRefinementSetMinMaxUncertainty(
     float minUncert,
     float maxUncert)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3679,6 +3751,7 @@ BagError bagVRTrackingListLength(
     BagHandle* handle,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3721,6 +3794,7 @@ BagError bagReadVRTrackingListNode(
     BagVRTrackingItem** items,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3775,6 +3849,7 @@ BagError bagReadVRTrackingListSubNode(
     BagVRTrackingItem** items,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3826,6 +3901,7 @@ BagError bagReadVRTrackingListCode(
     BagVRTrackingItem** items,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3877,6 +3953,7 @@ BagError bagReadVRTrackingListSeries(
     BagVRTrackingItem** items,
     uint32_t* numItems)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3921,6 +3998,7 @@ BagError bagWriteVRTrackingListItem(
     BagHandle* handle,
     BagVRTrackingItem* item)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -3966,6 +4044,7 @@ BagError bagWriteVRTrackingListItem(
 BagError bagSortVRTrackingListByNode(
     BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -4013,6 +4092,7 @@ BagError bagSortVRTrackingListByNode(
 BagError bagSortVRTrackingListBySubNode(
     BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -4060,6 +4140,7 @@ BagError bagSortVRTrackingListBySubNode(
 BagError bagSortVRTrackingListBySeries(
     BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
@@ -4107,6 +4188,7 @@ BagError bagSortVRTrackingListBySeries(
 BagError bagSortVRTrackingListByCode(
     BagHandle* handle)
 {
+    auto bag_hook = BagAbortHook();
     if (!handle)
         return BAG_INVALID_BAG_HANDLE;
 
