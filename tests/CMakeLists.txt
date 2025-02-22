@@ -30,6 +30,7 @@ set(TEST_SOURCE_FILES
     test_bag_vrrefinements.cpp
     test_bag_vrrefinementsdescriptor.cpp
     test_bag_vrtrackinglist.cpp
+    test_vr_bag.cpp
 )
 
 source_group("Source Files" FILES ${TEST_SOURCE_FILES})

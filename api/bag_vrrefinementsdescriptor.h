@@ -38,14 +38,15 @@ public:
         float maxUncertainty) & noexcept;
 
 protected:
-    VRRefinementsDescriptor(uint32_t id, uint64_t chunkSize,
-        int compressionLevel);
-    explicit VRRefinementsDescriptor(const Dataset& dataset);
+    VRRefinementsDescriptor(uint32_t id, uint32_t rows, uint32_t cols,
+        uint64_t chunkSize, int compressionLevel);
+    explicit VRRefinementsDescriptor(const Dataset& dataset, uint32_t rows, uint32_t cols);
 
     static std::shared_ptr<VRRefinementsDescriptor> create(const Dataset& dataset,
         uint64_t chunkSize, int compressionLevel);
 
-    static std::shared_ptr<VRRefinementsDescriptor> open(const Dataset& dataset);
+    static std::shared_ptr<VRRefinementsDescriptor> open(const Dataset& dataset,
+        uint32_t rows, uint32_t cols);
 
 private:
     DataType getDataTypeProxy() const noexcept override;

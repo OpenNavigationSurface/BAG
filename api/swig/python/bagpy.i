@@ -35,6 +35,7 @@ namespace std
     %template(DoublePair) pair<double, double>;
     %template(FloatPair) pair<float, float>;
     %template(UInt32Pair) pair<uint32_t, uint32_t>;
+    %template(UInt64Pair) pair<uint64_t, uint64_t>;
     %template(Cover) pair<pair<double, double>, pair<double, double> >;
     %template(FloatVector) vector<float>;
     %template(UInt32Vector) vector<uint32_t>;

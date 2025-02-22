@@ -9,6 +9,7 @@
 
 #include <catch2/catch_all.hpp>
 #include <string>
+#include <tuple>
 
 
 using BAG::Dataset;
@@ -315,6 +316,11 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
 </gmi:MI_Metadata>
 )"};
 
+constexpr const uint32_t kRows = 30;
+constexpr const uint32_t kCols = 40;
+constexpr uint64_t kExpectedChunkSize = 100;
+constexpr unsigned int kExpectedCompressionLevel = 6;
+
 }  // namespace
 
 // NOTE The base class is also tested here.
@@ -328,26 +334,30 @@ TEST_CASE("test layer descriptor creation",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Check that the layer descriptor type matches that was created.");
     CHECK(pDescriptor->getLayerType() == Elevation);
+
+    auto dims = pDescriptor->getDims();
+    UNSCOPED_INFO("Check that the layer descriptor dimensions match that which was created.");
+    CHECK( (std::get<0>(dims) == kRows && std::get<1>(dims) == kCols) );
 
     UNSCOPED_INFO("Check the chunk size is read properly.");
     CHECK(pDescriptor->getChunkSize() == kExpectedChunkSize);
 
     UNSCOPED_INFO("Check the compression level is read properly.");
     CHECK(pDescriptor->getCompressionLevel() == kExpectedCompressionLevel);
+
 }
 
 //  const std::string& getName() const & noexcept;
@@ -360,16 +370,15 @@ TEST_CASE("test layer descriptor get/set name",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     const auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                           kRows, kCols,
+                                                           kExpectedChunkSize,
+                                                           kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     const std::string kExpectedName{"Expected Name"};
@@ -389,23 +398,24 @@ TEST_CASE("test layer descriptor get data type",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify the data type of an Elevation layer descriptor is correct.");
     CHECK(pDescriptor->getDataType() == Layer::getDataType(Elevation));
 
     pDescriptor = SimpleLayerDescriptor::create(*pDataset, Num_Hypotheses,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                kRows, kCols,
+                                                kExpectedChunkSize,
+                                                kExpectedCompressionLevel);
 
     UNSCOPED_INFO("Verify the data type of an Num_Hypotheses layer descriptor is correct.");
     CHECK(pDescriptor->getDataType() == Layer::getDataType(Num_Hypotheses));
@@ -420,23 +430,24 @@ TEST_CASE("test layer descriptor get layer type",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify the layer type of an Elevation layer descriptor is correct.");
     CHECK(pDescriptor->getLayerType() == Elevation);
 
     pDescriptor = SimpleLayerDescriptor::create(*pDataset, Std_Dev,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                kRows, kCols,
+                                                kExpectedChunkSize,
+                                                kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify the layer type of an Std_Dev layer descriptor is correct.");
@@ -453,16 +464,15 @@ TEST_CASE("test layer descriptor get/set min max",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify setting min max does not throw.");
@@ -484,16 +494,15 @@ TEST_CASE("test layer descriptor get internal path",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
-    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset,Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+    auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify Elevation internal path is as expected.");
@@ -501,7 +510,9 @@ TEST_CASE("test layer descriptor get internal path",
     CHECK(pDescriptor->getInternalPath() == Layer::getInternalPath(Elevation));
 
     pDescriptor = SimpleLayerDescriptor::create(*pDataset, Uncertainty,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                kRows, kCols,
+                                                kExpectedChunkSize,
+                                                kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify Uncertainty internal path is as expected.");
@@ -518,16 +529,15 @@ TEST_CASE("test layer descriptor get element size",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify Elevation element size is as expected.");
@@ -545,16 +555,15 @@ TEST_CASE("test descriptor get chunk size",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify getting the chunk size does not throw.");
@@ -573,16 +582,15 @@ TEST_CASE("test descriptor get compression level",
     Metadata metadata;
     metadata.loadFromBuffer(kMetadataXML);
 
-    constexpr uint64_t kExpectedChunkSize = 100;
-    constexpr unsigned int kExpectedCompressionLevel = 6;
-
     auto pDataset = Dataset::create(tmpBagFile, std::move(metadata),
         kExpectedChunkSize, kExpectedCompressionLevel);
     REQUIRE(pDataset);
 
     UNSCOPED_INFO("Check that creating a simple layer descriptor returns something.");
     auto pDescriptor = SimpleLayerDescriptor::create(*pDataset, Elevation,
-        kExpectedChunkSize, kExpectedCompressionLevel);
+                                                     kRows, kCols,
+                                                     kExpectedChunkSize,
+                                                     kExpectedCompressionLevel);
     REQUIRE(pDescriptor);
 
     UNSCOPED_INFO("Verify getting the compression level does not throw.");
@@ -591,5 +599,3 @@ TEST_CASE("test descriptor get compression level",
     UNSCOPED_INFO("Verify getting the compression level matches the expected.");
     CHECK(pDescriptor->getCompressionLevel() == kExpectedCompressionLevel);
 }
-
-

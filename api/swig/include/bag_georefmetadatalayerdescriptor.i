@@ -34,8 +34,8 @@ class GeorefMetadataLayerDescriptor final : public LayerDescriptor
 public:
     static std::shared_ptr<GeorefMetadataLayerDescriptor> create(Dataset& dataset,
         const std::string& name, GeorefMetadataProfile profile, DataType indexType,
-        RecordDefinition definition, uint64_t chunkSize,
-        int compressionLevel);
+        RecordDefinition definition, uint32_t rows, uint32_t cols,
+        uint64_t chunkSize, int compressionLevel);
     %rename(openDataset) open(Dataset& dataset, const std::string& name);
     static std::shared_ptr<GeorefMetadataLayerDescriptor> open(Dataset& dataset,
         const std::string& name);

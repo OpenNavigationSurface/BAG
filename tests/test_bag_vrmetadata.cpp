@@ -411,61 +411,68 @@ TEST_CASE("test vr metadata write read", "[vrmetadata][write][read]")
 {
     const TestUtils::RandomFileGuard tmpBagFile;
 
-    UNSCOPED_INFO("Check dataset was created successfully.");
-    constexpr uint64_t kChunkSize = 100;
-    constexpr unsigned int kCompressionLevel = 6;
-
-    BAG::Metadata metadata;
-    metadata.loadFromBuffer(kMetadataXML);
-
-    auto pDataset = Dataset::create(tmpBagFile, std::move(metadata), kChunkSize,
-        kCompressionLevel);
-    REQUIRE(pDataset);
-
-    UNSCOPED_INFO("Check creating variable resolution layers does not throw.");
-    REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
-
-    UNSCOPED_INFO("Check the variable resolution metadata exists.");
-    auto pVrMetadata = pDataset->getVRMetadata();
-    REQUIRE(pVrMetadata);
-
-    UNSCOPED_INFO("Check VRMetadataDescriptor is the default descriptor.");
-    auto pVrMetadataDescriptor =
-        std::dynamic_pointer_cast<VRMetadataDescriptor>(
-            pVrMetadata->getDescriptor());
-    REQUIRE(pVrMetadataDescriptor);
-
-    UNSCOPED_INFO("Write one record.");
-    constexpr BAG::VRMetadataItem kExpectedItem0{
-        0, 1, 2, 3.45f, 6.789f, 1001.01f, 4004.004f};
-
-    const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
     constexpr uint32_t kRowStart = 0;
     constexpr uint32_t kColumnStart = 0;
     constexpr uint32_t kRowEnd = 0;
     constexpr uint32_t kColumnEnd = 0;
 
-    REQUIRE_NOTHROW(pVrMetadata->write(kRowStart, kColumnStart, kRowEnd,
-        kColumnEnd, buffer));
+    constexpr BAG::VRMetadataItem kExpectedItem0{
+            0, 1, 2, 3.45f, 6.789f, 1001.01f, 4004.004f};
 
-    UNSCOPED_INFO("Read the record back.");
-    auto result = pVrMetadata->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
-    CHECK(result);
+    {  // test create
+        UNSCOPED_INFO("Check dataset was created successfully.");
+        constexpr uint64_t kChunkSize = 100;
+        constexpr unsigned int kCompressionLevel = 6;
 
-    const auto* res = reinterpret_cast<const BAG::VRMetadataItem*>(result.data());
-    UNSCOPED_INFO("Check the expected value of VRMetadataItem::index.");
-    CHECK(res->index == kExpectedItem0.index);
-    UNSCOPED_INFO("Check the expected value of VRMetadataItem::dimensions_x.");
-    CHECK(res->dimensions_x == kExpectedItem0.dimensions_x);
-    UNSCOPED_INFO("Check the expected value of VRMetadataItem::dimensions_y.");
-    CHECK(res->dimensions_y == kExpectedItem0.dimensions_y);
-    UNSCOPED_INFO("Check the expected value of VRMetadataItem::resolution_x.");
-    CHECK(res->resolution_x == kExpectedItem0.resolution_x);
-    UNSCOPED_INFO("Check the expected value of VRMetadataItem::resolution_y.");
-    CHECK(res->resolution_y == kExpectedItem0.resolution_y);
-    UNSCOPED_INFO("Check the expected value of VRMetadataItem::sw_corner_x.");
-    CHECK(res->sw_corner_x == kExpectedItem0.sw_corner_x);
-    UNSCOPED_INFO("Check the expected value of VRMetadataItem::sw_corner_y.");
-    CHECK(res->sw_corner_y == kExpectedItem0.sw_corner_y);
+        BAG::Metadata metadata;
+        metadata.loadFromBuffer(kMetadataXML);
+
+        auto pDataset = Dataset::create(tmpBagFile, std::move(metadata), kChunkSize,
+                                        kCompressionLevel);
+        REQUIRE(pDataset);
+
+        UNSCOPED_INFO("Check creating variable resolution layers does not throw.");
+        REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
+
+        UNSCOPED_INFO("Check the variable resolution metadata exists.");
+        auto pVrMetadata = pDataset->getVRMetadata();
+        REQUIRE(pVrMetadata);
+
+        UNSCOPED_INFO("Check VRMetadataDescriptor is the default descriptor.");
+        auto pVrMetadataDescriptor =
+                std::dynamic_pointer_cast<VRMetadataDescriptor>(
+                        pVrMetadata->getDescriptor());
+        REQUIRE(pVrMetadataDescriptor);
+
+        UNSCOPED_INFO("Write one record.");
+        const auto *buffer = reinterpret_cast<const uint8_t *>(&kExpectedItem0);
+        REQUIRE_NOTHROW(pVrMetadata->write(kRowStart, kColumnStart, kRowEnd,
+                                           kColumnEnd, buffer));
+    }
+
+    {  // test open
+        auto pDataset = Dataset::open(tmpBagFile, BAG_OPEN_READONLY);
+
+        UNSCOPED_INFO("Read the record back.");
+        auto pVrMetadata = pDataset->getVRMetadata();
+        auto result = pVrMetadata->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+        CHECK(result);
+
+        const auto *res = reinterpret_cast<const BAG::VRMetadataItem *>(result.data());
+        UNSCOPED_INFO("Check the expected value of VRMetadataItem::index.");
+        CHECK(res->index == kExpectedItem0.index);
+        UNSCOPED_INFO("Check the expected value of VRMetadataItem::dimensions_x.");
+        CHECK(res->dimensions_x == kExpectedItem0.dimensions_x);
+        UNSCOPED_INFO("Check the expected value of VRMetadataItem::dimensions_y.");
+        CHECK(res->dimensions_y == kExpectedItem0.dimensions_y);
+        UNSCOPED_INFO("Check the expected value of VRMetadataItem::resolution_x.");
+        CHECK(res->resolution_x == kExpectedItem0.resolution_x);
+        UNSCOPED_INFO("Check the expected value of VRMetadataItem::resolution_y.");
+        CHECK(res->resolution_y == kExpectedItem0.resolution_y);
+        UNSCOPED_INFO("Check the expected value of VRMetadataItem::sw_corner_x.");
+        CHECK(res->sw_corner_x == kExpectedItem0.sw_corner_x);
+        UNSCOPED_INFO("Check the expected value of VRMetadataItem::sw_corner_y.");
+        CHECK(res->sw_corner_y == kExpectedItem0.sw_corner_y);
+    }
 }
 
