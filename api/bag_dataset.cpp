@@ -1056,6 +1056,29 @@ std::tuple<double, double> Dataset::gridToGeo(
     return {x, y};
 }
 
+
+hid_t DopenProtector2(hid_t loc_id, const char *name, hid_t dapl_id) {
+    hid_t id = -1;
+    try {
+        id = H5Dopen2(loc_id, name, dapl_id);
+    } catch (std::exception& e) {
+        std::cerr << e.what();
+        id = -1;
+    }
+    return id;
+}
+
+hid_t GopenProtector2(hid_t loc_id, const char *name, hid_t dapl_id) {
+    hid_t id = -1;
+    try {
+        id = H5Gopen2(loc_id, name, dapl_id);
+    } catch (std::exception& e) {
+        std::cerr << e.what();
+        id = -1;
+    }
+    return id;
+}
+
 void handleAbrt(int signum) {
     std::cerr << "\nUnrecoverable HDF5 Error \n";
     exit(signum);
@@ -1095,8 +1118,7 @@ void Dataset::readDataset(
         const std::string internalPath = Layer::getInternalPath(layerType);
         if (internalPath.empty())
             continue;
-
-        const hid_t id = H5Dopen2(bagGroup.getLocId(), internalPath.c_str(),
+        hid_t id = DopenProtector2(bagGroup.getLocId(), internalPath.c_str(),
             H5P_DEFAULT);
         if (id < 0)
             continue;
@@ -1112,7 +1134,7 @@ void Dataset::readDataset(
     // If the BAG is version 1.5+ ...
     if (bagVersion >= 1'005'000)
     {
-        hid_t id = H5Dopen2(bagGroup.getLocId(), NODE_GROUP_PATH, H5P_DEFAULT);
+        hid_t id = DopenProtector2(bagGroup.getLocId(), NODE_GROUP_PATH, H5P_DEFAULT);
         if (id >= 0)
         {
             H5Dclose(id);
@@ -1127,8 +1149,7 @@ void Dataset::readDataset(
                 NODE);
             this->addLayer(InterleavedLegacyLayer::open(*this, *layerDesc));
         }
-
-        id = H5Dopen2(bagGroup.getLocId(), ELEVATION_SOLUTION_GROUP_PATH,
+        id = DopenProtector2(bagGroup.getLocId(), ELEVATION_SOLUTION_GROUP_PATH,
             H5P_DEFAULT);
         if (id >= 0)
         {
@@ -1153,7 +1174,7 @@ void Dataset::readDataset(
     }
 
     // Read optional VR
-    hid_t id = H5Dopen2(bagGroup.getLocId(), VR_TRACKING_LIST_PATH, H5P_DEFAULT);
+    hid_t id = DopenProtector2(bagGroup.getLocId(), VR_TRACKING_LIST_PATH, H5P_DEFAULT);
     if (id >= 0)
     {
         H5Dclose(id);
@@ -1171,7 +1192,7 @@ void Dataset::readDataset(
         }
 
         // optional VRNodeLayer
-        id = H5Dopen2(bagGroup.getLocId(), VR_NODE_PATH, H5P_DEFAULT);
+        id = DopenProtector2(bagGroup.getLocId(), VR_NODE_PATH, H5P_DEFAULT);
         if (id >= 0)
         {
             H5Dclose(id);
@@ -1184,7 +1205,7 @@ void Dataset::readDataset(
     m_pTrackingList = std::unique_ptr<TrackingList>(new TrackingList{*this});
 
     // Read optional Surface Corrections
-    id = H5Dopen2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH, H5P_DEFAULT);
+    id = DopenProtector2(bagGroup.getLocId(), VERT_DATUM_CORR_PATH, H5P_DEFAULT);
     if (id >= 0)
     {
         H5Dclose(id);
@@ -1197,7 +1218,7 @@ void Dataset::readDataset(
     if (bagVersion >= 2'000'000)
     {
         // Add all existing GeorefMetadataLayers
-        id = H5Gopen2(bagGroup.getLocId(), GEOREF_METADATA_PATH, H5P_DEFAULT);
+        id = GopenProtector2(bagGroup.getLocId(), GEOREF_METADATA_PATH, H5P_DEFAULT);
         if (id >= 0)
         {
             H5Gclose(id);
