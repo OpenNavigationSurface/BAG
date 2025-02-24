@@ -1062,7 +1062,7 @@ hid_t DopenProtector2(hid_t loc_id, const char *name, hid_t dapl_id) {
     try {
         id = H5Dopen2(loc_id, name, dapl_id);
     } catch (std::exception& e) {
-        std::stderr << e.what();
+        std::cerr << e.what();
         id = -1;
     }
     return id;
@@ -1073,7 +1073,7 @@ hid_t GopenProtector2(hid_t loc_id, const char *name, hid_t dapl_id) {
     try {
         id = H5Gopen2(loc_id, name, dapl_id);
     } catch (std::exception& e) {
-        std::stderr << e.what();
+        std::cerr << e.what();
         id = -1;
     }
     return id;
