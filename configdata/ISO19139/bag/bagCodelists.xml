@@ -117,6 +117,13 @@
 				</CodeDefinition>
 			</codeEntry>
 			<codeEntry>
+				<CodeDefinition gml:id="BAG_VertUncertCode_noaaProduct_2024">
+					<gml:description>NOAA standard product uncertainty version 2024</gml:description>
+					<gml:descriptionReference>https://repository.library.noaa.gov/view/noaa/61830</gml:descriptionReference>
+					<gml:identifier codeSpace="ISOTC211/19115">noaaProduct_2024</gml:identifier>
+				</CodeDefinition>
+			</codeEntry>
+			<codeEntry>
 				<CodeDefinition gml:id="BAG_VertUncertCode_historicalStdDev">
 					<gml:description>Estimated standard deviation based on historical/archive data</gml:description>
 					<gml:identifier codeSpace="ISOTC211/19115">historicalStdDev</gml:identifier>

@@ -21,18 +21,23 @@
 #include "bag_vrrefinements.h"
 #include "bag_vrrefinementsdescriptor.h"
 
+#include <iostream>
 #include <algorithm>
 #include <array>
 #include <cctype>
 #include <H5Cpp.h>
+#include <H5Exception.h>
 #include <map>
 #include <memory>
 #include <regex>
 #include <string>
 #include <memory>
+#include <csignal>
 
 
 namespace BAG {
+
+using std::cerr;
 
 namespace {
 
@@ -264,7 +269,14 @@ std::shared_ptr<Dataset> Dataset::open(
 #endif
 
     std::shared_ptr<Dataset> pDataset{new Dataset};
-    pDataset->readDataset(fileName, openMode);
+    try
+    {
+        pDataset->readDataset(fileName, openMode);
+    } catch (H5::FileIException &fileExcept)
+    {
+        std::cerr << "\nUnable to open BAG file: " << fileName << " due to error: " << fileExcept.getCDetailMsg();
+        return nullptr;
+    }
 
     return pDataset;
 }
@@ -1044,6 +1056,11 @@ std::tuple<double, double> Dataset::gridToGeo(
     return {x, y};
 }
 
+void handleAbrt(int signum) {
+    std::cerr << "\nUnrecoverable HDF5 Error \n";
+    exit(signum);
+}
+
 //! Read an existing BAG.
 /*!
 \param fileName
@@ -1055,6 +1072,7 @@ void Dataset::readDataset(
     const std::string& fileName,
     OpenMode openMode)
 {
+    signal(SIGABRT, handleAbrt);
     m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
         fileName.c_str(),
         (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},

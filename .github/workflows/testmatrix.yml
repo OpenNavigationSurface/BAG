@@ -4,23 +4,23 @@ on:
   push:
     paths-ignore:
       - 'docs/**'
-      - appveyor.yml
       - readme.*
       - README.*
       - '*.md'
       - '*.svg'
       - '*.png'
-    branches: [ "master", "develop" ]
+      - .github/workflows/testwindows.yml
+    branches: [ "master" ]
   pull_request:
     paths-ignore:
       - 'docs/**'
-      - appveyor.yml
       - readme.*
       - README.*
       - '*.md'
       - '*.svg'
       - '*.png'
-    branches: [ "master", "develop" ]
+      - .github/workflows/testwindows.yml
+    branches: [ "master" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -32,7 +32,7 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: ["3.8", "3.9", "3.10"]
+        python-version: ["3.9", "3.10", "3.11"]
         os: [ubuntu-20.04]
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
@@ -41,7 +41,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
     
     - name: Install dependencies
       run: |
@@ -51,35 +51,30 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=${{github.workspace}}/miniconda/envs/test-environment -DBAG_BUILD_TESTS:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON
+        export CC=${{env.CC}}
+        export CXX=${{env.CXX}}
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DBAG_BUILD_TESTS:BOOL=ON
 
     - name: Build
       # Build your program with the given configuration
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
         export CC=${{env.CC}}
         export CXX=${{env.CXX}}
         cmake --build build
+        python -m pip wheel -w ./wheel/ ./build/api/swig/python
     
     - name: Install
       # Install into conda environment
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
-        cmake --install build
-        python ./build/api/swig/python/setup.py install
+        sudo cmake --install build
+        source python-venv/bin/activate
+        python -m pip install ./wheel/bagPy-*.whl
+        deactivate
 
     - name: Tests
-      # Execute C++ tests
+      # Execute C++ and Python tests
       run: |
-        source "${{github.workspace}}/miniconda/etc/profile.d/conda.sh"
-        hash -r
-        conda activate test-environment
         BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
-        pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
+        source python-venv/bin/activate
+        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
+        deactivate

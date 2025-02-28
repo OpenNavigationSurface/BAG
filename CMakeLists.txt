@@ -1,6 +1,7 @@
-# CMake 3.15+ needed for SWIG version 4.0+ support.
-cmake_minimum_required(VERSION 3.15)
-project(OpenNavSurf-BAG LANGUAGES C CXX VERSION 2.0.1)
+# CMake 3.15+ needed for SWIG version 4.0+ support. 3.18+ needed for Development.Module
+# sub-component support for FindPyton.
+cmake_minimum_required(VERSION 3.18)
+project(OpenNavSurf-BAG LANGUAGES C CXX VERSION 2.0.4)
 set(CMAKE_CXX_STANDARD 14)
 
 # SWIG: use standard target name.
@@ -24,7 +25,15 @@ if(POLICY CMP0115)
     cmake_policy(SET CMP0115 NEW)
 endif()
 
+if(WIN32)
+    set(CMAKE_OBJECT_PATH_MAX 1024)
+endif()
+
+# Local modules
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules" ${CMAKE_MODULE_PATH})
+
 # Options
+option(BAG_BUILD_BAG_LIB "Build baglib" ON)
 option(BAG_BUILD_SHARED_LIBS "Build Shared Libraries" ON)
 option(BAG_BUILD_PYTHON "Build Python bindings using SWIG" OFF)
 option(BAG_BUILD_TESTS "Build Tests" OFF)
@@ -56,12 +65,25 @@ if(BAG_CODE_COVERAGE)
     add_code_coverage_all_targets(EXCLUDE test/* api/bag.cpp api/bag.h)
 endif()
 
+# Generate setup.cfg and setup.py in case Python wheel is later generated
+# via `python setup.py bdist_wheel`.
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/setup.cfg.in
+               ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/setup.cfg)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/setup.py.in
+               ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/setup.py)
+# Also copy pyproject.toml to build tree so that we can build Python wheels
+# if later requested...
+file(COPY ${CMAKE_CURRENT_SOURCE_DIR}/api/swig/python/pyproject.toml
+        DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/api/swig/python/)
 
 if(BAG_BUILD_PYTHON)
     set(BAG_BUILD_SWIG ON)
 endif()
 
-add_subdirectory(api)
+if(BAG_BUILD_BAG_LIB)
+    # Make sure `api` is added after BAG_BUILD_SWIG is set, else Python wheel building will fail.
+    add_subdirectory(api)
+endif()
 
 if(BAG_BUILD_EXAMPLES)
     add_subdirectory(examples)
@@ -72,6 +94,5 @@ if(BAG_BUILD_TESTS)
 endif()
 
 if(BAG_BUILD_DOCS)
-    set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/CMakeModules" ${CMAKE_MODULE_PATH})
     add_subdirectory(docs)
 endif()

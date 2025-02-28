@@ -1,0 +1,20 @@
+name: readthedocs
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - clangxx_osx-arm64
+  - cmake
+  - ninja
+  - hdf5-static
+  - libxml2
+  - swig
+  - catch2
+  - unittest-xml-reporting
+  - doxygen
+  - Sphinx=6.2.1
+  - numpydoc
+  - breathe
+  - myst-parser
+  - sphinx-automodapi
+  - graphviz

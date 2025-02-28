@@ -314,7 +314,7 @@ xmlDoc* createNewDocument()
     xmlDocSetRootElement(pDocument, pRoot);
 
     //Create the root namespace and assign to the root.
-    xmlNs *pRootNameSpace = xmlNewNs(pRoot, XMLCast("http://www.isotc211.org/2005/gmi"), XMLCast("gmi"));
+    xmlNs *pRootNameSpace = xmlNewNs(pRoot, XMLCast(rootNameSpaceUrl), XMLCast("gmi"));
     xmlSetNs(pRoot, pRootNameSpace);
 
     //Add the rest of the required namespaces.

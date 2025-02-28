@@ -1,35 +1,59 @@
-import setuptools.command.install
-import shutil
-from distutils.sysconfig import get_python_lib
+import sys
+import platform
+import os
+import inspect
+
+import cmake_build_extension
+import setuptools
+
+PY_VERSION_MIN = f"{sys.version_info.major}.{sys.version_info.minor}"
+PY_VERSION_MAX = f"{sys.version_info.major}.{sys.version_info.minor+1}"
+PY_VERSION = f"{PY_VERSION_MIN}...<{PY_VERSION_MAX}"
 
 
-class CompiledLibInstall(setuptools.command.install.install):
-    """
-    Specialized install to install to python libs
-    """
+cmake_configure_options = [
+    # This option points CMake to the right Python interpreter, and helps
+    # the logic of FindPython3.cmake to find the active version
+    f"-DPython_LOOKUP_VERSION={PY_VERSION}",
+    '-DCALL_FROM_SETUP_PY:BOOL=ON',
+    '-DBUILD_SHARED_LIBS:BOOL=ON',
+    '-DCMAKE_CXX_STANDARD=14',
+    '-DCMAKE_POSITION_INDEPENDENT_CODE=ON',
+    '-DBAG_BUILD_PYTHON:BOOL=ON',
+    '-DCMAKE_OBJECT_PATH_MAX=1024'
+]
+if platform.system() == 'Windows':
+    # Turn on BAG_CI so that build artifacts aren't collected into 'stage' sub-directory
+    # on Windows, which breaks wheel generation.
+    cmake_configure_options.append('-DBAG_CI:BOOL=ON')
+if CMAKE_PREFIX_PATH := os.getenv('CMAKE_PREFIX_PATH'):
+    print(f"Setting CMake option: -DCMAKE_PREFIX_PATH={CMAKE_PREFIX_PATH}")
+    cmake_configure_options.append(f"-DCMAKE_PREFIX_PATH={CMAKE_PREFIX_PATH}")
+if LIBXML2_LIBRARY := os.getenv('LIBXML2_LIBRARY'):
+    print(f"Setting CMake option: -DLIBXML2_LIBRARY={LIBXML2_LIBRARY}")
+    cmake_configure_options.append(f"-DLIBXML2_LIBRARY={LIBXML2_LIBRARY}")
+if LIBXML2_INCLUDE_DIR := os.getenv('LIBXML2_INCLUDE_DIR'):
+    print(f"Setting CMake option: -DLIBXML2_INCLUDE_DIR={LIBXML2_INCLUDE_DIR}")
+    cmake_configure_options.append(f"-DLIBXML2_INCLUDE_DIR={LIBXML2_INCLUDE_DIR}")
+if SWIG_EXECUTABLE := os.getenv('SWIG_EXECUTABLE'):
+    print(f"Setting CMake option: -DSWIG_EXECUTABLE={SWIG_EXECUTABLE}")
+    cmake_configure_options.append(f"-DSWIG_EXECUTABLE={SWIG_EXECUTABLE}")
 
-    def run(self):
-        """
-        Run method called by setup
-        :return:
-        """
-        # Get filenames from CMake variable
-        filenames = '${PYTHON_INSTALL_FILES}'.split(';')
-
-        # Directory to install to
-        install_dir = get_python_lib()
-
-        # Install files
-        [shutil.copy(filename, install_dir) for filename in filenames]
-
-
-if __name__ == '__main__':
-    setuptools.setup(
-        name='bagPy',
-        version='${PROJECT_VERSION}',
-        packages=['bagPy'],
-        license='BSD 3-Clause License',
-        author='Open Navigation Surface Working Group',
-        author_email='',
-        cmdclass={'install': CompiledLibInstall}
-    )
+setuptools.setup(
+    ext_modules=[
+        cmake_build_extension.CMakeExtension(
+            # This could be anything you like, it is used to create build folders
+            name="SwigBindings",
+            # Name of the resulting package name (import bagPy)
+            install_prefix="bagPy",
+            # Selects the folder where the main CMakeLists.txt is stored
+            # (it could be a subfolder)
+            source_dir="${CMAKE_SOURCE_DIR}",
+            cmake_configure_options=cmake_configure_options
+        )
+    ],
+    cmdclass=dict(
+        # Enable the CMakeExtension entries defined above
+        build_ext=cmake_build_extension.BuildExtension,
+    ),
+)

@@ -1,0 +1,23 @@
+[metadata]
+name = bagPy
+version = ${PROJECT_VERSION}
+description = Python wrappers for OpenNavSurf BAG
+author = Brian Miles
+author_email = bmiles@ccom.unh.edu
+license = BSD 3-Clause License
+project_urls =
+    Source  = https://github.com/OpenNavigationSurface/BAG
+classifiers =
+    Programming Language :: Python :: 3
+    Operating System :: POSIX
+    License :: OSI Approved :: BSD License
+
+[options]
+zip_safe = False
+packages = find:
+package_dir = =${CMAKE_SOURCE_DIR}/api/swig/python
+python_requres = >=3.8
+
+[options.packages.find]
+where =
+    ${CMAKE_SOURCE_DIR}/api/python

@@ -5,9 +5,10 @@ source "$(pwd)/miniconda/etc/profile.d/conda.sh"
 hash -r
 conda env create -q --file docs/readthedocs/environment.yml
 conda activate readthedocs
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B build -S . -DBAG_BUILD_SWIG:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
-cmake --build build -v
+rm -rf doc-build
+cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B doc-build -S . -DPython3_FIND_STRATEGY=LOCATION -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
+cmake --build doc-build -v
 mkdir -p _readthedocs/html/
-ls -R build/docs/sphinx
-cp -r build/docs/sphinx/* _readthedocs/html/
+ls -R doc-build/docs/sphinx
+cp -r doc-build/docs/sphinx/* _readthedocs/html/
 ls -R _readthedocs/html

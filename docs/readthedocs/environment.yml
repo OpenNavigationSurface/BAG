@@ -2,7 +2,7 @@ name: readthedocs
 channels:
   - conda-forge
 dependencies:
-  - python=3.9
+  - python=3.12
   - gxx_linux-64
   - cmake
   - ninja
@@ -11,7 +11,8 @@ dependencies:
   - swig
   - catch2
   - unittest-xml-reporting
-  - Sphinx
+  - doxygen
+  - Sphinx=6.2.1
   - numpydoc
   - breathe
   - myst-parser

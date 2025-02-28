@@ -1,14 +1,62 @@
 # Build instructions
 
+## Documentation
+Documentation are automatically created and published at 
+[readthedocs](https://bag.readthedocs.io). However, if you would like to 
+build the documentation locally, this can easily be done using scripts
+for [Linux](readthedocs/build.bash) or [macOS](readthedocs/build-macos.bash).
+Make sure to run these from the root of the repository.
+
+Once the docs are built, you can access them in the directory 
+`_readthedocs/html`.
+
+To build a PDF of the FSD, run:
+```shell
+cd _readthedocs/html/fsd
+pandoc --pdf-engine=xelatex \
+  index.html FSD-BAGStructure.html FSD-Encapsulation.html \
+  FSD-AxiomaticDefs.html FSD-BAGARB.html FSD-RevisionControl.html \
+  FSD-Extensions.html FSD-Glossary.html FSD-References.html \
+  FSD-Appendices.html RevisionHistory.html -o BAG_FSD_$VERSION.pdf 
+```
+
+## Docker
+You can build a development Linux container using 
+[Dockerfile.dev](../Dockerfile.dev) by running the following command from the
+repository root directory:
+```shell
+docker buildx build -t dev/debian/baglib:latest -f Dockerfile.dev .
+```
+
+To build for a specific architecture, such as AMD64, run:
+```shell
+docker buildx build --platform=linux/amd64 \
+  -t dev/debian/amd64/baglib:latest -f Dockerfile.dev .
+```
+
+To manually build and test inside the development container, run:
+```shell
+docker run -ti -v ./:/tmp/bag:rw dev/debian/baglib:latest /bin/bash
+./scripts/dev-cont-build-bag.sh
+```
+
+After running `dev-cont-build-bag.sh` once, you can iteratively run Python 
+tests by running:
+```shell
+python3 -m pytest python/test_*.py
+```
+
 ## Linux / macOS
 
 ### Configure and build BAG
 
+#### Build C++ library, tests, and example binaries:
 ```shell
-cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local \
- -DBAG_BUILD_TESTS:BOOL=ON -DCODE_COVERAGE:BOOL=ON \
- -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_EXAMPLES:BOOL=ON
-BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data; ninja -C build ccov-all
+$ cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . \
+ -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON \
+ -DBAG_BUILD_PYTHON:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON
+$ cmake --build build -j 8
+$ BAG_SAMPLES_PATH=/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data ninja -C build build ccov-all-export-lcov
 ```
 
 Where `/ABSOLUTE/PATH/TO/REPO/BAG/examples/sample-data` should be replaced by the absolute path
@@ -18,7 +66,7 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 
 > Note: This will build with code coverage report generation for bag_tests when compiled with LLVM or GCC.
 
-> Note: On Linux, make sure to set `CC=clang` and `CXX=clang++` to compile with clang and
+> Note: On Linux/macOS, make sure to set `CC=clang` and `CXX=clang++` to compile with clang and
 > use llvm-cov. GCC and lcov will work, but the coverage exclusion configuration in the BAG project CMake
 > configuration only works properly with LLVM, meaning that lcov coverage will include things like the C++ standard
 > library, which will lead to inaccurate coverage percentages for the BAG tests.
@@ -27,7 +75,54 @@ This will generate an HTML coverage report in `build/ccov/all-merged/index.html`
 > See the Read the Docs [conda environment](readthedocs/environment.yml) for dependencies needed
 > to build documentation.
 
+#### Build Python wheel
+After building the C++ library in the `build` directory as above, 
+you will be able to build a Python wheel for installing `bagPy` as follows:
+```shell
+$ python -m pip wheel -w ./wheel/ ./build/api/swig/python
+```
+
+Then you can install the wheel with:
+```shell
+$ python -m pip install ./wheel/bagPy-*.whl
+```
+
+### Build examples only
+Build examples only as follows:
+```shell
+$ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B bag-examples -S . \
+ -DBAG_BUILD_BAG_LIB:BOOL=OFF -DBAG_BUILD_EXAMPLES:BOOL=ON
+$ cmake --build bag-examples -j 8
+```
+
+> Note: This assumes you have either built `baglib` yourself, or installed
+> binaries via `conda`.
+
+Then run, for example `bag_georefmetadata_layer`: 
+```shell
+$ ./bag-examples/examples/bag_georefmetadata_layer \
+  examples/sample-data/bag_georefmetadata_layer.xml bag_georefmetadata.bag
+```
+
 ## Windows: Visual Studio 2022/2019
+
+### Locally build dependencies
+
+First, from the directory `docs\win-build\baglibs\downloads` run `.\download.ps1` to download dependencies. 
+
+Then, from the directory `docs\win-build\baglibs\install`  run `.\install.ps1` to build dependencies.
+
+Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to 
+`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.0`.
+
+Now, to build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
+run the C++ and Python tests.
+
+Once the build is complete and tests pass, you can import and use `bagPy` in
+the python environment that was just created. You will need to add the contents
+of the `BAG_BIN` directory to the list of DLL search paths, just like the test
+config [script does](../python/conftest.py), otherwise you will get a DLL load
+error when you try to import `bagPy`.
 
 ### Dependencies from Miniconda
 
@@ -47,7 +142,7 @@ conda activate bag-dev-env
 conda install cmake ninja hdf5 libxml2 swig catch2
 ```
 
-> Note: if usnig a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
+> Note: if using a different version of Python, modify `conda create -q -n bag-dev-environment python=3.9` as needed.
 
 #### Configure and build BAG
 
@@ -103,7 +198,12 @@ mkdir \BAG
   - Check out a release tag, e.g., hdf5-1_12_2
   - Build (run in Developer PowerShell in project directory):
   ```
-  cmake -B build -G "Visual Studio 16 2019" -S . -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DCMAKE_BUILD_TYPE:STRING=Release -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON -DZLIB_INCLUDE_DIRS=\BAG\include -DZLIB_LIBRARY:PATH=\BAG\lib\zlibd.lib
+  cmake -B build -G "Visual Studio 16 2019" -S . ^
+   -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DCMAKE_BUILD_TYPE:STRING=Release ^
+   -DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF ^
+   -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON ^
+   -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON ^
+   -DZLIB_INCLUDE_DIRS=\BAG\include -DZLIB_LIBRARY:PATH=\BAG\lib\zlibd.lib
   cmake --build build --config Release
   cmake --install build --config Release
   ```
@@ -118,7 +218,8 @@ mkdir \BAG
   - Check out the latest 3.x+ release, e.g., v3.0.1
   - Build (run in Developer PowerShell in project directory):
   ```
-  cmake -B build -G "Visual Studio 16 2019" -S . -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DBUILD_TESTING:BOOL=OFF
+  cmake -B build -G "Visual Studio 16 2019" -S . ^
+   -DCMAKE_INSTALL_PREFIX:PATH=\BAG -DBUILD_TESTING:BOOL=OFF
   cmake --build build --target install
   ```
   
@@ -134,18 +235,32 @@ mkdir \BAG
   xcopy /s Lib \BAG\lib
   ```
  
- ### Configure BAG project for developing
+ ### Configure and build BAG project for developing
  Without Python bindings:
  ```
- cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG
+ cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release ^
+  -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG
  ```
- 
- With Python bindings:
+
+> Note: Use `-G "Visual Studio 17 2022"` for Visual Studio 2019.
+
+Build and install:
+```
+cmake --build build
+cmake --install build 
+```
+
+#### Build Python wheels:
+After building the C++ library in the `build` directory as above,
+you will be able to build a Python wheel for installing `bagPy` as follows:
  ```
- cmake -G "Visual Studio 16 2019" -B build -S . -DCMAKE_BUILD_CONFIG=Release -DCMAKE_PREFIX_PATH=\BAG -DCMAKE_INSTALL_PREFIX=\BAG -DSWIG_DIR=\BAG -DBAG_BUILD_PYTHON=ON
+python -m pip wheel -w .\wheel\ .\build\api\swig\python
  ```
- 
-  > Note: Use `-G "Visual Studio 17 2022"` for Visual Studio 2019.
+
+Then install the wheel as follows:
+```
+for %%w in (.\wheel\bagPy-*.whl) do python -m pip install %%w
+```
 
 ### Running C++ tests in Visual Studio
 
