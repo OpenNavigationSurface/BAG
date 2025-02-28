@@ -11,7 +11,7 @@ on:
       - '*.png'
       - .github/workflows/testmatrix.yml
       - .github/workflows/testreporting.yml
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
   pull_request:
     paths-ignore:
       - 'docs/**'
@@ -22,7 +22,7 @@ on:
       - '*.png'
       - .github/workflows/testmatrix.yml
       - .github/workflows/testreporting.yml
-    branches: [ "master" ]
+    branches: [ "master", "develop" ]
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
