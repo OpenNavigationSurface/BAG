@@ -12,12 +12,28 @@ function exec
 }
 
 # Make sure 7-zip is in the PATH
-$env:PATH += ";C:\Program Files\7-Zip"
+$env:PATH += ";${env:ProgramFiles}\7-Zip"
+
+# Check that 7-zip is installed
+if (-Not (Test-Path -Path "${env:ProgramFiles}\7-Zip\7z.exe")) {
+    Write-Error "7-zip is not installed"
+    exit 1
+}
 
 # Setup VC dev tools
 $env:ARCHITECTURE="amd64"
-cmd.exe /c "C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\Tools\VsDevCmd.bat" -arch=%ARCHITECTURE%
-$env:PATH += ";C:\Program Files\Microsoft Visual Studio\2022\Community\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
+
+# Find Visual Studio installation path
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$vsPath = & $vswhere -latest -property installationPath
+if ($null -eq $vsPath) {
+    Write-Error "Could not find Visual Studio installation"
+    exit 1
+}
+
+# Setup Visual Studio environment
+cmd.exe /c "$vsPath\Common7\Tools\VsDevCmd.bat" -arch=%ARCHITECTURE%
+$env:PATH += ";$vsPath\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin"
 $env:VS_VERSION = "Visual Studio 17"
 
 # Project-specific variables
