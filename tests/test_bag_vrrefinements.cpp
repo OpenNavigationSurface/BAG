@@ -391,6 +391,14 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
             pVrRefinementsDescriptor->getMinMaxUncertainty();
         CHECK(std::tuple<float, float>(kExpectedMinUncertainty, kExpectedMaxUncertainty) ==
             minMaxUncertainty);
+
+        // Verify varres_refinements layer dimensions...
+        auto vrRef = pDataset->getVRRefinements();
+        REQUIRE(vrRef);
+        const auto vrRefDesc = vrRef->getDescriptor();
+        auto vrRefDescDims = vrRefDesc->getDims();
+        CHECK(std::get<0>(vrRefDescDims) == 0);
+        CHECK(std::get<1>(vrRefDescDims) == 0);
     }
 }
 
@@ -398,7 +406,7 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
 //      uint32_t columnEnd, const uint8_t* buffer);
 //  std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
-TEST_CASE("test vr refinements write read", "[vrrefinements][write][read]")
+TEST_CASE("test vr refinements write read georefmetadata", "[vrrefinements][write][read][georefmetadata]")
 {
     const TestUtils::RandomFileGuard tmpBagFile;
 
@@ -425,27 +433,62 @@ TEST_CASE("test vr refinements write read", "[vrrefinements][write][read]")
         pVrRefinements->getDescriptor());
     CHECK(pDescriptor);
 
-    UNSCOPED_INFO("Write one record.");
-    constexpr BAG::VRRefinementsItem kExpectedItem0{9.8f, 0.654f};
+    UNSCOPED_INFO("Write one VR refinement.");
+    {
+        constexpr BAG::VRRefinementsItem kExpectedItem0{9.8f, 0.654f};
 
-    const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
+        const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
 
-    constexpr uint32_t kRowStart = 0;  // unused
-    constexpr uint32_t kColumnStart = 0;
-    constexpr uint32_t kRowEnd = 0;  // unused
-    constexpr uint32_t kColumnEnd = 0;
+        constexpr uint32_t kRowStart = 0;  // unused
+        constexpr uint32_t kColumnStart = 0;
+        constexpr uint32_t kRowEnd = 0;  // unused
+        constexpr uint32_t kColumnEnd = 0;
 
-    REQUIRE_NOTHROW(pVrRefinements->write(kRowStart, kColumnStart, kRowEnd,
-        kColumnEnd, buffer));
+        REQUIRE_NOTHROW(pVrRefinements->write(kRowStart, kColumnStart, kRowEnd,
+            kColumnEnd, buffer));
 
-    UNSCOPED_INFO("Read the record back.");
-    auto result = pVrRefinements->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
-    CHECK(result);
+        UNSCOPED_INFO("Read the record back.");
+        auto result = pVrRefinements->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+        CHECK(result);
 
-    const auto* res = reinterpret_cast<const BAG::VRRefinementsItem*>(result.data());
-    UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth.");
-    CHECK(res->depth == kExpectedItem0.depth);
-    UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth_uncrt.");
-    CHECK(res->depth_uncrt == kExpectedItem0.depth_uncrt);
+        const auto* res = reinterpret_cast<const BAG::VRRefinementsItem*>(result.data());
+        UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth.");
+        CHECK(res->depth == kExpectedItem0.depth);
+        UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth_uncrt.");
+        CHECK(res->depth_uncrt == kExpectedItem0.depth_uncrt);
+    }
+
+    UNSCOPED_INFO("Write another VR refinement.");
+    {
+        constexpr BAG::VRRefinementsItem kExpectedItem0{10.8f, 1.654f};
+
+        const auto* buffer = reinterpret_cast<const uint8_t*>(&kExpectedItem0);
+
+        constexpr uint32_t kRowStart = 0;  // unused
+        constexpr uint32_t kColumnStart = 1;
+        constexpr uint32_t kRowEnd = 0;  // unused
+        constexpr uint32_t kColumnEnd = 1;
+
+        REQUIRE_NOTHROW(pVrRefinements->write(kRowStart, kColumnStart, kRowEnd,
+            kColumnEnd, buffer));
+
+        UNSCOPED_INFO("Read the record back.");
+        auto result = pVrRefinements->read(kRowStart, kColumnStart, kRowEnd, kColumnEnd);
+        CHECK(result);
+
+        const auto* res = reinterpret_cast<const BAG::VRRefinementsItem*>(result.data());
+        UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth.");
+        CHECK(res->depth == kExpectedItem0.depth);
+        UNSCOPED_INFO("Check the expected value of VRRefinementItem::depth_uncrt.");
+        CHECK(res->depth_uncrt == kExpectedItem0.depth_uncrt);
+    }
+
+    // Verify varres_refinements layer dimensions...
+    auto vrRef = pDataset->getVRRefinements();
+    REQUIRE(vrRef);
+    const auto vrRefDesc = vrRef->getDescriptor();
+    auto vrRefDescDims = vrRefDesc->getDims();
+    CHECK(std::get<0>(vrRefDescDims) == 1);
+    CHECK(std::get<1>(vrRefDescDims) == 2);
 }
 
