@@ -406,7 +406,7 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
 //      uint32_t columnEnd, const uint8_t* buffer);
 //  std::unique_ptr<uint8_t[]> read(uint32_t rowStart,
 //      uint32_t columnStart, uint32_t rowEnd, uint32_t columnEnd) const;
-TEST_CASE("test vr refinements write read georefmetadata", "[vrrefinements][write][read][georefmetadata]")
+TEST_CASE("test vr refinements write read", "[vrrefinements][write][read]")
 {
     const TestUtils::RandomFileGuard tmpBagFile;
 
@@ -483,8 +483,11 @@ TEST_CASE("test vr refinements write read georefmetadata", "[vrrefinements][writ
         CHECK(res->depth_uncrt == kExpectedItem0.depth_uncrt);
     }
 
-    // Verify varres_refinements layer dimensions...
-    auto vrRef = pDataset->getVRRefinements();
+    // Re-open BAG file readonly and verify varres_refinements layer dimensions...
+    pDataset->close();
+    const auto dataset = Dataset::open(tmpBagFile, BAG_OPEN_READONLY);
+    REQUIRE(dataset);
+    auto vrRef = dataset->getVRRefinements();
     REQUIRE(vrRef);
     const auto vrRefDesc = vrRef->getDescriptor();
     auto vrRefDescDims = vrRefDesc->getDims();
