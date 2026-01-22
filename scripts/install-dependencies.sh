@@ -20,11 +20,11 @@ sudo cmake --build build --target install
 
 # Install libxml2
 cd /tmp
-wget https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.13.5/libxml2-v2.13.5.tar.gz
-echo "37cdec8cd20af8ab0decfa2419b09b4337c2dbe9da5615d2a26f547449fecf2a  libxml2-v2.13.5.tar.gz" > libxml2.sum
+wget https://download.gnome.org/sources/libxml2/2.13/libxml2-2.13.9.tar.xz
+echo "a2c9ae7b770da34860050c309f903221c67830c86e4a7e760692b803df95143a  libxml2-2.13.9.tar.xz" > libxml2.sum
 shasum -a 256 -c libxml2.sum
-tar xf libxml2-v2.13.5.tar.gz
-cd libxml2-v2.13.5
+tar xf libxml2-2.13.9.tar.xz
+cd libxml2-2.13.9
 cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr \
   -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
 sudo cmake --build build --target install

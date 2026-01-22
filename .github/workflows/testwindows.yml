@@ -46,7 +46,7 @@ jobs:
             SDK: release-1911
             MSVC_VER: 1920
             ZLIB_URL: "https://github.com/madler/zlib/releases/download/v1.3/zlib13.zip"
-            LIBXML2_URL: "https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.13.5/libxml2-v2.13.5.zip"
+            LIBXML2_URL: "https://download.gnome.org/sources/libxml2/2.13/libxml2-2.13.9.tar.xz"
             HDF5_URL: "https://github.com/HDFGroup/hdf5/archive/refs/tags/hdf5_1.14.5.zip"
             CATCH2_URL: "https://github.com/catchorg/Catch2/archive/refs/tags/v3.4.0.zip"
 
@@ -102,7 +102,7 @@ jobs:
           cd downloads
           $env:ZLIB_ZIP="zlib.zip"
           if(-Not (Test-Path -Path $env:ZLIB_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:ZLIB_URL" -OutFile "$env:ZLIB_ZIP" }
-          $env:LIBXML2_ZIP="libxml2.zip"
+          $env:LIBXML2_ZIP="libxml2.tar.xz"
           if(-Not (Test-Path -Path $env:LIBXML2_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:LIBXML2_URL" -OutFile "$env:LIBXML2_ZIP" }
           $env:HDF5_ZIP="hdf5.zip"
           if(-Not (Test-Path -Path $env:HDF5_ZIP -PathType Leaf)) { Invoke-WebRequest "$env:HDF5_URL" -OutFile "$env:HDF5_ZIP" }
@@ -122,7 +122,7 @@ jobs:
           cd ..
           # libxml2
           exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
-          cd libxml2-v2.13.5
+          cd libxml2-2.13.9
           if(-Not (Test-Path -Path build)) { mkdir build }
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
             -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
