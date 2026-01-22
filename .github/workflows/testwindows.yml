@@ -121,7 +121,7 @@ jobs:
           cmake --build build --config Release --target install -- /nologo /verbosity:minimal 
           cd ..
           # libxml2
-          exec { 7z x ..\downloads\$env:LIBXML2_ZIP }
+          exec { tar xf ..\downloads\$env:LIBXML2_ZIP }
           cd libxml2-2.13.9
           if(-Not (Test-Path -Path build)) { mkdir build }
           cmake -B build -G $env:VS_VERSION -S . $env:CMAKE_INSTALL_PREFIX -DCMAKE_BUILD_TYPE=Release `
