@@ -57,7 +57,7 @@ sudo cmake --build build --target install
 
 popd
 # Create Python venv and install dependencies
-python3 -m venv python-venv --system-site-packages
+python${PYTHON_VERSION} -m venv python-venv --system-site-packages
 source python-venv/bin/activate
 pip install setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
   unittest-xml-reporting pytest pytest-cov pytest-xdist numpy
