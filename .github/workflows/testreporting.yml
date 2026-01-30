@@ -8,6 +8,7 @@ on:
       - README.*
       - '*.md'
       - '*.svg'
+      - .github/workflows/testmatrix.yml
       - .github/workflows/testwindows.yml
     branches: [ "master" ]
   pull_request:

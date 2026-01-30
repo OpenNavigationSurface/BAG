@@ -9,6 +9,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testreporting.yml
       - .github/workflows/testwindows.yml
     branches: [ "master" ]
   pull_request:
@@ -19,6 +20,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testreporting.yml
       - .github/workflows/testwindows.yml
     branches: [ "master" ]
 
