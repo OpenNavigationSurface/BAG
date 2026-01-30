@@ -339,11 +339,6 @@ void VRRefinements::writeProxy(
         if (this->getDataset().expired())
             throw DatasetNotFound{};
 
-//        auto pDataset = this->getDataset().lock();
-        // TODO: Confirm that this is what we want --- this resets the dimensions of the
-        // overall BAG, rather than the layer, which means that it's going to set the
-        // metadata size of the mandatory layers to 1xN ... which is odd.
-//        pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
         // So that the read() call checks correctly against the size of the array, rather
         // than the dimensions of the mandatory layer, we need to keep track of the size
         // of the layer in the layer-specific descriptor.
