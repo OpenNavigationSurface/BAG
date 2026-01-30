@@ -9,6 +9,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testreporting.yml
       - .github/workflows/testwindows.yml
     branches: [ "master" ]
   pull_request:
@@ -19,6 +20,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - .github/workflows/testreporting.yml
       - .github/workflows/testwindows.yml
     branches: [ "master" ]
 
@@ -32,8 +34,8 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: ["3.9", "3.10", "3.11"]
-        os: [ubuntu-20.04]
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+        os: [ubuntu-22.04]
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
@@ -41,7 +43,13 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v6
+
+    - name: Setup Python
+      uses: actions/setup-python@v6
+      with:
+        python-version: ${{ matrix.python-version }}
+        cache: 'pip'
     
     - name: Install dependencies
       run: |
@@ -68,7 +76,7 @@ jobs:
       run: |
         sudo cmake --install build
         source python-venv/bin/activate
-        python -m pip install ./wheel/bagPy-*.whl
+        python -m pip install ./wheel/bag[pP]y-*.whl
         deactivate
 
     - name: Tests

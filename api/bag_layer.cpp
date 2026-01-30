@@ -208,9 +208,8 @@ UInt8Array Layer::read(
     if (m_pBagDataset.expired())
         throw DatasetNotFound{};
 
-    const auto pDataset = m_pBagDataset.lock();
     uint32_t numRows = 0, numColumns = 0;
-    std::tie(numRows, numColumns) = pDataset->getDescriptor().getDims();
+    std::tie(numRows, numColumns) = m_pLayerDescriptor->getDims();
 
     if (columnEnd >= numColumns || rowEnd >= numRows)
         throw InvalidReadSize{};

@@ -502,12 +502,12 @@ void Dataset::createDataset(
 
     // Mandatory Layers
     // Elevation
-    this->addLayer(SimpleLayer::create(*this, Elevation, chunkSize,
-        compressionLevel));
+    this->addLayer(SimpleLayer::create(*this, Elevation, m_pMetadata->rows(), m_pMetadata->columns(),
+        chunkSize, compressionLevel));
 
     // Uncertainty
-    this->addLayer(SimpleLayer::create(*this, Uncertainty, chunkSize,
-        compressionLevel));
+    this->addLayer(SimpleLayer::create(*this, Uncertainty, m_pMetadata->rows(), m_pMetadata->columns(),
+        chunkSize, compressionLevel));
 }
 
 //! Create an optional simple layer.
@@ -546,8 +546,8 @@ Layer& Dataset::createSimpleLayer(
     case Num_Soundings:  //[[fallthrough]];
     case Average_Elevation:  //[[fallthrough]];
     case Nominal_Elevation:
-        return this->addLayer(SimpleLayer::create(*this, type, chunkSize,
-            compressionLevel));
+        return this->addLayer(SimpleLayer::create(*this, type,
+            m_pMetadata->rows(), m_pMetadata->columns(), chunkSize, compressionLevel));
     case Surface_Correction:  //[[fallthrough]];
     case Georef_Metadata:  //[[fallthrough]];
     default:
@@ -1096,10 +1096,17 @@ void Dataset::readDataset(
     OpenMode openMode)
 {
     signal(SIGABRT, handleAbrt);
-    m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
-        fileName.c_str(),
-        (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
-        DeleteH5File{});
+    try {
+        m_pH5file = std::unique_ptr<::H5::H5File, DeleteH5File>(new ::H5::H5File{
+                                                                        fileName.c_str(),
+                                                                        (openMode == BAG_OPEN_READONLY) ? H5F_ACC_RDONLY : H5F_ACC_RDWR},
+                                                                DeleteH5File{});
+    }
+    catch( ::H5::FileIException& e )
+    {
+        std::cerr << "Unable to read BAG file, error was: " << e.getCDetailMsg() << std::endl;
+        e.printErrorStack();
+    }
 
     m_pMetadata = std::make_unique<Metadata>(*this);
 
@@ -1125,7 +1132,10 @@ void Dataset::readDataset(
 
         H5Dclose(id);
 
-        auto layerDesc = SimpleLayerDescriptor::open(*this, layerType);
+        // Pre-stage the layer-specific desciptor.  Note that we don't need to specify the
+        // dimensions of the layer here, since they're set from the HDF5 dataset when it
+        // gets opened with SimpleLayer::open().
+        auto layerDesc = SimpleLayerDescriptor::open(*this, layerType, 0, 0);
         this->addLayer(SimpleLayer::open(*this, *layerDesc));
     }
 
@@ -1187,7 +1197,10 @@ void Dataset::readDataset(
         }
 
         {
-            auto descriptor = VRRefinementsDescriptor::open(*this);
+            // Pre-stage the layer-specific descriptor for the refinements; note that this
+            // doesn't have to have specific dimensions since they're set when the refinements
+            // layer is read in VRRefinements::open().
+            auto descriptor = VRRefinementsDescriptor::open(*this, 0, 0);
             this->addLayer(VRRefinements::open(*this, *descriptor));
         }
 
@@ -1197,7 +1210,10 @@ void Dataset::readDataset(
         {
             H5Dclose(id);
 
-            auto descriptor = VRNodeDescriptor::open(*this);
+            // Pre-stage the layer-specific descriptor for the nodes; note that this doesn't
+            // have to have specific dimensions since they're set when the nodes layer is
+            // read in VRNode::open().
+            auto descriptor = VRNodeDescriptor::open(*this, 0, 0);
             this->addLayer(VRNode::open(*this, *descriptor));
         }
     }

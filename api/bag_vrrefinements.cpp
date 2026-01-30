@@ -4,10 +4,10 @@
 #include "bag_vrrefinements.h"
 #include "bag_vrrefinementsdescriptor.h"
 
+#include <iostream>
 #include <array>
 #include <cstring>  //memset
 #include <H5Cpp.h>
-
 
 namespace BAG {
 
@@ -59,10 +59,10 @@ T readAttribute(
     The layer's descriptor.
     Will never be nullptr.
 */
-    std::shared_ptr<VRRefinementsDescriptor> VRRefinements::getDescriptor() & noexcept
-    {
-        return std::dynamic_pointer_cast<VRRefinementsDescriptor>(Layer::getDescriptor());
-    }
+std::shared_ptr<VRRefinementsDescriptor> VRRefinements::getDescriptor() & noexcept
+{
+    return std::dynamic_pointer_cast<VRRefinementsDescriptor>(Layer::getDescriptor());
+}
 
 //! Retrieve the layer's descriptor. Note: this shadows BAG::Layer.getDescriptor()
 /*!
@@ -70,9 +70,10 @@ T readAttribute(
     The layer's descriptor.
     Will never be nullptr.
 */
-    std::shared_ptr<const VRRefinementsDescriptor> VRRefinements::getDescriptor() const & noexcept {
-        return std::dynamic_pointer_cast<const VRRefinementsDescriptor>(Layer::getDescriptor());
-    }
+std::shared_ptr<const VRRefinementsDescriptor> VRRefinements::getDescriptor() const & noexcept
+{
+    return std::dynamic_pointer_cast<const VRRefinementsDescriptor>(Layer::getDescriptor());
+}
 
 //! Constructor.
 /*!
@@ -151,6 +152,16 @@ std::unique_ptr<VRRefinements> VRRefinements::open(
         new ::H5::DataSet{h5file.openDataSet(VR_REFINEMENT_PATH)},
             DeleteH5dataSet{});
 
+    // We need to know the dimensions of the array on file so that we can update the
+    // descriptor for the layer.
+    hsize_t dims[2];
+    int ndims = h5dataSet->getSpace().getSimpleExtentDims(dims, nullptr);
+    if (ndims != 2) {
+        // Should be 1D according to BAG spec, but some implementations use a 2D array,
+        // so for compatibility's sake, use 2D.
+        throw InvalidVRRefinementDimensions{};
+    }
+    descriptor.setDims(dims[0], dims[1]);
     return std::unique_ptr<VRRefinements>(new VRRefinements{dataset,
         descriptor, std::move(h5dataSet)});
 }
@@ -171,9 +182,9 @@ VRRefinements::createH5dataSet(
     const Dataset& dataset,
     const VRRefinementsDescriptor& descriptor)
 {
-    constexpr hsize_t fileLength = 0;
-    constexpr hsize_t kMaxFileLength = H5S_UNLIMITED;
-    const ::H5::DataSpace h5fileDataSpace{1, &fileLength, &kMaxFileLength};
+    std::array<hsize_t, kRank> fileDims{0, 0};
+    const std::array<hsize_t, kRank> kMaxFileDims{H5S_UNLIMITED, H5S_UNLIMITED};
+    const ::H5::DataSpace h5fileDataSpace{kRank, fileDims.data(), kMaxFileDims.data()};
 
     // Create the creation property list.
     const ::H5::DSetCreatPropList h5createPropList{};
@@ -183,7 +194,8 @@ VRRefinements::createH5dataSet(
     const auto compressionLevel = descriptor.getCompressionLevel();
     if (chunkSize > 0)
     {
-        h5createPropList.setChunk(1, &chunkSize);
+        const std::array<hsize_t, kRank> chunkDims{chunkSize, chunkSize};
+        h5createPropList.setChunk(kRank, chunkDims.data());
 
         if (compressionLevel > 0 && compressionLevel <= kMaxCompressionLevel)
             h5createPropList.setDeflate(compressionLevel);
@@ -237,18 +249,20 @@ UInt8Array VRRefinements::readProxy(
     const hsize_t columns = (columnEnd - columnStart) + 1;
     const hsize_t offset = columnStart;
 
-    const auto fileDataSpace = m_pH5dataSet->getSpace();
-    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
+    const std::array<hsize_t, kRank> sizes{1, columns};
+    const std::array<hsize_t, kRank> offsets{0, offset};
 
-    const auto bufferSize = pDescriptor->getReadBufferSize(1,
-        static_cast<uint32_t>(columns));
+    const auto h5fileDataSpace = m_pH5dataSet->getSpace();
+    h5fileDataSpace.selectHyperslab(H5S_SELECT_SET, sizes.data(), offsets.data());
+
+    const auto bufferSize = pDescriptor->getReadBufferSize(1, columns);
     UInt8Array buffer{bufferSize};
-
-    const ::H5::DataSpace memDataSpace{1, &columns, &columns};
+    
+    const ::H5::DataSpace memDataSpace{kRank, sizes.data(), sizes.data()};
 
     const auto memDataType = makeDataType();
 
-    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, fileDataSpace);
+    m_pH5dataSet->read(buffer.data(), memDataType, memDataSpace, h5fileDataSpace);
 
     return buffer;
 }
@@ -281,11 +295,10 @@ void VRRefinements::writeAttributesProxy() const
 }
 
 //! \copydoc Layer::write
-//! Ignore rows since the data is 1 dimensional.
 void VRRefinements::writeProxy(
-    uint32_t /*rowStart*/,
+    uint32_t rowStart,
     uint32_t columnStart,
-    uint32_t /*rowEnd*/,
+    uint32_t rowEnd,
     uint32_t columnEnd,
     const uint8_t* buffer)
 {
@@ -294,25 +307,31 @@ void VRRefinements::writeProxy(
     if (!pDescriptor)
         throw InvalidLayerDescriptor{};
 
-    const hsize_t columns = (columnEnd - columnStart) + 1;
-    const hsize_t offset = columnStart;
-    const ::H5::DataSpace memDataSpace{1, &columns, &columns};
-
-    // Expand the file data space if needed.
-    std::array<hsize_t, H5S_MAX_RANK> fileLength{};
-    std::array<hsize_t, H5S_MAX_RANK> maxFileLength{};
+    const auto rows = (rowEnd - rowStart) + 1;
+    const auto columns = (columnEnd - columnStart) + 1;
+    const std::array<hsize_t, kRank> count{rows, columns};
+    const std::array<hsize_t, kRank> offset{rowStart, columnStart};
+    const ::H5::DataSpace memDataSpace{kRank, count.data(), count.data()};
 
     ::H5::DataSpace fileDataSpace = m_pH5dataSet->getSpace();
-    const int numDims = fileDataSpace.getSimpleExtentDims(fileLength.data(),
-        maxFileLength.data());
-    if (numDims != 1)
+
+    // Expand the file data space if needed.
+    std::array<hsize_t, kRank> fileDims{};
+    std::array<hsize_t, kRank> maxFileDims{};
+
+    const int numDims = fileDataSpace.getSimpleExtentDims(fileDims.data(),
+                                                          maxFileDims.data());
+    if (numDims != kRank) {
         throw InvalidVRRefinementDimensions{};
+    }
 
-    if (fileLength[0] < (columnEnd + 1))
+    if ((fileDims[0] < (rowEnd + 1)) ||
+        (fileDims[1] < (columnEnd + 1)))
     {
-        const auto newMaxLength = std::max<hsize_t>(fileLength[0], columnEnd + 1);
-
-        m_pH5dataSet->extend(&newMaxLength);
+        const std::array<hsize_t, kRank> newDims{
+                std::max<hsize_t>(fileDims[0], rowEnd + 1),
+                std::max<hsize_t>(fileDims[1], columnEnd + 1)};
+        m_pH5dataSet->extend(newDims.data());
 
         fileDataSpace = m_pH5dataSet->getSpace();
 
@@ -320,11 +339,13 @@ void VRRefinements::writeProxy(
         if (this->getDataset().expired())
             throw DatasetNotFound{};
 
-        auto pDataset = this->getDataset().lock();
-        pDataset->getDescriptor().setDims(1, static_cast<uint32_t>(newMaxLength));
+        // So that the read() call checks correctly against the size of the array, rather
+        // than the dimensions of the mandatory layer, we need to keep track of the size
+        // of the layer in the layer-specific descriptor.
+        pDescriptor->setDims(newDims[0], newDims[1]);
     }
 
-    fileDataSpace.selectHyperslab(H5S_SELECT_SET, &columns, &offset);
+    fileDataSpace.selectHyperslab(H5S_SELECT_SET, count.data(), offset.data());
 
     const auto memDataType = makeDataType();
 

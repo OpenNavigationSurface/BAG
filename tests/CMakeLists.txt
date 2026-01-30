@@ -7,10 +7,10 @@ set(CMAKE_DEBUG_POSTFIX "d")
 
 set(TEST_SOURCE_FILES
     test_main.cpp
-    test_bag_georefmetadata_layer.cpp
     test_bag_compounddatatype.cpp
     test_bag_dataset.cpp
     test_bag_descriptor.cpp
+    test_bag_georefmetadata_layer.cpp
     test_bag_interleavedlegacylayer.cpp
     test_bag_interleavedlegacylayerdescriptor.cpp
     test_bag_metadata.cpp
@@ -30,6 +30,7 @@ set(TEST_SOURCE_FILES
     test_bag_vrrefinements.cpp
     test_bag_vrrefinementsdescriptor.cpp
     test_bag_vrtrackinglist.cpp
+    test_vr_bag.cpp
 )
 
 source_group("Source Files" FILES ${TEST_SOURCE_FILES})

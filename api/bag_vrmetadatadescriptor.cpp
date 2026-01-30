@@ -17,11 +17,12 @@ namespace BAG {
 */
 VRMetadataDescriptor::VRMetadataDescriptor(
     uint32_t id,
+    uint32_t rows, uint32_t cols,
     uint64_t chunkSize,
     int compressionLevel)
     : LayerDescriptor(id, VR_METADATA_PATH,
-        kLayerTypeMapString.at(VarRes_Metadata), VarRes_Metadata, chunkSize,
-        compressionLevel)
+        kLayerTypeMapString.at(VarRes_Metadata), VarRes_Metadata,
+        rows, cols, chunkSize, compressionLevel)
 {
 }
 
@@ -31,8 +32,9 @@ VRMetadataDescriptor::VRMetadataDescriptor(
     The BAG Dataset this layer belongs to.
 */
 VRMetadataDescriptor::VRMetadataDescriptor(
-    const Dataset& dataset)
-    : LayerDescriptor(dataset, VarRes_Metadata, VR_METADATA_PATH)
+    const Dataset& dataset,
+    uint32_t rows, uint32_t cols)
+    : LayerDescriptor(dataset, VarRes_Metadata, rows, cols, VR_METADATA_PATH)
 {
 }
 
@@ -53,9 +55,15 @@ std::shared_ptr<VRMetadataDescriptor> VRMetadataDescriptor::create(
     uint64_t chunkSize,
     int compressionLevel)
 {
+    // The VRMetadataLayer has the same dimensions as the overall BAG file
+    // (since there should be one element for each cell in the mandatory
+    // layers).  Reading this from the dataset layer descriptor enforces this
+    // and keeps the call signature simpler.
+    uint32_t rows, cols;
+    std::tie(rows, cols) = dataset.getDescriptor().getDims();
     return std::shared_ptr<VRMetadataDescriptor>(
-        new VRMetadataDescriptor{dataset.getNextId(), chunkSize,
-            compressionLevel});
+        new VRMetadataDescriptor{dataset.getNextId(), rows, cols,
+            chunkSize, compressionLevel});
 }
 
 //! Open an existing variable resolution metadata descriptor.
@@ -69,8 +77,14 @@ std::shared_ptr<VRMetadataDescriptor> VRMetadataDescriptor::create(
 std::shared_ptr<VRMetadataDescriptor> VRMetadataDescriptor::open(
     const Dataset& dataset)
 {
+    // The VRMetadataLayer has the same dimensions as the overall BAG file
+    // (since there should be one element for each cell in the mandatory
+    // layers).  Reading this from the dataset layer descriptor enforces this
+    // and keeps the call signature simpler.
+    uint32_t rows, cols;
+    std::tie(rows, cols) = dataset.getDescriptor().getDims();
     return std::shared_ptr<VRMetadataDescriptor>(
-        new VRMetadataDescriptor{dataset});
+        new VRMetadataDescriptor{dataset, rows, cols});
 }
 
 

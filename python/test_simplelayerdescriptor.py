@@ -12,6 +12,8 @@ import bagMetadataSamples, testUtils
 datapath = str(pathlib.Path(__file__).parent.absolute()) + "/../examples/sample-data"
 kExpectedChunkSize = 100
 kExpectedCompressionLevel = 6
+kRows = 30
+kCols = 40
 
 
 class TestSimpleLayerDescriptor(unittest.TestCase):
@@ -26,7 +28,7 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
 
@@ -47,7 +49,7 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
 
@@ -68,7 +70,7 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
 
@@ -87,13 +89,13 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
 
         self.assertEqual(descriptor.getLayerType(), Elevation)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Std_Dev,
+        descriptor = SimpleLayerDescriptor.create(dataset, Std_Dev, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
 
@@ -112,7 +114,7 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
 
@@ -137,12 +139,12 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
         self.assertEqual(descriptor.getInternalPath(), Layer.getInternalPath(Elevation))
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Uncertainty,
+        descriptor = SimpleLayerDescriptor.create(dataset, Uncertainty, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
         self.assertEqual(descriptor.getInternalPath(), Layer.getInternalPath(Uncertainty))
@@ -160,7 +162,7 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
         self.assertEqual(descriptor.getElementSize(),
@@ -179,7 +181,7 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
         self.assertEqual(descriptor.getChunkSize(), kExpectedChunkSize)
@@ -197,7 +199,7 @@ class TestSimpleLayerDescriptor(unittest.TestCase):
                                  kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(dataset)
 
-        descriptor = SimpleLayerDescriptor.create(dataset, Elevation,
+        descriptor = SimpleLayerDescriptor.create(dataset, Elevation, kRows, kCols,
                                                   kExpectedChunkSize, kExpectedCompressionLevel)
         self.assertIsNotNone(descriptor)
         self.assertEqual(descriptor.getCompressionLevel(), kExpectedCompressionLevel)

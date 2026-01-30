@@ -358,7 +358,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     --corrector;  // This is 0 based when used.
 
     auto originalRow = layer.read(row, row, columnStart, columnEnd);
-    auto* data = reinterpret_cast<float*>(originalRow.data());
+    auto data = reinterpret_cast<float*>(originalRow.data());
 
     // Obtain cell resolution and SW origin (0,1,1,0).
     double swCornerX = 0., swCornerY = 0.;

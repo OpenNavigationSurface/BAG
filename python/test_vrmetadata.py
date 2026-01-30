@@ -142,6 +142,13 @@ class TestVRMetadata(unittest.TestCase):
         buffer = VRMetadataLayerItems((kExpectedItem0,))
         vrMetadata.write(kRowStart, kColumnStart, kRowEnd, kColumnEnd, buffer)
 
+        # Force a close.
+        del vrMetadata
+        del dataset
+
+        # Re-open read-only
+        dataset = Dataset.openDataset(tmpBagFile.getName(), BAG_OPEN_READONLY)
+        vrMetadata = dataset.getVRMetadata()
 
         # Read the record back.
         buffer = vrMetadata.read(kRowStart, kColumnStart, kRowEnd, kColumnEnd)

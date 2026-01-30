@@ -8,6 +8,7 @@ on:
       - README.*
       - '*.md'
       - '*.svg'
+      - .github/workflows/testmatrix.yml
       - .github/workflows/testwindows.yml
     branches: [ "master" ]
   pull_request:
@@ -50,15 +51,15 @@ jobs:
     # Get current banch name to use it as dest directory
     - name: Extract branch name
       shell: bash
-      run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+      run: echo "branch=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_OUTPUT
       id: extract_branch
 
     - name: Prepare environment
       id: coverage
       run: |
         # Output values to be used by other steps
-        echo "##[set-output name=path;]${BADGE_PATH}"
-        echo "##[set-output name=branch;]${BRANCH}"
+        echo "path=${BADGE_PATH}" >> $GITHUB_OUTPUT
+        echo "branch=${BRANCH}" >> $GITHUB_OUTPUT
       env:
         BADGE_PATH: ${{ steps.extract_branch.outputs.branch }}/coverage.svg
         BRANCH: badges
@@ -79,7 +80,7 @@ jobs:
       run: |
         export CC=${{env.CC}}
         export CXX=${{env.CXX}}
-        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON
+        cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr/local -DBAG_BUILD_EXAMPLES:BOOL=ON -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON
 
     - name: Build
       # Build your program with the given configuration
@@ -90,7 +91,7 @@ jobs:
 
     - name: Run tests
       run: |
-        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests_d -r junit -o build/tests/bag_tests-testreport.xml
+        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests_d -r junit | tee build/tests/bag_tests-testreport.xml
 
     - name: Test Reporter
       uses: mikepenz/action-junit-report@v5
