@@ -1,4 +1,4 @@
-FROM debian:bookworm-slim AS builder
+FROM debian:trixie-slim AS builder
 
 RUN apt-get update && \
     apt-get install -y git build-essential cmake ninja-build openssh-client \
@@ -25,11 +25,11 @@ RUN pip install --break-system-packages \
 
 # Install libxml2
 RUN cd /tmp && \
-  wget https://gitlab.gnome.org/GNOME/libxml2/-/archive/v2.13.5/libxml2-v2.13.5.tar.gz && \
-  echo "37cdec8cd20af8ab0decfa2419b09b4337c2dbe9da5615d2a26f547449fecf2a  libxml2-v2.13.5.tar.gz" > libxml2.sum && \
+  wget https://download.gnome.org/sources/libxml2/2.15/libxml2-2.15.1.tar.xz && \
+  echo "c008bac08fd5c7b4a87f7b8a71f283fa581d80d80ff8d2efd3b26224c39bc54c  libxml2-2.15.1.tar.xz" > libxml2.sum && \
   shasum -a 256 -c libxml2.sum && \
-  tar xf libxml2-v2.13.5.tar.gz && \
-  cd libxml2-v2.13.5 && \
+  tar xf libxml2-2.15.1.tar.xz && \
+  cd libxml2-2.15.1 && \
   cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX:PATH=/usr \
     -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF && \
   cmake --build build --target install
@@ -73,8 +73,7 @@ RUN cd /tmp && \
 RUN ldconfig
 
 # Create Python venv and install dependencies
-RUN python3 -m pip install --break-system-packages --upgrade pip && \
-    python3 -m pip install --break-system-packages setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
+RUN python3 -m pip install --break-system-packages setuptools 'setuptools-scm[toml]' wheel cmake-build-extension \
       unittest-xml-reporting pytest pytest-cov pytest-xdist numpy && \
     # Install GDAL after numpy is installed so that gdal_array bindings will be installed.
     python3 -m pip install --break-system-packages 'GDAL==3.9.3'

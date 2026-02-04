@@ -71,7 +71,7 @@ if(BAG_BUILD_PYTHON)
             ${DOXYGEN_INDEX_FILE}
             MAIN_DEPENDENCY ${SPHINX_SOURCE}/conf.py
             COMMENT "Generating documentation with Sphinx")
-elseif()
+else()
     add_custom_command(OUTPUT ${SPHINX_INDEX_FILE}
             COMMAND
             ${SPHINX_EXECUTABLE} -b html
