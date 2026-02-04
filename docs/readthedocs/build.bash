@@ -11,7 +11,8 @@ rm -rf doc-build
 echo "Installed conda packages..."
 conda list
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B doc-build -S . \
-  -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" -DCMAKE_IGNORE_PREFIX_PATH="/usr;/usr/local" \
+  -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" \
+  -DCMAKE_MODULE_PATH="${CONDA_PREFIX}/lib/cmake" \
   -DPython3_FIND_STRATEGY=LOCATION -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
 cmake --build doc-build -v
 mkdir -p _readthedocs/html/
