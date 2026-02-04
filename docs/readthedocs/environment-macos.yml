@@ -7,8 +7,8 @@ dependencies:
   - cmake
   - ninja
   - hdf5-static
-  - libxml2
-  - swig
+  - libxml2=2.15.1
+  - swig=4.4.1
   - catch2
   - unittest-xml-reporting
   - doxygen
