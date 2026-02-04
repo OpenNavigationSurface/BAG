@@ -14,7 +14,7 @@ cmake -G Ninja -DCMAKE_BUILD_TYPE=Release -B doc-build -S . \
   -DCMAKE_PREFIX_PATH="${CONDA_PREFIX}" -DCMAKE_IGNORE_PATH='/usr;/usr/local' \
   -DCMAKE_FIND_ROOT_PATH="${CONDA_PREFIX}" \
   -DCMAKE_FIND_ROOT_PATH_MODE_PACKAGE=ONLY \
-  -DLibXml2_ROOT="$CONDA_PREFIX" \
+  -DLibXml2_ROOT="${CONDA_PREFIX}/lib/cmake/libxml2/libxml2-config.cmake" \
   -DPython3_FIND_STRATEGY=LOCATION -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_DOCS:BOOL=ON
 cmake --build doc-build -v
 mkdir -p _readthedocs/html/
