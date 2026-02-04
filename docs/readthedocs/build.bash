@@ -1,5 +1,7 @@
 #!/usr/bin/bash
-wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+set -e
+wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh
+export CONDA_PLUGINS_AUTO_ACCEPT_TOS=true
 bash miniconda.sh -b -p $(pwd)/miniconda
 source "$(pwd)/miniconda/etc/profile.d/conda.sh"
 hash -r

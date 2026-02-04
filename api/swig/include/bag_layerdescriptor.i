@@ -54,7 +54,7 @@ public:
     //! Intentionally omit exposing of std::tuple method (unsupported by SWIG),
     //! so it can be exposed with std::pair below.
     //std::tuple<float, float> getMinMax() const noexcept;
-    //const std::tuple<uint64_t, uint64_t>& getDims() const & noexcept;
+    //std::tuple<uint32_t, uint32_t> getDims() const & noexcept;
 
     const std::string& getName() const & noexcept;
 

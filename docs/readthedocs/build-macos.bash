@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
+set -e
 wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -O miniconda.sh
+export CONDA_PLUGINS_AUTO_ACCEPT_TOS=true
 bash miniconda.sh -b -p $(pwd)/miniconda
 source "$(pwd)/miniconda/etc/profile.d/conda.sh"
 hash -r

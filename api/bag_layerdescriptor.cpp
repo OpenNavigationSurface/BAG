@@ -12,13 +12,13 @@ namespace BAG {
 
 //! Constructor.
 /*!
-\parm id
+\param id
     The unique identifier of the layer.
-\parm internalPath
+\param internalPath
     The HDF5 path of the layer.
-\parm name
+\param name
     The name of the layer.
-\parm type
+\param type
     The type of layer.
 \param chunkSize
     The chunk size the HDF5 DataSet will use.
@@ -48,11 +48,11 @@ LayerDescriptor::LayerDescriptor(
 /*!
 \param dataset
     The BAG Dataset this layer belongs to.
-\parm type
+\param type
     The type of layer.
-\parm internalPath
+\param internalPath
     The HDF5 path of the layer.
-\parm name
+\param name
     The name of the layer.
 */
 LayerDescriptor::LayerDescriptor(
