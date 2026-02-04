@@ -6,7 +6,7 @@ dependencies:
   - clangxx_osx-arm64
   - cmake
   - ninja
-  - hdf5-static
+  - hdf5
   - libxml2=2.15.1
   - swig=4.4.1
   - catch2
