@@ -7,8 +7,6 @@ source "$(pwd)/miniconda/etc/profile.d/conda.sh"
 hash -r
 conda env create -q --file docs/readthedocs/environment.yml
 conda activate readthedocs
-conda install -y conda-which
-
 rm -rf doc-build
 echo "Installed conda packages..."
 conda list
