@@ -4,7 +4,7 @@ channels:
 dependencies:
   - python=3.13
   - clangxx_osx-arm64
-  - icu=75.1
+  - icu=73.2
   - cmake
   - ninja
   - hdf5

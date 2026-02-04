@@ -4,7 +4,7 @@ channels:
 dependencies:
   - python=3.13
   - gxx_linux-64
-  - icu=75.1
+  - icu=73.2
   - cmake
   - ninja
   - hdf5
