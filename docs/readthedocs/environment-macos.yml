@@ -8,7 +8,7 @@ dependencies:
   - cmake
   - ninja
   - hdf5
-  - libxml2=2.15.1
+  - libxml2=2.13.9
   - swig=4.4.1
   - catch2
   - unittest-xml-reporting
