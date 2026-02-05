@@ -1,4 +1,12 @@
 =========================
+BAG v.2.0.5 Release Notes
+=========================
+
+January 2026
+-  Bugfix release to properly handle dimensions of optional BAG layers (for example, variable resolution layers) as
+   described [here](https://github.com/OpenNavigationSurface/BAG/issues/109).
+
+=========================
 BAG v.2.0.4 Release Notes
 =========================
 
