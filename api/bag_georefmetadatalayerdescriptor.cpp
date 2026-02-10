@@ -136,9 +136,13 @@ std::shared_ptr<GeorefMetadataLayerDescriptor> GeorefMetadataLayerDescriptor::op
     hsize_t numFields = 0;
     fileDataSpace.getSimpleExtentDims(&numFields, nullptr);
 
+    const auto attrDataType = attribute.getDataType();
+    if (attribute.getStorageSize() != numFields * attrDataType.getSize())
+        throw InvalidValueSize{};
+
     RecordDefinition definition(numFields);
 
-    attribute.read(attribute.getDataType(), definition.data());
+    attribute.read(attrDataType, definition.data());
 
     // Determine chunk size and compression level.
     const auto chunkSize = BAG::getChunkSize(h5file, internalPath);
