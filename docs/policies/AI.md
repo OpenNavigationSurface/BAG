@@ -55,7 +55,7 @@ use of tools under this policy.
 # Extractive Contributions
 
 The reason for our "human-in-the-loop" contribution policy is that processing
-patches, PRs, QEPs, comments, issues, security alerts to BAG is not free --
+patches, PRs, comments, issues, security alerts to BAG is not free --
 it takes maintainer time and energy to review those contributions. Sending the
 unreviewed output of an LLM to open source project maintainers *extracts* work
 from them in the form of design and code review, so we call this kind of
@@ -105,7 +105,7 @@ moving in the right direction, maintainers should apply the `extractive` label
 to help other reviewers prioritize their review time.
 
 If a contributor fails to make their change meaningfully less extractive,
-maintainers may lock the conversation and/or close the pull request/issue/QEP.
+maintainers may lock the conversation and/or close the pull request/issue.
 In case of repeated violations of our policy, the BAG project reserves itself
 the right to ban temporarily or definitely the infringing person.
 
