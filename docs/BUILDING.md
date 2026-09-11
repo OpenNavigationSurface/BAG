@@ -40,6 +40,11 @@ docker run -ti -v ./:/tmp/bag:rw dev/debian/baglib:latest /bin/bash
 ./scripts/dev-cont-build-bag.sh
 ```
 
+If building in an IDE, we recommend the following CMake flags:
+```
+-G Ninja -DCMAKE_BUILD_TYPE=Debug -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_EXAMPLES:BOOL=ON
+```
+
 After running `dev-cont-build-bag.sh` once, you can iteratively run Python 
 tests by running:
 ```shell
