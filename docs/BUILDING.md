@@ -51,6 +51,11 @@ tests by running:
 python3 -m pytest python/test_*.py
 ```
 
+Note: If running tests manually via `./build/tests/bag_tests_d` and a test is throwing
+an exception, you can see the details of where the exception is being thrown by running
+the tests in a debugger, e.g.: `gdb ./build/tests/bag_tests_d` then typing `catch throw`
+then `run`.
+
 ## Linux / macOS
 
 ### Configure and build BAG

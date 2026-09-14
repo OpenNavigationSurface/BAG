@@ -102,7 +102,7 @@ jobs:
     - name: Run test coverage
       # Execute C++ tests
       run: |
-        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ninja -C build ccov-all-export-lcov
+        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ninja -C build ccov-bag_tests
 
     - name: Test coverage reporter
       uses: zgosalvez/github-actions-report-lcov@v4

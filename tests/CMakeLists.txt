@@ -14,6 +14,8 @@ set(TEST_SOURCE_FILES
     test_bag_interleavedlegacylayer.cpp
     test_bag_interleavedlegacylayerdescriptor.cpp
     test_bag_metadata.cpp
+    test_bag_metadata_import.cpp
+    test_bag_metadata_export.cpp
     test_bag_record.cpp
     test_bag_simplelayer.cpp
     test_bag_simplelayerdescriptor.cpp

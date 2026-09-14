@@ -1,7 +1,7 @@
 FROM debian:trixie-slim AS builder
 
 RUN apt-get update && \
-    apt-get install -y git build-essential cmake ninja-build openssh-client swig doxygen catch2 lcov \
+    apt-get install -y git build-essential cmake ninja-build openssh-client swig doxygen lcov \
     python3-dev python3-doc python3-venv python3-pip python3-setuptools python3-setuptools-scm python3-wheel \
     python3-pytest python3-pytest-cov python3-pytest-xdist python3-numpy python3-cmake-build-extension \
     python3-gdal gdal-bin \
@@ -34,6 +34,16 @@ RUN cd /tmp && \
   cd libxml2-2.15.1 && \
   cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Debug -DCMAKE_INSTALL_PREFIX:PATH=/usr \
     -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF && \
+  cmake --build build --target install
+
+# Install newish version of Catch2
+RUN cd /tmp && \
+  wget https://github.com/catchorg/Catch2/archive/refs/tags/v3.16.0.tar.gz && \
+  echo "0957cae5821b17ce07f0833aaa52b5137643a8382203221f363a8303c109af34  v3.16.0.tar.gz" > catch2.sum && \
+  shasum -a 256 -c catch2.sum && \
+  tar xf v3.16.0.tar.gz && \
+  cd Catch2-3.16.0 && \
+  cmake -B build -G Ninja -S . -DCMAKE_INSTALL_PREFIX:PATH=/usr -DBUILD_TESTING:BOOL=OFF && \
   cmake --build build --target install
 
 # Install HDF5
