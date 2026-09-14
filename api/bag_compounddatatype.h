@@ -93,6 +93,7 @@ public:
         The object to be moved from.
     */
     CompoundDataType(CompoundDataType&& other)
+        : type(other.type)
     {
         switch (type)
         {
