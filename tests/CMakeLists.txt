@@ -34,6 +34,7 @@ set(TEST_SOURCE_FILES
     test_bag_vrtrackinglist.cpp
     test_bag_exceptions.cpp
     test_bag_attributeinfo.cpp
+    test_bag_legacy_crs.cpp
     test_vr_bag.cpp
 )
 
