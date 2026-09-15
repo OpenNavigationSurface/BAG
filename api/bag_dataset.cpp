@@ -1105,7 +1105,7 @@ void Dataset::readDataset(
     catch( ::H5::FileIException& e )
     {
         std::cerr << "Unable to read BAG file, error was: " << e.getCDetailMsg() << std::endl;
-        e.printErrorStack();
+        throw;
     }
 
     m_pMetadata = std::make_unique<Metadata>(*this);
