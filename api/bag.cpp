@@ -145,6 +145,9 @@ BagError bagFileOpen(
         auto pHandle = std::make_unique<BagHandle>();
 
         pHandle->dataset = BAG::Dataset::open(std::string{fileName}, accessMode);
+        if (pHandle->dataset == nullptr) {
+            return BAG_NO_FILE_FOUND;
+        }
 
         *handle = pHandle.release();
     }

@@ -61,8 +61,7 @@ endif()
 if(BAG_CODE_COVERAGE)
     set(CODE_COVERAGE ON CACHE INTERNAL "Turn on code coverage")
     include(CMakeModules/code-coverage.cmake)
-    # Exclude C wrapper for now since our tests only target C++ code currently
-    add_code_coverage_all_targets(EXCLUDE test/* api/bag.cpp api/bag.h
+    add_code_coverage_all_targets(EXCLUDE test/*
             LCOV_OPTIONS --rc branch_coverage=1
             GENHTML_OPTIONS --branch-coverage
     )
