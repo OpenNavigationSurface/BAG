@@ -9,6 +9,8 @@ source venv-docker/bin/activate
 pip install -r requirements-dev.txt
 pip install mypy
 
+# Create our own lcov config file to make sure branch coverage is always included
+printf 'branch_coverage = 1\nno_exception_branch = 1\n' > ~/.lcovrc
 # Configure CMake
 cmake -G Ninja -DCMAKE_BUILD_TYPE=Debug -B build -S . \
   -DCMAKE_INSTALL_PREFIX=/usr -DBAG_BUILD_EXAMPLES:BOOL=ON -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON

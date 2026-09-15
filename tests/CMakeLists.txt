@@ -90,5 +90,8 @@ include(CTest)
 include(Catch)
 
 if(BAG_CODE_COVERAGE)
-    target_code_coverage(bag_tests AUTO ALL EXCLUDE tests/*)
+    target_code_coverage(bag_tests AUTO ALL EXCLUDE tests/*
+            LCOV_OPTIONS --rc branch_coverage=1
+            GENHTML_OPTIONS --branch-coverage
+    )
 endif()
