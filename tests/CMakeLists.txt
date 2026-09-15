@@ -32,6 +32,8 @@ set(TEST_SOURCE_FILES
     test_bag_vrrefinements.cpp
     test_bag_vrrefinementsdescriptor.cpp
     test_bag_vrtrackinglist.cpp
+    test_bag_exceptions.cpp
+    test_bag_attributeinfo.cpp
     test_vr_bag.cpp
 )
 
