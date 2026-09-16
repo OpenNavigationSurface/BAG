@@ -360,6 +360,14 @@ TEST_CASE("test dataset reading", "[dataset][open][getLayerTypes][createLayer]")
     }
 }
 
+TEST_CASE("test dataset reading, invalid metadata", "[dataset][open][invalidMetadata]")
+{
+    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+    "/sample-bad-md.bag"};
+
+    REQUIRE_THROWS(Dataset::open(bagFileName, BAG_OPEN_READONLY));
+}
+
 //  static std::shared_ptr<Dataset> create(const std::string &fileName,
 //      const Metadata& metadata);
 TEST_CASE("test dataset creation", "[dataset][create][getLayerTypes][open]")

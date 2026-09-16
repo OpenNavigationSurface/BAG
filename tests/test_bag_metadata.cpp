@@ -308,6 +308,8 @@ const std::string kXMLv2MetadataBuffer{R"(<?xml version="1.0" encoding="UTF-8"?>
 	</gmd:metadataConstraints>
 </gmi:MI_Metadata>)"};
 
+	const std::string kXMLv2MetadataBufferInvalid{R"(This is not an XML document.\n)"};
+
 }  // namespace
 
 //  Metadata();
@@ -332,6 +334,7 @@ TEST_CASE("test metadata construction and destruction", "[metadata][constructor]
         REQUIRE(pDataset);
 
         Metadata metadata(*pDataset);
+    	CHECK(metadata.getXMLlength() == 11005);
         CHECK(metadata.llCornerX() == Approx{687910.0});
         auto wkt = metadata.horizontalReferenceSystemAsWKT();
         CHECK(!wkt.empty());
@@ -420,3 +423,37 @@ TEST_CASE("test load from buffer",
     CHECK(metadata.columns() == 100);
 }
 
+TEST_CASE("test load from buffer", "[metadata][loadFromBuffer][invalid]")
+{
+	Metadata metadata;
+	REQUIRE_THROWS(metadata.loadFromBuffer(kXMLv2MetadataBufferInvalid));
+}
+
+TEST_CASE("test load from buffer", "[metadata][loadFromFile][invalid]")
+{
+	const std::string xmlFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+	"/invalid.xml"};
+
+	Metadata metadata;
+	REQUIRE_THROWS(metadata.loadFromFile(xmlFileName));
+}
+
+TEST_CASE("test dataset reading, metadata", "[dataset][open][metadata]")
+{
+	const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+	"/sample.bag"};
+
+	auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+	REQUIRE(dataset);
+
+	Metadata metadata(dataset);
+	REQUIRE(metadata.getXMLlength() == 11005);
+}
+
+TEST_CASE("test dataset reading, no metadata", "[dataset][open][noMetadata]")
+{
+	const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+	"/sample-no-md.bag"};
+
+	REQUIRE_THROWS(Dataset::open(bagFileName, BAG_OPEN_READONLY));
+}
