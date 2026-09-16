@@ -25,6 +25,6 @@ stubgen -m bagPy -o ./python
 # Run tests
 export BAG_HOME=/tmp/bag/configdata
 export BAG_SAMPLES_PATH=/tmp/bag/examples/sample-data
-# To run tests without coverage, run: ./build/tests/bag_tests_d
+# To run tests without coverage reporting, run: ./build/tests/bag_tests_d
 ninja -C build ccov-bag_tests
 pytest python/test_*.py

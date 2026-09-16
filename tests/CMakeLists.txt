@@ -26,6 +26,7 @@ set(TEST_SOURCE_FILES
     test_bag_surfacecorrections.cpp
     test_bag_surfacecorrectionsdescriptor.cpp
     test_bag_trackinglist.cpp
+    test_bag_util.cpp
     test_bag_valuetable.cpp
     test_bag_vrmetadata.cpp
     test_bag_vrmetadatadescriptor.cpp

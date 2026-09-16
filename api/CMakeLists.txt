@@ -9,11 +9,11 @@ configure_file(${BAG_VERSION_H_IN} ${BAG_VERSION_H_OUT})
 set(BAG_SOURCE_FILES
     bag.cpp
     bag_attributeinfo.cpp
-    bag_georefmetadatalayer.cpp
-    bag_georefmetadatalayerdescriptor.cpp
     bag_dataset.cpp
     bag_deleteh5dataset.cpp
     bag_descriptor.cpp
+    bag_georefmetadatalayer.cpp
+    bag_georefmetadatalayerdescriptor.cpp
     bag_hdfhelper.cpp
     bag_interleavedlegacylayer.cpp
     bag_interleavedlegacylayerdescriptor.cpp
@@ -30,6 +30,7 @@ set(BAG_SOURCE_FILES
     bag_surfacecorrections.cpp
     bag_surfacecorrectionsdescriptor.cpp
     bag_trackinglist.cpp
+    bag_util.cpp
     bag_valuetable.cpp
     bag_vrmetadata.cpp
     bag_vrmetadatadescriptor.cpp
@@ -50,8 +51,6 @@ set(BAG_HEADER_FILES
     bag_attributeinfo.h
     bag_c_types.h
     bag_compounddatatype.h
-    bag_georefmetadatalayer.h
-    bag_georefmetadatalayerdescriptor.h
     bag_config.h
     bag_dataset.h
     bag_deleteh5dataset.h
@@ -59,6 +58,8 @@ set(BAG_HEADER_FILES
     bag_errors.h
     bag_exceptions.h
     bag_fordec.h
+    bag_georefmetadatalayer.h
+    bag_georefmetadatalayerdescriptor.h
     bag_hdfhelper.h
     bag_interleavedlegacylayer.h
     bag_interleavedlegacylayerdescriptor.h
@@ -76,6 +77,11 @@ set(BAG_HEADER_FILES
     bag_surfacecorrections.h
     bag_surfacecorrectionsdescriptor.h
     bag_trackinglist.h
+    bag_types.h
+    bag_uint8array.h
+    bag_util.h
+    bag_valuetable.h
+    bag_version.h
     bag_vrmetadata.h
     bag_vrmetadatadescriptor.h
     bag_vrnode.h
@@ -83,10 +89,6 @@ set(BAG_HEADER_FILES
     bag_vrrefinements.h
     bag_vrrefinementsdescriptor.h
     bag_vrtrackinglist.h
-    bag_types.h
-    bag_uint8array.h
-    bag_valuetable.h
-    bag_version.h
 )
 source_group("Header Files" FILES ${BAG_HEADER_FILES} ${BAG_PRIVATE_HEADER_FILES})
 

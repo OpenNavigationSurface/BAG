@@ -11,6 +11,7 @@
 #include "bag_surfacecorrections.h"
 #include "bag_surfacecorrectionsdescriptor.h"
 #include "bag_trackinglist.h"
+#include "bag_util.h"
 #include "bag_valuetable.h"
 #include "bag_vrmetadata.h"
 #include "bag_vrmetadatadescriptor.h"
@@ -36,82 +37,6 @@
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-
-
-namespace {
-
-//! Convert a BAG::CompoundDataType (C++) into a BagCompoundDataType (C).
-/*!
-\param field
-    The BAG::CompoundDataType.
-
-\return
-    The BagCompoundDataType created from \e field.
-*/
-BagCompoundDataType getValue(
-    const BAG::CompoundDataType& field)
-{
-    BagCompoundDataType result{};
-
-    result.type = field.getType();
-
-    switch(result.type)
-    {
-    case DT_FLOAT32:
-        result.data.f = field.asFloat();
-        break;
-    case DT_UINT32:
-        result.data.ui32 = field.asUInt32();
-        break;
-    case DT_BOOLEAN:
-        result.data.b = field.asBool();
-        break;
-    case DT_STRING:  // Copy the string as it will go out of scope.
-    {
-        const char* const value = field.asString().c_str();
-        const auto fieldLen = strlen(value) + 1;
-        result.data.c = new char[fieldLen];
-        memcpy(result.data.c, value, fieldLen);
-        break;
-    }
-    default:
-        result.type = DT_UNKNOWN_DATA_TYPE;
-        break;
-    }
-
-    return result;
-}
-
-//! Convert a BagCompoundDataType (C) into a BAG::CompoundDataType (C++).
-/*!
-\param field
-    The BagCompoundDataType.
-
-\return
-    The BAG::CompoundDataType created from \e field.
-*/
-BAG::CompoundDataType getValue(
-    const BagCompoundDataType& field)
-{
-    switch (field.type)
-    {
-    case DT_FLOAT32:
-        return BAG::CompoundDataType{field.data.f};
-    case DT_UINT32:
-        return BAG::CompoundDataType{field.data.ui32};
-    case DT_BOOLEAN:
-        return BAG::CompoundDataType{field.data.b};
-    case DT_STRING:
-    {
-        const char* value = field.data.c;
-        return BAG::CompoundDataType{std::string{value}};
-    }
-    default:
-        return {};
-    }
-}
-
-}  // namespace
 
 //! Open the specified BAG.
 /*!
@@ -2269,7 +2194,7 @@ BagError bagGetGeorefMetadataLayerRecords(
         {
             // Copy the field
             auto& outField = pRecord[fieldIndex++];
-            outField = getValue(field);
+            outField = BAG::getValue(field);
         }
     }
 
@@ -2323,7 +2248,7 @@ BagError bagGetGeorefMetadataLayerValueByName(
         const auto& val = georefMetadataLayer->getValueTable().getValue(recordIndex,
             fieldName);
 
-        *value = getValue(val);
+        *value = BAG::getValue(val);
     }
     catch(const BAG::ValueNotFound& /*e*/)
     {
@@ -2540,7 +2465,7 @@ BagError bagAddGeorefMetadataLayerRecord(
 
     size_t index = 0;
     for (auto& field : rec)
-        field = getValue(record[index++]);
+        field = BAG::getValue(record[index++]);
 
     try
     {
@@ -2610,7 +2535,7 @@ BagError bagAddGeorefMetadataLayerRecords(
         size_t fieldIndex = 0;
 
         for (auto& field : rec)
-            field = getValue(records[recordIndex][fieldIndex++]);
+            field = BAG::getValue(records[recordIndex][fieldIndex++]);
 
         ++recordIndex;
     }
@@ -2674,7 +2599,7 @@ BagError bagGeorefMetadataLayerSetValueByName(
         return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
-    const auto val = getValue(*value);
+    const auto val = BAG::getValue(*value);
 
     try
     {
@@ -2738,7 +2663,7 @@ BagError bagGeorefMetadataLayerSetValueByIndex(
         return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
-    const auto val = getValue(*value);
+    const auto val = BAG::getValue(*value);
 
     try
     {
