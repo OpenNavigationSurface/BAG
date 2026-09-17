@@ -1,6 +1,7 @@
 
 #include "test_utils.h"
 #include <bag_dataset.h>
+#include <bag_simplelayer.h>
 #include <bag_surfacecorrections.h>
 #include <bag_surfacecorrectionsdescriptor.h>
 
@@ -126,190 +127,190 @@ const std::string kMetadataXML{R"(<?xml version="1.0" encoding="UTF-8" standalon
     PARAMETER["false_easting",500000],
     PARAMETER["false_northing",0],
     UNIT["metre",1]]</gco:CharacterString>
-                    </gmd:code>
-                    <gmd:codeSpace>
-                        <gco:CharacterString>WKT</gco:CharacterString>
-                    </gmd:codeSpace>
-                </gmd:RS_Identifier>
-            </gmd:referenceSystemIdentifier>
-        </gmd:MD_ReferenceSystem>
-    </gmd:referenceSystemInfo>
-    <gmd:referenceSystemInfo>
-        <gmd:MD_ReferenceSystem>
-            <gmd:referenceSystemIdentifier>
-                <gmd:RS_Identifier>
-                    <gmd:code>
-                        <gco:CharacterString>VERT_CS["Alicante height",
+					</gmd:code>
+					<gmd:codeSpace>
+						<gco:CharacterString>WKT</gco:CharacterString>
+					</gmd:codeSpace>
+				</gmd:RS_Identifier>
+			</gmd:referenceSystemIdentifier>
+		</gmd:MD_ReferenceSystem>
+	</gmd:referenceSystemInfo>
+	<gmd:referenceSystemInfo>
+		<gmd:MD_ReferenceSystem>
+			<gmd:referenceSystemIdentifier>
+				<gmd:RS_Identifier>
+					<gmd:code>
+						<gco:CharacterString>VERT_CS["Alicante height",
     VERT_DATUM["Alicante",2000]]</gco:CharacterString>
-                    </gmd:code>
-                    <gmd:codeSpace>
-                        <gco:CharacterString>WKT</gco:CharacterString>
-                    </gmd:codeSpace>
-                </gmd:RS_Identifier>
-            </gmd:referenceSystemIdentifier>
-        </gmd:MD_ReferenceSystem>
-    </gmd:referenceSystemInfo>
-    <gmd:identificationInfo>
-        <bag:BAG_DataIdentification>
-            <gmd:citation>
-                <gmd:CI_Citation>
-                    <gmd:title>
-                        <gco:CharacterString>Name of dataset input</gco:CharacterString>
-                    </gmd:title>
-                    <gmd:date>
-                        <gmd:CI_Date>
-                            <gmd:date>
-                                <gco:Date>2008-10-21</gco:Date>
-                            </gmd:date>
-                            <gmd:dateType>
-                                <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</gmd:CI_DateTypeCode>
-                            </gmd:dateType>
-                        </gmd:CI_Date>
-                    </gmd:date>
-                    <gmd:citedResponsibleParty>
-                        <gmd:CI_ResponsibleParty>
-                            <gmd:individualName>
-                                <gco:CharacterString>Person responsible for input data</gco:CharacterString>
-                            </gmd:individualName>
-                            <gmd:role>
-                                <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator">originator</gmd:CI_RoleCode>
-                            </gmd:role>
-                        </gmd:CI_ResponsibleParty>
-                    </gmd:citedResponsibleParty>
-                </gmd:CI_Citation>
-            </gmd:citation>
-            <gmd:abstract>
-                <gco:CharacterString>Sample Metadata</gco:CharacterString>
-            </gmd:abstract>
-            <gmd:status>
-                <gmd:MD_ProgressCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ProgressCode" codeListValue="completed">completed</gmd:MD_ProgressCode>
-            </gmd:status>
-            <gmd:spatialRepresentationType>
-                <gmd:MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">grid</gmd:MD_SpatialRepresentationTypeCode>
-            </gmd:spatialRepresentationType>
-            <gmd:language>
-                <gmd:LanguageCode codeList="http://www.loc.gov/standards/iso639-2/" codeListValue="eng">eng</gmd:LanguageCode>
-            </gmd:language>
-            <gmd:characterSet>
-                <gmd:MD_CharacterSetCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8">utf8</gmd:MD_CharacterSetCode>
-            </gmd:characterSet>
-            <gmd:topicCategory>
-                <gmd:MD_TopicCategoryCode>elevation</gmd:MD_TopicCategoryCode>
-            </gmd:topicCategory>
-            <gmd:extent>
-                <gmd:EX_Extent>
-                    <gmd:geographicElement>
-                        <gmd:EX_GeographicBoundingBox>
-                            <gmd:westBoundLongitude>
-                                <gco:Decimal>-66.371629</gco:Decimal>
-                            </gmd:westBoundLongitude>
-                            <gmd:eastBoundLongitude>
-                                <gco:Decimal>-66.316454</gco:Decimal>
-                            </gmd:eastBoundLongitude>
-                            <gmd:southBoundLatitude>
-                                <gco:Decimal>50.114053</gco:Decimal>
-                            </gmd:southBoundLatitude>
-                            <gmd:northBoundLatitude>
-                                <gco:Decimal>50.180077</gco:Decimal>
-                            </gmd:northBoundLatitude>
-                        </gmd:EX_GeographicBoundingBox>
-                    </gmd:geographicElement>
-                </gmd:EX_Extent>
-            </gmd:extent>
-            <bag:verticalUncertaintyType>
+					</gmd:code>
+					<gmd:codeSpace>
+						<gco:CharacterString>WKT</gco:CharacterString>
+					</gmd:codeSpace>
+				</gmd:RS_Identifier>
+			</gmd:referenceSystemIdentifier>
+		</gmd:MD_ReferenceSystem>
+	</gmd:referenceSystemInfo>
+	<gmd:identificationInfo>
+		<bag:BAG_DataIdentification>
+			<gmd:citation>
+				<gmd:CI_Citation>
+					<gmd:title>
+						<gco:CharacterString>Name of dataset input</gco:CharacterString>
+					</gmd:title>
+					<gmd:date>
+						<gmd:CI_Date>
+							<gmd:date>
+								<gco:Date>2008-10-21</gco:Date>
+							</gmd:date>
+							<gmd:dateType>
+								<gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</gmd:CI_DateTypeCode>
+							</gmd:dateType>
+						</gmd:CI_Date>
+					</gmd:date>
+					<gmd:citedResponsibleParty>
+						<gmd:CI_ResponsibleParty>
+							<gmd:individualName>
+								<gco:CharacterString>Person responsible for input data</gco:CharacterString>
+							</gmd:individualName>
+							<gmd:role>
+								<gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="originator">originator</gmd:CI_RoleCode>
+							</gmd:role>
+						</gmd:CI_ResponsibleParty>
+					</gmd:citedResponsibleParty>
+				</gmd:CI_Citation>
+			</gmd:citation>
+			<gmd:abstract>
+				<gco:CharacterString>Sample Metadata</gco:CharacterString>
+			</gmd:abstract>
+			<gmd:status>
+				<gmd:MD_ProgressCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ProgressCode" codeListValue="completed">completed</gmd:MD_ProgressCode>
+			</gmd:status>
+			<gmd:spatialRepresentationType>
+				<gmd:MD_SpatialRepresentationTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_SpatialRepresentationTypeCode" codeListValue="grid">grid</gmd:MD_SpatialRepresentationTypeCode>
+			</gmd:spatialRepresentationType>
+			<gmd:language>
+				<gmd:LanguageCode codeList="http://www.loc.gov/standards/iso639-2/" codeListValue="eng">eng</gmd:LanguageCode>
+			</gmd:language>
+			<gmd:characterSet>
+				<gmd:MD_CharacterSetCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_CharacterSetCode" codeListValue="utf8">utf8</gmd:MD_CharacterSetCode>
+			</gmd:characterSet>
+			<gmd:topicCategory>
+				<gmd:MD_TopicCategoryCode>elevation</gmd:MD_TopicCategoryCode>
+			</gmd:topicCategory>
+			<gmd:extent>
+				<gmd:EX_Extent>
+					<gmd:geographicElement>
+						<gmd:EX_GeographicBoundingBox>
+							<gmd:westBoundLongitude>
+								<gco:Decimal>-66.371629</gco:Decimal>
+							</gmd:westBoundLongitude>
+							<gmd:eastBoundLongitude>
+								<gco:Decimal>-66.316454</gco:Decimal>
+							</gmd:eastBoundLongitude>
+							<gmd:southBoundLatitude>
+								<gco:Decimal>50.114053</gco:Decimal>
+							</gmd:southBoundLatitude>
+							<gmd:northBoundLatitude>
+								<gco:Decimal>50.180077</gco:Decimal>
+							</gmd:northBoundLatitude>
+						</gmd:EX_GeographicBoundingBox>
+					</gmd:geographicElement>
+				</gmd:EX_Extent>
+			</gmd:extent>
+			<bag:verticalUncertaintyType>
                 <bag:BAG_VertUncertCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_VertUncertCode" codeListValue="rawStdDev">rawStdDev</bag:BAG_VertUncertCode>
-            </bag:verticalUncertaintyType>
-            <bag:depthCorrectionType>
+			</bag:verticalUncertaintyType>
+			<bag:depthCorrectionType>
                 <bag:BAG_DepthCorrectCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_DepthCorrectCode" codeListValue="trueDepth">trueDepth</bag:BAG_DepthCorrectCode>
-            </bag:depthCorrectionType>
+			</bag:depthCorrectionType>
             <bag:elevationSolutionGroupType>
                 <bag:BAG_OptGroupCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_OptGroupCode" codeListValue="cube">cube</bag:BAG_OptGroupCode>
-            </bag:elevationSolutionGroupType>
+			</bag:elevationSolutionGroupType>
             <bag:nodeGroupType>
                 <bag:BAG_OptGroupCode codeList="http://www.opennavsurf.org/schema/bag/bagCodelists.xml#BAG_OptGroupCode" codeListValue="product">product</bag:BAG_OptGroupCode>
-            </bag:nodeGroupType>
-        </bag:BAG_DataIdentification>
-    </gmd:identificationInfo>
-    <gmd:dataQualityInfo>
-        <gmd:DQ_DataQuality>
-            <gmd:scope>
-                <gmd:DQ_Scope>
-                    <gmd:level>
-                        <gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">dataset</gmd:MD_ScopeCode>
-                    </gmd:level>
-                </gmd:DQ_Scope>
-            </gmd:scope>
-            <gmd:lineage>
-                <gmd:LI_Lineage>
-                    <gmd:processStep>
-                        <bag:BAG_ProcessStep>
-                            <gmd:description>
-                                <gco:CharacterString>List to be determined by WG. I.e. Product Creation</gco:CharacterString>
-                            </gmd:description>
-                            <gmd:dateTime>
-                                <gco:DateTime>2008-10-21T12:21:53</gco:DateTime>
-                            </gmd:dateTime>
-                            <gmd:processor>
-                                <gmd:CI_ResponsibleParty>
-                                    <gmd:individualName>
-                                        <gco:CharacterString>Name of the processor</gco:CharacterString>
-                                    </gmd:individualName>
-                                    <gmd:role>
-                                        <gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="processor">processor</gmd:CI_RoleCode>
-                                    </gmd:role>
-                                </gmd:CI_ResponsibleParty>
-                            </gmd:processor>
-                            <gmd:source>
-                                <gmd:LI_Source>
-                                    <gmd:description>
-                                        <gco:CharacterString>Source</gco:CharacterString>
-                                    </gmd:description>
-                                    <gmd:sourceCitation>
-                                        <gmd:CI_Citation>
-                                            <gmd:title>
-                                                <gco:CharacterString>Name of dataset input</gco:CharacterString>
-                                            </gmd:title>
-                                            <gmd:date>
-                                                <gmd:CI_Date>
-                                                    <gmd:date gco:nilReason="unknown"/>
-                                                    <gmd:dateType>
-                                                        <gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</gmd:CI_DateTypeCode>
-                                                    </gmd:dateType>
-                                                </gmd:CI_Date>
-                                            </gmd:date>
-                                        </gmd:CI_Citation>
-                                    </gmd:sourceCitation>
-                                </gmd:LI_Source>
-                            </gmd:source>
-                            <bag:trackingId>
-                                <gco:CharacterString>1</gco:CharacterString>
-                            </bag:trackingId>
-                        </bag:BAG_ProcessStep>
-                    </gmd:processStep>
-                </gmd:LI_Lineage>
-            </gmd:lineage>
-        </gmd:DQ_DataQuality>
-    </gmd:dataQualityInfo>
-    <gmd:metadataConstraints>
-        <gmd:MD_LegalConstraints>
-            <gmd:useConstraints>
-                <gmd:MD_RestrictionCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_RestrictionCode" codeListValue="otherRestrictions">otherRestrictions</gmd:MD_RestrictionCode>
-            </gmd:useConstraints>
-            <gmd:otherConstraints>
-                <gco:CharacterString>some other constraints</gco:CharacterString>
-            </gmd:otherConstraints>
-        </gmd:MD_LegalConstraints>
-    </gmd:metadataConstraints>
-    <gmd:metadataConstraints>
-        <gmd:MD_SecurityConstraints>
-            <gmd:classification>
-                <gmd:MD_ClassificationCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ClassificationCode" codeListValue="unclassified">unclassified</gmd:MD_ClassificationCode>
-            </gmd:classification>
-            <gmd:userNote>
-                <gco:CharacterString>some user node</gco:CharacterString>
-            </gmd:userNote>
-        </gmd:MD_SecurityConstraints>
-    </gmd:metadataConstraints>
+			</bag:nodeGroupType>
+		</bag:BAG_DataIdentification>
+	</gmd:identificationInfo>
+	<gmd:dataQualityInfo>
+		<gmd:DQ_DataQuality>
+			<gmd:scope>
+				<gmd:DQ_Scope>
+					<gmd:level>
+						<gmd:MD_ScopeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ScopeCode" codeListValue="dataset">dataset</gmd:MD_ScopeCode>
+					</gmd:level>
+				</gmd:DQ_Scope>
+			</gmd:scope>
+			<gmd:lineage>
+				<gmd:LI_Lineage>
+					<gmd:processStep>
+						<bag:BAG_ProcessStep>
+							<gmd:description>
+								<gco:CharacterString>List to be determined by WG. I.e. Product Creation</gco:CharacterString>
+							</gmd:description>
+							<gmd:dateTime>
+								<gco:DateTime>2008-10-21T12:21:53</gco:DateTime>
+							</gmd:dateTime>
+							<gmd:processor>
+								<gmd:CI_ResponsibleParty>
+									<gmd:individualName>
+										<gco:CharacterString>Name of the processor</gco:CharacterString>
+									</gmd:individualName>
+									<gmd:role>
+										<gmd:CI_RoleCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_RoleCode" codeListValue="processor">processor</gmd:CI_RoleCode>
+									</gmd:role>
+								</gmd:CI_ResponsibleParty>
+							</gmd:processor>
+							<gmd:source>
+								<gmd:LI_Source>
+									<gmd:description>
+										<gco:CharacterString>Source</gco:CharacterString>
+									</gmd:description>
+									<gmd:sourceCitation>
+										<gmd:CI_Citation>
+											<gmd:title>
+												<gco:CharacterString>Name of dataset input</gco:CharacterString>
+											</gmd:title>
+											<gmd:date>
+												<gmd:CI_Date>
+													<gmd:date gco:nilReason="unknown"/>
+													<gmd:dateType>
+														<gmd:CI_DateTypeCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#CI_DateTypeCode" codeListValue="creation">creation</gmd:CI_DateTypeCode>
+													</gmd:dateType>
+												</gmd:CI_Date>
+											</gmd:date>
+										</gmd:CI_Citation>
+									</gmd:sourceCitation>
+								</gmd:LI_Source>
+							</gmd:source>
+							<bag:trackingId>
+								<gco:CharacterString>1</gco:CharacterString>
+							</bag:trackingId>
+						</bag:BAG_ProcessStep>
+					</gmd:processStep>
+				</gmd:LI_Lineage>
+			</gmd:lineage>
+		</gmd:DQ_DataQuality>
+	</gmd:dataQualityInfo>
+	<gmd:metadataConstraints>
+		<gmd:MD_LegalConstraints>
+			<gmd:useConstraints>
+				<gmd:MD_RestrictionCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_RestrictionCode" codeListValue="otherRestrictions">otherRestrictions</gmd:MD_RestrictionCode>
+			</gmd:useConstraints>
+			<gmd:otherConstraints>
+				<gco:CharacterString>some other constraints</gco:CharacterString>
+			</gmd:otherConstraints>
+		</gmd:MD_LegalConstraints>
+	</gmd:metadataConstraints>
+	<gmd:metadataConstraints>
+		<gmd:MD_SecurityConstraints>
+			<gmd:classification>
+				<gmd:MD_ClassificationCode codeList="http://www.isotc211.org/2005/resources/Codelist/gmxCodelists.xml#MD_ClassificationCode" codeListValue="unclassified">unclassified</gmd:MD_ClassificationCode>
+			</gmd:classification>
+			<gmd:userNote>
+				<gco:CharacterString>some user node</gco:CharacterString>
+			</gmd:userNote>
+		</gmd:MD_SecurityConstraints>
+	</gmd:metadataConstraints>
 </gmi:MI_Metadata>
 )"};
 
@@ -470,17 +471,55 @@ TEST_CASE("test surface corrections create, write, read gridded",
 {
     const TestUtils::RandomFileGuard tmpFileName;
 
-    UNSCOPED_INFO("Check dataset was created successfully.");
-    constexpr uint64_t chunkSize = 100;
-    constexpr int compressionLevel = 6;
-    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
-        compressionLevel);
+	constexpr uint32_t kGridSize = 100;
+	constexpr uint64_t kChunkSize = 100;
+	constexpr int kCompressionLevel = 6;
+
+	// Create dataset
+    BAG::Metadata metadata;
+    metadata.loadFromBuffer(kMetadataXML);
+	UNSCOPED_INFO("Check dataset was created successfully.");
+    auto pDataset = Dataset::create(tmpFileName, std::move(metadata), kChunkSize,
+		kCompressionLevel);
     REQUIRE(pDataset);
+
+    // Write some elevation data so that we can read corrected data below
+	std::array<float, kGridSize> surf{};
+    {
+        // Write the elevation layer, constructing bogus data as we do so.
+        auto elevationLayer = pDataset->getSimpleLayer(Elevation);
+
+        // Set the min/max values (optional).
+        // NOTE: Layer::write() calls update min/max.
+        {
+            const std::array<float, 2> surfRange{-10.0f,
+                -10.0f - ((kGridSize - 1) * (kGridSize - 1) + kGridSize) / 10.0f};
+
+            auto pDescriptor = elevationLayer->getDescriptor();
+            pDescriptor->setMinMax(surfRange[0], surfRange[1]);
+
+            elevationLayer->writeAttributes();
+        }
+
+        // Write the data.
+        for(uint32_t row=0; row<kGridSize; ++row) {
+            for (uint32_t column=0; column<kGridSize; ++column) {
+                surf[column] = ((column * row) % kGridSize) +
+                    (column / static_cast<float>(kGridSize));
+            }
+
+            const auto* buffer = reinterpret_cast<uint8_t*>(surf.data());
+            constexpr uint32_t columnStart = 0;
+            constexpr uint32_t columnEnd = kGridSize - 1;
+
+            elevationLayer->write(row, columnStart, row, columnEnd, buffer);
+        }
+    }
 
     constexpr auto kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
     constexpr uint8_t kExpectedNumCorrectors = 3;
     auto& corrections = pDataset->createSurfaceCorrections(kExpectedSurfaceType,
-        kExpectedNumCorrectors, chunkSize, compressionLevel);
+        kExpectedNumCorrectors, kChunkSize, kCompressionLevel);
 
     UNSCOPED_INFO("Check surface corrections descriptor is the default pDescriptor->");
     auto pDescriptor =
@@ -509,6 +548,14 @@ TEST_CASE("test surface corrections create, write, read gridded",
     CHECK(res->z[0] == kExpectedItem0.z[0]);
     CHECK(res->z[1] == kExpectedItem0.z[1]);
     CHECK(res->z[2] == kExpectedItem0.z[2]);
+
+    auto layer = pDataset->getSimpleLayer(Elevation);
+    result = corrections.readCorrected(kRowStart, kColumnStart, kRowEnd, kColumnEnd,
+        1, *layer);
+    CHECK(result);
+	const auto* res2 = reinterpret_cast<const float*>(result.data());
+	double value = *res2;
+    REQUIRE_THAT(value, Catch::Matchers::WithinAbs(1.86372696e-43, 0.000001));
 }
 
 TEST_CASE("test surface corrections create, write, read two gridded records",

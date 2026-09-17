@@ -285,7 +285,9 @@ UInt8Array SurfaceCorrections::readCorrected(
     auto weakDataset = this->getDataset();
     if (weakDataset.expired())
         throw DatasetNotFound{};
-
+    // TODO: We can avoid the call to expired() and simply check if dataset evaluates to true after calling lock()
+    //       As it stands now, we have a potential time-of-check vs. time-of-use bug. Let's fix this after we have
+    //       a test covering this function.
     auto dataset = weakDataset.lock();
 
     uint32_t ncols = 0, nrows = 0;
@@ -366,6 +368,9 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
 
     double nodeSpacingX = 0., nodeSpacingY = 0.;
     std::tie(nodeSpacingX, nodeSpacingY) = pDescriptor->getSpacing();
+    if (nodeSpacingX == 0. || nodeSpacingY == 0.) {
+        throw InvalidValue{};
+    }
 
     const auto resratio = nodeSpacingX / nodeSpacingY;
 
@@ -377,7 +382,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     auto weakDataset = this->getDataset();
     if (weakDataset.expired())
         throw DatasetNotFound{};
-
+    // TODO: Just call lock and check dataset evaulates to true.
     auto dataset = weakDataset.lock();
 
     double swCornerXsimple = 0., swCornerYsimple = 0.;

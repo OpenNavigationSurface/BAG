@@ -168,9 +168,13 @@ SurfaceCorrectionsDescriptor::create(
     if (numCorrectors > BAG_SURFACE_CORRECTOR_LIMIT)
         throw TooManyCorrections{};
 
-    return std::shared_ptr<SurfaceCorrectionsDescriptor>(
+    auto ret = std::shared_ptr<SurfaceCorrectionsDescriptor>(
         new SurfaceCorrectionsDescriptor{dataset.getNextId(), type,
             numCorrectors, chunkSize, compressionLevel});
+    auto gridSpacing = dataset.getDescriptor().getGridSpacing();
+    ret->setSpacing(std::get<0>(gridSpacing), std::get<1>(gridSpacing));
+
+    return ret;
 }
 
 //! Open an existing surface corrections layer.
