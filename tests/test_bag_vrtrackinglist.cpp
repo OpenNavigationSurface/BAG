@@ -332,6 +332,7 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
 
     const VRTrackingList::value_type kExpectedItem0{1, 2, 11, 22, 3.4f, 5.6f, 7, 8};
     const VRTrackingList::value_type kExpectedItem1{9, 8, 101, 202, 7.6f, 5.4f, 3, 2};
+    const VRTrackingList::value_type expect[] = {kExpectedItem0, kExpectedItem1};
 
     {
         BAG::Metadata metadata;
@@ -388,7 +389,8 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
             UNSCOPED_INFO("Check one item was read.");
             CHECK(trackingList->size() == 1);
 
-            trackingList->emplace_back(kExpectedItem1);
+            // This time call push_back to cover that function
+            trackingList->push_back(kExpectedItem1);
             CHECK(trackingList->size() == 2);
 
             UNSCOPED_INFO("Check writing to the HDF5 does not throw.");
@@ -405,6 +407,61 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
 
         UNSCOPED_INFO("Check the second expected values are exactly the same.");
         CHECK(kExpectedItem1 == (*trackingList)[1]);
+
+        // const iterators
+        std::shared_ptr<const VRTrackingList> ctl = pDataset->getVRTrackingList();
+        size_t curr = 0;
+        for (auto it = std::begin(*ctl); it != std::end(*ctl); ++it) {
+            CHECK((*it).row == expect[curr].row);
+            CHECK((*it).col == expect[curr].col);
+            CHECK((*it).depth == expect[curr].depth);
+            CHECK((*it).track_code == expect[curr].track_code);
+            CHECK((*it).list_series == expect[curr].list_series);
+            curr++;
+        }
+        // const first item, pointer
+        auto *cfirst = ctl->data();
+        CHECK(cfirst->row == expect[0].row);
+        // const back
+        auto cback = ctl->back();
+        CHECK(cback.row == expect[1].row);
+        // const front
+        auto cfront = ctl->front();
+        CHECK(cfront.row == expect[0].row);
+        // const operator[]
+        REQUIRE_NOTHROW((*ctl)[0]);
+
+        // iterators
+        auto tl = pDataset->getVRTrackingList();
+        curr = 0;
+        for (auto it = std::begin(*tl); it != std::end(*tl); ++it) {
+            CHECK((*it).row == expect[curr].row);
+            CHECK((*it).col == expect[curr].col);
+            CHECK((*it).depth == expect[curr].depth);
+            CHECK((*it).track_code == expect[curr].track_code);
+            CHECK((*it).list_series == expect[curr].list_series);
+            curr++;
+        }
+
+        // push_back rvalue
+        VRTrackingList::value_type *kExpectedItem3 = new VRTrackingList::value_type();
+        kExpectedItem3->row = 12;
+        kExpectedItem3->col = 23;
+        kExpectedItem3->depth = 34.44f;
+        kExpectedItem3->uncertainty = 54.66f;
+        kExpectedItem3->track_code = 87;
+        kExpectedItem3->list_series = 98;
+        tl->push_back(std::move(*kExpectedItem3));
+        CHECK(trackingList->size() == 3);
+
+        // reserve, resize
+        tl->reserve(32);
+        tl->resize(16);
+        CHECK(tl->size() == 16);
+
+        // clear
+        tl->clear();
+        CHECK(tl->size() == 0);
     }
 
     const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
