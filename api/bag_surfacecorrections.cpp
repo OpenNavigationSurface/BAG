@@ -382,7 +382,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     auto weakDataset = this->getDataset();
     if (weakDataset.expired())
         throw DatasetNotFound{};
-    // TODO: Just call lock and check dataset evaulates to true.
+    // TODO: Just call lock and check dataset evaluates to true.
     auto dataset = weakDataset.lock();
 
     double swCornerXsimple = 0., swCornerYsimple = 0.;

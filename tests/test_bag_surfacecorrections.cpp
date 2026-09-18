@@ -502,8 +502,9 @@ TEST_CASE("test surface corrections create, write, read gridded",
         }
 
         // Write the data.
+    	surf[0] = kGridSize;
         for(uint32_t row=0; row<kGridSize; ++row) {
-            for (uint32_t column=0; column<kGridSize; ++column) {
+            for (uint32_t column=1; column<kGridSize; ++column) {
                 surf[column] = ((column * row) % kGridSize) +
                     (column / static_cast<float>(kGridSize));
             }
@@ -555,6 +556,7 @@ TEST_CASE("test surface corrections create, write, read gridded",
     CHECK(result);
 	const auto* res2 = reinterpret_cast<const float*>(result.data());
 	double value = *res2;
+	// TODO: Make sure this value makes sense
     REQUIRE_THAT(value, Catch::Matchers::WithinAbs(1.86372696e-43, 0.000001));
 }
 
