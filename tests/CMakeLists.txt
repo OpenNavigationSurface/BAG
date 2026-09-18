@@ -14,6 +14,7 @@ set(TEST_SOURCE_FILES
     test_bag_descriptor.cpp
     test_bag_exceptions.cpp
     test_bag_georefmetadata_layer.cpp
+    test_bag_hdfhelper.cpp
     test_bag_interleavedlegacylayer.cpp
     test_bag_interleavedlegacylayerdescriptor.cpp
     test_bag_legacy_crs.cpp
