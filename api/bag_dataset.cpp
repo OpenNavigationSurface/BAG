@@ -1088,8 +1088,15 @@ void Dataset::readDataset(
 
     m_descriptor = Descriptor{*m_pMetadata};
     m_descriptor.setReadOnly(openMode == BAG_OPEN_READONLY);
-    m_descriptor.setVersion(readStringAttributeFromGroup(*m_pH5file,
-        ROOT_PATH, BAG_VERSION_NAME));
+
+    const auto verStr = readStringAttributeFromGroup(*m_pH5file,
+        ROOT_PATH, BAG_VERSION_NAME);
+    const auto bagVersion = getNumericalVersion(verStr);
+    if (bagVersion == 0) {
+        throw InvalidBAGVersion{};
+    }
+
+    m_descriptor.setVersion(verStr);
 
     const auto bagGroup = m_pH5file->openGroup(ROOT_PATH);
 
@@ -1114,8 +1121,6 @@ void Dataset::readDataset(
         auto layerDesc = SimpleLayerDescriptor::open(*this, layerType, 0, 0);
         this->addLayer(SimpleLayer::open(*this, *layerDesc));
     }
-
-    const auto bagVersion = getNumericalVersion(m_descriptor.getVersion());
 
     // If the BAG is version 1.5+ ...
     if (bagVersion >= 1'005'000)

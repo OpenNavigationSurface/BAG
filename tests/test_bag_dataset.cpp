@@ -368,6 +368,14 @@ TEST_CASE("test dataset reading, invalid metadata", "[dataset][open][invalidMeta
     REQUIRE_THROWS(Dataset::open(bagFileName, BAG_OPEN_READONLY));
 }
 
+TEST_CASE("test dataset reading, invalid version", "[dataset][open][invalidVersion]")
+{
+    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+    "/sample-bad-ver.bag"};
+
+    REQUIRE_THROWS_AS(Dataset::open(bagFileName, BAG_OPEN_READONLY), BAG::InvalidBAGVersion);
+}
+
 //  static std::shared_ptr<Dataset> create(const std::string &fileName,
 //      const Metadata& metadata);
 TEST_CASE("test dataset creation", "[dataset][create][getLayerTypes][open]")
@@ -408,6 +416,60 @@ TEST_CASE("test get layer types", "[dataset][open][getLayerTypes]")
     CHECK(dataset->getLayerTypes().size() == 2);
 }
 
+TEST_CASE("test add features, read only dataset", "[dataset][create][addFeatures][readOnly]")
+{
+    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+        "/sample.bag"};
+
+    const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READONLY);
+    REQUIRE(dataset);
+
+    constexpr uint64_t chunkSize = 100;
+    constexpr int compressionLevel = 6;
+    REQUIRE_THROWS_AS(dataset->createSimpleLayer(Average_Elevation, chunkSize, compressionLevel),
+        BAG::ReadOnlyError);
+    REQUIRE_THROWS_AS(dataset->createSurfaceCorrections(BAG_SURFACE_GRID_EXTENTS, 3, 100, 6),
+        BAG::ReadOnlyError);
+    REQUIRE_THROWS_AS(dataset->createVR(100, 6, true),
+        BAG::ReadOnlyError);
+}
+
+TEST_CASE("test add layer, layer exists", "[dataset][open][createLayer][layerExists]")
+{
+    const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+        "/sample.bag"};
+
+    const auto dataset = Dataset::open(bagFileName, BAG_OPEN_READ_WRITE);
+    REQUIRE(dataset);
+
+    constexpr uint64_t chunkSize = 100;
+    constexpr int compressionLevel = 6;
+    REQUIRE_THROWS_AS(dataset->createSimpleLayer(Elevation, chunkSize, compressionLevel),
+        BAG::LayerExists);
+}
+
+TEST_CASE("test add layer, invalid layer type", "[dataset][open][createLayer][invalidLayerType]")
+{
+    const TestUtils::RandomFileGuard tmpFileName;
+
+    constexpr size_t kNumExpectedLayers = 2;  // Elevation, Uncertainty
+    {
+        BAG::Metadata metadata;
+        metadata.loadFromBuffer(kMetadataXML);
+
+        constexpr uint64_t chunkSize = 100;
+        constexpr int compressionLevel = 6;
+
+        const auto dataset = Dataset::create(tmpFileName, std::move(metadata),
+            chunkSize, compressionLevel);
+
+        REQUIRE(dataset);
+        REQUIRE(dataset->getLayerTypes().size() == kNumExpectedLayers);
+        REQUIRE_THROWS_AS(dataset->createSimpleLayer(Surface_Correction, chunkSize, compressionLevel),
+            BAG::UnsupportedLayerType);
+    }
+}
+
 //  Layer& createLayer(LayerType type);
 TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
 {
@@ -430,8 +492,9 @@ TEST_CASE("test add layer", "[dataset][open][createLayer][getLayerTypes]")
         constexpr uint64_t chunkSize = 100;
         constexpr int compressionLevel = 6;
 
-        /*auto& layer = */ dataset->createSimpleLayer(Average_Elevation, chunkSize,
-            compressionLevel);
+        REQUIRE_NOTHROW(dataset->createSimpleLayer(Average_Elevation, chunkSize, compressionLevel));
+        REQUIRE_THROWS_AS(dataset->createSurfaceCorrections(BAG_SURFACE_GRID_EXTENTS, 3, 100, 6),
+            BAG::LayerExists);
 
         REQUIRE(dataset->getLayerTypes().size() == (kNumExpectedLayers + 1));
     }
@@ -467,6 +530,7 @@ TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
             CHECK(layerFromId.getDescriptor()->getInternalPath() ==
                 layer->getDescriptor()->getInternalPath());
         }
+        CHECK_THROWS_AS(dataset->getLayer(42), BAG::InvalidLayerId);
     }
 
     // Test the const method.
@@ -483,6 +547,20 @@ TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
                 constDataset->getLayer(layer->getDescriptor()->getId());
             CHECK(layerFromId.getDescriptor()->getInternalPath() ==
                 layer->getDescriptor()->getInternalPath());
+            auto caught = false;
+            try {
+                const BAG::Layer& l = constDataset->getLayer(42);
+            } catch (BAG::InvalidLayerId) {
+                caught = true;
+            }
+            CHECK(caught);
+            caught = false;
+            try {
+                std::shared_ptr<const BAG::Layer> l2 = constDataset->getLayer(Nominal_Elevation, "nominal_elevation");
+            } catch (BAG::InvalidLayerId) {
+                caught = true;
+            }
+            CHECK(!caught);
         }
     }
 }
