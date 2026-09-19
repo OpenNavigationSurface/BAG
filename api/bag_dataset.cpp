@@ -169,32 +169,6 @@ T readAttributeFromDataSet(
     return value;
 }
 
-//! Helper to read a string attribute from an HDF5 DataSet.
-/*!
-\param h5file
-    The HDF5 file to read.
-\param dataSetName
-    The name of the HDF5 DataSet.
-\param attributeName
-    The name of the attribute.
-
-\return
-    The attribute value as a string.
-*/
-std::string readStringAttributeFromDataSet(
-    const ::H5::H5File& h5file,
-    const std::string& dataSetName,
-    const std::string& attributeName)
-{
-    const ::H5::DataSet h5DataSet = h5file.openDataSet(dataSetName);
-    const ::H5::Attribute attribute = h5DataSet.openAttribute(attributeName);
-
-    std::string value;
-    attribute.read(attribute.getDataType(), value);
-
-    return value;
-}
-
 //! Helper to read a non-string attribute from an HDF5 Group.
 /*!
 \param h5file
