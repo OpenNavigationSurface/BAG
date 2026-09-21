@@ -415,7 +415,7 @@ GeorefMetadataLayer& Dataset::createGeorefMetadataLayer(
         int compressionLevel,
         DataType keyType) &
 {
-    BAG::RecordDefinition definition = METADATA_DEFINITION_UNKNOWN;
+    RecordDefinition definition = METADATA_DEFINITION_UNKNOWN;
 
     try {
         definition = kGeorefMetadataProfileMapKnownRecordDefinition.at(profile);

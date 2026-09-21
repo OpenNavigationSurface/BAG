@@ -356,6 +356,11 @@ TEST_CASE("test VR tracking list construction (create, open)", "[vrtrackinglist]
             UNSCOPED_INFO("Check VR tracking list was created successfully.");
             REQUIRE(trackingList);
 
+            // Cover for const Datasets
+            const std::shared_ptr<const Dataset> constDataset{pDataset};
+            auto cpVrTrckLst = constDataset->getVRTrackingList();
+            REQUIRE(cpVrTrckLst);
+
             UNSCOPED_INFO("Check no items are in the tracking list after creation.");
             CHECK(trackingList->empty());
 

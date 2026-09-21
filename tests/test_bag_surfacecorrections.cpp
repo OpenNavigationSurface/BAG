@@ -615,6 +615,11 @@ TEST_CASE("test surface corrections create, write, read two gridded records",
     auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
     REQUIRE(pDataset);
 
+	// Cover for const Datasets
+	const std::shared_ptr<const Dataset> constDataset{pDataset};
+	auto cpCorrections = constDataset->getSurfaceCorrections();
+	REQUIRE(cpCorrections);
+
     auto pCorrections = pDataset->getSurfaceCorrections();
     REQUIRE(pCorrections);
 

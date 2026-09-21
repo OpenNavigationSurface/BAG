@@ -430,6 +430,10 @@ TEST_CASE("test vr node write read", "[vrnode][write][read]")
     REQUIRE_THROWS_AS(pDataset->createVR(kChunkSize, kCompressionLevel, true),
         BAG::LayerExists);
 
+    // Cover for const Datasets
+    const std::shared_ptr<const Dataset> constDataset{pDataset};
+    auto cpVrNode = constDataset->getVRNode();
+    REQUIRE(cpVrNode);
 
     UNSCOPED_INFO("Check the optional variable resolution node layer exists.");
     auto pVrNode = pDataset->getVRNode();

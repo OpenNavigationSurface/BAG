@@ -538,6 +538,9 @@ TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
     REQUIRE(constDataset);
 
     {
+        auto elevLayer = constDataset->getSimpleLayer(Elevation);
+        CHECK(elevLayer);
+
         const auto layers = constDataset->getLayers();
         CHECK(kNumExpectedLayers == layers.size());
 
