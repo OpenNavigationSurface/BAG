@@ -23,8 +23,8 @@ pip install --force-reinstall ./wheel/bagPy-*.whl
 # Generate PEP484 stub file
 stubgen -m bagPy -o ./python
 # Run tests
-export BAG_HOME=/tmp/bag/configdata
-export BAG_SAMPLES_PATH=/tmp/bag/examples/sample-data
+export BAG_HOME=/tmp/BAG/configdata
+export BAG_SAMPLES_PATH=/tmp/BAG/examples/sample-data
 # To run tests without coverage reporting, run: ./build/tests/bag_tests_d
 ninja -C build ccov-bag_tests
 pytest python/test_*.py

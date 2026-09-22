@@ -63,6 +63,6 @@ RUN ldconfig
 # Install Python dependencies not available from Debian
 RUN python3 -m pip install --break-system-packages unittest-xml-reporting
 
-WORKDIR /tmp/bag
+WORKDIR /tmp/BAG
 
 ENTRYPOINT ["/bin/bash", "-c"]
