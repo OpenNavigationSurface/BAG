@@ -71,7 +71,7 @@ BAG_EXTERNAL BagError bagGetSpacing(BagHandle* handle, double* rowSpacing, doubl
 BAG_EXTERNAL BagError bagGetNumLayers(BagHandle* handle, uint32_t* numLayers);
 BAG_EXTERNAL bool bagContainsLayer(BagHandle* handle, BAG_LAYER_TYPE type, const char* layerName, BagError* bagError);
 BAG_EXTERNAL BagError bagRead(BagHandle* handle, uint32_t rowStart, uint32_t colStart, uint32_t rowEnd, uint32_t colEnd, BAG_LAYER_TYPE type, const char* layerName, uint8_t** data, double* x, double* y);
-BAG_EXTERNAL BagError bagWrite(BagHandle* handle, uint32_t rowStart, uint32_t colStart, uint32_t rowEnd, uint32_t colEnd, BAG_LAYER_TYPE type, const char* layerName, uint8_t* data);
+BAG_EXTERNAL BagError bagWrite(BagHandle* handle, uint32_t rowStart, uint32_t colStart, uint32_t rowEnd, uint32_t colEnd, BAG_LAYER_TYPE type, const char* layerName, const uint8_t* data);
 
 /* Simple layer access */
 BAG_EXTERNAL BagError bagGetMinMaxSimple(BagHandle* handle, BAG_LAYER_TYPE type, float* minValue, float* maxValue);
