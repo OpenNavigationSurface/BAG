@@ -304,7 +304,7 @@ const std::string kXMLv2MetadataBuffer{R"(<?xml version="1.0" encoding="UTF-8"?>
 	</gmd:metadataConstraints>
 </gmi:MI_Metadata>)"};
 
-TEST_CASE("test import valid metadata from buffer", "[metadata][import]")
+TEST_CASE("test import valid metadata from buffer - Happy path", "[metadata][import][happy]")
 {
     BagMetadata metadata{};
 	bagInitMetadata(metadata);
