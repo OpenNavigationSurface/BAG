@@ -12,6 +12,22 @@
 
 namespace TestUtils {
 
+struct CopyFileSourceFileNotFound final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Unable to copy file: source file not found.";
+    }
+};
+
+struct CopyFileSourceOther final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Unable to copy file: an error occurred.";
+    }
+};
+
 //! Helper structure to generate a random file name and delete it when the
 //! instance leaves scope.
 struct RandomFileGuard final {

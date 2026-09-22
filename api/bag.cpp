@@ -389,15 +389,12 @@ BagError bagGetMinMaxSimple(
     float* minValue,
     float* maxValue)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!minValue || !maxValue)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!minValue || !maxValue) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return 9997;  // layer type not found
+    if (!layer) return BAG_LAYER_MISSING;
 
     std::tie(*minValue, *maxValue) = layer->getDescriptor()->getMinMax();
 
@@ -684,7 +681,7 @@ BagError bagGetErrorString(
     *error = reinterpret_cast<uint8_t*>(str);
 
     switch (code)
-    {
+    { // TODO: Make sure this is up-to-date
     case BAG_SUCCESS:
         strncpy(str, "Bag returned a successful completion", MAX_STR-1);
         break;
@@ -1153,7 +1150,7 @@ BagError bagWriteCorrectorVerticalDatum(
         datums.emplace_back(std::move(datum));
     }
 
-    datums[corrector-1] = reinterpret_cast<const char*>(inDatum);
+    datums[corrector-1] = std::move(std::string(reinterpret_cast<const char*>(inDatum)));
 
     std::string joinedDatums = std::accumulate(cbegin(datums), cend(datums),
         std::string{}, [](std::string& dest, const std::string& datum)
@@ -1223,12 +1220,16 @@ BagError bagReadCorrectedLayer(
     uint32_t columnEnd = 0;
     std::tie(rowEnd, columnEnd) = descriptor.getDims();
 
-    auto correctedData = corrections->readCorrected(rowStart, rowEnd - 1,
-        columnStart, columnEnd - 1, corrector, *layer);
-
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
+    try {
+        auto correctedData = corrections->readCorrected(rowStart, rowEnd - 1,
+            columnStart, columnEnd - 1, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 }
 
 //! Read a corrected region from a simple layer.
@@ -1267,26 +1268,27 @@ BagError bagReadCorrectedRegion(
     BAG_LAYER_TYPE type,
     float** data)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!data)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!data) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto corrections = handle->dataset->getSurfaceCorrections();
-    if (!corrections)
-        return BAG_SURFACE_CORRECTIONS_MISSING;
+    if (!corrections) return BAG_SURFACE_CORRECTIONS_MISSING;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+    if (!layer) return BAG_LAYER_MISSING;
 
-    auto correctedData = corrections->readCorrected(rowStart, colStart, rowEnd,
+    try {
+        auto correctedData = corrections->readCorrected(rowStart, colStart, rowEnd,
         colEnd, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (const BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (const std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
 }
 
 //! Read a corrected row from a simple layer.
@@ -1316,31 +1318,33 @@ BagError bagReadCorrectedRow(
     BAG_LAYER_TYPE type,
     float** data)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!data)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!data) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto corrections = handle->dataset->getSurfaceCorrections();
-    if (!corrections)
-        return BAG_SURFACE_CORRECTIONS_MISSING;
+    if (!corrections) return BAG_SURFACE_CORRECTIONS_MISSING;
+
+    if (type > UNKNOWN_LAYER_TYPE) return BAG_INVALID_LAYER_TYPE;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+    if (!layer) return BAG_LAYER_MISSING;
 
     constexpr uint32_t columnStart = 0;
 
     const auto& descriptor = handle->dataset->getDescriptor();
     const auto columnEnd = std::get<1>(descriptor.getDims());
 
-    auto correctedData = corrections->readCorrectedRow(row, columnStart,
-        columnEnd, corrector, *layer);
-
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
+    try {
+        auto correctedData = corrections->readCorrectedRow(row, columnStart,
+            columnEnd, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (const BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (const std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 }
 
 //! Read a corrected node from a simple layer.
@@ -1373,26 +1377,28 @@ BagError bagReadCorrectedNode(
     BAG_LAYER_TYPE type,
     float** data)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!data)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!data) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto corrections = handle->dataset->getSurfaceCorrections();
-    if (!corrections)
-        return BAG_SURFACE_CORRECTIONS_MISSING;
+    if (!corrections) return BAG_SURFACE_CORRECTIONS_MISSING;
+
+    if (type > UNKNOWN_LAYER_TYPE) return BAG_INVALID_LAYER_TYPE;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return BAG_SIMPLE_LAYER_MISSING;
+    if (!layer) return BAG_SIMPLE_LAYER_MISSING;
 
-    auto correctedData = corrections->readCorrectedRow(row, column,
-        column, corrector, *layer);
-
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
+    try {
+        auto correctedData = corrections->readCorrectedRow(row, column,
+            column, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 }
 
 //! Retrieve the number of correctors.
@@ -1672,7 +1678,7 @@ BagError bagReadTrackingListNode(
     *numItems = static_cast<uint32_t>(results.size());
 
     *items = new BAG::TrackingItem[*numItems];
-    memcpy(*items, results.data(), *numItems);
+    memcpy(*items, results.data(), results.size() * sizeof(BAG::TrackingItem));
 
     return BAG_SUCCESS;
 }
@@ -1721,7 +1727,7 @@ BagError bagReadTrackingListCode(
     *numItems = static_cast<uint32_t>(results.size());
 
     *items = new BAG::TrackingItem[*numItems];
-    memcpy(*items, results.data(), *numItems);
+    memcpy(*items, results.data(), results.size() * sizeof(BAG::TrackingItem));
 
     return BAG_SUCCESS;
 }
@@ -2064,6 +2070,12 @@ BAG_EXTERNAL BagError bagCreateMetadataProfileGeorefMetadataLayer(BagHandle* han
                                                    chunkSize,
                                                    compressionLevel,
                                                    indexType);
+    }
+    catch (const BAG::UknownMetadataProfile&) {
+        return BAG_GEOREG_METADATA_LAYER_PROFILE_UNKNOWN;
+    }
+    catch (const BAG::LayerNotFound&) {
+        return BAG_LAYER_MISSING;
     }
     catch(const std::exception& /*e*/)
     {
