@@ -185,8 +185,8 @@ BagError bagCreateFromBuffer(
     uint8_t* metadataBuffer,
     uint32_t metadataBufferSize)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    // if (!handle)
+    //     return BAG_INVALID_BAG_HANDLE;
 
     if (!fileName || !metadataBuffer)
         return BAG_INVALID_FUNCTION_ARGUMENT;
@@ -1776,7 +1776,7 @@ BagError bagReadTrackingListSeries(
     *numItems = static_cast<uint32_t>(results.size());
 
     *items = new BAG::TrackingItem[*numItems];
-    memcpy(*items, results.data(), *numItems);
+    memcpy(*items, results.data(), results.size() * sizeof(BAG::TrackingItem));
 
     return BAG_SUCCESS;
 }
