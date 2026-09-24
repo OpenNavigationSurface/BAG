@@ -1054,14 +1054,6 @@ TEST_CASE("ReadCorrectorVerticalDatum - NULL datum returns BAG_INVALID_FUNCTION_
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-// TEST_CASE("ReadCorrectorVerticalDatum - Happy Path", "[bag_c_api][surface_corrections][vdatum][happy]") {
-//     BagHandle* handle = openSampleBag();
-//     uint8_t datum[256] = "MLLW";
-//     BagError err = bagWriteCorrectorVerticalDatum(handle, 1, datum);
-//     CHECK(err == BAG_SUCCESS);
-//     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
-// }
-
 TEST_CASE("WriteCorrectorVerticalDatum - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][surface_corrections][vdatum][errors][nullHandle]") {
     uint8_t datum[] = "MLLW";
     REQUIRE(bagWriteCorrectorVerticalDatum(nullptr, 1, datum) == BAG_INVALID_BAG_HANDLE);
@@ -1408,10 +1400,10 @@ TEST_CASE("GetNumSurfaceCorrectors - Happy path", "[bag_c_api][surface_correctio
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-// TEST_CASE("GetSurfaceCorrectionTopography - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][surface_corrections][errors]") {
-//     BAG_SURFACE_CORRECTION_TOPOGRAPHY topo = BAG_SURFACE_CORRECTION_TOPOGRAPHY::BAG_SCT_TIDE;
-//     REQUIRE(bagGetSurfaceCorrectionTopography(nullptr, &topo) == BAG_INVALID_BAG_HANDLE);
-// }
+TEST_CASE("GetSurfaceCorrectionTopography - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][surface_corrections][topo][errors][nullHandle]") {
+    BAG_SURFACE_CORRECTION_TOPOGRAPHY topo = BAG_SURFACE_GRID_EXTENTS;
+    REQUIRE(bagGetSurfaceCorrectionTopography(nullptr, &topo) == BAG_INVALID_BAG_HANDLE);
+}
 
 TEST_CASE("GetSurfaceCorrectionTopography - NULL type returns BAG_INVALID_FUNCTION_ARGUMENT", "[bag_c_api][surface_corrections][errors]") {
     BagHandle* handle = openSampleBag();
@@ -1428,19 +1420,9 @@ TEST_CASE("GetSurfaceCorrectionTopography - No surface corrections returns BAG_S
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-// TEST_CASE("CreateCorrectorLayer - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][surface_corrections][errors]") {
-//     REQUIRE(bagCreateCorrectorLayer(nullptr, 1, BAG_SURFACE_CORRECTION_TOPOGRAPHY::BAG_SCT_TIDE) == BAG_INVALID_BAG_HANDLE);
-// }
-
-// TEST_CASE("CreateCorrectorLayer - No elevation layer returns BAG_SIMPLE_LAYER_MISSING", "[bag_c_api][surface_corrections][errors]") {
-//     const TestUtils::RandomFileGuard tmpFileName;
-//     TestUtils::copyFile(std::string{std::string{std::getenv("BAG_SAMPLES_PATH")} +
-//          "/sample.bag"}, tmpFileName);
-//     BagHandle* handle = openBagRW(tmpFileName);
-//     BagError err = bagCreateCorrectorLayer(handle, 1, BAG_SURFACE_CORRECTION_TOPOGRAPHY::BAG_SCT_TIDE);
-//     CHECK((err == BAG_SIMPLE_LAYER_MISSING || err == BAG_SUCCESS));
-//     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
-// }
+TEST_CASE("CreateCorrectorLayer - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][surface_corrections][errors][nullHandle]") {
+    REQUIRE(bagCreateCorrectorLayer(nullptr, 1, BAG_SURFACE_GRID_EXTENTS) == BAG_INVALID_BAG_HANDLE);
+}
 
 TEST_CASE("WriteCorrectorDefinition - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][surface_corrections][errors]") {
     REQUIRE(bagWriteCorrectorDefinition(nullptr, nullptr) == BAG_INVALID_BAG_HANDLE);
@@ -1578,15 +1560,6 @@ TEST_CASE("ReadTrackingListCode - NULL numItems returns BAG_INVALID_FUNCTION_ARG
     CHECK(bagReadTrackingListCode(handle, 1, &items, nullptr) == BAG_INVALID_FUNCTION_ARGUMENT);
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
-
-// TEST_CASE("ReadTrackingListCode - Happy path", "[bag_c_api][tracking][happy]") {
-//     BagHandle* handle = openSampleBag();
-//     BagTrackingItem* items = nullptr;
-//     uint32_t num = 999;
-//     CHECK(bagReadTrackingListCode(handle, 1, &items, &num) == BAG_SUCCESS);
-//     if (num > 0 && items) delete[] items;
-//     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
-// }
 
 TEST_CASE("ReadTrackingListSeries - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][tracking][errors]") {
     BagTrackingItem* items = nullptr;
