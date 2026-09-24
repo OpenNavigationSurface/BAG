@@ -165,7 +165,7 @@ BagError bagCreateFromFile(
 /*!
 \param handle
     A handle to the new BAG.
-    Cannot be NULL.
+    Must be NULL.
 \param fileName
     The BAG file name.
     Cannot be NULL.
@@ -185,9 +185,6 @@ BagError bagCreateFromBuffer(
     uint8_t* metadataBuffer,
     uint32_t metadataBufferSize)
 {
-    // if (!handle)
-    //     return BAG_INVALID_BAG_HANDLE;
-
     if (!fileName || !metadataBuffer)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 

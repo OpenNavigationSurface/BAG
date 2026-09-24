@@ -431,11 +431,6 @@ TEST_CASE("CreateFromFile - NULL metadataFile returns BAG_INVALID_FUNCTION_ARGUM
     CHECK(handle == nullptr);
 }
 
-// TEST_CASE("CreateFromBuffer - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][creation][buffer][errors][nullHandle]") {
-//     uint8_t dummy[] = {0xDE, 0xAD, 0xBE, 0xEF};
-//     REQUIRE(bagCreateFromBuffer(nullptr, "test.bag", dummy, sizeof(dummy)) == BAG_INVALID_BAG_HANDLE);
-// }
-
 TEST_CASE("CreateFromBuffer - NULL filename returns BAG_INVALID_FUNCTION_ARGUMENT", "[bag_c_api][creation][buffer][errors][nullFilename]") {
     BagHandle* handle = nullptr;
     uint8_t dummy[] = {0xDE, 0xAD, 0xBE, 0xEF};
