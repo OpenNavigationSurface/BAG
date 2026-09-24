@@ -428,7 +428,9 @@ TEST_CASE("test surface corrections create and write irregular",
     UNSCOPED_INFO("Check dataset was created successfully.");
     constexpr uint64_t chunkSize = 100;
     constexpr int compressionLevel = 6;
-    auto pDataset = Dataset::create(tmpFileName, BAG::Metadata{}, chunkSize,
+	BAG::Metadata metadata;
+	metadata.loadFromBuffer(kMetadataXML);
+    auto pDataset = Dataset::create(tmpFileName, std::move(metadata), chunkSize,
         compressionLevel);
     REQUIRE(pDataset);
 
@@ -452,6 +454,9 @@ TEST_CASE("test surface corrections create and write irregular",
     constexpr uint32_t kRowEnd = 0;
     constexpr uint32_t kColumnEnd = 0;
 
+	const std::string verticalDatums{"MLLW"};
+	corrections.getDescriptor()->setVerticalDatums(verticalDatums);
+
     REQUIRE_NOTHROW(corrections.write(kRowStart, kColumnStart, kRowEnd,
         kColumnEnd, buffer));
 
@@ -464,6 +469,17 @@ TEST_CASE("test surface corrections create and write irregular",
     CHECK(res->y == kExpectedItem0.y);
     CHECK(res->z[0] == kExpectedItem0.z[0]);
     CHECK(res->z[1] == kExpectedItem0.z[1]);
+
+	pDataset->close();
+	pDataset.reset();
+	pDataset = nullptr;
+
+	// Re-open read-only and read back corrections information
+	pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
+	REQUIRE(pDataset);
+	auto corrRead = pDataset->getSurfaceCorrections();
+	auto vdatumRead = corrRead->getDescriptor()->getVerticalDatums();
+	CHECK(verticalDatums == vdatumRead);
 }
 
 TEST_CASE("test surface corrections create, write, read gridded",

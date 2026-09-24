@@ -1033,6 +1033,25 @@ void bagFree(uint8_t* buffer)
     delete[] buffer;
 }
 
+// Private function to decompose CSV files
+std::vector<std::string> parseCSVString(const std::string& input, char sep)
+{
+    std::vector<std::string> ret;
+    size_t start = 0;
+    while (true) {
+        auto pos = input.find(sep, start);
+        if (pos == std::string::npos)
+        {
+            ret.emplace_back(input.substr(start));
+            break;
+        }
+
+        ret.emplace_back(input.substr(start, pos - start));
+        start = pos + 1;
+    }
+    return ret;
+}
+
 // Surface Corrections
 //! Retrieve the specified vertical datum from the surface corrections.
 /*!
@@ -1118,45 +1137,54 @@ BagError bagWriteCorrectorVerticalDatum(
     uint8_t corrector,
     const uint8_t* inDatum)
 {
-    if (!handle)
+    if (!handle) {
         return BAG_INVALID_BAG_HANDLE;
+    }
 
-    if (corrector < 1 || corrector > BAG_SURFACE_CORRECTOR_LIMIT)
+    if (corrector < 1 || corrector > BAG_SURFACE_CORRECTOR_LIMIT) {
         return BAG_INVALID_FUNCTION_ARGUMENT;
+    }
 
-    if (!inDatum)
+    if (!inDatum) {
         return BAG_INVALID_FUNCTION_ARGUMENT;
+    }
 
     auto layer = handle->dataset->getSurfaceCorrections();
-    if (!layer)
+    if (!layer) {
         return BAG_SURFACE_CORRECTIONS_MISSING;
+    }
 
     auto pDescriptor = std::dynamic_pointer_cast<BAG::SurfaceCorrectionsDescriptor>(
         layer->getDescriptor());
-
-    // Set/replace the specified datum.
-    std::vector<std::string> datums;
-    datums.reserve(BAG_SURFACE_CORRECTOR_LIMIT);
-
-    std::istringstream iss{pDescriptor->getVerticalDatums()};
-
-    while (iss)
-    {
-        std::string datum;
-        std::getline(iss, datum, ',');
-        if (!iss)
-            break;
-
-        datums.emplace_back(std::move(datum));
+    if (!pDescriptor) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
     }
 
-    datums[corrector-1] = std::move(std::string(reinterpret_cast<const char*>(inDatum)));
+    // Vertical datums are stored as a comma-separated string in the BAG file attribute
+    // "vertical_datum_corrections/vertical_datum", so before adding/updating the datum
+    // for corrector N, we need to decompose the string into a vector of values
+    auto datums = parseCSVString(pDescriptor->getVerticalDatums(),
+        BAG_CORRECTOR_VERTICAL_DATUM_SEP);
+    if (datums.empty())
+    {
+        datums.emplace_back();
+    }
 
-    std::string joinedDatums = std::accumulate(cbegin(datums), cend(datums),
-        std::string{}, [](std::string& dest, const std::string& datum)
-        {
-            return dest.empty() ? datum : dest + ',' + datum;
-        });
+    // Check if datums is large enough to store the number of correctors
+    if (datums.size() < corrector)
+    {
+        datums.resize(corrector);
+    }
+
+    datums[corrector - 1] = std::string(reinterpret_cast<const char*>(inDatum));
+
+    // Now pack the new datum, along with any other datums for other correctors, into a new CSV value
+    std::string joinedDatums;
+    for (size_t i = 0; i < datums.size(); ++i)
+    {
+        if (!joinedDatums.empty()) joinedDatums += BAG_CORRECTOR_VERTICAL_DATUM_SEP;
+        joinedDatums += datums[i];
+    }
 
     pDescriptor->setVerticalDatums(joinedDatums);
 

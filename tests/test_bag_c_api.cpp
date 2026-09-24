@@ -319,6 +319,13 @@ namespace
         return bagFileName;
     }
 
+    const std::string sampleMetadataPath()
+    {
+        const std::string metdataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+        "/sample.xml"};
+        return metdataFileName;
+    }
+
     BagHandle* openSampleBag(BAG_OPEN_MODE mode = BAG_OPEN_MODE::BAG_OPEN_READONLY)
     {
         BagHandle* handle = nullptr;
@@ -394,6 +401,19 @@ TEST_CASE("FileClose - Happy path returns BAG_SUCCESS", "[bag_c_api][lifecycle][
 // =============================================================================
 // CREATION
 // =============================================================================
+
+TEST_CASE("CreateFromFile - Happy Path", "[bag_c_api][creation][file][happy]")
+{
+    const TestUtils::RandomFileGuard tmpFileName;
+    BagHandle* handle = nullptr;
+    BagError err = bagCreateFromFile(&handle, tmpFileName.m_fileName.c_str(),
+        sampleMetadataPath().c_str());
+    REQUIRE(err == BAG_SUCCESS);
+    // Cover bagCreateLayer
+    err = bagCreateLayer(handle, Nominal_Elevation);
+    CHECK(err == BAG_SUCCESS);
+    REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
+}
 
 TEST_CASE("CreateFromFile - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][creation][file][errors][nullHandle]") {
     REQUIRE(bagCreateFromFile(nullptr, "test.bag", "metadata.xml") == BAG_INVALID_BAG_HANDLE);
@@ -1039,21 +1059,20 @@ TEST_CASE("ReadCorrectorVerticalDatum - NULL datum returns BAG_INVALID_FUNCTION_
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-TEST_CASE("ReadCorrectorVerticalDatum - Happy Path", "[bag_c_api][surface_corrections][vdatum][happy]") {
-    BagHandle* handle = openSampleBag();
-    uint8_t datum[256] = {0};
-    BagError err = bagReadCorrectorVerticalDatum(handle, 1, datum);
-    // Sample may or may not have surface corrections
-    CHECK(err == BAG_SUCCESS);
-    REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
-}
+// TEST_CASE("ReadCorrectorVerticalDatum - Happy Path", "[bag_c_api][surface_corrections][vdatum][happy]") {
+//     BagHandle* handle = openSampleBag();
+//     uint8_t datum[256] = "MLLW";
+//     BagError err = bagWriteCorrectorVerticalDatum(handle, 1, datum);
+//     CHECK(err == BAG_SUCCESS);
+//     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
+// }
 
 TEST_CASE("WriteCorrectorVerticalDatum - NULL handle returns BAG_INVALID_BAG_HANDLE", "[bag_c_api][surface_corrections][vdatum][errors][nullHandle]") {
     uint8_t datum[] = "MLLW";
     REQUIRE(bagWriteCorrectorVerticalDatum(nullptr, 1, datum) == BAG_INVALID_BAG_HANDLE);
 }
 
-TEST_CASE("WriteCorrectorVerticalDatum - corrector=0 returns BAG_INVALID_FUNCTION_ARGUMENT", "[bag_c_api][surface_corrections][vdatum][errors][dbg]") {
+TEST_CASE("WriteCorrectorVerticalDatum - corrector=0 returns BAG_INVALID_FUNCTION_ARGUMENT", "[bag_c_api][surface_corrections][vdatum][errors][correctorZero]") {
     const TestUtils::RandomFileGuard tmpFileName;
     TestUtils::copyFile(std::string{std::string{std::getenv("BAG_SAMPLES_PATH")} +
         "/sample.bag"}, tmpFileName);
@@ -1092,10 +1111,10 @@ TEST_CASE("WriteCorrectorVerticalDatum - No surface corrections returns BAG_SURF
 }
 
 // =============================================================================
-// SURFACE CORRECTIONS - READ CORRECTED LAYER/REGION/ROW/NODE
+// SURFACE CORRECTIONS - CREATE/READ CORRECTED LAYER/REGION/ROW/NODE
 // =============================================================================
 
-TEST_CASE("ReadCorrectedLayer - Happy Path", "[bag_c_api][surface_corrections][readWrite][happy]")
+TEST_CASE("CreateReadCorrectedLayer - Happy Path", "[bag_c_api][surface_corrections][readWrite][happy]")
 {
     bool success = true;
     const TestUtils::RandomFileGuard tmpFile;
@@ -1117,10 +1136,12 @@ TEST_CASE("ReadCorrectedLayer - Happy Path", "[bag_c_api][surface_corrections][r
     const uint8_t kExpectedNumCorrectors = 3;
     BAG_SURFACE_CORRECTION_TOPOGRAPHY topo{};
     uint8_t numCorr = 0;
-    // float item1[3] = {};
-    // float *item1_p = item1;
     const float kExpectedItem0[] = {9.87f, 6.543f, 2.109876f};
     float *corrected = nullptr;
+    std::string datum1 = "MLLW";
+    std::string datum2 = "Ellipsoid";
+    std::string datum3 = "NAVD88";
+    uint8_t datumRead[256];
 
     // Write the data.
     constexpr uint32_t columnStart = 0;
@@ -1170,9 +1191,31 @@ TEST_CASE("ReadCorrectedLayer - Happy Path", "[bag_c_api][surface_corrections][r
     CHECK(numCorr == kExpectedNumCorrectors);
 
     err = bagWrite(handle, 0, 0, 0, 0,
-        Surface_Correction, "Surface_Correction", (uint8_t *)(&kExpectedItem0));
+    Surface_Correction, "Surface_Correction", (uint8_t *)(&kExpectedItem0));
     CHECK(err == BAG_SUCCESS);
 
+    // Write corrector vertical datums (maybe we have to write one datum for each corrector?)
+    err = bagWriteCorrectorVerticalDatum(handle, 1, reinterpret_cast<const uint8_t *>(datum1.data()));
+    CHECK(err == BAG_SUCCESS);
+    err = bagWriteCorrectorVerticalDatum(handle, 2, reinterpret_cast<const uint8_t *>(datum2.data()));
+    CHECK(err == BAG_SUCCESS);
+    err = bagWriteCorrectorVerticalDatum(handle, 3, reinterpret_cast<const uint8_t *>(datum3.data()));
+    CHECK(err == BAG_SUCCESS);
+    // Read vertical datums back
+    err = bagReadCorrectorVerticalDatum(handle, 1, datumRead);
+    CHECK(err == BAG_SUCCESS);
+    CHECK(datum1 == std::string{reinterpret_cast<char *>(datumRead)});
+    memset(datumRead, '\0', 256);
+    err = bagReadCorrectorVerticalDatum(handle, 2, datumRead);
+    CHECK(err == BAG_SUCCESS);
+    CHECK(datum2 == std::string{reinterpret_cast<char *>(datumRead)});
+    memset(datumRead, '\0', 256);
+    err = bagReadCorrectorVerticalDatum(handle, 2, datumRead);
+    CHECK(err == BAG_SUCCESS);
+    CHECK(datum2 == std::string{reinterpret_cast<char *>(datumRead)});
+    memset(datumRead, '\0', 256);
+
+    // Read correctors back
     // Cover bagReadCorrectedRow()
     corrected = (float *)malloc(sizeof(float) * kGridSize);
     err = bagReadCorrectedRow(handle, 0, 1, Elevation, &corrected);
@@ -1205,13 +1248,32 @@ TEST_CASE("ReadCorrectedLayer - Happy Path", "[bag_c_api][surface_corrections][r
     CHECK_THAT(*corrected, Catch::Matchers::WithinAbs(1.86372696e-43, 0.000001));
     free(corrected);
     corrected = nullptr;
+
+    // Close bag, re-open read-only, and re-read corrector vertical datum
+    REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
+    handle = nullptr;
+    err = bagFileOpen(&handle, BAG_OPEN_READONLY, tmpFileName.c_str());
+    REQUIRE(err == BAG_SUCCESS);
+    err = bagReadCorrectorVerticalDatum(handle, 1, datumRead);
+    CHECK(err == BAG_SUCCESS);
+    CHECK(datum1 == std::string{reinterpret_cast<char *>(datumRead)});
+    memset(datumRead, '\0', 256);
+    err = bagReadCorrectorVerticalDatum(handle, 2, datumRead);
+    CHECK(err == BAG_SUCCESS);
+    CHECK(datum2 == std::string{reinterpret_cast<char *>(datumRead)});
+    memset(datumRead, '\0', 256);
+    err = bagReadCorrectorVerticalDatum(handle, 2, datumRead);
+    CHECK(err == BAG_SUCCESS);
+    CHECK(datum2 == std::string{reinterpret_cast<char *>(datumRead)});
+    memset(datumRead, '\0', 256);
+
 cleanup:
     free(surf);
     if (surfRead) free(surfRead);
     if (xRead) free(xRead);
     if (yRead) free(yRead);
     if (corrected) free(corrected);
-    REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
+    if (handle) REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
     REQUIRE(success);
 }
 

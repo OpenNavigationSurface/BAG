@@ -172,6 +172,8 @@ struct BagVerticalDatumCorrectionsGridded
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
+#define BAG_CORRECTOR_VERTICAL_DATUM_SEP ','
+
 //! The attributes of a correction surface.  Only used in the C interface.
 struct BagVerticalCorrectorDef
 {
