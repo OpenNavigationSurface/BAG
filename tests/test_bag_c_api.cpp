@@ -807,7 +807,7 @@ TEST_CASE("Write - Non-existent layer returns BAG_HDF_DATASET_OPEN_FAILURE", "[b
 }
 
 // =============================================================================
-// GET ERROR STRING
+// GET ERROR STRING - base errors
 // =============================================================================
 
 TEST_CASE("GetErrorString - NULL error pointer returns BAG_INVALID_FUNCTION_ARGUMENT", "[bag_c_api][errors][string]") {
@@ -856,16 +856,318 @@ TEST_CASE("GetErrorString - BAG_INVALID_FUNCTION_ARGUMENT", "[bag_c_api][errors]
     CHECK(std::string(reinterpret_cast<char*>(err)) == "Invalid function argument or illegal value passed to Bag");
 }
 
+TEST_CASE("GetErrorString - BAG_LAYER_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_LAYER_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The specified layer is missing");
+}
+
+TEST_CASE("GetErrorString - BAG_SIMPLE_LAYER_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_SIMPLE_LAYER_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The specified simple layer is missing");
+}
+
+TEST_CASE("GetErrorString - BAG_WRONG_DESCRIPTOR_FOUND", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_WRONG_DESCRIPTOR_FOUND, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The wrong type of descriptor found for this layer");
+}
+
+TEST_CASE("GetErrorString - BAG_INVALID_LAYER_TYPE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_INVALID_LAYER_TYPE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Layer type larger than UNKNOWN_LAYER_TYPE encountered");
+}
+
+TEST_CASE("GetErrorString - BAG_UNSPECIFIED_ERROR", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_UNSPECIFIED_ERROR, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "An unspecified error has been encountered");
+}
+
+TEST_CASE("GetErrorString - BAG_SURFACE_CORRECTIONS_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_SURFACE_CORRECTIONS_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The surface corrections layer is missing");
+}
+
+TEST_CASE("GetErrorString - BAG_MORE_BAG_INSTANCES_PRESENT", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_MORE_BAG_INSTANCES_PRESENT, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "There are still instances of the BAG in memory");
+}
+
+// =============================================================================
+// GET ERROR STRING - Metadata errors
+// =============================================================================
+
+TEST_CASE("GetErrorString - BAG_METADTA_NO_HOME", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_NO_HOME, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The BAG_HOME environment variable must be set to the configdata directory of the openns distribution");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_SCHEMA_FILE_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_SCHEMA_FILE_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata schema file(s) (*.xsd) was missing, they should be within configdata under smXML or ISO19139/bag. Check BAG_HOME path");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_PARSE_MEM_EXCEPTION", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_PARSE_MEM_EXCEPTION, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata exceeded memory limit during parsing");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_PARSE_EXCEPTION", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_PARSE_EXCEPTION, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata parsing encountered an fatal exception");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_PARSE_DOM_EXCEPTION", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_PARSE_DOM_EXCEPTION, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata parsing encountered a DOM (document object model) exception, impossible to complete operation");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_PARSE_UNK_EXCEPTION", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_PARSE_UNK_EXCEPTION, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata parsing encountered an unknown error");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_PARSE_FAILED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_PARSE_FAILED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata parsing failed, unable to parse input file");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_PARSE_FAILED_MEM", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_PARSE_FAILED_MEM, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata parsing failed, unable to parse specified input buffer memory overflow");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_VALIDATE_FAILED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_VALIDATE_FAILED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata XML validation failed");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INVALID_HANDLE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INVALID_HANDLE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata Invalid (NULL) bagHandle supplied to an accessor method");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INIT_FAILED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INIT_FAILED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata Initialization of the low level XML support system failed");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_NO_PROJECTION_INFO", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_NO_PROJECTION_INFO, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata No projection information was found in the XML supplied");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INSUFFICIENT_BUFFER", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INSUFFICIENT_BUFFER, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata supplied buffer is not large enough to hold the extracted contents from XML");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INCOMPLETE_COVER", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INCOMPLETE_COVER, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata One or more elements of the requested coverage are missing from the XML file");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INVLID_DIMENSIONS", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INVLID_DIMENSIONS, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata The number of dimensions is incorrect (not equal to 2)");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_UNCRT_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_UNCRT_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata 'uncertaintyType' information is missing from the XML structure");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_BUFFER_EXCEEDED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_BUFFER_EXCEEDED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata supplied buffer is too large to be stored in the internal array");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_DPTHCORR_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_DPTHCORR_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The 'depthCorrectionType' information is missing from the XML structure");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_RESOLUTION_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_RESOLUTION_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata resolution information is missing from the XML structure");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INVALID_PROJECTION", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INVALID_PROJECTION, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata unsupported projection being used");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INVALID_DATUM", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INVALID_DATUM, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata unsupported datum being used");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INVALID_HREF", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INVALID_HREF, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata horizontal reference system is invalid");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_INVALID_VREF", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_INVALID_VREF, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Metadata vertical reference system is invalid");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_SCHEMA_SETUP_FAILED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_SCHEMA_SETUP_FAILED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Failed to setup the xml schema");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_SCHEMA_VALIDATION_SETUP_FAILED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_SCHEMA_VALIDATION_SETUP_FAILED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Failed to setup the xml schema validation");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_EMPTY_DOCUMENT", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_EMPTY_DOCUMENT, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The metadata document is emtpy");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_MISSING_MANDATORY_ITEM", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_MISSING_MANDATORY_ITEM, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The metadata is missing a mandatory item");
+}
+
+TEST_CASE("GetErrorString - BAG_METADTA_NOT_INITIALIZED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_METADTA_NOT_INITIALIZED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "The metadata has not been initialized correctly");
+}
+
+// =============================================================================
+// GET ERROR STRING - HDF errors
+// =============================================================================
+
 TEST_CASE("GetErrorString - BAG_NOT_HDF5_FILE", "[bag_c_api][errors][string]") {
     uint8_t* err = nullptr;
     CHECK(bagGetErrorString(BAG_NOT_HDF5_FILE, &err) == BAG_SUCCESS);
     CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Bag is not an HDF5 File");
 }
 
-TEST_CASE("GetErrorString - BAG_HDF_READ_FAILURE", "[bag_c_api][errors][string]") {
+TEST_CASE("GetErrorString - BAG_HDF_RANK_INCOMPATIBLE", "[bag_c_api][errors][string]") {
     uint8_t* err = nullptr;
-    CHECK(bagGetErrorString(BAG_HDF_READ_FAILURE, &err) == BAG_SUCCESS);
-    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure reading from Dataset");
+    CHECK(bagGetErrorString(BAG_HDF_RANK_INCOMPATIBLE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Bag's rank is incompatible with expected Rank of the Datasets: 2");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_TYPE_NOT_FOUND", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_TYPE_NOT_FOUND, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Bag surface Datatype parameter not available");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_DATASPACE_CORRUPTED", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_DATASPACE_CORRUPTED, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Dataspace for a bag surface is corrupted or could not be read");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_ACCESS_EXTENTS_ERROR", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_ACCESS_EXTENTS_ERROR, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure in request for access outside the extents of a bag surface's Dataset");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_CANNOT_WRITE_NULL_DATA", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_CANNOT_WRITE_NULL_DATA, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Cannot write NULL or uninitialized data to Dataset");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_INTERNAL_ERROR", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_INTERNAL_ERROR, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF There was an internal HDF error detected");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_CREATE_FILE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_CREATE_FILE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to create new HDF Bag File");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_CREATE_DATASPACE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_CREATE_DATASPACE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to create the Dataspace");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_CREATE_PROPERTY_CLASS_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_CREATE_PROPERTY_CLASS_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to create the Property class");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_SET_PROPERTY_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_SET_PROPERTY_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to set value of Property class");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_TYPE_COPY_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_TYPE_COPY_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failed to copy Datatype parameter for Dataset access");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_CREATE_DATASET_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_CREATE_DATASET_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to create the Dataset");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_DATASET_EXTEND_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_DATASET_EXTEND_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Cannot extend Dataset extents");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_CREATE_ATTRIBUTE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_CREATE_ATTRIBUTE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to create Attribute");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_CREATE_GROUP_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_CREATE_GROUP_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to create Group");
 }
 
 TEST_CASE("GetErrorString - BAG_HDF_WRITE_FAILURE", "[bag_c_api][errors][string]") {
@@ -874,11 +1176,139 @@ TEST_CASE("GetErrorString - BAG_HDF_WRITE_FAILURE", "[bag_c_api][errors][string]
     CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure writing to Dataset");
 }
 
+TEST_CASE("GetErrorString - BAG_HDF_READ_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_READ_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure reading from Dataset");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_GROUP_CLOSE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_GROUP_CLOSE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure closing Group");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_FILE_CLOSE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_FILE_CLOSE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure closing File");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_FILE_OPEN_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_FILE_OPEN_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to open File");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_GROUP_OPEN_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_GROUP_OPEN_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to open Group");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_ATTRIBUTE_OPEN_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_ATTRIBUTE_OPEN_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to open Attribute");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_ATTRIBUTE_CLOSE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_ATTRIBUTE_CLOSE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure closing Attribute");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_DATASET_CLOSE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_DATASET_CLOSE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Failure closing Dataset");
+}
+
 TEST_CASE("GetErrorString - BAG_HDF_DATASET_OPEN_FAILURE", "[bag_c_api][errors][string]") {
     uint8_t* err = nullptr;
     CHECK(bagGetErrorString(BAG_HDF_DATASET_OPEN_FAILURE, &err) == BAG_SUCCESS);
     CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to open Dataset");
 }
+
+TEST_CASE("GetErrorString - BAG_HDF_TYPE_CREATE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_TYPE_CREATE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to create Datatype");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_INVALID_COMPRESSION_LEVEL", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_INVALID_COMPRESSION_LEVEL, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF compression level not in acceptable range of 0 to 9");
+}
+
+TEST_CASE("GetErrorString - BAG_HDF_WRITE_ATTRIBUTE_FAILURE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_HDF_WRITE_ATTRIBUTE_FAILURE, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "HDF Unable to write to Attribute");
+}
+
+// =============================================================================
+// GET ERROR STRING - Georef metadata errors
+// =============================================================================
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: The specified layer does not exist");
+}
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: Unable to find record");
+}
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: Unable to find field");
+}
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_NO_VALUE_FOUND", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_NO_VALUE_FOUND, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: Unable to find the value");
+}
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: The provided record does not match the definition in the georeferenced metadata layer");
+}
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_NAME_MISSING", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_NAME_MISSING, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: A georeferenced metadata layer name is required");
+}
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_EXISTS", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_EXISTS, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: The specified layer already exists");
+}
+
+TEST_CASE("GetErrorString - BAG_GEOREF_METADATA_LAYER_PROFILE_UNKNOWN", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_GEOREF_METADATA_LAYER_PROFILE_UNKNOWN, &err) == BAG_SUCCESS);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "Georef: The specified metadata profile is unknown");
+}
+
+TEST_CASE("GetErrorString - BAG_INVALID_ERROR_CODE", "[bag_c_api][errors][string]") {
+    uint8_t* err = nullptr;
+    CHECK(bagGetErrorString(BAG_INVALID_ERROR_CODE, &err) == BAG_INVALID_ERROR_CODE);
+    CHECK(std::string(reinterpret_cast<char*>(err)) == "An undefined bagError code was encountered");
+}
+
+// =============================================================================
+// GET ERROR STRING - Invalid error code
+// =============================================================================
 
 TEST_CASE("GetErrorString - Invalid code (default) returns BAG_INVALID_ERROR_CODE", "[bag_c_api][errors][string]") {
     uint8_t* err = nullptr;
@@ -1750,7 +2180,7 @@ TEST_CASE("CreateMetadataProfileGeorefMetadataLayer - Unknown georef metadata pr
     BagHandle* handle = openBagRW(tmpFileName);
     BagError err = bagCreateMetadataProfileGeorefMetadataLayer(handle, DT_UINT32,
         UNKNOWN_METADATA_PROFILE, "nonexistent_layer");
-    CHECK(err == BAG_GEOREG_METADATA_LAYER_PROFILE_UNKNOWN);
+    CHECK(err == BAG_GEOREF_METADATA_LAYER_PROFILE_UNKNOWN);
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 

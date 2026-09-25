@@ -678,7 +678,8 @@ BagError bagGetErrorString(
     *error = reinterpret_cast<uint8_t*>(str);
 
     switch (code)
-    { // TODO: Make sure this is up-to-date
+    {
+    // Base errors
     case BAG_SUCCESS:
         strncpy(str, "Bag returned a successful completion", MAX_STR-1);
         break;
@@ -700,6 +701,28 @@ BagError bagGetErrorString(
     case BAG_INVALID_FUNCTION_ARGUMENT:
         strncpy(str, "Invalid function argument or illegal value passed to Bag", MAX_STR-1);
         break;
+    case BAG_LAYER_MISSING:
+        strncpy(str, "The specified layer is missing", MAX_STR-1);
+        break;
+    case BAG_SIMPLE_LAYER_MISSING:
+        strncpy(str, "The specified simple layer is missing", MAX_STR-1);
+        break;
+    case BAG_WRONG_DESCRIPTOR_FOUND:
+        strncpy(str, "The wrong type of descriptor found for this layer", MAX_STR-1);
+        break;
+    case BAG_INVALID_LAYER_TYPE:
+        strncpy(str, "Layer type larger than UNKNOWN_LAYER_TYPE encountered", MAX_STR-1);
+        break;
+    case BAG_UNSPECIFIED_ERROR:
+        strncpy(str, "An unspecified error has been encountered", MAX_STR-1);
+        break;
+    case BAG_SURFACE_CORRECTIONS_MISSING:
+        strncpy(str, "The surface corrections layer is missing", MAX_STR-1);
+        break;
+    case BAG_MORE_BAG_INSTANCES_PRESENT:
+        strncpy(str, "There are still instances of the BAG in memory", MAX_STR-1);
+        break;
+    // Metadata errors
     case BAG_METADTA_NO_HOME:
         strncpy(str, "The BAG_HOME environment variable must be set to the configdata directory of the openns distribution", MAX_STR-1);
         break;
@@ -739,14 +762,14 @@ BagError bagGetErrorString(
     case BAG_METADTA_INSUFFICIENT_BUFFER:
         strncpy(str, "Metadata supplied buffer is not large enough to hold the extracted contents from XML", MAX_STR-1);
         break;
-    case BAG_METADTA_UNCRT_MISSING:
-        strncpy(str, "Metadata 'uncertaintyType' information is missing from the XML structure", MAX_STR-1);
-        break;
     case BAG_METADTA_INCOMPLETE_COVER:
         strncpy(str, "Metadata One or more elements of the requested coverage are missing from the XML file", MAX_STR-1);
         break;
     case BAG_METADTA_INVLID_DIMENSIONS:
         snprintf(str, MAX_STR, "Metadata The number of dimensions is incorrect (not equal to %d)", RANK);
+        break;
+    case BAG_METADTA_UNCRT_MISSING:
+        strncpy(str, "Metadata 'uncertaintyType' information is missing from the XML structure", MAX_STR-1);
         break;
     case BAG_METADTA_BUFFER_EXCEEDED:
         strncpy(str, "Metadata supplied buffer is too large to be stored in the internal array", MAX_STR-1);
@@ -784,6 +807,7 @@ BagError bagGetErrorString(
     case BAG_METADTA_NOT_INITIALIZED:
         strncpy(str, "The metadata has not been initialized correctly", MAX_STR-1);
         break;
+    // HDF errors
     case BAG_NOT_HDF5_FILE:
         strncpy(str, "HDF Bag is not an HDF5 File", MAX_STR-1);
         break;
@@ -868,6 +892,37 @@ BagError bagGetErrorString(
     case BAG_HDF_INVALID_COMPRESSION_LEVEL:
         strncpy(str, "HDF compression level not in acceptable range of 0 to 9", MAX_STR-1);
         break;
+    case BAG_HDF_WRITE_ATTRIBUTE_FAILURE:
+        strncpy(str, "HDF Unable to write to Attribute", MAX_STR-1);
+        break;
+    // Georef metadata errors
+    case BAG_GEOREF_METADATA_LAYER_MISSING:
+        strncpy(str, "Georef: The specified layer does not exist", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND:
+        strncpy(str, "Georef: Unable to find record", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND:
+        strncpy(str, "Georef: Unable to find field", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_NO_VALUE_FOUND:
+        strncpy(str, "Georef: Unable to find the value", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION:
+        strncpy(str,
+            "Georef: The provided record does not match the definition in the georeferenced metadata layer",
+            MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_NAME_MISSING:
+        strncpy(str, "Georef: A georeferenced metadata layer name is required", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_EXISTS:
+        strncpy(str, "Georef: The specified layer already exists", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_PROFILE_UNKNOWN:
+        strncpy(str, "Georef: The specified metadata profile is unknown", MAX_STR-1);
+        break;
+    // Invalid error code
     case BAG_INVALID_ERROR_CODE:
     default:
         strncpy(str, "An undefined bagError code was encountered", MAX_STR-1);
@@ -2097,7 +2152,7 @@ BAG_EXTERNAL BagError bagCreateMetadataProfileGeorefMetadataLayer(BagHandle* han
                                                    indexType);
     }
     catch (const BAG::UknownMetadataProfile&) {
-        return BAG_GEOREG_METADATA_LAYER_PROFILE_UNKNOWN;
+        return BAG_GEOREF_METADATA_LAYER_PROFILE_UNKNOWN;
     }
     catch (const BAG::LayerNotFound&) {
         return BAG_LAYER_MISSING;
