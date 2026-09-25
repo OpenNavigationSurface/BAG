@@ -2204,12 +2204,11 @@ BagError bagGetGeorefMetadataLayerDefinition(
     // Convert the RecordDefinition into a FieldDefinition*.
     *numFields = static_cast<uint32_t>(recordDef.size());
 
-    auto* pDef = *definition;
-    pDef = new FieldDefinition[*numFields];
+    *definition = new FieldDefinition[*numFields];
 
     uint32_t index = 0;
     for (const auto& def : recordDef)
-        pDef[index++] = def;
+        *definition[index++] = def;
 
     return BAG_SUCCESS;
 }
