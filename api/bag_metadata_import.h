@@ -13,6 +13,7 @@ BAG_API BagError bagImportMetadataFromXmlBuffer(const char* xmlBuffer, int buffe
     BagMetadata& metadata, bool doValidation);
 
 BAG_API void bagSetHomeFolder(const char* homeFolder);
+BAG_API std::string bagGetHomeFolder();
 
 }  // namespace BAG
 

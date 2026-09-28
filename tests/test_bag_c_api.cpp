@@ -4,6 +4,7 @@
 #include <bag.h>
 #include <bag_c_types.h>
 #include <bag_errors.h>
+#include <bag_metadata_import.h>
 
 #include <catch2/catch_all.hpp>
 
@@ -2111,7 +2112,14 @@ TEST_CASE("SetHomeFolder - NULL folder returns BAG_INVALID_FUNCTION_ARGUMENT", "
 }
 
 TEST_CASE("SetHomeFolder - Valid folder returns BAG_SUCCESS", "[bag_c_api][metadata][happy]") {
-    REQUIRE(bagSetHomeFolder("/tmp/test_metadata_folder") == BAG_SUCCESS);
+    // Before setting the home folder, see if another test has set it, if so store it so that we can reset.
+    auto existing = BAG::bagGetHomeFolder();
+    CHECK(bagSetHomeFolder("/tmp/test_metadata_folder") == BAG_SUCCESS);
+    if (!existing.empty())
+    {
+        // Reset previous home folder so that other tests won't fail.
+        REQUIRE(bagSetHomeFolder(existing.c_str()) == BAG_SUCCESS);
+    }
 }
 
 // =============================================================================
