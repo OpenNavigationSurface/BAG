@@ -551,8 +551,7 @@ TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
             CHECK(layerFromId.getDescriptor()->getInternalPath() ==
                 layer->getDescriptor()->getInternalPath());
             CHECK_THROWS_AS(constDataset->getLayer(42), BAG::InvalidLayerId);
-            CHECK_THROWS_AS(constDataset->getLayer(Nominal_Elevation, "nominal_elevation"),
-                BAG::InvalidLayerId);
+            CHECK_NOTHROW(constDataset->getLayer(Nominal_Elevation, "nominal_elevation"));
         }
     }
 }

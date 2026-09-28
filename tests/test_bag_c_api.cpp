@@ -1534,7 +1534,7 @@ TEST_CASE("WriteCorrectorVerticalDatum - No surface corrections returns BAG_SURF
 TEST_CASE("CreateReadCorrectedLayer - Happy Path", "[bag_c_api][surface_corrections][readWrite][happy]")
 {
     // Forward declare stack variables for later use (we have to do this above calls to goto cleanup).
-    uint8_t *surfRead = nullptr;
+    float *surfRead = nullptr;
     double *xRead = nullptr;
     double *yRead = nullptr;
     const BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
@@ -1565,7 +1565,9 @@ TEST_CASE("CreateReadCorrectedLayer - Happy Path", "[bag_c_api][surface_correcti
     for(uint32_t row=0; row<kGridSize; ++row) {
         for (uint32_t column=0; column<kGridSize; ++column) {
             size_t idx = column + kGridSize * row;
-            surf[idx] = TestUtils::jitter(50., 1.0);
+            auto val_base = column + 1;
+            surf[idx] = ((val_base * row) % kGridSize) +
+                (val_base / static_cast<float>(kGridSize));
         }
     }
     err = bagWrite(handle, 0, columnStart, 0, columnEnd,
@@ -1576,11 +1578,11 @@ TEST_CASE("CreateReadCorrectedLayer - Happy Path", "[bag_c_api][surface_correcti
     }
 
     // Read back the data
-    surfRead = (uint8_t *)malloc(sizeof(float) * kGridSize * kGridSize);
+    surfRead = (float *)malloc(sizeof(float) * kGridSize * kGridSize);
     xRead = (double *)malloc(sizeof(double) * kGridSize);
     yRead = (double *)malloc(sizeof(double) * kGridSize);
     err = bagRead(handle, 0, 0, columnEnd, columnEnd,
-        Elevation, "elevation", &surfRead, xRead, yRead);
+        Elevation, "elevation", reinterpret_cast<uint8_t **>((&surfRead)), xRead, yRead);
     if (err != BAG_SUCCESS) {
         success = false;
         goto cleanup;
@@ -1634,7 +1636,8 @@ TEST_CASE("CreateReadCorrectedLayer - Happy Path", "[bag_c_api][surface_correcti
     corrected = (float *)malloc(sizeof(float) * kGridSize);
     err = bagReadCorrectedRow(handle, 0, 1, Elevation, &corrected);
     CHECK(err == BAG_SUCCESS);
-    CHECK_THAT(corrected[0], Catch::Matchers::WithinAbs(9.87f, 0.000001));
+    // The first value in the dummy surface is ~0.01, so ~9.88 corrected.
+    CHECK_THAT(corrected[0], Catch::Matchers::WithinAbs(9.88f, 0.000001));
     free(corrected);
     corrected = nullptr;
 
@@ -1642,7 +1645,8 @@ TEST_CASE("CreateReadCorrectedLayer - Happy Path", "[bag_c_api][surface_correcti
     corrected = (float *)malloc(sizeof(float));
     err = bagReadCorrectedNode(handle, 0, 0, 1, Elevation, &corrected);
     CHECK(err == BAG_SUCCESS);
-    CHECK_THAT(*corrected, Catch::Matchers::WithinAbs(9.87f, 0.000001));
+    // The first value in the dummy surface is ~0.01, so ~9.88 corrected.
+    CHECK_THAT(*corrected, Catch::Matchers::WithinAbs(9.88f, 0.000001));
     free(corrected);
     corrected = nullptr;
 
@@ -2518,9 +2522,6 @@ TEST_CASE("SetValueByIndex - Layer missing returns BAG_GEOREF_METADATA_LAYER_MIS
 TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]")
 {
     // Forward declare stack variables for later use (we have to do this above calls to goto cleanup).
-    uint8_t *surfRead = nullptr;
-    double *xRead = nullptr;
-    double *yRead = nullptr;
     float *corrected = nullptr;
     std::string datum1 = "MLLW";
     std::string datum2 = "Ellipsoid";
@@ -2547,7 +2548,9 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
     for(uint32_t row=0; row<kGridSize; ++row) {
         for (uint32_t column=0; column<kGridSize; ++column) {
             size_t idx = column + kGridSize * row;
-            surf[idx] = TestUtils::jitter(50., 1.0);
+            auto val_base = column + 1;
+            surf[idx] = ((val_base * row) % kGridSize) +
+                (val_base / static_cast<float>(kGridSize));
         }
     }
     err = bagWrite(handle, 0, columnStart, 0, columnEnd,
@@ -2577,9 +2580,6 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
 
  cleanup:
     free(surf);
-    if (surfRead) free(surfRead);
-    if (xRead) free(xRead);
-    if (yRead) free(yRead);
     if (corrected) free(corrected);
     if (handle) REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
     REQUIRE(success);

@@ -355,19 +355,5 @@ void create_unknown_metadata(const std::string& elevationLayerName,
                         reinterpret_cast<const uint8_t *>(secondBuffer.data()));
 }
 
-float jitter(float value, float maxJitter)
-{
-    std::random_device rd;
-    std::mt19937 gen(rd());
-    std::uniform_real_distribution<float> jitterRNG(0.0, maxJitter);
-    std::uniform_int_distribution<> signRNG(0, 1);
-    auto sign = signRNG(gen);
-    auto jitter = jitterRNG(gen);
-    if (sign) {
-        return value + jitter;
-    }
-    return value - jitter;
-}
-
 }  // namespace TestUtils
 

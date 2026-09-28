@@ -87,7 +87,4 @@ void create_NOAA_OCS_Metadata(const std::string& elevationLayerName,
 void create_unknown_metadata(const std::string& elevationLayerName,
                              const std::shared_ptr<BAG::Dataset>& dataset);
 
-float jitter(float value, float jitterMagnitude);
-
 }  // namespace TestUtils
-
