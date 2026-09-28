@@ -114,7 +114,7 @@ $ ./bag-examples/examples/bag_georefmetadata_layer \
   examples/sample-data/bag_georefmetadata_layer.xml bag_georefmetadata.bag
 ```
 
-## Windows: Visual Studio 2022/2019
+## Windows: Visual Studio 2026
 
 ### Locally build dependencies
 
@@ -122,8 +122,8 @@ First, from the directory `docs\win-build\baglibs\downloads` run `.\download.ps1
 
 Then, from the directory `docs\win-build\baglibs\install`  run `.\install.ps1` to build dependencies.
 
-Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to 
-`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.0`.
+Download [swigwin-4.3.1](https://www.swig.org/download.html) and upzip to 
+`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.1`.
 
 Now, to build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
 run the C++ and Python tests.

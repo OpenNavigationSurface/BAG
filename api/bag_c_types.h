@@ -202,11 +202,11 @@ typedef union {
     bool b;
     char* c;
 } BAG_COMPOUND_DATA_PAYLOAD;
-struct BagCompoundDataType
+typedef struct BagCompoundDataType
 {
     BAG_DATA_TYPE type;
     BAG_COMPOUND_DATA_PAYLOAD data;
-};
+} BAG_COMPOUND_DATA_TYPE;
 
 #define BAG_NULL_ELEVATION      1000000  // A "null" elevation value.
 #define BAG_NULL_GENERIC        1000000  // A "null" generic value.

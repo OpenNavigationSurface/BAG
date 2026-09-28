@@ -7,6 +7,7 @@
 
 #include <H5Cpp.h>
 
+#include "bag_config.h"
 #include "bag_types.h"
 
 
@@ -58,7 +59,7 @@ struct AttributeInfo
 };
 
 //! Retrieve the simple layer attribute information.
-AttributeInfo getAttributeInfo(LayerType layerType);
+BAG_API AttributeInfo getAttributeInfo(LayerType layerType);
 
 }  // namespace BAG
 

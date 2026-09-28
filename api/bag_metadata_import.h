@@ -7,12 +7,12 @@
 
 namespace BAG {
 
-BagError bagImportMetadataFromXmlFile(const char* fileName,
+BAG_API BagError bagImportMetadataFromXmlFile(const char* fileName,
     BagMetadata& metadata, bool doValidation);
-BagError bagImportMetadataFromXmlBuffer(const char* xmlBuffer, int bufferSize,
+BAG_API BagError bagImportMetadataFromXmlBuffer(const char* xmlBuffer, int bufferSize,
     BagMetadata& metadata, bool doValidation);
 
-void bagSetHomeFolder(const char* homeFolder);
+BAG_API void bagSetHomeFolder(const char* homeFolder);
 
 }  // namespace BAG
 

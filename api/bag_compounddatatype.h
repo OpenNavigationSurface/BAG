@@ -11,12 +11,18 @@
 
 namespace BAG {
 
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4251)  // std classes do not have DLL-interface when exporting
+#pragma warning(disable: 4275)  // non-DLL-interface class used as base class
+#endif
+
 //! This class is a tagged union (aka variant).
 /*!
     The supported types of this tagged union are:
         DT_FLOAT32, DT_UINT32, DT_BOOLEAN, DT_STRING
 */
-class CompoundDataType final {
+class BAG_API CompoundDataType final {
 public:
     //! The default constructor.
     CompoundDataType()

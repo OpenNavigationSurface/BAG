@@ -23,20 +23,23 @@ pushd $content_root
 
 $env:CC="cl.exe"
 $env:CXX="cl.exe"
-cmake -G "Visual Studio 17 2022" -B build -S .  -DCMAKE_BUILD_TYPE=Release `
+$env:BUILD_TYPE_CMAKE="Release"
+cmake -G "Visual Studio 18 2026" -B build -S . `
   -DCMAKE_PREFIX_PATH=docs\win-build\baglibs\install `
   -DCMAKE_INSTALL_PREFIX=docs\win-build\baglibs\install -DBUILD_SHARED_LIBS=ON `
   -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CI=ON -DCMAKE_OBJECT_PATH_MAX=1024
-cmake --build build --config Release --target install
-$env:PATH=$env:PATH + ";${content_root}\build\api\Release;${content_root}\docs\win-build\baglibs\install\bin"
+
+cmake --build build -j $env:NUMBER_OF_PROCESSORS --config $env:BUILD_TYPE_CMAKE --target install
+$env:PATH=$env:PATH + ";${content_root}\build\api\${env:BUILD_TYPE_CMAKE};${content_root}\docs\win-build\baglibs\install\bin"
+$env:BAG_HOME="${content_root}\configdata"
 $env:BAG_SAMPLES_PATH="${content_root}\examples\sample-data"
-build\tests\Release\bag_tests.exe
+& ".\build\tests\${env:BUILD_TYPE_CMAKE}\bag_tests.exe"
 python -m venv win-venv
 & .\win-venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 $env:CMAKE_PREFIX_PATH="$PWD\docs\win-build\baglibs\install"
-$env:SWIG_EXECUTABLE="$PWD\docs\win-build\baglibs\install\swigwin-4.3.0\swig.exe"
+$env:SWIG_EXECUTABLE="$PWD\docs\win-build\baglibs\install\swigwin-4.3.1\swig.exe"
 python -m pip wheel -w .\wheel\ .\build\api\swig\python
 $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
 python -m pip install $whl_path

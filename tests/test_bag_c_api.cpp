@@ -1554,24 +1554,22 @@ TEST_CASE("CreateReadCorrectedLayer - Happy Path", "[bag_c_api][surface_correcti
     BagHandle* handle = nullptr;
     auto mdBuff = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(kMetadataXML.data()));
     // Create new BAG
-    BagError err = bagCreateFromBuffer(&handle, tmpFileName.c_str(), mdBuff, kMetadataXML.size());
+    BagError err = bagCreateFromBuffer(&handle, tmpFileName.c_str(), mdBuff, (uint32_t)kMetadataXML.size());
     REQUIRE(err == BAG_SUCCESS);
     // Write some elevation data so that we can read corrected data below
     const uint32_t kGridSize = 100;
-    uint8_t *surf = (uint8_t *)malloc(sizeof(float) * kGridSize * kGridSize);
+    auto *surf = static_cast<float *>(malloc(sizeof(float) * kGridSize * kGridSize));
     // Write the data.
     constexpr uint32_t columnStart = 0;
     constexpr uint32_t columnEnd = kGridSize - 1;
     for(uint32_t row=0; row<kGridSize; ++row) {
         for (uint32_t column=0; column<kGridSize; ++column) {
             size_t idx = column + kGridSize * row;
-            auto val_base = column + 1;
-            surf[idx] = ((val_base * row) % kGridSize) +
-                (val_base / static_cast<float>(kGridSize));
+            surf[idx] = TestUtils::jitter(50., 1.0);
         }
     }
     err = bagWrite(handle, 0, columnStart, 0, columnEnd,
-            Elevation, "elevation", surf);
+            Elevation, "elevation", reinterpret_cast<uint8_t*>(surf));
     if (err != BAG_SUCCESS) {
         success = false;
         goto cleanup;
@@ -2523,16 +2521,10 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
     uint8_t *surfRead = nullptr;
     double *xRead = nullptr;
     double *yRead = nullptr;
-    const BAG_SURFACE_CORRECTION_TOPOGRAPHY kExpectedSurfaceType = BAG_SURFACE_GRID_EXTENTS;
-    const uint8_t kExpectedNumCorrectors = 3;
-    BAG_SURFACE_CORRECTION_TOPOGRAPHY topo{};
-    uint8_t numCorr = 0;
-    const float kExpectedItem0[] = {9.87f, 6.543f, 2.109876f};
     float *corrected = nullptr;
     std::string datum1 = "MLLW";
     std::string datum2 = "Ellipsoid";
     std::string datum3 = "NAVD88";
-    uint8_t datumRead[256];
     FieldDefinition defn;
     FieldDefinition *defnRead = nullptr;
     uint32_t numFields = 0;
@@ -2543,24 +2535,23 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
     BagHandle* handle = nullptr;
     auto mdBuff = const_cast<uint8_t*>(reinterpret_cast<const uint8_t*>(kMetadataXML.data()));
     // Create new BAG
-    BagError err = bagCreateFromBuffer(&handle, tmpFileName.c_str(), mdBuff, kMetadataXML.size());
+    BagError err = bagCreateFromBuffer(&handle, tmpFileName.c_str(), mdBuff,
+        static_cast<uint32_t>(kMetadataXML.size()));
     REQUIRE(err == BAG_SUCCESS);
     // Write some elevation data so that we can read corrected data below
     const uint32_t kGridSize = 100;
-    uint8_t *surf = (uint8_t *)malloc(sizeof(float) * kGridSize * kGridSize);
+    auto *surf = static_cast<float *>(malloc(sizeof(float) * kGridSize * kGridSize));
     // Write the data.
     constexpr uint32_t columnStart = 0;
     constexpr uint32_t columnEnd = kGridSize - 1;
     for(uint32_t row=0; row<kGridSize; ++row) {
         for (uint32_t column=0; column<kGridSize; ++column) {
             size_t idx = column + kGridSize * row;
-            auto val_base = column + 1;
-            surf[idx] = ((val_base * row) % kGridSize) +
-                (val_base / static_cast<float>(kGridSize));
+            surf[idx] = TestUtils::jitter(50., 1.0);
         }
     }
     err = bagWrite(handle, 0, columnStart, 0, columnEnd,
-            Elevation, "elevation", surf);
+            Elevation, "elevation", reinterpret_cast<uint8_t*>(surf));
     if (err != BAG_SUCCESS) {
         success = false;
         goto cleanup;

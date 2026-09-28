@@ -550,20 +550,9 @@ TEST_CASE("test get layer", "[dataset][open][getLayer][getLayers]")
                 constDataset->getLayer(layer->getDescriptor()->getId());
             CHECK(layerFromId.getDescriptor()->getInternalPath() ==
                 layer->getDescriptor()->getInternalPath());
-            auto caught = false;
-            try {
-                const BAG::Layer& l = constDataset->getLayer(42);
-            } catch (BAG::InvalidLayerId) {
-                caught = true;
-            }
-            CHECK(caught);
-            caught = false;
-            try {
-                std::shared_ptr<const BAG::Layer> l2 = constDataset->getLayer(Nominal_Elevation, "nominal_elevation");
-            } catch (BAG::InvalidLayerId) {
-                caught = true;
-            }
-            CHECK(!caught);
+            CHECK_THROWS_AS(constDataset->getLayer(42), BAG::InvalidLayerId);
+            CHECK_THROWS_AS(constDataset->getLayer(Nominal_Elevation, "nominal_elevation"),
+                BAG::InvalidLayerId);
         }
     }
 }

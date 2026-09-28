@@ -2,7 +2,6 @@
 #include <bag_metadata_import.h>
 #include <catch2/catch_all.hpp>
 #include <string>
-#include <fstream>
 
 using Catch::Approx;
 
@@ -308,7 +307,8 @@ TEST_CASE("test import valid metadata from buffer - Happy path", "[metadata][imp
 {
     BagMetadata metadata{};
 	bagInitMetadata(metadata);
-    BagError error = BAG::bagImportMetadataFromXmlBuffer(kXMLv2MetadataBuffer.c_str(), kXMLv2MetadataBuffer.size(), metadata, true);
+    BagError error = BAG::bagImportMetadataFromXmlBuffer(kXMLv2MetadataBuffer.c_str(),
+    	static_cast<int>(kXMLv2MetadataBuffer.size()), metadata, true);
     
     REQUIRE(error == BAG_SUCCESS);
     REQUIRE(strcmp(metadata.fileIdentifier, "Unique Identifier") == 0);
@@ -319,7 +319,8 @@ TEST_CASE("test import invalid metadata from buffer (malformed XML)", "[metadata
     BagMetadata metadata{};
 	bagInitMetadata(metadata);
     std::string malformedXml = "<gmi:MI_Metadata><unclosed_tag>";
-    BagError error = BAG::bagImportMetadataFromXmlBuffer(malformedXml.c_str(), malformedXml.size(), metadata, true);
+    BagError error = BAG::bagImportMetadataFromXmlBuffer(malformedXml.c_str(),
+    	static_cast<int>(malformedXml.size()), metadata, true);
     
     CHECK(error != BAG_SUCCESS);
 }

@@ -1,17 +1,18 @@
 
+#include "bag_config.h"
 #include "bag_dataset.h"
 
 namespace BAG {
     //! Convert a BAG::CompoundDataType (C++) into a BagCompoundDataType (C).
     /*!
     \param field
-        The BAG::CompoundDataType.
+        The CompoundDataType.
 
     \return
-        The BagCompoundDataType created from \e field.
+        The BAG_COMPOUND_DATA_TYPE created from \e field.
     */
-    BagCompoundDataType getValue(
-        const BAG::CompoundDataType& field)
+    BAG_API BAG_COMPOUND_DATA_TYPE getValue(
+        const CompoundDataType& field)
     {
         BagCompoundDataType result{};
 
@@ -50,10 +51,10 @@ namespace BAG {
         The BagCompoundDataType.
 
     \return
-        The BAG::CompoundDataType created from \e field.
+        The CompoundDataType created from \e field.
     */
-    CompoundDataType getValue(
-        const BagCompoundDataType& field)
+    BAG_API CompoundDataType getValue(
+        const BAG_COMPOUND_DATA_TYPE field)
     {
         switch (field.type)
         {

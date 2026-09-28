@@ -398,7 +398,7 @@ void writeAttributes(
     The HDF5 path to the attribute in the HDF5 DataSet.
     Cannot be nullptr.
 */
-template void writeAttribute<float>(const ::H5::DataSet& h5dataSet,
+template BAG_API void writeAttribute<float>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, float value, const char* path);
 
 //! Write an unsigned 32 bit integer value to an attribute.
@@ -413,7 +413,7 @@ template void writeAttribute<float>(const ::H5::DataSet& h5dataSet,
     The HDF5 path to the attribute in the HDF5 DataSet.
     Cannot be nullptr.
 */
-template void writeAttribute<uint32_t>(const ::H5::DataSet& h5dataSet,
+template BAG_API void writeAttribute<uint32_t>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, uint32_t value, const char* path);
 
 //! Write a floating point value to multiple attributes.
@@ -429,7 +429,7 @@ template void writeAttribute<uint32_t>(const ::H5::DataSet& h5dataSet,
     If no paths provided, no attributes are written.
     If any path is nullptr, that attribute is not written.
 */
-template void writeAttributes<float>(const ::H5::DataSet& h5dataSet,
+template BAG_API void writeAttributes<float>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, float value,
     const std::vector<const char*>& paths);
 
@@ -446,7 +446,7 @@ template void writeAttributes<float>(const ::H5::DataSet& h5dataSet,
     If no paths provided, no attributes are written.
     If any path is nullptr, that attribute is not written.
 */
-template void writeAttributes<uint32_t>(const ::H5::DataSet& h5dataSet,
+template BAG_API void writeAttributes<uint32_t>(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, uint32_t value,
     const std::vector<const char*>& paths);
 
