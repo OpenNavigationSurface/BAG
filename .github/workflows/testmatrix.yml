@@ -82,7 +82,9 @@ jobs:
     - name: Tests
       # Execute C++ and Python tests
       run: |
-        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
+        export BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data
+        export BAG_HOME=${{github.workspace}}/configdata
+        ./build/tests/bag_tests
         source python-venv/bin/activate
-        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
+        python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
         deactivate

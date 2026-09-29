@@ -91,7 +91,9 @@ jobs:
 
     - name: Run tests
       run: |
-        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests_d -r junit | tee build/tests/bag_tests-testreport.xml
+        export BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data
+        export BAG_HOME=${{github.workspace}}/configdata
+        ./build/tests/bag_tests_d -r junit | tee build/tests/bag_tests-testreport.xml
 
     - name: Test Reporter
       uses: mikepenz/action-junit-report@v5
