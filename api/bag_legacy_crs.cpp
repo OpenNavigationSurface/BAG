@@ -293,12 +293,12 @@ namespace BAG {
 \li The projection parameters.
 \param hBuffer
 \li Modified to contain the horizontal reference system
-in the form of a WKT string.
+in the form of a WKT string. Will be truncated to hBufferSize-1.
 \param hBufferSize
 \li The size of the horizontal reference system buffer.
 \param vBuffer
 \li Modified to contain the vertical reference system
-in the form of a WKT string.
+in the form of a WKT string. Will be truncated to vBufferSize-1.
 \param vBufferSize
 \li The size of the vertical reference system buffer.
 \return
@@ -324,11 +324,7 @@ try
             R"(", VERT_DATUM[")" << system.geoParameters.vertical_datum <<
             R"(", 2000]])";
 
-        //Make sure our string is not too large.
-        if (wktStream.str().size() > vBufferSize)
-            wktStream.str().resize(vBufferSize);
-
-        strcpy(vBuffer, wktStream.str().c_str());
+        strncpy(vBuffer, wktStream.str().c_str(), vBufferSize-1);
     }
 
     //If we want the horizontal system then...
@@ -702,10 +698,7 @@ try
 
         }
 
-        if (wktStream.str().size() > hBufferSize)
-            wktStream.str().resize(hBufferSize);
-
-        strcpy(hBuffer, wktStream.str().c_str());
+        strncpy(hBuffer, wktStream.str().c_str(), hBufferSize-1);
     }
 
     return 0;

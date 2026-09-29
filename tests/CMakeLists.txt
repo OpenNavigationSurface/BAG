@@ -71,6 +71,11 @@ target_compile_options(bag_tests
         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
 )
 
+# GCC/Clang options
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(bag_tests PRIVATE -fstack-protector-strong)
+endif()
+
 find_package(HDF5 COMPONENTS CXX REQUIRED)
 find_package(Catch2 3 REQUIRED)
 

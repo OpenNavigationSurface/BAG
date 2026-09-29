@@ -24,7 +24,7 @@ TEST_CASE("bagDatumID parses various WKT datum strings", "[legacy_crs][parsing]"
     REQUIRE(BAG::bagDatumID("INVALID_DATUM") == BAG::BagDatum::unknown);
 }
 
-TEST_CASE("bagLegacyToWkt handles valid conversions", "[legacy_crs][conversion]") {
+TEST_CASE("bagLegacyToWkt handles valid conversions", "[legacy_crs][conversion][bagLegacyToWkt]") {
     auto vdatums = std::vector<std::string>{"North_American_Vertical_Datum_1988", // wgs84
         "National Geodetic Vertical Datum 1929", // wgs72
         "National Geodetic Vertical Datum 1929", // nad83
