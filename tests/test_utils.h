@@ -12,6 +12,13 @@
 
 namespace TestUtils {
 
+inline bool CI()
+{
+    const char* ci = getenv("CI");
+    if (ci) return true;
+    return false;
+}
+
 struct CopyFileSourceFileNotFound final : virtual std::exception
 {
     const char* what() const noexcept override

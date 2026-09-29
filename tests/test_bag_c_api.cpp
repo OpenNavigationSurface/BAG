@@ -2112,6 +2112,7 @@ TEST_CASE("SetHomeFolder - NULL folder returns BAG_INVALID_FUNCTION_ARGUMENT", "
 }
 
 TEST_CASE("SetHomeFolder - Valid folder returns BAG_SUCCESS", "[bag_c_api][metadata][happy]") {
+    if (TestUtils::CI()) SKIP("In CI, where this test causes failures elsewhere, skipping...");
     // Before setting the home folder, see if another test has set it, if so store it so that we can reset.
     auto existing = BAG::bagGetHomeFolder();
     CHECK(bagSetHomeFolder("/tmp/test_metadata_folder") == BAG_SUCCESS);
