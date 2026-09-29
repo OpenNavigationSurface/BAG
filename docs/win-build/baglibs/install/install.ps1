@@ -45,6 +45,10 @@ $env:CATCH2_ZIP="catch2.zip"
 $env:BUILD_TYPE_CMAKE="Release"
 
 # zlib
+if ("C561D09347F674F0D72692E7C75D9898919326C532AAB7F8C07BB43B07EFEB38" -ne (Get-FileHash ..\downloads\$env:ZLIB_ZIP).Hash) {
+    Write-Error "Invalid checksum for $env:ZLIB_ZIP"
+    exit 1
+}
 exec { 7z x ..\downloads\$env:ZLIB_ZIP }
 cd zlib-1.3
 if(-Not (Test-Path -Path build)) { mkdir build }
@@ -53,6 +57,10 @@ cmake -B build -G $env:VS_VERSION -S . $env:INSTALL_PREFIX
 cmake --build build -j $env:NUMBER_OF_PROCESSORS --config $env:BUILD_TYPE_CMAKE --target install -- /nologo /verbosity:minimal
 cd ..
 # libxml2 (Note: Debug build doesn't seem to work on Windows (BAG's CMake can't find it) so force Release build always)
+if ("C008BAC08FD5C7B4A87F7B8A71F283FA581D80D80FF8D2EFD3B26224C39BC54C" -ne (Get-FileHash ..\downloads\$env:LIBXML2_ZIP).Hash) {
+    Write-Error "Invalid checksum for $env:LIBXML2_ZIP"
+    exit 1
+}
 exec { tar xf ..\downloads\$env:LIBXML2_ZIP }
 cd libxml2-2.15.1
 if(-Not (Test-Path -Path build)) { mkdir build }
@@ -61,6 +69,10 @@ cmake -B build -G $env:VS_VERSION -S . $env:INSTALL_PREFIX `
 cmake --build build -j $env:NUMBER_OF_PROCESSORS --config $env:BUILD_TYPE_CMAKE --target install -- /nologo /verbosity:minimal
 cd ..
 # HDF5
+if ("911CADF4FEDFA6E5844D853D31F9125C960E0C960907DF9F0AC9CE2C4521DB32" -ne (Get-FileHash ..\downloads\$env:HDF5_ZIP).Hash) {
+    Write-Error "Invalid checksum for $env:HDF5_ZIP"
+    exit 1
+}
 exec { 7z x ..\downloads\$env:HDF5_ZIP }
 cd hdf5-hdf5_1.14.5
 if(-Not (Test-Path -Path build)) { mkdir build }
@@ -71,6 +83,10 @@ cmake -B build -G $env:VS_VERSION -S . $env:INSTALL_PREFIX `
 cmake --build build -j $env:NUMBER_OF_PROCESSORS --config $env:BUILD_TYPE_CMAKE --target install -- /nologo /verbosity:minimal
 cd ..
 # Catch2
+if ("1E96CCA4CE3BFBF1F20EFFF50C3A16FCC818D4BBD65C2C51155F976EE2BD0B8A" -ne (Get-FileHash ..\downloads\$env:CATCH2_ZIP).Hash) {
+    Write-Error "Invalid checksum for $env:CATCH2_ZIP"
+    exit 1
+}
 exec { 7z x ..\downloads\$env:CATCH2_ZIP }
 cd Catch2-3.16.0
 if(-Not (Test-Path -Path build)) { mkdir build }
