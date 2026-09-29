@@ -122,8 +122,8 @@ First, from the directory `docs\win-build\baglibs\downloads` run `.\download.ps1
 
 Then, from the directory `docs\win-build\baglibs\install`  run `.\install.ps1` to build dependencies.
 
-Download [swigwin-4.3.1](https://www.swig.org/download.html) and upzip to 
-`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.1`.
+Download [swigwin-4.4.1](https://www.swig.org/download.html) and upzip to 
+`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.4.1`.
 
 Now, to build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
 run the C++ and Python tests.

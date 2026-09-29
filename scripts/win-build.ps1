@@ -39,7 +39,7 @@ py -m venv win-venv
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 $env:CMAKE_PREFIX_PATH="$PWD\docs\win-build\baglibs\install"
-$env:SWIG_EXECUTABLE="$PWD\docs\win-build\baglibs\install\swigwin-4.3.1\swig.exe"
+$env:SWIG_EXECUTABLE="$PWD\docs\win-build\baglibs\install\swigwin-4.4.1\swig.exe"
 python -m pip wheel -w .\wheel\ .\build\api\swig\python
 $whl_path=Resolve-Path ".\wheel\bagPy-*.whl"
 python -m pip install $whl_path
