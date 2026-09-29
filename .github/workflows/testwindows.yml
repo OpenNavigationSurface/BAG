@@ -73,7 +73,7 @@ jobs:
       - name: Set compiler environment
         shell: cmd
         run: |
-            if "%VS_VER%" == "2026" CALL "C:\Program Files\Microsoft Visual Studio\2026\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=%ARCHITECTURE%
+            if "%VS_VER%" == "2026" CALL "C:\Program Files\Microsoft Visual Studio\18\Enterprise\Common7\Tools\VsDevCmd.bat" -arch=%ARCHITECTURE%
             echo PATH=%PATH%>> %GITHUB_ENV%
             echo INCLUDE=%INCLUDE%>> %GITHUB_ENV%
             echo LIB=%LIB%>> %GITHUB_ENV%
