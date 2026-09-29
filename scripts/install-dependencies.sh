@@ -7,7 +7,7 @@ echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 pushd .
 
 sudo apt-get update -y
-sudo apt-get install -y cmake g++ ninja-build swig4.0 zlib1g-dev libproj-dev
+sudo apt-get install -y cmake g++ ninja-build swig zlib1g-dev libproj-dev
 # Install a recent version of Catch2 version 3
 cd /tmp
 wget https://github.com/catchorg/Catch2/archive/refs/tags/v3.16.0.tar.gz
