@@ -1340,12 +1340,12 @@ TEST_CASE("ComputePosition - NULL y returns BAG_INVALID_FUNCTION_ARGUMENT", "[ba
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-TEST_CASE("ComputePosition - Happy path", "[bag_c_api][coordinates][happy]") {
+TEST_CASE("ComputePosition - Happy path", "[bag_c_api][coordinates][pos][happy]") {
     BagHandle* handle = openSampleBag();
     double x, y;
-    CHECK(bagComputePostion(handle, 0, 0, &x, &y) == BAG_SUCCESS);
-    CHECK(x != 0.0);
-    CHECK(y != 0.0);
+    CHECK(bagComputePostion(handle, 50, 50, &x, &y) == BAG_SUCCESS);
+    CHECK(x == 688410.0);
+    CHECK(y == 5555120.0);
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
@@ -1368,12 +1368,12 @@ TEST_CASE("ComputeIndex - NULL col returns BAG_INVALID_FUNCTION_ARGUMENT", "[bag
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-TEST_CASE("ComputeIndex - Happy path", "[bag_c_api][coordinates][happy]") {
+TEST_CASE("ComputeIndex - Happy path", "[bag_c_api][coordinates][idx][happy]") {
     BagHandle* handle = openSampleBag();
     uint32_t row = 999, col = 999;
-    CHECK(bagComputeIndex(handle, 0.0, 0.0, &row, &col) == BAG_SUCCESS);
-    CHECK(row == 0);
-    CHECK(col == 0);
+    CHECK(bagComputeIndex(handle, 688410.0, 5555120.0, &row, &col) == BAG_SUCCESS);
+    CHECK(row == 50);
+    CHECK(col == 50);
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
