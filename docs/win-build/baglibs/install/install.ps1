@@ -65,7 +65,7 @@ exec { 7z x ..\downloads\$env:HDF5_ZIP }
 cd hdf5-hdf5_1.14.5
 if(-Not (Test-Path -Path build)) { mkdir build }
 cmake -B build -G $env:VS_VERSION -S . $env:INSTALL_PREFIX `
--DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=OFF `
+-DHDF5_BUILD_CPP_LIB=ON -DHDF5_BUILD_TOOLS:BOOL=ON `
 -DBUILD_TESTING:BOOL=OFF -DBUILD_SHARED_LIBS:BOOL=ON `
 -DHDF5_BUILD_HL_LIB:BOOL=ON -DHDF5_ENABLE_Z_LIB_SUPPORT:BOOL=ON
 cmake --build build -j $env:NUMBER_OF_PROCESSORS --config $env:BUILD_TYPE_CMAKE --target install -- /nologo /verbosity:minimal

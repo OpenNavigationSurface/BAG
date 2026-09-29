@@ -34,7 +34,7 @@ $env:PATH=$env:PATH + ";${content_root}\build\api\${env:BUILD_TYPE_CMAKE};${cont
 $env:BAG_HOME="${content_root}\configdata"
 $env:BAG_SAMPLES_PATH="${content_root}\examples\sample-data"
 & ".\build\tests\${env:BUILD_TYPE_CMAKE}\bag_tests.exe"
-python -m venv win-venv
+py -m venv win-venv
 & .\win-venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
