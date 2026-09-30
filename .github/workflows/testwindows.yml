@@ -6,6 +6,7 @@ on:
       - 'docs/**'
       - readme.*
       - README.*
+      - 'CHANGES.txt'
       - '*.md'
       - '*.svg'
       - '*.png'
@@ -17,6 +18,7 @@ on:
       - 'docs/**'
       - readme.*
       - README.*
+      - 'CHANGES.txt'
       - '*.md'
       - '*.svg'
       - '*.png'

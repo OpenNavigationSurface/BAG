@@ -6,6 +6,7 @@ on:
       - 'docs/**'
       - readme.*
       - README.*
+      - 'CHANGES.txt'
       - '*.md'
       - '*.svg'
       - .github/workflows/testmatrix.yml
@@ -16,6 +17,7 @@ on:
       - 'docs/**'
       - readme.*
       - README.*
+      - 'CHANGES.txt'
       - '*.md'
       - '*.svg'
       - .github/workflows/testwindows.yml
