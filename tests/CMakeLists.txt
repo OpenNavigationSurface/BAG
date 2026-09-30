@@ -7,22 +7,30 @@ set(CMAKE_DEBUG_POSTFIX "d")
 
 set(TEST_SOURCE_FILES
     test_main.cpp
+    test_bag_attributeinfo.cpp
+    test_bag_c_api.cpp
     test_bag_compounddatatype.cpp
     test_bag_dataset.cpp
     test_bag_descriptor.cpp
+    test_bag_exceptions.cpp
     test_bag_georefmetadata_layer.cpp
+    test_bag_hdfhelper.cpp
     test_bag_interleavedlegacylayer.cpp
     test_bag_interleavedlegacylayerdescriptor.cpp
+    test_bag_legacy_crs.cpp
     test_bag_metadata.cpp
+    test_bag_metadata_export.cpp
+    test_bag_metadata_import.cpp
+    test_bag_metadatatypes.cpp
     test_bag_record.cpp
     test_bag_simplelayer.cpp
     test_bag_simplelayerdescriptor.cpp
-    test_bag_surfacecorrectionsdescriptor.cpp
     test_bag_surfacecorrections.cpp
+    test_bag_surfacecorrectionsdescriptor.cpp
     test_bag_trackinglist.cpp
+    test_bag_uint8array.cpp
+    test_bag_util.cpp
     test_bag_valuetable.cpp
-    test_utils.cpp
-    test_utils.h
     test_bag_vrmetadata.cpp
     test_bag_vrmetadatadescriptor.cpp
     test_bag_vrnode.cpp
@@ -30,6 +38,8 @@ set(TEST_SOURCE_FILES
     test_bag_vrrefinements.cpp
     test_bag_vrrefinementsdescriptor.cpp
     test_bag_vrtrackinglist.cpp
+    test_utils.cpp
+    test_utils.h
     test_vr_bag.cpp
 )
 
@@ -62,6 +72,11 @@ target_compile_options(bag_tests
         $<$<AND:$<CXX_COMPILER_ID:MSVC>,$<COMPILE_LANGUAGE:CXX>,$<VERSION_GREATER_EQUAL:$<CXX_COMPILER_VERSION>,19.14>>:/Zc:__cplusplus>
 )
 
+# GCC/Clang options
+if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
+    target_compile_options(bag_tests PRIVATE -fstack-protector-strong)
+endif()
+
 find_package(HDF5 COMPONENTS CXX REQUIRED)
 find_package(Catch2 3 REQUIRED)
 
@@ -85,5 +100,9 @@ include(CTest)
 include(Catch)
 
 if(BAG_CODE_COVERAGE)
-    target_code_coverage(bag_tests AUTO ALL EXCLUDE tests/*)
+    # We exclude bag_exceptions.h as it defines trivial classes the artificially depress coverage stats.
+    target_code_coverage(bag_tests AUTO ALL EXCLUDE api/bag_exceptions.h tests/*
+            LCOV_OPTIONS --rc branch_coverage=1
+            GENHTML_OPTIONS --branch-coverage
+    )
 endif()

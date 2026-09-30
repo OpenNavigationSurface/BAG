@@ -96,33 +96,6 @@ std::vector<std::string> split(
 
 //************************************************************************
 /*!
-\brief Convert the given string value to double.
-
-The string is expected to contain a decimal value in the classic locale.
-For example something like "20.0". The classic locale uses a '.' as the
-decimal separator.
-
-\param value
-    \li The string to convert.
-\return
-    \li The converted value.
-*/
-//************************************************************************
-double toDouble(const std::string& value)
-{
-    std::stringstream lineStream;
-
-    (void)lineStream.imbue(std::locale::classic());
-    lineStream << value;
-
-    double dblValue = 0.0;
-    lineStream >> dblValue;
-
-    return dblValue;
-}
-
-//************************************************************************
-/*!
 \brief Convert the BAG ellipsoid to WKT.
 
 To convert the ellipsoid we need the semi-major and inverse flattening
@@ -302,211 +275,6 @@ std::string datumToWkt(
     throw BAG::InvalidDatumError();
 }
 
-//************************************************************************
-/*!
-\brief Retrieve the specified projection parameter.
-
-\param wkt
-    \li The wkt string containing the coordinate system definition.
-\param paramName
-    \li The name of the projection parameter to retrieve.
-\return
-    \li The specified projection parameter.
-*/
-//************************************************************************
-double getProjectionParam(
-    const std::string& wkt,
-    const std::string& paramName)
-{
-    //Find the projection node in the wkt string.
-    const size_t startIndex = wkt.find(paramName);
-    if (startIndex == std::string::npos)
-        throw BAG::CoordSysError();
-
-    const size_t valueStartIndex = wkt.find(",", startIndex);
-    if (valueStartIndex == std::string::npos)
-        throw BAG::CoordSysError();
-
-    const size_t valueEndIndex = wkt.find("]", valueStartIndex);
-    if (valueEndIndex == std::string::npos)
-        throw BAG::CoordSysError();
-
-    //Extract the value
-    const size_t startPos = valueStartIndex + 1;
-    const size_t length = valueEndIndex - startPos;
-    const std::string value = wkt.substr(startPos, length);
-
-    return toDouble(value);
-}
-
-//************************************************************************
-/*!
-\brief Retrieve the BAG coordinate type from the WKT definition.
-
-\param wkt
-    \li The wkt string containing the coordinate system definition.
-\return
-    \li The BAG coordiante system type.
-*/
-//************************************************************************
-BAG::CoordinateType getCoordinateType(const std::string& wkt)
-{
-    //Find the projection node in the wkt string.
-    const size_t startIndex = wkt.find("projection[");
-
-    //If no projection node, then we must have a Geographic system.
-    if (startIndex == std::string::npos)
-        return BAG::CoordinateType::Geodetic;
-
-    const size_t endIndex = wkt.find(R"("])", startIndex);
-    if (endIndex == std::string::npos)
-        throw BAG::CoordSysError();
-
-    //Extract the projection name.
-    const size_t startPos = startIndex + 12;
-    const size_t length = endIndex - startPos;
-    const std::string projName = wkt.substr(startPos, length);
-
-    if (projName == k_albers_conic_equal_area)
-        return BAG::CoordinateType::Albers_Equal_Area_Conic;
-    else if (projName == k_azimuthal_equidistant)
-        return BAG::CoordinateType::Azimuthal_Equidistant;
-    else if (projName == k_bonne)
-        return BAG::CoordinateType::Bonne;
-    else if (projName == k_cassini_soldner)
-        return BAG::CoordinateType::Cassini;
-    else if (projName == k_cylindrical_equal_area)
-        return BAG::CoordinateType::Cylindrical_Equal_Area;
-    else if (projName == k_eckert_iv)
-        return BAG::CoordinateType::Eckert4;
-    else if (projName == k_eckert_vi)
-        return BAG::CoordinateType::Eckert6;
-    else if (projName == k_equirectangular)
-        return BAG::CoordinateType::Equidistant_Cylindrical;
-    else if (projName == k_gnomonic)
-        return BAG::CoordinateType::Gnomonic;
-    else if (projName == k_lambert_conformal_conic)
-        return BAG::CoordinateType::Lambert_Conformal_Conic;
-    else if (projName == k_mercator)
-        return BAG::CoordinateType::Mercator;
-    else if (projName == k_miller_cylindrical)
-        return BAG::CoordinateType::Miller_Cylindrical;
-    else if (projName == k_mollweide)
-        return BAG::CoordinateType::Mollweide;
-    else if (projName == k_new_zealand_map_grid)
-        return BAG::CoordinateType::NZMG;
-    else if (projName == k_orthographic)
-        return BAG::CoordinateType::Orthographic;
-    else if (projName == k_polar_stereographic)
-        return BAG::CoordinateType::Polar_Stereo;
-    else if (projName == k_polyconic)
-        return BAG::CoordinateType::Polyconic;
-    else if (projName == k_sinusoidal)
-        return BAG::CoordinateType::Sinusoidal;
-    else if (projName == k_oblique_stereographic)
-        return BAG::CoordinateType::Stereographic;
-    else if (projName == k_transverse_mercator)
-        return BAG::CoordinateType::Transverse_Mercator;
-    else if (projName == k_vandergrinten)
-        return BAG::CoordinateType::Van_der_Grinten;
-
-    //No idea...
-    throw BAG::CoordSysError();
-}
-
-//************************************************************************
-/*!
-\brief Retrieve the BAG datum type from the WKT definition.
-
-\param wkt
-    \li The wkt string containing the coordinate system definition.
-\return
-    \li The BAG datum type.
-*/
-//************************************************************************
-BAG::BagDatum getDatumType(const std::string &wkt)
-{
-    //Find the horizontal datum node in the wkt string.
-    const size_t startIndex = wkt.find("datum[");
-    if (startIndex == std::string::npos)
-        throw BAG::InvalidDatumError();
-
-    const size_t endIndex = wkt.find(",", startIndex);
-    if (endIndex == std::string::npos)
-        throw BAG::InvalidDatumError();
-
-    //Extract the horizontal datum name.
-    const size_t startPos = startIndex + 7;
-    const size_t length = endIndex - startPos - 1;
-    const std::string hDatumName = wkt.substr(startPos, length);
-
-    if (hDatumName == k_wgs84)
-        return BAG::BagDatum::wgs84;
-    else if (hDatumName == k_wgs72)
-        return BAG::BagDatum::wgs72;
-    else if (hDatumName == k_nad83)
-        return BAG::BagDatum::nad83;
-
-    //Unknown, so we can not convert this coordinate system.
-    throw BAG::InvalidDatumError();
-}
-
-//************************************************************************
-/*!
-\brief Retrieve the BAG ellipsoid name from the WKT definition.
-
-\param wkt
-    \li The wkt string containing the coordinate system definition.
-\return
-    \li The ellipsoid name.
-*/
-//************************************************************************
-std::string getEllipsoid(const std::string& wkt)
-{
-    //Find the ellipsoid node in the wkt string.
-    const size_t startIndex = wkt.find("spheroid[");
-    if (startIndex == std::string::npos)
-        throw BAG::InvalidDatumError();
-
-    const size_t endIndex = wkt.find(",", startIndex);
-    if (endIndex == std::string::npos)
-        throw BAG::InvalidDatumError();
-
-    //Extract the ellipsoid name.
-    const size_t startPos = startIndex + 10;
-    const size_t length = endIndex - startPos - 1;
-
-    return wkt.substr(startPos, length);
-}
-
-//************************************************************************
-/*!
-\brief Retrieve the vertical datum name from the WKT definition.
-
-\param wkt
-    \li The wkt string containing the vertical reference system definition.
-\return
-    \li The vertical datum name.
-*/
-//************************************************************************
-std::string getVDatum(const std::string& wkt)
-{
-    //Find the vertical datum node in the wkt string.
-    const size_t startIndex = wkt.find("vert_datum[");
-    if (startIndex == std::string::npos)
-        throw BAG::InvalidDatumError();
-
-    const size_t endIndex = wkt.find(",", startIndex);
-    if (endIndex == std::string::npos)
-        throw BAG::InvalidDatumError();
-
-    //Extract the vertical datum name.
-    const size_t startPos = startIndex + 12;
-    const size_t length = endIndex - startPos - 1;
-
-    return wkt.substr(startPos, length);
-}
-
 }  // namespace
 
 namespace BAG {
@@ -525,12 +293,12 @@ namespace BAG {
 \li The projection parameters.
 \param hBuffer
 \li Modified to contain the horizontal reference system
-in the form of a WKT string.
+in the form of a WKT string. Will be truncated to hBufferSize-1.
 \param hBufferSize
 \li The size of the horizontal reference system buffer.
 \param vBuffer
 \li Modified to contain the vertical reference system
-in the form of a WKT string.
+in the form of a WKT string. Will be truncated to vBufferSize-1.
 \param vBufferSize
 \li The size of the vertical reference system buffer.
 \return
@@ -556,11 +324,7 @@ try
             R"(", VERT_DATUM[")" << system.geoParameters.vertical_datum <<
             R"(", 2000]])";
 
-        //Make sure our string is not too large.
-        if (wktStream.str().size() > vBufferSize)
-            wktStream.str().resize(vBufferSize);
-
-        strcpy(vBuffer, wktStream.str().c_str());
+        strncpy(vBuffer, wktStream.str().c_str(), vBufferSize-1);
     }
 
     //If we want the horizontal system then...
@@ -934,10 +698,7 @@ try
 
         }
 
-        if (wktStream.str().size() > hBufferSize)
-            wktStream.str().resize(hBufferSize);
-
-        strcpy(hBuffer, wktStream.str().c_str());
+        strncpy(hBuffer, wktStream.str().c_str(), hBufferSize-1);
     }
 
     return 0;

@@ -64,6 +64,7 @@ TEST_CASE("test compound data type uint32_t creation",
 //  CompoundDataType& operator=(uint32_t rhs) noexcept
 //  CompoundDataType& operator=(bool rhs) noexcept
 //  CompoundDataType& operator=(std::string rhs) noexcept
+//  CompoundDataType& operator=(CompoundDataType&& rhs)
 //  template <typename T>
 //  T BAG::get(const CompondDataType& cdt)
 TEST_CASE("test compound data type assignment operators",
@@ -81,6 +82,18 @@ TEST_CASE("test compound data type assignment operators",
 
         UNSCOPED_INFO("Check getting the float value via BAG::get() works.");
         CHECK(BAG::get<float>(cdt) == kExpectedValue);
+
+        // Cover assigning to self
+        auto *cdt_p = &cdt;
+        cdt = *cdt_p;
+        CHECK(BAG::get<float>(cdt) == kExpectedValue);
+        CHECK(cdt.getType() == DT_FLOAT32);
+
+        // Cover move assignment
+        CompoundDataType dst;
+        CompoundDataType src{kExpectedValue};
+        dst = std::move(src);
+        CHECK(dst.asFloat() == kExpectedValue);
     }
 
     {
@@ -91,6 +104,12 @@ TEST_CASE("test compound data type assignment operators",
 
         UNSCOPED_INFO("Check getting the float value via BAG::get() works.");
         CHECK(BAG::get<uint32_t>(cdt) == kExpectedValue);
+
+        // Cover move assignment
+        CompoundDataType dst;
+        CompoundDataType src{kExpectedValue};
+        dst = std::move(src);
+        CHECK(dst.asUInt32() == kExpectedValue);
     }
 
     {
@@ -101,6 +120,12 @@ TEST_CASE("test compound data type assignment operators",
 
         UNSCOPED_INFO("Check getting the bool value via BAG::get() works.");
         CHECK(BAG::get<bool>(cdt) == kExpectedValue);
+
+        // Cover move assignment
+        CompoundDataType dst;
+        CompoundDataType src{kExpectedValue};
+        dst = std::move(src);
+        CHECK(dst.asBool() == kExpectedValue);
     }
 
     {
@@ -111,6 +136,19 @@ TEST_CASE("test compound data type assignment operators",
 
         UNSCOPED_INFO("Check getting the string value via BAG::get() works.");
         CHECK(BAG::get<std::string>(cdt) == kExpectedValue);
+
+        // Cover move assignment
+        CompoundDataType dst;
+        CompoundDataType src{kExpectedValue};
+        dst = std::move(src);
+        CHECK(dst.asString() == kExpectedValue);
+    }
+
+    {
+        UNSCOPED_INFO("Check using the equality operator on two different types");
+        const CompoundDataType cdtf{42.23f};
+        const CompoundDataType cdtu{42u};
+        CHECK(cdtf != cdtu);
     }
 }
 
@@ -143,6 +181,7 @@ TEST_CASE("test compound data type invalid cases",
         constexpr float kExpectedValue = 123.456f;
         cdt = kExpectedValue;
         REQUIRE_THROWS(BAG::get<bool>(cdt));
+        REQUIRE_THROWS_AS(cdt.asString(), BAG::InvalidType);
     }
 
     {
@@ -150,5 +189,6 @@ TEST_CASE("test compound data type invalid cases",
         constexpr uint32_t kExpectedValue = 101;
         cdt = kExpectedValue;
         REQUIRE_THROWS(BAG::get<float>(cdt) == kExpectedValue);
+        REQUIRE_THROWS_AS(BAG::get<std::string>(cdt), BAG::InvalidType);
     }
 }

@@ -6,6 +6,7 @@ on:
       - 'docs/**'
       - readme.*
       - README.*
+      - 'CHANGES.txt'
       - '*.md'
       - '*.svg'
       - '*.png'
@@ -17,6 +18,7 @@ on:
       - 'docs/**'
       - readme.*
       - README.*
+      - 'CHANGES.txt'
       - '*.md'
       - '*.svg'
       - '*.png'
@@ -34,8 +36,8 @@ jobs:
   build:
     strategy:
       matrix:
-        python-version: ["3.10", "3.11", "3.12", "3.13"]
-        os: [ubuntu-22.04]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+        os: [ubuntu-24.04]
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
     # See: https://docs.github.com/en/free-pro-team@latest/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
@@ -43,10 +45,10 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v6
+      uses: actions/checkout@v7
 
     - name: Setup Python
-      uses: actions/setup-python@v6
+      uses: actions/setup-python@v7
       with:
         python-version: ${{ matrix.python-version }}
         cache: 'pip'
@@ -82,7 +84,9 @@ jobs:
     - name: Tests
       # Execute C++ and Python tests
       run: |
-        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data ./build/tests/bag_tests
+        export BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data
+        export BAG_HOME=${{github.workspace}}/configdata
+        ./build/tests/bag_tests
         source python-venv/bin/activate
-        BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
+        python -m pytest --cov=bagPy --cov-branch --cov-report=xml --junitxml=python-test-results.xml python/test_*.py
         deactivate

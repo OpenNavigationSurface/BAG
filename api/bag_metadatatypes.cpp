@@ -63,9 +63,13 @@ void initResponsibleParty(BagResponsibleParty& responsibleParty) noexcept
 void freeResponsibleParty(BagResponsibleParty& responsibleParty) noexcept
 {
     delete[] responsibleParty.individualName;
+    responsibleParty.individualName = nullptr;
     delete[] responsibleParty.organisationName;
+    responsibleParty.organisationName = nullptr;
     delete[] responsibleParty.positionName;
+    responsibleParty.positionName = nullptr;
     delete[] responsibleParty.role;
+    responsibleParty.role = nullptr;
 }
 
 //************************************************************************
@@ -116,24 +120,38 @@ void initDataIdentificationInfo(BagIdentification& dataIdentificationInfo) noexc
 void freeDataIdentificationInfo(BagIdentification& dataIdentificationInfo) noexcept
 {
     delete[] dataIdentificationInfo.title;
+    dataIdentificationInfo.title = nullptr;
 	delete[] dataIdentificationInfo.date;
+    dataIdentificationInfo.date = nullptr;
 	delete[] dataIdentificationInfo.dateType;
+    dataIdentificationInfo.dateType = nullptr;
 	delete[] dataIdentificationInfo.abstractString;
+    dataIdentificationInfo.abstractString = nullptr;
 	delete[] dataIdentificationInfo.status;
+    dataIdentificationInfo.status = nullptr;
 	delete[] dataIdentificationInfo.spatialRepresentationType;
+    dataIdentificationInfo.spatialRepresentationType = nullptr;
 	delete[] dataIdentificationInfo.language;
+    dataIdentificationInfo.language = nullptr;
 	delete[] dataIdentificationInfo.characterSet;
+    dataIdentificationInfo.characterSet = nullptr;
 	delete[] dataIdentificationInfo.topicCategory;
+    dataIdentificationInfo.topicCategory = nullptr;
 
     delete[] dataIdentificationInfo.verticalUncertaintyType;
+    dataIdentificationInfo.verticalUncertaintyType = nullptr;
 	delete[] dataIdentificationInfo.depthCorrectionType;
+    dataIdentificationInfo.depthCorrectionType = nullptr;
 	delete[] dataIdentificationInfo.elevationSolutionGroupType;
+    dataIdentificationInfo.elevationSolutionGroupType = nullptr;
 	delete[] dataIdentificationInfo.nodeGroupType;
+    dataIdentificationInfo.nodeGroupType = nullptr;
 
     for (uint32_t i = 0; i < dataIdentificationInfo.numberOfResponsibleParties; ++i)
         freeResponsibleParty(dataIdentificationInfo.responsibleParties[i]);
 
     delete[] dataIdentificationInfo.responsibleParties;
+    dataIdentificationInfo.responsibleParties = nullptr;
 }
 
 //************************************************************************
@@ -164,7 +182,9 @@ void initLegalConstraints(BagLegalConstraints& legalConstraints) noexcept
 void freeLegalConstraints(BagLegalConstraints& legalConstraints) noexcept
 {
     delete[] legalConstraints.useConstraints;
+    legalConstraints.useConstraints = nullptr;
     delete[] legalConstraints.otherConstraints;
+    legalConstraints.otherConstraints = nullptr;
 }
 
 //************************************************************************
@@ -195,7 +215,9 @@ void initSecurityConstraints(BagSecurityConstraints& securityConstraints) noexce
 void freeSecurityConstraints(BagSecurityConstraints& securityConstraints) noexcept
 {
     delete[] securityConstraints.classification;
+    securityConstraints.classification = nullptr;
 	delete[] securityConstraints.userNote;
+    securityConstraints.userNote = nullptr;
 }
 
 //************************************************************************
@@ -231,14 +253,19 @@ void initSourceInfo(BagSource& sourceInfo) noexcept
 void freeSourceInfo(BagSource& sourceInfo) noexcept
 {
     delete[] sourceInfo.description;
+    sourceInfo.description = nullptr;
     delete[] sourceInfo.title;
+    sourceInfo.title = nullptr;
     delete[] sourceInfo.date;
+    sourceInfo.date = nullptr;
     delete[] sourceInfo.dateType;
+    sourceInfo.dateType = nullptr;
 
     for (uint32_t i = 0; i < sourceInfo.numberOfResponsibleParties; i++)
         freeResponsibleParty(sourceInfo.responsibleParties[i]);
 
     delete[] sourceInfo.responsibleParties;
+    sourceInfo.responsibleParties = nullptr;
 }
 
 //************************************************************************
@@ -276,18 +303,23 @@ void initProcessStep(BagProcessStep& processStep) noexcept
 void freeProcessStep(BagProcessStep& processStep) noexcept
 {
     delete[] processStep.description;
+    processStep.description = nullptr;
     delete[] processStep.dateTime;
+    processStep.dateTime = nullptr;
     delete[] processStep.trackingId;
+    processStep.trackingId = nullptr;
 
     for (uint32_t i = 0; i < processStep.numberOfSources; i++)
         freeSourceInfo(processStep.lineageSources[i]);
 
     delete[] processStep.lineageSources;
+    processStep.lineageSources = nullptr;
 
     for (uint32_t i = 0; i < processStep.numberOfProcessors; i++)
         freeResponsibleParty(processStep.processors[i]);
 
     delete[] processStep.processors;
+    processStep.processors = nullptr;
 }
 
 //************************************************************************
@@ -319,11 +351,13 @@ void initDataQualityInfo(BagDataQuality& dataQualityInfo) noexcept
 void freeDataQualityInfo(BagDataQuality& dataQualityInfo) noexcept
 {
     delete[] dataQualityInfo.scope;
+    dataQualityInfo.scope = nullptr;
 
     for (uint32_t i = 0; i < dataQualityInfo.numberOfProcessSteps; ++i)
         freeProcessStep(dataQualityInfo.lineageProcessSteps[i]);
 
     delete[] dataQualityInfo.lineageProcessSteps;
+    dataQualityInfo.lineageProcessSteps = nullptr;
 }
 
 //************************************************************************
@@ -369,9 +403,13 @@ void initSpatialRepresentationInfo(BagSpatialRepresentation& spatialRepresentati
 void freeSpatialRepresentationInfo(BagSpatialRepresentation& spatialRepresentationInfo) noexcept
 {
     delete[] spatialRepresentationInfo.resolutionUnit;
+    spatialRepresentationInfo.resolutionUnit = nullptr;
     delete[] spatialRepresentationInfo.cellGeometry;
+    spatialRepresentationInfo.cellGeometry = nullptr;
     delete[] spatialRepresentationInfo.transformationDimensionDescription;
+    spatialRepresentationInfo.transformationDimensionDescription = nullptr;
     delete[] spatialRepresentationInfo.transformationDimensionMapping;
+    spatialRepresentationInfo.transformationDimensionMapping = nullptr;
 }
 
 //************************************************************************
@@ -402,7 +440,9 @@ void initReferenceSystemInfo(BagReferenceSystem& referenceInfo) noexcept
 void freeReferenceSystemInfo(BagReferenceSystem& referenceInfo) noexcept
 {
     delete[] referenceInfo.definition;
+    referenceInfo.definition = nullptr;
     delete[] referenceInfo.type;
+    referenceInfo.type = nullptr;
 }
 
 //************************************************************************
@@ -463,53 +503,57 @@ void bagInitMetadata(BagMetadata& metadata)
 //************************************************************************
 void bagFreeMetadata(BagMetadata& metadata) noexcept
 {
-    delete[] metadata.fileIdentifier;
-    delete[] metadata.dateStamp;
+    if (metadata.fileIdentifier)
+    {
+        delete[] metadata.fileIdentifier;
+        metadata.fileIdentifier = nullptr;
+    }
+    if (metadata.dateStamp)
+    {
+        delete[] metadata.dateStamp;
+        metadata.dateStamp = nullptr;
+    }
     delete[] metadata.language;
+    metadata.language = nullptr;
+    delete[] metadata.characterSet;
+    metadata.characterSet = nullptr;
     delete[] metadata.hierarchyLevel;
+    metadata.hierarchyLevel = nullptr;
     delete[] metadata.metadataStandardName;
+    metadata.metadataStandardName = nullptr;
     delete[] metadata.metadataStandardVersion;
+    metadata.metadataStandardVersion = nullptr;
 
-    if (metadata.contact)
-        freeResponsibleParty(*metadata.contact);
-
+    if (metadata.contact) freeResponsibleParty(*metadata.contact);
     delete metadata.contact;
+    metadata.contact = nullptr;
 
-    if (metadata.spatialRepresentationInfo)
-        freeSpatialRepresentationInfo(*metadata.spatialRepresentationInfo);
-
+    if (metadata.spatialRepresentationInfo) freeSpatialRepresentationInfo(*metadata.spatialRepresentationInfo);
     delete metadata.spatialRepresentationInfo;
+    metadata.spatialRepresentationInfo = nullptr;
 
-    if (metadata.horizontalReferenceSystem)
-        freeReferenceSystemInfo(*metadata.horizontalReferenceSystem);
-
+    if (metadata.horizontalReferenceSystem) freeReferenceSystemInfo(*metadata.horizontalReferenceSystem);
     delete metadata.horizontalReferenceSystem;
+    metadata.horizontalReferenceSystem = nullptr;
 
-    if (metadata.verticalReferenceSystem)
-        freeReferenceSystemInfo(*metadata.verticalReferenceSystem);
-
+    if (metadata.verticalReferenceSystem) freeReferenceSystemInfo(*metadata.verticalReferenceSystem);
     delete metadata.verticalReferenceSystem;
+    metadata.verticalReferenceSystem = nullptr;
 
-
-    if (metadata.identificationInfo)
-        freeDataIdentificationInfo(*metadata.identificationInfo);
-
+    if (metadata.identificationInfo) freeDataIdentificationInfo(*metadata.identificationInfo);
     delete metadata.identificationInfo;
+    metadata.identificationInfo = nullptr;
 
-    if (metadata.dataQualityInfo)
-        freeDataQualityInfo(*metadata.dataQualityInfo);
-
+    if (metadata.dataQualityInfo) freeDataQualityInfo(*metadata.dataQualityInfo);
     delete metadata.dataQualityInfo;
+    metadata.dataQualityInfo = nullptr;
 
-
-    if (metadata.legalConstraints)
-        freeLegalConstraints(*metadata.legalConstraints);
-
+    if (metadata.legalConstraints) freeLegalConstraints(*metadata.legalConstraints);
     delete metadata.legalConstraints;
+    metadata.legalConstraints = nullptr;
 
-    if (metadata.securityConstraints)
-        freeSecurityConstraints(*metadata.securityConstraints);
-
+    if (metadata.securityConstraints) freeSecurityConstraints(*metadata.securityConstraints);
     delete metadata.securityConstraints;
+    metadata.securityConstraints = nullptr;
 }
 

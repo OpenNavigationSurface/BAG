@@ -12,6 +12,29 @@
 
 namespace TestUtils {
 
+inline bool CI()
+{
+    const char* ci = getenv("CI");
+    if (ci) return true;
+    return false;
+}
+
+struct CopyFileSourceFileNotFound final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Unable to copy file: source file not found.";
+    }
+};
+
+struct CopyFileSourceOther final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Unable to copy file: an error occurred.";
+    }
+};
+
 //! Helper structure to generate a random file name and delete it when the
 //! instance leaves scope.
 struct RandomFileGuard final {
@@ -72,4 +95,3 @@ void create_unknown_metadata(const std::string& elevationLayerName,
                              const std::shared_ptr<BAG::Dataset>& dataset);
 
 }  // namespace TestUtils
-

@@ -1,7 +1,7 @@
 # CMake 3.15+ needed for SWIG version 4.0+ support. 3.18+ needed for Development.Module
 # sub-component support for FindPyton.
 cmake_minimum_required(VERSION 3.18)
-project(OpenNavSurf-BAG LANGUAGES C CXX VERSION 2.0.5)
+project(OpenNavSurf-BAG LANGUAGES C CXX VERSION 2.0.6)
 set(CMAKE_CXX_STANDARD 14)
 
 # SWIG: use standard target name.
@@ -61,8 +61,10 @@ endif()
 if(BAG_CODE_COVERAGE)
     set(CODE_COVERAGE ON CACHE INTERNAL "Turn on code coverage")
     include(CMakeModules/code-coverage.cmake)
-    # Exclude C wrapper for now since our tests only target C++ code currently
-    add_code_coverage_all_targets(EXCLUDE test/* api/bag.cpp api/bag.h)
+    add_code_coverage_all_targets(EXCLUDE test/*
+            LCOV_OPTIONS --rc branch_coverage=1
+            GENHTML_OPTIONS --branch-coverage
+    )
 endif()
 
 # Generate setup.cfg and setup.py in case Python wheel is later generated

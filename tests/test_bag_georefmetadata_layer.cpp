@@ -32,26 +32,50 @@ namespace {
             REQUIRE(dataset);
             std::string elevationLayerName = result.second;
 
+            // Test trying to create an metadata layer with a known profile, but invalid profile type
+            REQUIRE_THROWS_AS(dataset->createGeorefMetadataLayer(UNKNOWN_METADATA_PROFILE,
+                elevationLayerName, 100, 1), BAG::UknownMetadataProfile);
+
             TestUtils::create_unknown_metadata(elevationLayerName, dataset);
+
             dataset->close();
         }
 
         // Open the dataset and read some values back
         {
             UNSCOPED_INFO("Open dataset with unknown metadata profile.");
+
             const auto datasetRO = Dataset::open(tmpBagFileName, BAG_OPEN_READONLY);
             REQUIRE(datasetRO);
             REQUIRE(datasetRO->getLayers().size() == 3);
+            std::string elevationLayerName = "elevation";
+
+            // Cover calling createGeorefMetadataLayer in a read-only dataset
+            {
+                BAG::RecordDefinition definition(1);
+                definition[0].name = "dummy_int";
+                definition[0].type = DT_UINT32;
+                REQUIRE_THROWS_AS(datasetRO->createGeorefMetadataLayer(DT_UINT16, UNKNOWN_METADATA_PROFILE,
+                                                           elevationLayerName, definition, 100,
+                                                           1), BAG::ReadOnlyError);
+            }
+
+            // Cover getGeorefMetadataLayer for const Datasets
+            const std::shared_ptr<const Dataset> constDataset{datasetRO};
+            std::shared_ptr<const BAG::GeorefMetadataLayer> constGeorefLayer = constDataset->getGeorefMetadataLayer(elevationLayerName);
 
             uint32_t numRows = 0;
             uint32_t numColumns = 0;
             std::tie(numRows, numColumns) = datasetRO->getDescriptor().getDims();
 
-            std::string elevationLayerName = "elevation";
             const auto& compoundLayer = datasetRO->getGeorefMetadataLayer(elevationLayerName);
             REQUIRE(compoundLayer);
 
             const auto& valueTable = compoundLayer->getValueTable();
+
+            auto georefLayers = datasetRO->getGeorefMetadataLayers();
+            REQUIRE(georefLayers.size() == 1);
+            REQUIRE(georefLayers[0].get() == compoundLayer.get());
 
             {
                 // Read region of georeferenced metadata layer raster associated with first index, check values
@@ -261,4 +285,24 @@ namespace {
             REQUIRE(datasetRO->getLayers().size() == 3);
         }
     }
+}
+
+TEST_CASE("test dataset multiple metadata profile creation", "[dataset][create][compoundLayer][multiple]")
+{
+    const std::string metadataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+                                       "/sample.xml"};
+    const TestUtils::RandomFileGuard tmpBagFileName;
+
+    // Create BAG with NOAA NBS 2022-06 metadata profile layer and an unknown profile metadata layer
+    const auto result = TestUtils::createBag(metadataFileName,
+                         tmpBagFileName);
+    std::shared_ptr<BAG::Dataset> dataset = result.first;
+    std::string elevationLayerName = result.second;
+    TestUtils::create_NOAA_OCS_Metadata(elevationLayerName, dataset);
+    auto uncertLayer = dataset->getSimpleLayer(Uncertainty);
+    TestUtils::create_unknown_metadata(uncertLayer->getDescriptor()->getName(), dataset);
+    REQUIRE(dataset->getLayers().size() == 4);
+    auto layerTypes = dataset->getLayerTypes();
+    REQUIRE(layerTypes.size() == 3);
+    dataset->close();
 }

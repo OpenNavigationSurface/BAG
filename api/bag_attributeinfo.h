@@ -5,6 +5,9 @@
 #ifndef BAG_ATTRIBUTEINFO_H
 #define BAG_ATTRIBUTEINFO_H
 
+#include <H5Cpp.h>
+
+#include "bag_config.h"
 #include "bag_types.h"
 
 
@@ -19,6 +22,10 @@ namespace BAG {
 //! This structure contains simple layer attribute information.
 struct AttributeInfo
 {
+    AttributeInfo()
+        : h5type(::H5::PredType::NATIVE_FLOAT)
+    {};
+
     AttributeInfo(const char* inMinName, const char* inMaxName,
         const char* inPath, const ::H5::PredType& inH5type)
         : minName(inMinName)
@@ -27,6 +34,20 @@ struct AttributeInfo
         , h5type(inH5type)
     {}
 
+    AttributeInfo(const AttributeInfo& other) = default;
+    AttributeInfo(AttributeInfo&& other) = default;
+    AttributeInfo& operator=(AttributeInfo&& other) noexcept
+      {
+        if (this != &other)
+        {
+            minName = other.minName;
+            maxName = other.maxName;
+            path = other.path;
+            h5type = other.h5type;
+        }
+        return *this;
+    };
+
     //! The minimum value attribute name.
     const char* minName = nullptr;
     //! The maximum value attribute name.
@@ -34,11 +55,11 @@ struct AttributeInfo
     //! The HDF5 path to the attribute.
     const char* path = nullptr;
     //! The HDF5 type the attribute is.
-    const ::H5::PredType& h5type;
+    H5::PredType h5type;
 };
 
 //! Retrieve the simple layer attribute information.
-AttributeInfo getAttributeInfo(LayerType layerType);
+BAG_API AttributeInfo getAttributeInfo(LayerType layerType);
 
 }  // namespace BAG
 

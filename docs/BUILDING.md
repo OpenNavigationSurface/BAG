@@ -40,11 +40,21 @@ docker run -ti -v ./:/tmp/bag:rw dev/debian/baglib:latest /bin/bash
 ./scripts/dev-cont-build-bag.sh
 ```
 
+If building in an IDE, we recommend the following CMake flags:
+```
+-G Ninja -DCMAKE_BUILD_TYPE=Debug -DBAG_BUILD_TESTS:BOOL=ON -DBAG_CODE_COVERAGE:BOOL=ON -DBAG_BUILD_PYTHON:BOOL=ON -DBAG_BUILD_EXAMPLES:BOOL=ON
+```
+
 After running `dev-cont-build-bag.sh` once, you can iteratively run Python 
 tests by running:
 ```shell
 python3 -m pytest python/test_*.py
 ```
+
+Note: If running tests manually via `./build/tests/bag_tests_d` and a test is throwing
+an exception, you can see the details of where the exception is being thrown by running
+the tests in a debugger, e.g.: `gdb ./build/tests/bag_tests_d` then typing `catch throw`
+then `run`.
 
 ## Linux / macOS
 
@@ -104,7 +114,7 @@ $ ./bag-examples/examples/bag_georefmetadata_layer \
   examples/sample-data/bag_georefmetadata_layer.xml bag_georefmetadata.bag
 ```
 
-## Windows: Visual Studio 2022/2019
+## Windows: Visual Studio 2026
 
 ### Locally build dependencies
 
@@ -112,8 +122,8 @@ First, from the directory `docs\win-build\baglibs\downloads` run `.\download.ps1
 
 Then, from the directory `docs\win-build\baglibs\install`  run `.\install.ps1` to build dependencies.
 
-Download [swigwin-4.3.0](https://www.swig.org/download.html) and upzip to 
-`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.3.0`.
+Download [swigwin-4.4.1](https://www.swig.org/download.html) and upzip to 
+`docs\win-build\baglibs\install` so that you have a directory named `swigwin-4.4.1`.
 
 Now, to build BAG, run the PowerShell script [win-build.ps1](../scripts/win-build.ps1). This will also
 run the C++ and Python tests.

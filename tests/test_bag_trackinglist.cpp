@@ -340,14 +340,87 @@ TEST_CASE("test tracking list constructor (open)", "[trackinglist][constructor][
         CHECK(trackingList.size() == 1);
 
         TrackingList::value_type kExpectedItem1{11, 22, 33.44f, 55.66f, 77, 88};
+        TrackingList::value_type expect[] = {kExpectedItem0, kExpectedItem1};
 
-        trackingList.emplace_back(kExpectedItem1);
+        // This time call push_back to cover that function
+        trackingList.push_back(kExpectedItem1);
 
         UNSCOPED_INFO("Check one item was stored.");
         CHECK(trackingList.size() == 2);
 
         UNSCOPED_INFO("Check writing to the HDF5 does not throw.");
         REQUIRE_NOTHROW(trackingList.write());
+
+        // const iterators
+        const auto& ctl = pDataset->getTrackingList();
+        size_t curr = 0;
+        for (auto it = std::begin(ctl); it != std::end(ctl); ++it) {
+            CHECK((*it).row == expect[curr].row);
+            CHECK((*it).col == expect[curr].col);
+            CHECK((*it).depth == expect[curr].depth);
+            CHECK((*it).track_code == expect[curr].track_code);
+            CHECK((*it).list_series == expect[curr].list_series);
+            curr++;
+        }
+        curr = 0;
+        for (auto it = ctl.cbegin(); it != ctl.cend(); ++it) {
+            CHECK((*it).row == expect[curr].row);
+            CHECK((*it).col == expect[curr].col);
+            CHECK((*it).depth == expect[curr].depth);
+            CHECK((*it).track_code == expect[curr].track_code);
+            CHECK((*it).list_series == expect[curr].list_series);
+            curr++;
+        }
+        // const first item, pointer
+        auto *cfirst = ctl.data();
+        CHECK(cfirst->row == expect[0].row);
+        // const back
+        auto cback = ctl.back();
+        CHECK(cback.row == expect[1].row);
+
+        // iterators
+        auto& tl = pDataset->getTrackingList();
+        curr = 0;
+        for (auto it = std::begin(tl); it != std::end(tl); ++it) {
+            CHECK((*it).row == expect[curr].row);
+            CHECK((*it).col == expect[curr].col);
+            CHECK((*it).depth == expect[curr].depth);
+            CHECK((*it).track_code == expect[curr].track_code);
+            CHECK((*it).list_series == expect[curr].list_series);
+            curr++;
+        }
+        // first item, pointer
+        auto *first = tl.data();
+        CHECK(first->row == expect[0].row);
+        // front
+        auto front = tl.front();
+        CHECK(front.row == expect[0].row);
+        // back
+        auto back = tl.back();
+        CHECK(back.row == expect[1].row);
+
+        // operator[]
+        REQUIRE_NOTHROW(tl[0]);
+
+        // push_back rvalue
+        TrackingList::value_type *kExpectedItem3 = new TrackingList::value_type();
+        kExpectedItem3->row = 12;
+        kExpectedItem3->col = 23;
+        kExpectedItem3->depth = 34.44f;
+        kExpectedItem3->uncertainty = 54.66f;
+        kExpectedItem3->track_code = 87;
+        kExpectedItem3->list_series = 98;
+        tl.push_back(std::move(*kExpectedItem3));
+        CHECK(trackingList.size() == 3);
+
+        // reserve, resize
+        tl.reserve(32);
+        tl.resize(16);
+        CHECK(tl.size() == 16);
+
+        // clear
+        tl.clear();
+        CHECK(tl.size() == 0);
     }
 
     const auto pDataset = Dataset::open(tmpFileName, BAG_OPEN_READONLY);
