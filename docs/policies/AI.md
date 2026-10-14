@@ -1,4 +1,4 @@
-# Bathymetric Attributed Grid (BAG) AI tool use policy
+# AI Tool Use Policy for the Bathymetric Attributed Grid (BAG) Project
 
 It is the policy of the Open Navigation Surface Working Group that contributors can use whatever 
 tools they would like to craft their contributions, but there must be a **human in the loop**.
@@ -13,17 +13,23 @@ We expect that new contributors will be less confident in their contributions,
 and our guidance to them is to **start with small contributions** that they can
 fully understand to build confidence. We aspire to be a welcoming community
 that helps new contributors grow their expertise, but learning involves taking
-small steps, getting feedback, and iterating. Passing maintainer feedback to an
-LLM doesn't help anyone grow, and does not sustain our community.
+small steps, struggling on one's own, getting feedback, and iterating. Simply 
+passing maintainer feedback to an LLM and submitting its response without 
+understanding or evaluating the resulting changes does not support contributor 
+growth or sustainable project maintenance.
 
 Contributors are expected to **be transparent and label contributions that
-contain substantial amounts of tool-generated content**. Our policy on
-labelling is intended to facilitate reviews, and not to track which parts of
-BAG are generated. Contributors should note tool usage in their pull request
-description, commit message, or wherever authorship is normally indicated for
-the work. For instance, use a commit message trailer like Assisted-by: <name of
-code assistant>. This transparency helps the community develop best practices
-and understand the role of these new tools.
+contain substantial amounts of tool-generated content**. For example, routine 
+assistance such as code completion, debugging suggestions, or copy-editing does 
+not require disclosure, whereas generation of significant portions of the 
+submitted implementation/documentation does.
+
+Our policy on labelling is intended to facilitate reviews, and not to track 
+which parts of BAG are generated. Contributors should note tool usage in their 
+pull request description, commit message, or wherever authorship is normally 
+indicated for the work. For instance, use a commit message trailer like 
+Assisted-by: <name of code assistant>. This transparency helps the community 
+develop best practices and understand the role of these new tools.
 
 This policy includes, but is not limited to, the following kinds of
 contributions:
@@ -43,14 +49,15 @@ the motivation, implementation approach, expected impact, and any open
 questions or uncertainties to the same extent as a contribution made without
 tool assistance.
 
-An important implication of this policy is that it bans agents that take action
-in our digital spaces without human approval, such as the GitHub `@claude`
-agent. Similarly, automated review tools that
-publish comments without human review are not allowed. However, an opt-in
-review tool that **keeps a human in the loop** is acceptable under this policy.
-As another example, using an LLM to generate documentation, which a contributor
-manually reviews for correctness, edits, and then posts as a PR, is an approved
-use of tools under this policy.
+An important implication of this policy is that it bans generative AI agents 
+producing substantive contributions or review comments, without human approval, 
+such as the GitHub `@claude` agent (Note: this ban does not include the use of 
+conventional project automation and maintainer-approved CI bots). Similarly, 
+automated review tools that publish comments without human review are not 
+allowed. However, an opt-in review tool that **keeps a human in the loop** is 
+acceptable under this policy. As another example, using an LLM to generate 
+documentation, which a contributor manually reviews for correctness, edits, 
+and then posts as a PR, is an approved use of tools under this policy.
 
 # Extractive Contributions
 
@@ -121,6 +128,6 @@ their contributions. Contributions found to violate this policy will be removed.
 
 # Credits for this document
 
-This document is adaptated from the
+This document is adapted from the
 [QGIS Enhancement: AI tool use policy](https://github.com/qgis/QGIS-Enhancement-Proposals/blob/master/qep-408-ai-tool-policy.md)
 and due credit goes to its original author: Even Rouault
