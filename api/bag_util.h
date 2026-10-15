@@ -1,3 +1,8 @@
+/*!
+\file bag_util.h
+\brief Internal utility functions
+\copyright Open Navigation Surface Working Group, 2026. See LICENSE for more details.
+*/
 #ifndef OPENNAVSURF_BAG_BAG_UTIL_H
 #define OPENNAVSURF_BAG_BAG_UTIL_H
 

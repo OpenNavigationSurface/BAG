@@ -1,4 +1,8 @@
-
+/*!
+\file bag_util.cpp
+\brief Internal utility functions
+\copyright Open Navigation Surface Working Group, 2026. See LICENSE for more details.
+*/
 #include "bag_config.h"
 #include "bag_dataset.h"
 
