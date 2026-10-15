@@ -111,7 +111,7 @@ jobs:
         ninja -C build ccov-bag_tests
 
     - name: Test coverage reporter
-      uses: zgosalvez/github-actions-report-lcov@v4
+      uses: zgosalvez/github-actions-report-lcov@v7
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       with:
         coverage-files: ./build/ccov/lcov.info
