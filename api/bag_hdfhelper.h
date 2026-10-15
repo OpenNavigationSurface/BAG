@@ -3,7 +3,6 @@
 
 #include "bag_georefmetadatalayer.h"
 #include "bag_config.h"
-#include "bag_fordec.h"
 #include "bag_types.h"
 #include "bag_valuetable.h"
 
@@ -26,29 +25,29 @@ class PredType;
 
 namespace BAG {
 
-::H5::CompType createH5compType(LayerType layerType,
+BAG_API ::H5::CompType createH5compType(LayerType layerType,
     GroupType groupType);
 
-::H5::CompType createH5fileCompType(const RecordDefinition& definition);
+BAG_API ::H5::CompType createH5fileCompType(const RecordDefinition& definition);
 
-::H5::CompType createH5memoryCompType(const RecordDefinition& definition);
+BAG_API ::H5::CompType createH5memoryCompType(const RecordDefinition& definition);
 
-uint64_t getChunkSize(const ::H5::H5File& h5file,
+BAG_API uint64_t getChunkSize(const ::H5::H5File& h5file,
     const std::string& path);
 
-int getCompressionLevel(const ::H5::H5File& h5file,
+BAG_API int getCompressionLevel(const ::H5::H5File& h5file,
     const std::string& path);
 
-size_t getRecordSize(const RecordDefinition& definition);
+BAG_API size_t getRecordSize(const RecordDefinition& definition);
 
-const ::H5::AtomType& getH5fileType(DataType type);
+BAG_API const ::H5::AtomType& getH5fileType(DataType type);
 
-const ::H5::AtomType& getH5memoryType(DataType type);
+BAG_API const ::H5::AtomType& getH5memoryType(DataType type);
 
-::H5::Attribute createAttribute(const ::H5::DataSet& h5dataSet,
+BAG_API ::H5::Attribute createAttribute(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, const char* path);
 
-void createAttributes(const ::H5::DataSet& h5dataSet,
+BAG_API void createAttributes(const ::H5::DataSet& h5dataSet,
     const ::H5::PredType& attributeType, const std::vector<const char*>& paths);
 
 template <typename T>

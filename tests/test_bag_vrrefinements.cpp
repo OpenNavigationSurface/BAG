@@ -339,6 +339,11 @@ TEST_CASE("test vr refinements create open", "[vrrefinements][create][open]")
         UNSCOPED_INFO("Check that creating optional variable resolution layers does not throw.");
         REQUIRE_NOTHROW(pDataset->createVR(kChunkSize, kCompressionLevel, false));
 
+        // Cover for const Datasets
+        const std::shared_ptr<const Dataset> constDataset{pDataset};
+        auto cpVrRefine = constDataset->getVRRefinements();
+        REQUIRE(cpVrRefine);
+
         UNSCOPED_INFO("Check that the optional variable resolution refinement layer exists.");
         auto pVrRefinements = pDataset->getVRRefinements();
         REQUIRE(pVrRefinements);

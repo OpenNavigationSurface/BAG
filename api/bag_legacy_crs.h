@@ -85,10 +85,10 @@ struct BagLegacyReferenceSystem
     BagProjectionParameters geoParameters;            //!< Parameters for projection information
 };
 
-CoordinateType bagCoordsys(const char* str) noexcept;
-BagDatum bagDatumID(const char* str) noexcept;
+BAG_API CoordinateType bagCoordsys(const char* str) noexcept;
+BAG_API BagDatum bagDatumID(const char* str) noexcept;
 
-BagError bagLegacyToWkt(const BagLegacyReferenceSystem& system,
+BAG_API BagError bagLegacyToWkt(const BagLegacyReferenceSystem& system,
     char* hBuffer, size_t hBufferSize, char* vBuffer, size_t vBufferSize);
 
 }  // namespace BAG

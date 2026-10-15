@@ -6,6 +6,8 @@
 #include <utility>
 #include <memory>
 #include <iostream>
+#include <errno.h>
+#include <exception>
 
 #include <catch2/catch_all.hpp>
 
@@ -13,7 +15,6 @@
 #include <bag_metadata.h>
 #include <bag_metadataprofiles.h>
 #include <bag_simplelayer.h>
-#include <bag_surfacecorrections.h>
 #include <bag_surfacecorrectionsdescriptor.h>
 
 
@@ -29,6 +30,8 @@ void copyFile(
     const std::string& source,
     const std::string& dest)
 {
+    struct stat s{};
+    REQUIRE(stat(source.c_str(), &s) == 0);
     const std::ifstream in{source, std::ios::binary|std::ios::in};
     std::ofstream out{dest, std::ios::binary|std::ios::out};
 

@@ -86,6 +86,15 @@ struct BAG_API DatasetNotFound final : virtual std::exception
     }
 };
 
+//! Invalid Bag Version attribute.
+struct BAG_API InvalidBAGVersion final : virtual std::exception
+{
+    const char* what() const noexcept override
+    {
+        return "Invalid BAG Version.";
+    }
+};
+
 //! Invalid layer id.
 struct BAG_API InvalidLayerId final : virtual std::exception
 {

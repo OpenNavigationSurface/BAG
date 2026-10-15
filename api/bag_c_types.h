@@ -172,6 +172,8 @@ struct BagVerticalDatumCorrectionsGridded
     float z[BAG_SURFACE_CORRECTOR_LIMIT];
 };
 
+#define BAG_CORRECTOR_VERTICAL_DATUM_SEP ','
+
 //! The attributes of a correction surface.  Only used in the C interface.
 struct BagVerticalCorrectorDef
 {
@@ -200,11 +202,11 @@ typedef union {
     bool b;
     char* c;
 } BAG_COMPOUND_DATA_PAYLOAD;
-struct BagCompoundDataType
+typedef struct BagCompoundDataType
 {
     BAG_DATA_TYPE type;
     BAG_COMPOUND_DATA_PAYLOAD data;
-};
+} BAG_COMPOUND_DATA_TYPE;
 
 #define BAG_NULL_ELEVATION      1000000  // A "null" elevation value.
 #define BAG_NULL_GENERIC        1000000  // A "null" generic value.

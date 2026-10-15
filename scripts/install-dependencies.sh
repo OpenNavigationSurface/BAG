@@ -7,24 +7,24 @@ echo "PYTHON_VERSION: ${PYTHON_VERSION}"
 pushd .
 
 sudo apt-get update -y
-sudo apt-get install -y cmake g++ ninja-build swig4.0 zlib1g-dev libproj-dev
-# Install Catch2 version 3 (Ubuntu 22.04 only packages version 2)
+sudo apt-get install -y cmake g++ ninja-build swig zlib1g-dev libproj-dev
+# Install a recent version of Catch2 version 3
 cd /tmp
-wget https://github.com/catchorg/Catch2/archive/refs/tags/v3.4.0.tar.gz
-echo "122928b814b75717316c71af69bd2b43387643ba076a6ec16e7882bfb2dfacbb  v3.4.0.tar.gz" > catch2.sum
+wget https://github.com/catchorg/Catch2/archive/refs/tags/v3.16.0.tar.gz
+echo "0957cae5821b17ce07f0833aaa52b5137643a8382203221f363a8303c109af34  v3.16.0.tar.gz" > catch2.sum
 shasum -a 256 -c catch2.sum
-tar xf v3.4.0.tar.gz
-cd Catch2-3.4.0
+tar xf v3.16.0.tar.gz
+cd Catch2-3.16.0
 cmake -B build -G Ninja -S . -DCMAKE_INSTALL_PREFIX:PATH=/usr -DBUILD_TESTING:BOOL=OFF
 sudo cmake --build build --target install
 
 # Install libxml2
 cd /tmp
-wget https://download.gnome.org/sources/libxml2/2.13/libxml2-2.13.9.tar.xz
-echo "a2c9ae7b770da34860050c309f903221c67830c86e4a7e760692b803df95143a  libxml2-2.13.9.tar.xz" > libxml2.sum
+wget https://download.gnome.org/sources/libxml2/2.15/libxml2-2.15.1.tar.xz
+echo "c008bac08fd5c7b4a87f7b8a71f283fa581d80d80ff8d2efd3b26224c39bc54c  libxml2-2.15.1.tar.xz" > libxml2.sum
 shasum -a 256 -c libxml2.sum
-tar xf libxml2-2.13.9.tar.xz
-cd libxml2-2.13.9
+tar xf libxml2-2.15.1.tar.xz
+cd libxml2-2.15.1
 cmake -B build -G Ninja -S . -DCMAKE_BUILD_TYPE:STRING=Release -DCMAKE_INSTALL_PREFIX:PATH=/usr \
   -DLIBXML2_WITH_ZLIB=ON -DLIBXML2_WITH_ICONV=OFF -DLIBXML2_WITH_LZMA=OFF -DLIBXML2_WITH_PYTHON=OFF
 sudo cmake --build build --target install

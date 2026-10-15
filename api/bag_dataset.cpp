@@ -169,32 +169,6 @@ T readAttributeFromDataSet(
     return value;
 }
 
-//! Helper to read a string attribute from an HDF5 DataSet.
-/*!
-\param h5file
-    The HDF5 file to read.
-\param dataSetName
-    The name of the HDF5 DataSet.
-\param attributeName
-    The name of the attribute.
-
-\return
-    The attribute value as a string.
-*/
-std::string readStringAttributeFromDataSet(
-    const ::H5::H5File& h5file,
-    const std::string& dataSetName,
-    const std::string& attributeName)
-{
-    const ::H5::DataSet h5DataSet = h5file.openDataSet(dataSetName);
-    const ::H5::Attribute attribute = h5DataSet.openAttribute(attributeName);
-
-    std::string value;
-    attribute.read(attribute.getDataType(), value);
-
-    return value;
-}
-
 //! Helper to read a non-string attribute from an HDF5 Group.
 /*!
 \param h5file
@@ -274,7 +248,9 @@ std::shared_ptr<Dataset> Dataset::open(
         pDataset->readDataset(fileName, openMode);
     } catch (H5::FileIException &fileExcept)
     {
-        std::cerr << "\nUnable to open BAG file: " << fileName << " due to error: " << fileExcept.getCDetailMsg();
+        std::cerr << "\nUnable to open BAG file: " << fileName << " due to error: " <<
+            fileExcept.getCDetailMsg() << std::endl;
+        fileExcept.printErrorStack();
         return nullptr;
     }
 
@@ -439,7 +415,7 @@ GeorefMetadataLayer& Dataset::createGeorefMetadataLayer(
         int compressionLevel,
         DataType keyType) &
 {
-    BAG::RecordDefinition definition = METADATA_DEFINITION_UNKNOWN;
+    RecordDefinition definition = METADATA_DEFINITION_UNKNOWN;
 
     try {
         definition = kGeorefMetadataProfileMapKnownRecordDefinition.at(profile);
@@ -1105,15 +1081,22 @@ void Dataset::readDataset(
     catch( ::H5::FileIException& e )
     {
         std::cerr << "Unable to read BAG file, error was: " << e.getCDetailMsg() << std::endl;
-        e.printErrorStack();
+        throw;
     }
 
     m_pMetadata = std::make_unique<Metadata>(*this);
 
     m_descriptor = Descriptor{*m_pMetadata};
     m_descriptor.setReadOnly(openMode == BAG_OPEN_READONLY);
-    m_descriptor.setVersion(readStringAttributeFromGroup(*m_pH5file,
-        ROOT_PATH, BAG_VERSION_NAME));
+
+    const auto verStr = readStringAttributeFromGroup(*m_pH5file,
+        ROOT_PATH, BAG_VERSION_NAME);
+    const auto bagVersion = getNumericalVersion(verStr);
+    if (bagVersion == 0) {
+        throw InvalidBAGVersion{};
+    }
+
+    m_descriptor.setVersion(verStr);
 
     const auto bagGroup = m_pH5file->openGroup(ROOT_PATH);
 
@@ -1138,8 +1121,6 @@ void Dataset::readDataset(
         auto layerDesc = SimpleLayerDescriptor::open(*this, layerType, 0, 0);
         this->addLayer(SimpleLayer::open(*this, *layerDesc));
     }
-
-    const auto bagVersion = getNumericalVersion(m_descriptor.getVersion());
 
     // If the BAG is version 1.5+ ...
     if (bagVersion >= 1'005'000)

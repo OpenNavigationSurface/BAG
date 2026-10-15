@@ -1,4 +1,68 @@
 =========================
+BAG v.2.0.6 Release Notes
+=========================
+
+October 2026
+
+## Bug fixes
+
+ - C API: [Fix buffer overflow in bagLegacyToWkt()](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/73c0162762c6ae81ac4b70b90b5b4ad6f2f20618)
+ - [bag_metadatatypes: bagFreeMetadata: Fix memory leak where BagMetadata.characterSet was not being freed](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/104e8334edc01eabb7d3904bd382f3107ec29098) Addresses #147.
+ - BAG::SurfaceCorrections: [Fix bug where surface correction vertical datum was not being successfully written to BAG files](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/c75f67e6d18ea7c493dceb8ee9d85f909b07890a)
+ - BAG::SurfaceCorrectionsDescriptor::create(): [Fix bug in surface correction creation where descriptor would not have spacings set, resulting in NaN values being generated when calling SurfaceCorrections::readCorrectedRow()](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/2a8aeb2c6aa892256907bd1658bbfdae7c28b710#diff-13ebba3f004faa1a7e07d3d76f1881f618f4f0e99b3d90c91207384e1dd806faR175)
+ - BAG::CompoundDataType: [Fix bug in move constructor](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/dc66c60e7f2d1e1142e2a5e238b2279ba688a08d)
+ - C API: [Fix bug in bagGetGeorefMetadataLayerDefinition() where definition return pointer was not properly set](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/130f0f2a71ee33bb8dc98a964eb42b39ac230fe2)
+ - MSVC: [Fix compatibility issues with MSVC exposed when trying to link to certain parts of the public API from unit tests](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/c2c2b53e5a9d90482c34fa45bef590523d927ecf)
+
+
+## API changes
+
+> Note: These API changes are small and focused on fixing obvious bugs. In general they should not break most existing applications.
+
+ - C
+   - [C: Modify bagCreateFromBuffer to allow handle to be null, which it must be when creating a new file](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/685e23cdb0b969bd446de8eeb1c11f12e971900a)
+   - [Fix error in bagWrite() declaration in bag.h, adding const qualifier to data parameter, which was present in the definition in bag.cpp](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/436ada9581940f5ccf6860e1e562e9dc60c7b499)
+   - [Update bagGetErrorString() to include all members of enum BAG_ERRORS](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/62d9d5cb6f372be524983d78c6c25f4611ba9a21)
+
+ - C++
+   - BAG::Dataset:
+     - [Update Dataset::readDataset() to rethrow H5::FileIException since this is not a recoverable error](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/ff01b6b58bad102498bab5a1bf0772c9276552dd)
+     - [BAG::Dataset::readDataset(): move version number parsing earlier in function so that invalid version numbers can be caught earlier and reported via new exception InvalidBAGVersion](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/3c17ab7cc8ebdd197707a3515f405b02a1cb7bf9)
+     - [Remove unused private function BAG::Dataset.readStringAttributeFromDataSet()](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/c6733875f46364470b5484f16492b34068db94cc)
+   - BAG::AttributeInfo: [Add default, copy, move, and move assignment constructors to facilitate unit testing](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/46c78d5a18da4f6a609281b32c2e3b37846d8d70)
+   - bag_legacy_crs.cpp‎: [Remove unused private functions not exported as part of the public API](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/3798f15d544557791d0563f0af142a3fb10c322b)
+   - [Refactor private utility functions getValue() into bag_util.cpp to facilitate unit testing](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/a948a6406b8ba7b42a738ac63b40dcf7e25b4d7e)
+
+## CMake
+
+ - [Compile API and tests with `-fstack-protector-all` on GCC and Clang](https://github.com/OpenNavigationSurface/BAG/pull/150/changes/73c0162762c6ae81ac4b70b90b5b4ad6f2f20618)
+ - Update to new version of code-coverage.cmake
+
+## Testing updates
+
+ - Greatly improved test coverage previous (from ~70% of functions to ca. 90%), with much higher line and branch coverage
+ - Update coverage configuration to enable branch coverage
+ - Begin adding tests for parts of the C API.
+ - Update from Catch2 v3.4.0 to v3.16.0, which should improve CI performance
+ - Update deprecated actions: checkout@4/@6 to @7, setup-python@4/@6 to @7.
+
+## CI
+
+ - Dependencies
+   - Update from SWIG 4.3.0 to SWIG 4.4.1
+   - Update libxml2 from version 2.13.9 to 2.15.1
+ - Windows
+   - Calculate SHA256 sums for dependencies before unarchiving and building
+   - Enable parallel builds, which should improve CI performance
+ - Test matrix
+   - Windows
+     - Update from Visual Studio 2022 to 2026
+   - Linux
+  	 - Update from Ubuntu 22.04 to 24.04
+   - Python
+     - Update from CPython 3.10-3.13 to 3.11-3.14
+
+=========================
 BAG v.2.0.5 Release Notes
 =========================
 

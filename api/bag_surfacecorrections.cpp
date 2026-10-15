@@ -10,6 +10,7 @@
 #include <cstring>  // memset
 #include <memory>
 #include <H5Cpp.h>
+#include <iostream>
 
 
 namespace BAG {
@@ -285,7 +286,9 @@ UInt8Array SurfaceCorrections::readCorrected(
     auto weakDataset = this->getDataset();
     if (weakDataset.expired())
         throw DatasetNotFound{};
-
+    // TODO: We can avoid the call to expired() and simply check if dataset evaluates to true after calling lock()
+    //       As it stands now, we have a potential time-of-check vs. time-of-use bug. Let's fix this after we have
+    //       a test covering this function.
     auto dataset = weakDataset.lock();
 
     uint32_t ncols = 0, nrows = 0;
@@ -366,6 +369,9 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
 
     double nodeSpacingX = 0., nodeSpacingY = 0.;
     std::tie(nodeSpacingX, nodeSpacingY) = pDescriptor->getSpacing();
+    if (nodeSpacingX == 0. || nodeSpacingY == 0.) {
+        throw InvalidValue{};
+    }
 
     const auto resratio = nodeSpacingX / nodeSpacingY;
 
@@ -377,7 +383,7 @@ UInt8Array SurfaceCorrections::readCorrectedRow(
     auto weakDataset = this->getDataset();
     if (weakDataset.expired())
         throw DatasetNotFound{};
-
+    // TODO: Just call lock and check dataset evaluates to true.
     auto dataset = weakDataset.lock();
 
     double swCornerXsimple = 0., swCornerYsimple = 0.;
@@ -594,9 +600,23 @@ void SurfaceCorrections::writeAttributesProxy() const
     // vertical datums
     auto tmpDatums = pDescriptor->getVerticalDatums();
     if (tmpDatums.size() > kMaxDatumsLength)
-        tmpDatums.resize(kMaxDatumsLength);
+        tmpDatums.resize(kMaxDatumsLength-1);
 
-    att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_VERTICAL_DATUM);
+    if (tmpDatums.size() > 0)
+    {
+        // Re-create vertical datum attribute if we have datum(s) to write
+        m_pH5dataSet->removeAttr(VERT_DATUM_CORR_VERTICAL_DATUM);
+        const hsize_t currLength = tmpDatums.size() + 1;
+        constexpr hsize_t kMaxSize = kMaxDatumsLength;
+        const ::H5::DataSpace kVerticalDatumDataSpace{1, &currLength, &kMaxSize};
+        att = m_pH5dataSet->createAttribute(VERT_DATUM_CORR_VERTICAL_DATUM, ::H5::PredType::C_S1,
+            kVerticalDatumDataSpace);
+    } else
+    {
+        // Open existing attribute
+        att = m_pH5dataSet->openAttribute(VERT_DATUM_CORR_VERTICAL_DATUM);
+    }
+
     att.write(::H5::PredType::C_S1, tmpDatums);
 
     // Write any optional attributes.

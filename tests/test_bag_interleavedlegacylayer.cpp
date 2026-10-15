@@ -29,6 +29,15 @@ TEST_CASE("test interleaved legacy layer read", "[interleavedlegacylayer][read]"
     REQUIRE_NOTHROW(dataset->getLayer(kLayerType));
     const auto& layer = dataset->getLayer(kLayerType);
 
+    // This layer doesn't support writing, but a call to write() is still possible, and calling it should
+    // not affect subsequent reads.
+    {
+        auto& mlayer = dataset->getLayer(kLayerType);
+        size_t bufferSize = 8;
+        BAG::UInt8Array b{bufferSize};
+        REQUIRE_NOTHROW(mlayer.write(0, 0, 0, 0, b.data()));
+    }
+
     const auto buffer = layer.read(247, 338, 248, 340); // 2x3
     REQUIRE(buffer);
 
@@ -39,7 +48,8 @@ TEST_CASE("test interleaved legacy layer read", "[interleavedlegacylayer][read]"
 
     const float* floats = reinterpret_cast<const float*>(buffer.data());
 
-    for (size_t i=0; i<kExpectedNumNodes; ++i)
+    for (size_t i=0; i<kExpectedNumNodes; ++i) {
         CHECK(kExpectedBuffer[i] == Approx(floats[i]));
+    }
 }
 

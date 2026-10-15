@@ -11,6 +11,7 @@
 #include "bag_surfacecorrections.h"
 #include "bag_surfacecorrectionsdescriptor.h"
 #include "bag_trackinglist.h"
+#include "bag_util.h"
 #include "bag_valuetable.h"
 #include "bag_vrmetadata.h"
 #include "bag_vrmetadatadescriptor.h"
@@ -36,82 +37,6 @@
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
-
-
-namespace {
-
-//! Convert a BAG::CompoundDataType (C++) into a BagCompoundDataType (C).
-/*!
-\param field
-    The BAG::CompoundDataType.
-
-\return
-    The BagCompoundDataType created from \e field.
-*/
-BagCompoundDataType getValue(
-    const BAG::CompoundDataType& field)
-{
-    BagCompoundDataType result{};
-
-    result.type = field.getType();
-
-    switch(result.type)
-    {
-    case DT_FLOAT32:
-        result.data.f = field.asFloat();
-        break;
-    case DT_UINT32:
-        result.data.ui32 = field.asUInt32();
-        break;
-    case DT_BOOLEAN:
-        result.data.b = field.asBool();
-        break;
-    case DT_STRING:  // Copy the string as it will go out of scope.
-    {
-        const char* const value = field.asString().c_str();
-        const auto fieldLen = strlen(value) + 1;
-        result.data.c = new char[fieldLen];
-        memcpy(result.data.c, value, fieldLen);
-        break;
-    }
-    default:
-        result.type = DT_UNKNOWN_DATA_TYPE;
-        break;
-    }
-
-    return result;
-}
-
-//! Convert a BagCompoundDataType (C) into a BAG::CompoundDataType (C++).
-/*!
-\param field
-    The BagCompoundDataType.
-
-\return
-    The BAG::CompoundDataType created from \e field.
-*/
-BAG::CompoundDataType getValue(
-    const BagCompoundDataType& field)
-{
-    switch (field.type)
-    {
-    case DT_FLOAT32:
-        return BAG::CompoundDataType{field.data.f};
-    case DT_UINT32:
-        return BAG::CompoundDataType{field.data.ui32};
-    case DT_BOOLEAN:
-        return BAG::CompoundDataType{field.data.b};
-    case DT_STRING:
-    {
-        const char* value = field.data.c;
-        return BAG::CompoundDataType{std::string{value}};
-    }
-    default:
-        return {};
-    }
-}
-
-}  // namespace
 
 //! Open the specified BAG.
 /*!
@@ -145,6 +70,9 @@ BagError bagFileOpen(
         auto pHandle = std::make_unique<BagHandle>();
 
         pHandle->dataset = BAG::Dataset::open(std::string{fileName}, accessMode);
+        if (pHandle->dataset == nullptr) {
+            return BAG_NO_FILE_FOUND;
+        }
 
         *handle = pHandle.release();
     }
@@ -237,7 +165,7 @@ BagError bagCreateFromFile(
 /*!
 \param handle
     A handle to the new BAG.
-    Cannot be NULL.
+    Must be NULL.
 \param fileName
     The BAG file name.
     Cannot be NULL.
@@ -257,9 +185,6 @@ BagError bagCreateFromBuffer(
     uint8_t* metadataBuffer,
     uint32_t metadataBufferSize)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
-
     if (!fileName || !metadataBuffer)
         return BAG_INVALID_FUNCTION_ARGUMENT;
 
@@ -461,15 +386,12 @@ BagError bagGetMinMaxSimple(
     float* minValue,
     float* maxValue)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!minValue || !maxValue)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!minValue || !maxValue) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return 9997;  // layer type not found
+    if (!layer) return BAG_LAYER_MISSING;
 
     std::tie(*minValue, *maxValue) = layer->getDescriptor()->getMinMax();
 
@@ -757,6 +679,7 @@ BagError bagGetErrorString(
 
     switch (code)
     {
+    // Base errors
     case BAG_SUCCESS:
         strncpy(str, "Bag returned a successful completion", MAX_STR-1);
         break;
@@ -778,6 +701,28 @@ BagError bagGetErrorString(
     case BAG_INVALID_FUNCTION_ARGUMENT:
         strncpy(str, "Invalid function argument or illegal value passed to Bag", MAX_STR-1);
         break;
+    case BAG_LAYER_MISSING:
+        strncpy(str, "The specified layer is missing", MAX_STR-1);
+        break;
+    case BAG_SIMPLE_LAYER_MISSING:
+        strncpy(str, "The specified simple layer is missing", MAX_STR-1);
+        break;
+    case BAG_WRONG_DESCRIPTOR_FOUND:
+        strncpy(str, "The wrong type of descriptor found for this layer", MAX_STR-1);
+        break;
+    case BAG_INVALID_LAYER_TYPE:
+        strncpy(str, "Layer type larger than UNKNOWN_LAYER_TYPE encountered", MAX_STR-1);
+        break;
+    case BAG_UNSPECIFIED_ERROR:
+        strncpy(str, "An unspecified error has been encountered", MAX_STR-1);
+        break;
+    case BAG_SURFACE_CORRECTIONS_MISSING:
+        strncpy(str, "The surface corrections layer is missing", MAX_STR-1);
+        break;
+    case BAG_MORE_BAG_INSTANCES_PRESENT:
+        strncpy(str, "There are still instances of the BAG in memory", MAX_STR-1);
+        break;
+    // Metadata errors
     case BAG_METADTA_NO_HOME:
         strncpy(str, "The BAG_HOME environment variable must be set to the configdata directory of the openns distribution", MAX_STR-1);
         break;
@@ -817,14 +762,14 @@ BagError bagGetErrorString(
     case BAG_METADTA_INSUFFICIENT_BUFFER:
         strncpy(str, "Metadata supplied buffer is not large enough to hold the extracted contents from XML", MAX_STR-1);
         break;
-    case BAG_METADTA_UNCRT_MISSING:
-        strncpy(str, "Metadata 'uncertaintyType' information is missing from the XML structure", MAX_STR-1);
-        break;
     case BAG_METADTA_INCOMPLETE_COVER:
         strncpy(str, "Metadata One or more elements of the requested coverage are missing from the XML file", MAX_STR-1);
         break;
     case BAG_METADTA_INVLID_DIMENSIONS:
         snprintf(str, MAX_STR, "Metadata The number of dimensions is incorrect (not equal to %d)", RANK);
+        break;
+    case BAG_METADTA_UNCRT_MISSING:
+        strncpy(str, "Metadata 'uncertaintyType' information is missing from the XML structure", MAX_STR-1);
         break;
     case BAG_METADTA_BUFFER_EXCEEDED:
         strncpy(str, "Metadata supplied buffer is too large to be stored in the internal array", MAX_STR-1);
@@ -862,6 +807,7 @@ BagError bagGetErrorString(
     case BAG_METADTA_NOT_INITIALIZED:
         strncpy(str, "The metadata has not been initialized correctly", MAX_STR-1);
         break;
+    // HDF errors
     case BAG_NOT_HDF5_FILE:
         strncpy(str, "HDF Bag is not an HDF5 File", MAX_STR-1);
         break;
@@ -946,6 +892,37 @@ BagError bagGetErrorString(
     case BAG_HDF_INVALID_COMPRESSION_LEVEL:
         strncpy(str, "HDF compression level not in acceptable range of 0 to 9", MAX_STR-1);
         break;
+    case BAG_HDF_WRITE_ATTRIBUTE_FAILURE:
+        strncpy(str, "HDF Unable to write to Attribute", MAX_STR-1);
+        break;
+    // Georef metadata errors
+    case BAG_GEOREF_METADATA_LAYER_MISSING:
+        strncpy(str, "Georef: The specified layer does not exist", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND:
+        strncpy(str, "Georef: Unable to find record", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND:
+        strncpy(str, "Georef: Unable to find field", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_NO_VALUE_FOUND:
+        strncpy(str, "Georef: Unable to find the value", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION:
+        strncpy(str,
+            "Georef: The provided record does not match the definition in the georeferenced metadata layer",
+            MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_NAME_MISSING:
+        strncpy(str, "Georef: A georeferenced metadata layer name is required", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_EXISTS:
+        strncpy(str, "Georef: The specified layer already exists", MAX_STR-1);
+        break;
+    case BAG_GEOREF_METADATA_LAYER_PROFILE_UNKNOWN:
+        strncpy(str, "Georef: The specified metadata profile is unknown", MAX_STR-1);
+        break;
+    // Invalid error code
     case BAG_INVALID_ERROR_CODE:
     default:
         strncpy(str, "An undefined bagError code was encountered", MAX_STR-1);
@@ -1108,6 +1085,25 @@ void bagFree(uint8_t* buffer)
     delete[] buffer;
 }
 
+// Private function to decompose CSV files
+std::vector<std::string> parseCSVString(const std::string& input, char sep)
+{
+    std::vector<std::string> ret;
+    size_t start = 0;
+    while (true) {
+        auto pos = input.find(sep, start);
+        if (pos == std::string::npos)
+        {
+            ret.emplace_back(input.substr(start));
+            break;
+        }
+
+        ret.emplace_back(input.substr(start, pos - start));
+        start = pos + 1;
+    }
+    return ret;
+}
+
 // Surface Corrections
 //! Retrieve the specified vertical datum from the surface corrections.
 /*!
@@ -1193,45 +1189,54 @@ BagError bagWriteCorrectorVerticalDatum(
     uint8_t corrector,
     const uint8_t* inDatum)
 {
-    if (!handle)
+    if (!handle) {
         return BAG_INVALID_BAG_HANDLE;
+    }
 
-    if (corrector < 1 || corrector > BAG_SURFACE_CORRECTOR_LIMIT)
+    if (corrector < 1 || corrector > BAG_SURFACE_CORRECTOR_LIMIT) {
         return BAG_INVALID_FUNCTION_ARGUMENT;
+    }
 
-    if (!inDatum)
+    if (!inDatum) {
         return BAG_INVALID_FUNCTION_ARGUMENT;
+    }
 
     auto layer = handle->dataset->getSurfaceCorrections();
-    if (!layer)
+    if (!layer) {
         return BAG_SURFACE_CORRECTIONS_MISSING;
+    }
 
     auto pDescriptor = std::dynamic_pointer_cast<BAG::SurfaceCorrectionsDescriptor>(
         layer->getDescriptor());
-
-    // Set/replace the specified datum.
-    std::vector<std::string> datums;
-    datums.reserve(BAG_SURFACE_CORRECTOR_LIMIT);
-
-    std::istringstream iss{pDescriptor->getVerticalDatums()};
-
-    while (iss)
-    {
-        std::string datum;
-        std::getline(iss, datum, ',');
-        if (!iss)
-            break;
-
-        datums.emplace_back(std::move(datum));
+    if (!pDescriptor) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
     }
 
-    datums[corrector-1] = reinterpret_cast<const char*>(inDatum);
+    // Vertical datums are stored as a comma-separated string in the BAG file attribute
+    // "vertical_datum_corrections/vertical_datum", so before adding/updating the datum
+    // for corrector N, we need to decompose the string into a vector of values
+    auto datums = parseCSVString(pDescriptor->getVerticalDatums(),
+        BAG_CORRECTOR_VERTICAL_DATUM_SEP);
+    if (datums.empty())
+    {
+        datums.emplace_back();
+    }
 
-    std::string joinedDatums = std::accumulate(cbegin(datums), cend(datums),
-        std::string{}, [](std::string& dest, const std::string& datum)
-        {
-            return dest.empty() ? datum : dest + ',' + datum;
-        });
+    // Check if datums is large enough to store the number of correctors
+    if (datums.size() < corrector)
+    {
+        datums.resize(corrector);
+    }
+
+    datums[corrector - 1] = std::string(reinterpret_cast<const char*>(inDatum));
+
+    // Now pack the new datum, along with any other datums for other correctors, into a new CSV value
+    std::string joinedDatums;
+    for (size_t i = 0; i < datums.size(); ++i)
+    {
+        if (!joinedDatums.empty()) joinedDatums += BAG_CORRECTOR_VERTICAL_DATUM_SEP;
+        joinedDatums += datums[i];
+    }
 
     pDescriptor->setVerticalDatums(joinedDatums);
 
@@ -1295,12 +1300,16 @@ BagError bagReadCorrectedLayer(
     uint32_t columnEnd = 0;
     std::tie(rowEnd, columnEnd) = descriptor.getDims();
 
-    auto correctedData = corrections->readCorrected(rowStart, rowEnd - 1,
-        columnStart, columnEnd - 1, corrector, *layer);
-
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
+    try {
+        auto correctedData = corrections->readCorrected(rowStart, rowEnd - 1,
+            columnStart, columnEnd - 1, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 }
 
 //! Read a corrected region from a simple layer.
@@ -1339,26 +1348,27 @@ BagError bagReadCorrectedRegion(
     BAG_LAYER_TYPE type,
     float** data)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!data)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!data) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto corrections = handle->dataset->getSurfaceCorrections();
-    if (!corrections)
-        return BAG_SURFACE_CORRECTIONS_MISSING;
+    if (!corrections) return BAG_SURFACE_CORRECTIONS_MISSING;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+    if (!layer) return BAG_LAYER_MISSING;
 
-    auto correctedData = corrections->readCorrected(rowStart, colStart, rowEnd,
+    try {
+        auto correctedData = corrections->readCorrected(rowStart, colStart, rowEnd,
         colEnd, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (const BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (const std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
 }
 
 //! Read a corrected row from a simple layer.
@@ -1388,31 +1398,33 @@ BagError bagReadCorrectedRow(
     BAG_LAYER_TYPE type,
     float** data)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!data)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!data) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto corrections = handle->dataset->getSurfaceCorrections();
-    if (!corrections)
-        return BAG_SURFACE_CORRECTIONS_MISSING;
+    if (!corrections) return BAG_SURFACE_CORRECTIONS_MISSING;
+
+    if (type > UNKNOWN_LAYER_TYPE) return BAG_INVALID_LAYER_TYPE;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return BAG_HDF_DATASET_OPEN_FAILURE;
+    if (!layer) return BAG_LAYER_MISSING;
 
     constexpr uint32_t columnStart = 0;
 
     const auto& descriptor = handle->dataset->getDescriptor();
     const auto columnEnd = std::get<1>(descriptor.getDims());
 
-    auto correctedData = corrections->readCorrectedRow(row, columnStart,
-        columnEnd, corrector, *layer);
-
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
+    try {
+        auto correctedData = corrections->readCorrectedRow(row, columnStart,
+            columnEnd, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (const BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (const std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 }
 
 //! Read a corrected node from a simple layer.
@@ -1445,26 +1457,28 @@ BagError bagReadCorrectedNode(
     BAG_LAYER_TYPE type,
     float** data)
 {
-    if (!handle)
-        return BAG_INVALID_BAG_HANDLE;
+    if (!handle) return BAG_INVALID_BAG_HANDLE;
 
-    if (!data)
-        return BAG_INVALID_FUNCTION_ARGUMENT;
+    if (!data) return BAG_INVALID_FUNCTION_ARGUMENT;
 
     const auto corrections = handle->dataset->getSurfaceCorrections();
-    if (!corrections)
-        return BAG_SURFACE_CORRECTIONS_MISSING;
+    if (!corrections) return BAG_SURFACE_CORRECTIONS_MISSING;
+
+    if (type > UNKNOWN_LAYER_TYPE) return BAG_INVALID_LAYER_TYPE;
 
     const auto layer = handle->dataset->getSimpleLayer(type);
-    if (!layer)
-        return BAG_SIMPLE_LAYER_MISSING;
+    if (!layer) return BAG_SIMPLE_LAYER_MISSING;
 
-    auto correctedData = corrections->readCorrectedRow(row, column,
-        column, corrector, *layer);
-
-    *data = reinterpret_cast<float*>(correctedData.release());
-
-    return BAG_SUCCESS;
+    try {
+        auto correctedData = corrections->readCorrectedRow(row, column,
+            column, corrector, *layer);
+        *data = reinterpret_cast<float*>(correctedData.release());
+        return BAG_SUCCESS;
+    } catch (BAG::UnsupportedSurfaceType&) {
+        return BAG_SURFACE_CORRECTIONS_MISSING;
+    } catch (std::exception&) {
+        return BAG_UNSPECIFIED_ERROR;
+    }
 }
 
 //! Retrieve the number of correctors.
@@ -1744,7 +1758,7 @@ BagError bagReadTrackingListNode(
     *numItems = static_cast<uint32_t>(results.size());
 
     *items = new BAG::TrackingItem[*numItems];
-    memcpy(*items, results.data(), *numItems);
+    memcpy(*items, results.data(), results.size() * sizeof(BAG::TrackingItem));
 
     return BAG_SUCCESS;
 }
@@ -1793,7 +1807,7 @@ BagError bagReadTrackingListCode(
     *numItems = static_cast<uint32_t>(results.size());
 
     *items = new BAG::TrackingItem[*numItems];
-    memcpy(*items, results.data(), *numItems);
+    memcpy(*items, results.data(), results.size() * sizeof(BAG::TrackingItem));
 
     return BAG_SUCCESS;
 }
@@ -1842,7 +1856,7 @@ BagError bagReadTrackingListSeries(
     *numItems = static_cast<uint32_t>(results.size());
 
     *items = new BAG::TrackingItem[*numItems];
-    memcpy(*items, results.data(), *numItems);
+    memcpy(*items, results.data(), results.size() * sizeof(BAG::TrackingItem));
 
     return BAG_SUCCESS;
 }
@@ -2137,6 +2151,12 @@ BAG_EXTERNAL BagError bagCreateMetadataProfileGeorefMetadataLayer(BagHandle* han
                                                    compressionLevel,
                                                    indexType);
     }
+    catch (const BAG::UknownMetadataProfile&) {
+        return BAG_GEOREF_METADATA_LAYER_PROFILE_UNKNOWN;
+    }
+    catch (const BAG::LayerNotFound&) {
+        return BAG_LAYER_MISSING;
+    }
     catch(const std::exception& /*e*/)
     {
         return BAG_HDF_CREATE_DATASET_FAILURE;
@@ -2184,12 +2204,11 @@ BagError bagGetGeorefMetadataLayerDefinition(
     // Convert the RecordDefinition into a FieldDefinition*.
     *numFields = static_cast<uint32_t>(recordDef.size());
 
-    auto* pDef = *definition;
-    pDef = new FieldDefinition[*numFields];
+    *definition = new FieldDefinition[*numFields];
 
     uint32_t index = 0;
     for (const auto& def : recordDef)
-        pDef[index++] = def;
+        *definition[index++] = def;
 
     return BAG_SUCCESS;
 }
@@ -2266,7 +2285,7 @@ BagError bagGetGeorefMetadataLayerRecords(
         {
             // Copy the field
             auto& outField = pRecord[fieldIndex++];
-            outField = getValue(field);
+            outField = BAG::getValue(field);
         }
     }
 
@@ -2320,7 +2339,7 @@ BagError bagGetGeorefMetadataLayerValueByName(
         const auto& val = georefMetadataLayer->getValueTable().getValue(recordIndex,
             fieldName);
 
-        *value = getValue(val);
+        *value = BAG::getValue(val);
     }
     catch(const BAG::ValueNotFound& /*e*/)
     {
@@ -2537,7 +2556,7 @@ BagError bagAddGeorefMetadataLayerRecord(
 
     size_t index = 0;
     for (auto& field : rec)
-        field = getValue(record[index++]);
+        field = BAG::getValue(record[index++]);
 
     try
     {
@@ -2607,7 +2626,7 @@ BagError bagAddGeorefMetadataLayerRecords(
         size_t fieldIndex = 0;
 
         for (auto& field : rec)
-            field = getValue(records[recordIndex][fieldIndex++]);
+            field = BAG::getValue(records[recordIndex][fieldIndex++]);
 
         ++recordIndex;
     }
@@ -2671,7 +2690,7 @@ BagError bagGeorefMetadataLayerSetValueByName(
         return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
-    const auto val = getValue(*value);
+    const auto val = BAG::getValue(*value);
 
     try
     {
@@ -2735,7 +2754,7 @@ BagError bagGeorefMetadataLayerSetValueByIndex(
         return BAG_GEOREF_METADATA_LAYER_MISSING;
 
     // Convert BagCompoundDataType into a BAG::CompoundDataType.
-    const auto val = getValue(*value);
+    const auto val = BAG::getValue(*value);
 
     try
     {
