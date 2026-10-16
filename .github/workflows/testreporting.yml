@@ -116,7 +116,7 @@ jobs:
       uses: pavi2410/html-preview-action@v5
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       with:
-        html_file: build/ccov/bag_tests/index.html
+        html_file: ccov/bag_tests/index.html
         site_root: build
         job_summary: true
 
