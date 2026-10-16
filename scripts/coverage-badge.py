@@ -1,6 +1,7 @@
 import sys
 import argparse
 import re
+import os.path
 
 from genbadge.utils_badge import Badge, COLORS
 
@@ -42,6 +43,7 @@ def main():
 
     badge = Badge(args.label, right_text, badge_color)
     badge.write_to(args.out_path)
+    print(f"Successfully wrote badge to: {os.path.abspath(args.out_path)}")
 
     return 0
 
