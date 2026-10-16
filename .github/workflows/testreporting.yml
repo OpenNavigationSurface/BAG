@@ -117,6 +117,7 @@ jobs:
         source "${{github.workspace}}/python-venv/bin/activate"
         echo "Using Python: $(which python)..."
         echo "Before badge, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
+        echo "Running ${{github.workspace}}/scripts/coverage-badge.py with contents: $(cat ${{github.workspace}}/scripts/coverage-badge.py)"
         cat "${RUNNER_TEMP}/ccov-out.txt" | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${RUNNER_TEMP}/coverage.svg" -c '{}'
         echo "Before deactivate, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
         deactivate
