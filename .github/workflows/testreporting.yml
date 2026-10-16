@@ -114,7 +114,7 @@ jobs:
       uses: zgosalvez/github-actions-report-lcov@v7
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       with:
-        coverage-files: ./build/ccov-data/bag_tests.info
+        coverage-files: ccov-data/*.info
         minimum-coverage: 60
         artifact-name: code-coverage-report
         github-token: ${{ secrets.GITHUB_TOKEN }}
