@@ -120,13 +120,6 @@ jobs:
         site_root: build
         job_summary: true
 
-    - name: Update coverage badge
-      if: ${{ env.PUBLISH_COVERAGE == 'true' }}
-      run: |
-        source python-venv/bin/activate
-        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python ./scripts/coverage-badge.py -o /tmp/coverage.svg -c '{}'
-        deactivate
-
     - name: Checkout badges branch
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       # Checkout badges branch of repo so that we can commit the coverage badge there
@@ -141,13 +134,15 @@ jobs:
         BADGE_PATH: ${{ steps.coverage.outputs.path }}
       run: mkdir -p "${BADGE_PATH%/*}"
 
-    - name: Commit badge
+    - name: Update coverage badge and commit
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       continue-on-error: true
       env:
         BADGE: ${{ steps.coverage.outputs.path }}
       run: |
-        mv /tmp/coverage.svg "${BADGE}"
+        source python-venv/bin/activate
+        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python ./scripts/coverage-badge.py -o "${BADGE}" -c '{}'
+        deactivate
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add "${BADGE}"
