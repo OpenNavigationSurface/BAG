@@ -1,0 +1,11 @@
+FROM ubuntu:26.04 AS builder
+
+WORKDIR /opt/BAG
+COPY scripts/install-dependencies-cov.sh ./install-dependencies-cov.sh
+RUN apt-get update -y && \
+    apt-get install -y sudo wget build-essential && \
+    bash /opt/BAG/install-dependencies-cov.sh
+
+WORKDIR /tmp/BAG
+
+ENTRYPOINT ["/bin/bash", "-c"]

@@ -22,18 +22,15 @@ def main():
                         default='Coverage')
     args = parser.parse_args()
 
-    print(f"coverage-badge.py: Searching for coverage stat in {args.coverage_level}...")
-
     m = COVERAGE_LEVEL_RE.search(args.coverage_level)
     if m is None:
         return (f"Unable to generate coverage badge at {args.out_path} due to error: "
                 f"Coverage level '{args.coverage_level}' does not match pattern: '{COVERAGE_LEVEL_RE_STR}'.")
 
     right_text = m.group(0)
+    right_text = right_text.replace('branches....:', '').strip()
 
     coverage_level = float(m.group(1))
-
-    print(f"coverage-badge.py: Found coverage stat: {coverage_level}")
 
     if coverage_level < 50.0:
         badge_color = COLORS['red']
@@ -48,11 +45,10 @@ def main():
 
     badge = Badge(args.label, right_text, badge_color)
     badge.write_to(args.out_path)
-    print(f"Successfully wrote badge to: {os.path.abspath(args.out_path)}")
+    print(f"Successfully wrote badge ({right_text}) to: {os.path.abspath(args.out_path)}")
 
     return 0
 
 
 if __name__ == '__main__':
-    print("coverage-badge.py: Start")
     sys.exit(main())

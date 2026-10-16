@@ -112,21 +112,11 @@ jobs:
       run: |
         export BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data
         export BAG_HOME=${{github.workspace}}/configdata
-        ls -la ${HOME}
-        cat "${HOME}/.lcovrc"
         rm -f "${RUNNER_TEMP}/ccov-out.txt"
         ninja -C build ccov-bag_tests > "${RUNNER_TEMP}/ccov-out.txt"
-        echo "Coverage output at ${RUNNER_TEMP}/ccov-out.txt contents..."
-        cat "${RUNNER_TEMP}/ccov-out.txt"
-        ls -R ./build/ccov/
         source "${{github.workspace}}/python-venv/bin/activate"
-        echo "Using Python: $(which python)..."
-        echo "Before badge, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
-        echo "Running ${{github.workspace}}/scripts/coverage-badge.py with contents: $(cat ${{github.workspace}}/scripts/coverage-badge.py)"
         cat "${RUNNER_TEMP}/ccov-out.txt" | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${RUNNER_TEMP}/coverage.svg" -c '{}'
-        echo "Before deactivate, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
         deactivate
-        echo "At end of step, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
 
     - name: Test coverage reporter
       uses: pavi2410/html-preview-action@v5
@@ -150,13 +140,12 @@ jobs:
         BADGE_PATH: ${{ steps.coverage.outputs.path }}
       run: mkdir -p "${BADGE_PATH%/*}"
 
-    - name: Update coverage badge and commit
+    - name: Commit coverage badge
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       continue-on-error: true
       env:
         BADGE: ${{ steps.coverage.outputs.path }}
       run: |
-        ls "${RUNNER_TEMP}"
         mv "${RUNNER_TEMP}/coverage.svg" "${BADGE}"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"

@@ -56,6 +56,26 @@ an exception, you can see the details of where the exception is being thrown by 
 the tests in a debugger, e.g.: `gdb ./build/tests/bag_tests_d` then typing `catch throw`
 then `run`.
 
+## CI
+You can build a development Linux container that comes close to the GitHub actions CI 
+environment using [Dockerfile.ci](../Dockerfile.ci) and running the following command 
+from the repository root directory:
+```shell
+docker buildx build -t ci/debian/baglib:latest -f Dockerfile.ci .
+```
+
+To build for a specific architecture, such as AMD64, run:
+```shell
+docker buildx build --platform=linux/amd64 \
+  -t ci/debian/amd64/baglib:latest -f Dockerfile.ci .
+```
+
+To manually build and test inside the development container, run:
+```shell
+docker run -ti -v ./:/tmp/BAG:rw ci/debian/baglib:latest /bin/bash
+./scripts/dev-cont-build-bag.sh
+```
+
 ## Linux / macOS
 
 ### Configure and build BAG
