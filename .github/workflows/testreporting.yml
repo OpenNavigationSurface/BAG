@@ -142,8 +142,9 @@ jobs:
         BADGE: ${{ steps.coverage.outputs.path }}
       run: |
         ls -l .
-        source python-venv/bin/activate
-        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python ./scripts/coverage-badge.py -o "${BADGE}" -c '{}'
+        ls -l ${{github.workspace}}
+        source "${{github.workspace}}/python-venv/bin/activate"
+        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${BADGE}" -c '{}'
         deactivate
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
