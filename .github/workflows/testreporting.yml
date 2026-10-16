@@ -111,13 +111,13 @@ jobs:
         export BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data
         export BAG_HOME=${{github.workspace}}/configdata
         printf 'branch_coverage = 1\nno_exception_branch = 1\n' > ~/.lcovrc
-        rm -f /tmp/ccov-out.txt
-        ninja -C build ccov-bag_tests > /tmp/ccov-out.txt
+        rm -f "${RUNNER_TEMP}/ccov-out.txt"
+        ninja -C build ccov-bag_tests > "${RUNNER_TEMP}/ccov-out.txt"
         ls -R ./build/ccov/
         source "${{github.workspace}}/python-venv/bin/activate"
-        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${BADGE}" -c '{}'
+        cat "${RUNNER_TEMP}/ccov-out.txt" | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${RUNNER_TEMP}/coverage.svg" -c '{}'
         deactivate
-        ls /tmp
+        ls "${RUNNER_TEMP}"
 
     - name: Test coverage reporter
       uses: pavi2410/html-preview-action@v5
@@ -147,8 +147,8 @@ jobs:
       env:
         BADGE: ${{ steps.coverage.outputs.path }}
       run: |
-        ls /tmp
-        mv /tmp/coverage.svg "${BADGE}"
+        ls "${RUNNER_TEMP}"
+        mv "${RUNNER_TEMP}/coverage.svg" "${BADGE}"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add "${BADGE}"
