@@ -22,6 +22,8 @@ def main():
                         default='Coverage')
     args = parser.parse_args()
 
+    print(f"coverage-badge.py: Searching for coverage stat in {args.coverage_level}...")
+
     m = COVERAGE_LEVEL_RE.search(args.coverage_level)
     if m is None:
         return (f"Unable to generate coverage badge at {args.out_path} due to error: "
@@ -30,6 +32,9 @@ def main():
     right_text = m.group(0)
 
     coverage_level = float(m.group(1))
+
+    print(f"coverage-badge.py: Found coverage stat: {coverage_level}")
+
     if coverage_level < 50.0:
         badge_color = COLORS['red']
     elif coverage_level < 60.0:
@@ -49,4 +54,5 @@ def main():
 
 
 if __name__ == '__main__':
+    print("coverage-badge.py: Start")
     sys.exit(main())
