@@ -2,7 +2,7 @@
 [![image](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testmatrix.yml/badge.svg)](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testmatrix.yml)
 [![image](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testwindows.yml/badge.svg)](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testwindows.yml)
 [![image](https://raw.githubusercontent.com/OpenNavigationSurface/BAG/badges/master/coverage.svg)](https://github.com/OpenNavigationSurface/BAG/actions/workflows/testreporting.yml)
-[![Documentation Status](https://readthedocs.org/projects/bag/badge/?version=stable)](https://bag.readthedocs.io/en/latest/?badge=stable)
+[![Documentation Status](https://app.readthedocs.org/projects/bag/badge/?version=master&style=html)](https://bag.readthedocs.io/en/master/bag)
 
 # Bathymetric Attributed Grid (BAG) - Open Navigation Surface Project
 
