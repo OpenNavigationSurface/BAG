@@ -15,7 +15,7 @@ def main():
         description='Create coverage badge'
     )
     parser.add_argument('-c', '--coverage_level',
-                        help=f"Coverage percentage; String matching pattern: {COVERAGE_LEVEL_RE_STR}")
+                        help="Coverage percentage; String matching pattern: 'branches....: 74.3%% (3692 of 4966 branches)")
     parser.add_argument('-o', '--out_path',
                         help='Name of file to write to. Will overwrite an existing file.')
     parser.add_argument('--label', help='Text to use on the left side of coverage badge.',
