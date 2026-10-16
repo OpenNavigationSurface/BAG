@@ -39,6 +39,7 @@ jobs:
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13", "3.14"]
+        compiler: ["gcc", "clang"]
         os: [ubuntu-24.04]
     # The CMake configure and build commands are platform agnostic and should work equally well on Windows or Mac.
     # You can convert this to a matrix build if you need cross-platform coverage.
@@ -63,8 +64,20 @@ jobs:
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
       # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
       run: |
-        export CC=${{env.CC}}
-        export CXX=${{env.CXX}}
+        case "${{ matrix.compiler }}" in
+          gcc)
+            export CC=gcc
+            export CXX=g++
+            ;;
+          clang)
+            export CC=clang
+            export CXX=clang++
+            ;;
+          *)
+            echo "Unsupported compiler: ${{ matrix.compiler }}"
+            exit 1
+            ;;
+        esac
         cmake -G Ninja -DCMAKE_BUILD_TYPE=${{env.BUILD_TYPE}} -B build -S . -DCMAKE_INSTALL_PREFIX=/usr -DBAG_BUILD_TESTS:BOOL=ON
 
     - name: Build
