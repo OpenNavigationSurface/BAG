@@ -115,9 +115,12 @@ jobs:
         ninja -C build ccov-bag_tests > "${RUNNER_TEMP}/ccov-out.txt"
         ls -R ./build/ccov/
         source "${{github.workspace}}/python-venv/bin/activate"
+        echo "Using Python: $(which python)..."
+        echo "Before badge, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
         cat "${RUNNER_TEMP}/ccov-out.txt" | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${RUNNER_TEMP}/coverage.svg" -c '{}'
+        echo "Before deactivate, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
         deactivate
-        ls "${RUNNER_TEMP}"
+        echo "At end of step, RUNNER_TEMP contents: $(ls $RUNNER_TEMP)"
 
     - name: Test coverage reporter
       uses: pavi2410/html-preview-action@v5
