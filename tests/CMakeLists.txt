@@ -103,6 +103,6 @@ if(BAG_CODE_COVERAGE)
     # We exclude bag_exceptions.h as it defines trivial classes the artificially depress coverage stats.
     target_code_coverage(bag_tests AUTO ALL EXCLUDE api/bag_exceptions.h tests/*
             LCOV_OPTIONS --rc branch_coverage=1
-            GENHTML_OPTIONS --branch-coverage
+            GENHTML_OPTIONS --branch-coverage --ignore-errors inconsistent
     )
 endif()

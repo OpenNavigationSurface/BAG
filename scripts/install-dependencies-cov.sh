@@ -2,7 +2,7 @@
 set -ex # Abort on error.
 pushd .
 sudo apt-get update -y
-sudo apt-get install -y llvm clang lcov cmake ninja-build libhdf5-dev libxml2-dev python3-venv
+sudo apt-get install -y llvm lcov cmake ninja-build libhdf5-dev libxml2-dev python3-venv
 # Install a recent version of Catch2 version 3
 cd /tmp
 wget https://github.com/catchorg/Catch2/archive/refs/tags/v3.16.0.tar.gz
