@@ -108,23 +108,23 @@ jobs:
       run: |
         export BAG_SAMPLES_PATH=${{github.workspace}}/examples/sample-data
         export BAG_HOME=${{github.workspace}}/configdata
-        ninja -C build ccov-bag_tests
+        printf 'branch_coverage = 1\nno_exception_branch = 1\n' > ~/.lcovrc
+        rm -f /tmp/ccov-out.txt
+        ninja -C build ccov-bag_tests > /tmp/ccov-out.txt
 
     - name: Test coverage reporter
-      uses: zgosalvez/github-actions-report-lcov@v7
+      uses: pavi2410/html-preview-action@v5
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       with:
-        coverage-files: ccov-data/*.info
-        minimum-coverage: 60
-        artifact-name: code-coverage-report
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        working-directory: ./api
+        html_file: build/ccov/bag_tests/index.html
+        site_root: build
+        job_summary: true
 
     - name: Update coverage badge
       if: ${{ env.PUBLISH_COVERAGE == 'true' }}
       run: |
         source python-venv/bin/activate
-        llvm-cov report -instr-profile=build/ccov/all-merged.profdata `cat ./build/ccov/binaries.list` -ignore-filename-regex="tests/*" | tail -n 1 | awk '{ print $10 }' | xargs python ./scripts/coverage-badge.py -o /tmp/coverage.svg -c
+        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python ./scripts/coverage-badge.py -o /tmp/coverage.svg -c '{}'
         deactivate
 
     - name: Checkout badges branch

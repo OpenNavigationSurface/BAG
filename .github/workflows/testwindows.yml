@@ -10,6 +10,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - scripts/coverage-badge.py
       - .github/workflows/testmatrix.yml
       - .github/workflows/testreporting.yml
     branches: [ "master" ]
@@ -22,6 +23,7 @@ on:
       - '*.md'
       - '*.svg'
       - '*.png'
+      - scripts/coverage-badge.py
       - .github/workflows/testmatrix.yml
       - .github/workflows/testreporting.yml
     branches: [ "master" ]

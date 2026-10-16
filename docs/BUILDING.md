@@ -36,7 +36,7 @@ docker buildx build --platform=linux/amd64 \
 
 To manually build and test inside the development container, run:
 ```shell
-docker run -ti -v ./:/tmp/bag:rw dev/debian/baglib:latest /bin/bash
+docker run -ti -v ./:/tmp/BAG:rw dev/debian/baglib:latest /bin/bash
 ./scripts/dev-cont-build-bag.sh
 ```
 

@@ -4,8 +4,8 @@ import re
 
 from genbadge.utils_badge import Badge, COLORS
 
-
-COVERAGE_LEVEL_RE_STR = "(\d{1,3}(?:\.\d*){0,1})%"
+# Parse coverage out of 'branches....: 74.3% (3692 of 4966 branches)'
+COVERAGE_LEVEL_RE_STR = r'branches\.+:\s+(\d+\.\d+)%\s+\(.+\)'
 COVERAGE_LEVEL_RE = re.compile(COVERAGE_LEVEL_RE_STR)
 
 
@@ -21,7 +21,7 @@ def main():
                         default='Coverage')
     args = parser.parse_args()
 
-    m = COVERAGE_LEVEL_RE.match(args.coverage_level)
+    m = COVERAGE_LEVEL_RE.search(args.coverage_level)
     if m is None:
         return (f"Unable to generate coverage badge at {args.out_path} due to error: "
                 f"Coverage level '{args.coverage_level}' does not match pattern: '{COVERAGE_LEVEL_RE_STR}'.")

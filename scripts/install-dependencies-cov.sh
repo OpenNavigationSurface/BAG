@@ -15,6 +15,6 @@ sudo cmake --build build --target install
 popd
 python3 -m venv python-venv --system-site-packages
 source python-venv/bin/activate
-pip install 'Pillow==9.1.1'
-pip install 'genbadge[coverage]==1.0.6'
+pip install 'Pillow==12.3.0'
+pip install 'genbadge[coverage]==1.1.3'
 deactivate
