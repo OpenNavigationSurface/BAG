@@ -114,6 +114,10 @@ jobs:
         rm -f /tmp/ccov-out.txt
         ninja -C build ccov-bag_tests > /tmp/ccov-out.txt
         ls -R ./build/ccov/
+        source "${{github.workspace}}/python-venv/bin/activate"
+        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${BADGE}" -c '{}'
+        deactivate
+        ls /tmp
 
     - name: Test coverage reporter
       uses: pavi2410/html-preview-action@v5
@@ -143,11 +147,8 @@ jobs:
       env:
         BADGE: ${{ steps.coverage.outputs.path }}
       run: |
-        ls -l .
-        ls -l ${{github.workspace}}
-        source "${{github.workspace}}/python-venv/bin/activate"
-        cat /tmp/ccov-out.txt | grep 'branches....:' | xargs -I {} python "${{github.workspace}}/scripts/coverage-badge.py" -o "${BADGE}" -c '{}'
-        deactivate
+        ls /tmp
+        mv /tmp/coverage.svg "${BADGE}"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
         git add "${BADGE}"
