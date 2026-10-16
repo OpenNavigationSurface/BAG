@@ -113,6 +113,8 @@ jobs:
         printf 'branch_coverage = 1\nno_exception_branch = 1\n' > ~/.lcovrc
         rm -f "${RUNNER_TEMP}/ccov-out.txt"
         ninja -C build ccov-bag_tests > "${RUNNER_TEMP}/ccov-out.txt"
+        echo "Coverage output at ${RUNNER_TEMP}/ccov-out.txt contents..."
+        cat "${RUNNER_TEMP}/ccov-out.txt"
         ls -R ./build/ccov/
         source "${{github.workspace}}/python-venv/bin/activate"
         echo "Using Python: $(which python)..."
