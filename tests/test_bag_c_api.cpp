@@ -320,6 +320,13 @@ namespace
         return bagFileName;
     }
 
+    const std::string sampleGeorefMetadataBagPath()
+    {
+        const std::string bagFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
+        "/bag_georefmetadata_layer.bag"};
+        return bagFileName;
+    }
+
     const std::string sampleMetadataPath()
     {
         const std::string metdataFileName{std::string{std::getenv("BAG_SAMPLES_PATH")} +
@@ -331,6 +338,14 @@ namespace
     {
         BagHandle* handle = nullptr;
         auto bagFile = sampleBagPath();
+        REQUIRE(bagFileOpen(&handle, mode, bagFile.c_str()) == BAG_SUCCESS);
+        return handle;
+    }
+
+    BagHandle* openGeorefMetadataSampleBag(BAG_OPEN_MODE mode = BAG_OPEN_MODE::BAG_OPEN_READONLY)
+    {
+        BagHandle* handle = nullptr;
+        auto bagFile = sampleGeorefMetadataBagPath();
         REQUIRE(bagFileOpen(&handle, mode, bagFile.c_str()) == BAG_SUCCESS);
         return handle;
     }
@@ -2275,6 +2290,35 @@ TEST_CASE("GetGeorefMetadataLayerRecords - Layer missing returns BAG_GEOREF_META
     BagCompoundDataType** records = nullptr;
     uint32_t numRec = 0, numFields = 0;
     CHECK(bagGetGeorefMetadataLayerRecords(handle, "nonexistent_georef_layer", &records, &numRec, &numFields) == BAG_GEOREF_METADATA_LAYER_MISSING);
+    REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
+}
+
+TEST_CASE("GetGeorefMetadataLayerRecords - read - happy", "[bag_c_api][georef_meta][read][happy][userDefinedRecords]") {
+    BagHandle* handle = openGeorefMetadataSampleBag();
+    BagCompoundDataType** records = nullptr;
+    uint32_t numRec = 0, numFields = 0;
+    CHECK(bagGetGeorefMetadataLayerRecords(handle, "Elevation", &records, &numRec, &numFields) == BAG_SUCCESS);
+    // bagGetGeorefMetadataLayerValueByName
+    BagCompoundDataType record;
+    CHECK(bagGetGeorefMetadataLayerValueByName(handle, "Elevation", 1, "significant_features_typo", &record) == BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND);
+    CHECK(bagGetGeorefMetadataLayerValueByName(handle, "Elevation", 0, "significant_features", &record) == BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND);
+    CHECK(bagGetGeorefMetadataLayerValueByName(handle, "Elevation", 1, "significant_features", &record) == BAG_SUCCESS);
+    CHECK(record.data.b == false);
+    CHECK(bagGetGeorefMetadataLayerValueByName(handle, "Elevation", 2, "significant_features", &record) == BAG_SUCCESS);
+    CHECK(record.data.b == true);
+    // bagGetGeorefMetadataLayerValueByIndex
+    CHECK(bagGetGeorefMetadataLayerValueByIndex(handle, "Elevation", 1, 42, &record) == BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND);
+    CHECK(bagGetGeorefMetadataLayerValueByIndex(handle, "Elevation", 1, 0, &record) == BAG_SUCCESS);
+    // bagGetGeorefMetadataLayerFieldIndex
+    uint32_t fieldIdx = 99999;
+    CHECK(bagGetGeorefMetadataLayerFieldIndex(handle, "Elevation", "significant_features_typo", &fieldIdx) == BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND);
+    CHECK(bagGetGeorefMetadataLayerFieldIndex(handle, "Elevation", "significant_features", &fieldIdx) == BAG_SUCCESS);
+    CHECK(fieldIdx == 0);
+    // bagGetGeorefMetadataLayerFieldName
+    const char* fieldName;
+    CHECK(bagGetGeorefMetadataLayerFieldName(handle, "Elevation", 9999, &fieldName) == BAG_GEOREF_METADATA_LAYER_FIELD_NOT_FOUND);
+    CHECK(bagGetGeorefMetadataLayerFieldName(handle, "Elevation", 0, &fieldName) == BAG_SUCCESS);
+    CHECK(strcmp(fieldName, "significant_features") == 0);
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
