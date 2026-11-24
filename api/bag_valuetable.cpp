@@ -439,6 +439,13 @@ void ValueTable::setValue(
         throw ValueNotFound{};
 
     auto& record = m_records[key];
+
+    auto field = record[fieldIndex];
+    if (field.getType() != value.getType())
+    {
+        throw InvalidValue{};
+    }
+
     record[fieldIndex] = value;
 
     this->writeRecord(key, record);

@@ -12,6 +12,7 @@
 #include <string>
 #include <vector>
 
+#include "bag_private.h"
 #include "test_utils.h"
 
 namespace
@@ -2293,7 +2294,7 @@ TEST_CASE("GetGeorefMetadataLayerRecords - Layer missing returns BAG_GEOREF_META
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-TEST_CASE("GetGeorefMetadataLayerRecords - read - happy", "[bag_c_api][georef_meta][read][happy][userDefinedRecords]") {
+TEST_CASE("GetGeorefMetadataLayerRecords - read - happy", "[bag_c_api][georef_meta][read][happy]") {
     BagHandle* handle = openGeorefMetadataSampleBag();
     BagCompoundDataType** records = nullptr;
     uint32_t numRec = 0, numFields = 0;
@@ -2572,7 +2573,7 @@ TEST_CASE("SetValueByIndex - Layer missing returns BAG_GEOREF_METADATA_LAYER_MIS
     REQUIRE(bagFileClose(handle) == BAG_SUCCESS);
 }
 
-TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]")
+TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][userDefinedRecords][happy][sad]")
 {
     // Forward declare stack variables for later use (we have to do this above calls to goto cleanup).
     float *corrected = nullptr;
@@ -2582,6 +2583,36 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
     FieldDefinition defn;
     FieldDefinition *defnRead = nullptr;
     uint32_t numFields = 0;
+    BagCompoundDataType** recordsNull = nullptr;
+
+    // Create multiple records on the stack for later use
+    constexpr uint32_t nRec = 2;
+    constexpr uint32_t nFld = 1;
+    BagCompoundDataType record0[nFld] = {};
+    record0[0].type = DT_UINT32;
+    record0[0].data.ui32 = 42;
+    BagCompoundDataType record1[nFld] = {};
+    record1[0].type = DT_UINT32;
+    record1[0].data.ui32 = 23;
+    const BagCompoundDataType* records[nRec] = {
+        record0,
+        record1
+    };
+    // Create invalid records
+    BagCompoundDataType recordInvalid0[nFld] = {};
+    recordInvalid0[0].type = DT_FLOAT32;
+    recordInvalid0[0].data.f = 42.f;
+    BagCompoundDataType recordInvalid1[nFld] = {};
+    recordInvalid1[0].type = DT_FLOAT32;
+    recordInvalid1[0].data.f = 23.f;
+    const BagCompoundDataType* recordsInvalid[nRec] = {
+        recordInvalid0,
+        recordInvalid1
+    };
+
+    BagCompoundDataType record;
+    uint32_t numRec = 0;
+    uint32_t recIdx1 = 1;
 
     bool success = true;
     const TestUtils::RandomFileGuard tmpFile;
@@ -2613,6 +2644,9 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
         goto cleanup;
     }
 
+    // Cover case in bagAddGeorefMetadataLayerRecords where no user-defined records have been added yet...
+    CHECK(bagAddGeorefMetadataLayerRecords(handle, "Elevation", records, 1, 1) == BAG_GEOREF_METADATA_LAYER_MISSING);
+
     defn = {"dummy_int", DT_UINT32};
     err = bagCreateGeorefMetadataLayer(handle, DT_UINT16, UNKNOWN_METADATA_PROFILE, "elevation", &defn, 1);
     if (err != BAG_SUCCESS)
@@ -2620,6 +2654,10 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
         success = false;
         goto cleanup;
     }
+
+    // Cover case in bagGetGeorefMetadataLayerRecords where no user-defined records have been added yet...
+    CHECK(bagGetGeorefMetadataLayerRecords(handle, "Elevation", &recordsNull, &numRec, &numFields) == BAG_SUCCESS);
+    CHECK(bagGetGeorefMetadataLayerValueByIndex(handle, "Elevation", 1, 0, &record) == BAG_GEOREF_METADATA_LAYER_RECORD_NOT_FOUND);
 
     err = bagGetGeorefMetadataLayerDefinition(handle, "elevation", &defnRead, &numFields);
     if (err != BAG_SUCCESS)
@@ -2630,6 +2668,34 @@ TEST_CASE("bagGetGeorefMetadata - Happy Path", "[bag_c_api][georef_meta][happy]"
     CHECK(numFields == 1);
     CHECK(defnRead->name == defn.name);
     CHECK(defnRead->type == defn.type);
+
+    // Add a single record
+    // Sad paths first
+    record.type = DT_FLOAT32;
+    record.data.f = 42.;
+    CHECK(bagAddGeorefMetadataLayerRecord(handle, "Elevation", &record, 1, &recIdx1) == BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION);
+    // Happy path
+    record.type = DT_UINT32;
+    record.data.ui32 = 42;
+    CHECK(bagAddGeorefMetadataLayerRecord(handle, "Elevation", &record, 1, &recIdx1) == BAG_SUCCESS);
+
+    // Add multiple records
+    // Sad path first
+    CHECK(bagAddGeorefMetadataLayerRecords(handle, "Elevation", recordsInvalid, 2, 1) == BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION);
+    // Happy path
+    CHECK(bagAddGeorefMetadataLayerRecords(handle, "Elevation", records, 2, 1) == BAG_SUCCESS);
+
+    // Reset value using bagGeorefMetadataLayerSetValueByName
+    // Sad path first
+    CHECK(bagGeorefMetadataLayerSetValueByName(handle, "Elevation", 1, "dummy_int", recordInvalid0) == BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION);
+    // Happy path
+    CHECK(bagGeorefMetadataLayerSetValueByName(handle, "Elevation", 1, "dummy_int", record1) == BAG_SUCCESS);
+
+    // Reset value using bagGeorefMetadataLayerSetValueByIndex
+    CHECK(bagGeorefMetadataLayerSetValueByIndex(handle, "Elevation", 1, 0, recordInvalid0) == BAG_GEOREF_METADATA_LAYER_INVALID_RECORD_DEFINITION);
+    // Happy path
+    CHECK(bagGeorefMetadataLayerSetValueByIndex(handle, "Elevation", 1, 0, record0) == BAG_SUCCESS);
+
 
  cleanup:
     free(surf);

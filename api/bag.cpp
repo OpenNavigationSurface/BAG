@@ -2587,8 +2587,8 @@ BagError bagAddGeorefMetadataLayerRecord(
 \param layerName
     The case-insensitive name of the simple layer the georeferenced metadata layer contains metadata about.
     Cannot be NULL.
-\param record
-    The record to add.
+\param records
+    The records to add.
     Cannot be NULL.
 \param numRecords
     The number of records.
